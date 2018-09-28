@@ -17,6 +17,7 @@ func NewHandler() sdk.Handler {
 	return &Handler{
 		installationSteps: []installation.Step{
 			installation.NewDeployStep(),
+			installation.NewServiceStep(),
 		},
 	}
 }

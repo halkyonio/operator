@@ -16,3 +16,26 @@ limitations under the License.
 */
 
 package installation
+
+import "github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+
+// NewServiceStep creates a step that handles the creation of the DeploymentConfig
+func NewServiceStep() Step {
+	return &serviceStep{}
+}
+
+type serviceStep struct {
+}
+
+func (serviceStep) Name() string {
+	panic("implement me")
+}
+
+func (serviceStep) CanHandle(integration *v1alpha1.SpringBoot) bool {
+	panic("implement me")
+}
+
+func (serviceStep) Handle(integration *v1alpha1.SpringBoot) error {
+	panic("implement me")
+}
+
