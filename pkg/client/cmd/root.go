@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/spring-boot-operator/pkg/util/kubernetes"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -70,12 +69,6 @@ func NewSpringBootCommand(ctx context.Context) (*cobra.Command, error) {
 		// TODO -> GetCurrentNamespace instead of using a hard coded value
 		current := "spring-boot-operator"
 		cmd.Flag("namespace").Value.Set(current)
-	}
-
-	// Initialize the Kubernetes client to allow using the operator-sdk
-	err := kubernetes.InitKubeClient(options.KubeConfig)
-	if err != nil {
-		return nil, err
 	}
 
 	cmd.AddCommand(newCmdVersion())
