@@ -11,8 +11,8 @@ fi
 
 BIN_DIR="$(pwd)/tmp/_output/bin"
 mkdir -p ${BIN_DIR}
-PROJECT_NAME="sb-operator"
-REPO_PATH="github.com/snowdrop/spring-boot-cloud-devex/sb-operator"
+PROJECT_NAME="spring-boot-operator"
+REPO_PATH="github.com/snowdrop/spring-boot-operator"
 BUILD_PATH="${REPO_PATH}/cmd/${PROJECT_NAME}"
 TEST_PATH="${REPO_PATH}/${TEST_LOCATION}"
 

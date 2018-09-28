@@ -17,7 +17,7 @@ limitations under the License.
 
 package installation
 
-import "github.com/snowdrop/spring-boot-cloud-devex/sb-operator/pkg/apis/springboot/v1alpha1"
+import "github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
 
 // Action --
 type Step interface {

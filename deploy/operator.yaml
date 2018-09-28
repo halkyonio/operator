@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sb-operator
+  name: spring-boot-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: sb-operator
+      name: spring-boot-operator
   template:
     metadata:
       labels:
-        name: sb-operator
+        name: spring-boot-operator
     spec:
-      serviceAccountName: sb-operator
+      serviceAccountName: spring-boot-operator
       containers:
-        - name: sb-operator
-          image: quay.io/snowdrop/sb-operator
+        - name: spring-boot-operator
+          image: quay.io/snowdrop/spring-boot-operator
           ports:
           - containerPort: 60000
             name: metrics
           command:
-          - sb-operator
+          - spring-boot-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
@@ -28,4 +28,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: OPERATOR_NAME
-              value: "sb-operator"
+              value: "spring-boot-operator"

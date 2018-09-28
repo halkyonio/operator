@@ -1,4 +1,4 @@
-## Spring Boot's operator
+## Spring Boot's kubernetes operator
 
 Instructions followed to create the Spring Boot's CRD, operator using the `operator-sdk`'s kit
 
@@ -40,7 +40,7 @@ Instructions followed to create the Spring Boot's CRD, operator using the `opera
 
 - Verify that the busybox pod is created
   ```bash
-  kubectl get pod -l app=busy-box
+  oc get pod -l app=busy-box
   NAME            READY     STATUS    RESTARTS   AGE
   busy-box   1/1       Running   0          50s
   ```

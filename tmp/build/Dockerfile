@@ -1,6 +1,6 @@
 FROM alpine:3.6
 
-RUN adduser -D sb-operator
-USER sb-operator
+RUN adduser -D spring-boot-operator
+USER spring-boot-operator
 
-ADD tmp/_output/bin/sb-operator /usr/local/bin/sb-operator
+ADD tmp/_output/bin/spring-boot-operator /usr/local/bin/spring-boot-operator

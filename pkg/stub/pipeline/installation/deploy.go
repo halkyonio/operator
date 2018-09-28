@@ -17,7 +17,7 @@ limitations under the License.
 
 package installation
 
-import "github.com/snowdrop/spring-boot-cloud-devex/sb-operator/pkg/apis/springboot/v1alpha1"
+import "github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
 
 // NewDeployStep creates a step that handles the creation of the DeploymentConfig
 func NewDeployStep() Step {
@@ -38,4 +38,3 @@ func (deployStep) CanHandle(integration *v1alpha1.SpringBoot) bool {
 func (deployStep) Handle(integration *v1alpha1.SpringBoot) error {
 	panic("implement me")
 }
-
