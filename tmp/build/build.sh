@@ -14,12 +14,12 @@ mkdir -p ${BIN_DIR}
 PROJECT_NAME="spring-boot-operator"
 REPO_PATH="github.com/snowdrop/spring-boot-operator"
 BUILD_PATH="${REPO_PATH}/cmd/${PROJECT_NAME}"
-TEST_PATH="${REPO_PATH}/${TEST_LOCATION}"
+#TEST_PATH="${REPO_PATH}/${TEST_LOCATION}"
 
 echo "building "${PROJECT_NAME}"..."
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ${BIN_DIR}/${PROJECT_NAME} $BUILD_PATH
 
-if $ENABLE_TESTS ; then
-	echo "building "${PROJECT_NAME}-test"..."
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go test -c -o ${BIN_DIR}/${PROJECT_NAME}-test $TEST_PATH
-fi
+# if $ENABLE_TESTS ; then
+# 	echo "building "${PROJECT_NAME}-test"..."
+# 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go test -c -o ${BIN_DIR}/${PROJECT_NAME}-test $TEST_PATH
+# fi
