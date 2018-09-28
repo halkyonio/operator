@@ -1,6 +1,3 @@
-// +k8s:deepcopy-gen=package
-// +groupName=springboot.snowdrop.me
-
 /*
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements.  See the NOTICE file distributed with
@@ -18,4 +15,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package installation
+
+import "github.com/snowdrop/spring-boot-cloud-devex/sb-operator/pkg/apis/springboot/v1alpha1"
+
+// Action --
+type Step interface {
+
+	// a user friendly name for the action
+	Name() string
+
+	// returns true if the action can handle the integration
+	CanHandle(integration *v1alpha1.SpringBoot) bool
+
+	// executes the handling function
+	Handle(integration *v1alpha1.SpringBoot) error
+}

@@ -15,7 +15,7 @@ spec:
       serviceAccountName: sb-operator
       containers:
         - name: sb-operator
-          image: REPLACE_IMAGE
+          image: quay.io/snowdrop/sb-operator
           ports:
           - containerPort: 60000
             name: metrics

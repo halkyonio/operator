@@ -2,7 +2,7 @@ package stub
 
 import (
 	"context"
-
+	"github.com/snowdrop/spring-boot-cloud-devex/sb-operator/pkg/stub/pipeline/installation"
 	"github.com/snowdrop/spring-boot-cloud-devex/sb-operator/pkg/apis/springboot/v1alpha1"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
@@ -14,11 +14,15 @@ import (
 )
 
 func NewHandler() sdk.Handler {
-	return &Handler{}
+	return &Handler{
+		installationSteps: []installation.Step{
+			installation.NewDeployStep(),
+		},
+	}
 }
 
 type Handler struct {
-	// Fill me
+	installationSteps    []installation.Step
 }
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {

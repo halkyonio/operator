@@ -1,6 +1,3 @@
-// +k8s:deepcopy-gen=package
-// +groupName=springboot.snowdrop.me
-
 /*
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements.  See the NOTICE file distributed with
@@ -18,4 +15,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package installation
+
+import "github.com/snowdrop/spring-boot-cloud-devex/sb-operator/pkg/apis/springboot/v1alpha1"
+
+// NewDeployStep creates a step that handles the creation of the DeploymentConfig
+func NewDeployStep() Step {
+	return &deployStep{}
+}
+
+type deployStep struct {
+}
+
+func (deployStep) Name() string {
+	panic("implement me")
+}
+
+func (deployStep) CanHandle(integration *v1alpha1.SpringBoot) bool {
+	panic("implement me")
+}
+
+func (deployStep) Handle(integration *v1alpha1.SpringBoot) error {
+	panic("implement me")
+}
+
