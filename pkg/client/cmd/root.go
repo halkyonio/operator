@@ -48,7 +48,7 @@ func NewSpringBootCommand(ctx context.Context) (*cobra.Command, error) {
 	var cmd = cobra.Command{
 		Use:   "sb",
 		Short: "sb client",
-		Long: `spring boot client handling cloud deployment on kubernetes`,
+		Long:  `spring boot client handling cloud deployment on kubernetes`,
 
 		Example: `        # To deploy a Spring Boot application on Kubernetes
         sb init -n namespace # to initialize/create the environment within the cloud machine
@@ -67,16 +67,17 @@ func NewSpringBootCommand(ctx context.Context) (*cobra.Command, error) {
 
 	if options.Namespace == "" {
 		/*
-		current, err := kubernetes.GetClientCurrentNamespace(options.KubeConfig)
-		if err != nil {
-			return nil, errors.Wrap(err, "cannot get current namespace")
-		}
+			current, err := kubernetes.GetClientCurrentNamespace(options.KubeConfig)
+			if err != nil {
+				return nil, errors.Wrap(err, "cannot get current namespace")
+			}
 		*/
 		current := "spring-boot-operator"
 		cmd.Flag("namespace").Value.Set(current)
 	}
 
 	cmd.AddCommand(newCmdVersion())
+	cmd.AddCommand(newCmdInstall(&options))
 
 	return &cmd, nil
 }

@@ -27,3 +27,8 @@ type SpringBootSpec struct {
 type SpringBootStatus struct {
 	// Fill me
 }
+
+const (
+	// SpringBootKind --
+	SpringBootKind string = "Spring Boot"
+)
