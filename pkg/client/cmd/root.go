@@ -67,7 +67,7 @@ func NewSpringBootCommand(ctx context.Context) (*cobra.Command, error) {
 	cmd.ParseFlags(os.Args)
 
 	// Set ENV VAR to let SDK to configure the k8s client running outside of the cluster
-	os.Setenv("KUBERNETES_CONFIG",kubernetes.HomeKubePath())
+	os.Setenv("KUBERNETES_CONFIG", kubernetes.HomeKubePath())
 
 	if options.Namespace == "" {
 		current, err := kubernetes.GetClientCurrentNamespace(options.KubeConfig)

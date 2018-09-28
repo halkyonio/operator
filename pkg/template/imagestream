@@ -1,0 +1,23 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    app: {{.Name}}
+  name: {{.Image.Name}}
+spec:
+  lookupPolicy:
+    local: false
+  {{if .Image.DockerImage}}
+  tags:
+  - {{if .Image.AnnotationCmds}}
+    annotations:
+      cmds: "run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
+    {{end}}
+    from:
+      kind: DockerImage
+      name: {{.Image.Repo}}
+    importPolicy: {}
+    name: latest
+    referencePolicy:
+      type: Source
+  {{end}}

@@ -28,13 +28,14 @@ type serviceStep struct {
 }
 
 func (serviceStep) Name() string {
-	panic("implement me")
+	return "service"
 }
 
 func (serviceStep) CanHandle(integration *v1alpha1.SpringBoot) bool {
-	panic("implement me")
+	return true
 }
 
 func (serviceStep) Handle(integration *v1alpha1.SpringBoot) error {
-	panic("implement me")
+	// TODO
+	return nil
 }

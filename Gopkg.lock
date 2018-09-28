@@ -164,6 +164,18 @@
   version = "1.0.1"
 
 [[projects]]
+  name = "github.com/openshift/api"
+  packages = ["image/docker10","image/dockerpre012","image/v1"]
+  revision = "0d921e363e951d89f583292c60d013c318df64dc"
+  version = "v3.9.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/openshift/client-go"
+  packages = ["image/clientset/versioned/scheme","image/clientset/versioned/typed/image/v1"]
+  revision = "431ec9a26e5021f35fa41ee9a89842db9bfdb370"
+
+[[projects]]
   branch = "master"
   name = "github.com/operator-framework/operator-sdk"
   packages = ["pkg/k8sclient","pkg/sdk","pkg/sdk/internal/metrics","pkg/util/k8sutil","version"]
@@ -216,6 +228,12 @@
   packages = ["."]
   revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
   version = "v1.1.0"
+
+[[projects]]
+  name = "github.com/snowdrop/spring-boot-cloud-devex"
+  packages = ["pkg/buildpack/types","pkg/common/oc"]
+  revision = "d6be5a6146a489c2fb62f756e3bffd8566fd123c"
+  version = "v0.15.0"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -324,6 +342,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5de4ea4aada12a0ee0418120515884ee86e8da2bd7d05f871c4bcd3db3a3f169"
+  inputs-digest = "8ea4ad30dfd020d501f5672ab796fa868034c95cf7ec92eacdbb582dd954fab8"
   solver-name = "gps-cdcl"
   solver-version = 1

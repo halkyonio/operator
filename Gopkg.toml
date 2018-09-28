@@ -38,6 +38,10 @@ required = [
   revision = "1f13a808da65775f22cbf47862c4e5898d8f4ca1"
 
 [[override]]
+  name="github.com/openshift/client-go"
+  branch="release-3.11"
+
+[[override]]
   name = "sigs.k8s.io/controller-runtime"
   version = "v0.1.3"
 

@@ -18,13 +18,13 @@ limitations under the License.
 package kubernetes
 
 import (
-	log "github.com/sirupsen/logrus"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	"os/user"
 	"strings"
 )
@@ -64,7 +64,7 @@ func HomeKubePath() string {
 	if err != nil {
 		log.Debugf("Can't get current user:\n%v", err)
 	}
-	return strings.Join([]string{usr.HomeDir,KUBECONFILE},"/")
+	return strings.Join([]string{usr.HomeDir, KUBECONFILE}, "/")
 }
 
 // GetClientCurrentNamespace --
