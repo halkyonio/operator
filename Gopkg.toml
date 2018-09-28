@@ -56,3 +56,11 @@ required = [
   # The version rule is used for a specific release and the master branch for in between releases.
   branch = "master"
   # version = "=v0.0.6"
+
+[[override]]
+  name="github.com/sirupsen/logrus"
+  version="v1.0.5"
+
+[[override]]
+  name="github.com/spf13/cobra"
+  version="0.0.3"
