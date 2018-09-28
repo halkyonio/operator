@@ -20,9 +20,9 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/apache/camel-k/pkg/util/kubernetes"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/snowdrop/spring-boot-operator/pkg/util/kubernetes"
 	"github.com/spf13/cobra"
 	"os"
 )
