@@ -38,4 +38,3 @@ func (serviceStep) CanHandle(integration *v1alpha1.SpringBoot) bool {
 func (serviceStep) Handle(integration *v1alpha1.SpringBoot) error {
 	panic("implement me")
 }
-
