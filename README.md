@@ -4,28 +4,28 @@ Instructions followed to create the Spring Boot's CRD, operator using the `opera
 
 - Execute this command within the `$GOPATH/github.com/$ORG/` folder is a terminal
   ```bash
-  operator-sdk new spring-boot-oeprator --api-version=springboot.snowdrop.me/v1alpha1 --kind=SpringBoot
+  operator-sdk new spring-boot-operator --api-version=springboot.snowdrop.me/v1alpha1 --kind=SpringBoot
   ```
   using the following parameters 
 
-  Name of the folder to be created : `spring-boot-oeprator`
+  Name of the folder to be created : `spring-boot-operator`
   Api Group Name   : `springboot.snowdrop.me`
   Api Version      : `v1alpha1`
   Kind of Resource : `SpringBoot` 
 
-- Build and push the `spring-boot-oeprator` image to `quai.io`s registry
+- Build and push the `spring-boot-operator` image to `quai.io`s registry
   ```bash
-  $ operator-sdk build quay.io/snowdrop/spring-boot-oeprator
-  $ docker push quay.io/snowdrop/spring-boot-oeprator
+  $ operator-sdk build quay.io/snowdrop/spring-boot-operator
+  $ docker push quay.io/snowdrop/spring-boot-operator
   ```
   
 - Update the operator's manifest to use the built image name
   ```bash
-  sed -i 's|REPLACE_IMAGE|quay.io/snowdrop/spring-boot-oeprator|g' deploy/operator.yaml
+  sed -i 's|REPLACE_IMAGE|quay.io/snowdrop/spring-boot-operator|g' deploy/operator.yaml
   ```
-- Create a namespace `spring-boot-oeprator`
+- Create a namespace `spring-boot-operator`
 
-- Deploy the spring-boot-oeprator
+- Deploy the spring-boot-operator
   ```bash
   oc create -f deploy/sa.yaml
   oc create -f deploy/rbac.yaml
@@ -33,7 +33,7 @@ Instructions followed to create the Spring Boot's CRD, operator using the `opera
   oc create -f deploy/operator.yaml
   ```
 
-- By default, creating a custom resource (Spring Boot App) triggers the `spring-boot-oeprator` to deploy a busybox pod
+- By default, creating a custom resource (Spring Boot App) triggers the `spring-boot-operator` to deploy a busybox pod
   ```bash
   oc create -f deploy/cr.yaml
   ```
