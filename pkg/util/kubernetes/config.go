@@ -19,6 +19,11 @@ package kubernetes
 
 import (
 	log "github.com/sirupsen/logrus"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
+	"github.com/pkg/errors"
+	"io/ioutil"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
 	"os/user"
 	"strings"
@@ -60,4 +65,34 @@ func HomeKubePath() string {
 		log.Debugf("Can't get current user:\n%v", err)
 	}
 	return strings.Join([]string{usr.HomeDir,KUBECONFILE},"/")
+}
+
+// GetClientCurrentNamespace --
+func GetClientCurrentNamespace(kubeconfig string) (string, error) {
+	if kubeconfig == "" {
+		kubeconfig = getK8Config(kubeconfig)
+	}
+	if kubeconfig == "" {
+		return "default", nil
+	}
+
+	data, err := ioutil.ReadFile(kubeconfig)
+	if err != nil {
+		return "", err
+	}
+	config := clientcmdapi.NewConfig()
+	if len(data) == 0 {
+		return "", errors.New("kubernetes config file is empty")
+	}
+
+	decoded, _, err := clientcmdlatest.Codec.Decode(data, &schema.GroupVersionKind{Version: clientcmdlatest.Version, Kind: "Config"}, config)
+	if err != nil {
+		return "", err
+	}
+
+	clientcmdconfig := decoded.(*clientcmdapi.Config)
+
+	cc := clientcmd.NewDefaultClientConfig(*clientcmdconfig, &clientcmd.ConfigOverrides{})
+	ns, _, err := cc.Namespace()
+	return ns, err
 }

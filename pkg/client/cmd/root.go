@@ -66,13 +66,16 @@ func NewSpringBootCommand(ctx context.Context) (*cobra.Command, error) {
 	// Parse the flags before setting the defaults
 	cmd.ParseFlags(os.Args)
 
+	// Set ENV VAR to let SDK to configure the k8s client running outside of the cluster
+	os.Setenv("KUBERNETES_CONFIG",kubernetes.HomeKubePath())
+
 	if options.Namespace == "" {
-		// TODO -> GetCurrentNamespace instead of using a hard coded value
-		current := "sb-operator"
+		current, err := kubernetes.GetClientCurrentNamespace(options.KubeConfig)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot get current namespace")
+		}
 		cmd.Flag("namespace").Value.Set(current)
 	}
-
-	os.Setenv("KUBERNETES_CONFIG",kubernetes.HomeKubePath())
 
 	cmd.AddCommand(newCmdVersion())
 	cmd.AddCommand(newCmdInstall(&options))
