@@ -1,0 +1,3 @@
+apiVersion: springboot.snowdrop.me/v1alpha1
+kind: SpringBoot
+projectName: sb-operator
