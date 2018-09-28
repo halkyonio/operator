@@ -20,6 +20,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/apache/camel-k/pkg/util/kubernetes"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -66,14 +67,15 @@ func NewSpringBootCommand(ctx context.Context) (*cobra.Command, error) {
 	cmd.ParseFlags(os.Args)
 
 	if options.Namespace == "" {
-		/*
-			current, err := kubernetes.GetClientCurrentNamespace(options.KubeConfig)
-			if err != nil {
-				return nil, errors.Wrap(err, "cannot get current namespace")
-			}
-		*/
+		// TODO -> GetCurrentNamespace instead of using a hard coded value
 		current := "spring-boot-operator"
 		cmd.Flag("namespace").Value.Set(current)
+	}
+
+	// Initialize the Kubernetes client to allow using the operator-sdk
+	err := kubernetes.InitKubeClient(options.KubeConfig)
+	if err != nil {
+		return nil, err
 	}
 
 	cmd.AddCommand(newCmdVersion())
