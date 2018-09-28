@@ -40,7 +40,7 @@ func InitKubeClient(kubeconfig string) error {
 		return err
 	}
 
-	k8sclient.CustomConfig = config
+	k8sclient.GetKubeConfig() = config
 	return nil
 }
 

@@ -1,9 +1,0 @@
-.idea
-.vscode/
-dist/
-.DS_Store
-
-*/target
-sb
-
-.goreleaser.yml

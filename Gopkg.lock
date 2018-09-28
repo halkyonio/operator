@@ -164,18 +164,6 @@
   version = "1.0.1"
 
 [[projects]]
-  name = "github.com/openshift/api"
-  packages = ["apps/v1","build/v1","image/docker10","image/dockerpre012","image/v1","route/v1"]
-  revision = "0d921e363e951d89f583292c60d013c318df64dc"
-  version = "v3.9.0"
-
-[[projects]]
-  name = "github.com/openshift/client-go"
-  packages = ["apps/clientset/versioned/scheme","apps/clientset/versioned/typed/apps/v1","build/clientset/versioned/scheme","build/clientset/versioned/typed/build/v1","image/clientset/versioned/scheme","image/clientset/versioned/typed/image/v1","route/clientset/versioned/scheme","route/clientset/versioned/typed/route/v1"]
-  revision = "1fa528d3be060e4c7178eb69e76d37cf7e699e3c"
-  version = "v3.9.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/operator-framework/operator-sdk"
   packages = ["pkg/k8sclient","pkg/sdk","pkg/sdk/internal/metrics","pkg/util/k8sutil","version"]
@@ -224,22 +212,10 @@
   revision = "418d78d0b9a7b7de3a6bbc8a23def624cc977bb2"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/shurcooL/httpfs"
-  packages = ["vfsutil"]
-  revision = "809beceb23714880abc4a382a00c05f89d13b1cc"
-
-[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
   version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/snowdrop/spring-boot-cloud-devex"
-  packages = ["pkg/buildpack","pkg/buildpack/types","pkg/common/config","pkg/common/oc"]
-  revision = "d6be5a6146a489c2fb62f756e3bffd8566fd123c"
-  version = "v0.15.0"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -348,6 +324,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f9e8770898aeabb71ae806df95f8e4b9c46795dc48055a54b81675a649b557fd"
+  inputs-digest = "5de4ea4aada12a0ee0418120515884ee86e8da2bd7d05f871c4bcd3db3a3f169"
   solver-name = "gps-cdcl"
   solver-version = 1
