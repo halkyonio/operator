@@ -1,0 +1,8 @@
+name: spring-boot-http
+port: 8080
+memory: 500Mi
+env:
+  - name: DB_USERNAME
+    value: luke
+  - name: DB_PASSWORD
+    value: secret
