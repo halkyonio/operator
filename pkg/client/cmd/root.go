@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/snowdrop/spring-boot-operator/pkg/util/kubernetes"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -67,9 +68,11 @@ func NewSpringBootCommand(ctx context.Context) (*cobra.Command, error) {
 
 	if options.Namespace == "" {
 		// TODO -> GetCurrentNamespace instead of using a hard coded value
-		current := "spring-boot-operator"
+		current := "sb-operator"
 		cmd.Flag("namespace").Value.Set(current)
 	}
+
+	os.Setenv("KUBERNETES_CONFIG",kubernetes.HomeKubePath())
 
 	cmd.AddCommand(newCmdVersion())
 	cmd.AddCommand(newCmdInstall(&options))

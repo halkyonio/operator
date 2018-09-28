@@ -21,10 +21,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/tools/clientcmd"
 	"os/user"
+	"strings"
 )
 
 const (
-	KUBECONFILE = "/.kube/config"
+	KUBECONFILE = ".kube/config"
 )
 
 // InitKubeClient initialize the k8s client
@@ -45,7 +46,7 @@ func InitKubeClient(kubeconfig string) error {
 func getK8Config(kubeconfig string) string {
 	log.Info("Get K8s config file")
 	if kubeconfig == "" {
-		return homeKubePath()
+		return HomeKubePath()
 	} else {
 		return kubeconfig
 	}
@@ -53,10 +54,10 @@ func getK8Config(kubeconfig string) string {
 	return ""
 }
 
-func homeKubePath() string {
+func HomeKubePath() string {
 	usr, err := user.Current()
 	if err != nil {
 		log.Debugf("Can't get current user:\n%v", err)
 	}
-	return usr.HomeDir + KUBECONFILE
+	return strings.Join([]string{usr.HomeDir,KUBECONFILE},"/")
 }

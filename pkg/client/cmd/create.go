@@ -58,7 +58,13 @@ func (*installCmdOptions) validateArgs(cmd *cobra.Command, args []string) error 
 
 func (o *installCmdOptions) create(cmd *cobra.Command, args []string) error {
 	log.Info("Start command called")
-	springboot, err := o.createSpringBootApplication(args[0])
+	name := ""
+	if len(args) == 0 {
+		name = "sb-a"
+	} else {
+		name = args[0]
+	}
+	springboot, err := o.createSpringBootApplication(name)
 	if err != nil {
 		return err
 	}

@@ -30,5 +30,5 @@ type SpringBootStatus struct {
 
 const (
 	// SpringBootKind --
-	SpringBootKind string = "Spring Boot"
+	SpringBootKind string = "SpringBoot"
 )
