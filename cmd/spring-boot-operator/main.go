@@ -23,7 +23,7 @@ func printVersion() {
 func main() {
 	printVersion()
 
-	sdk.ExposeMetricsPort()
+	//sdk.ExposeMetricsPort()
 
 	resource := "springboot.snowdrop.me/v1alpha1"
 	kind := "SpringBoot"

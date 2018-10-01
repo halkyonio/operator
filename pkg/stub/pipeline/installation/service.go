@@ -70,7 +70,7 @@ func (serviceStep) Handle(integration *v1alpha1.SpringBoot) error {
 			Selector: map[string]string{"name": serviceName},
 		},
 	}
-	err := sdk.Get(service, nil)
+	err := sdk.Get(service)
 	if err != nil {
 		return errors.Wrap(err, "could not get service for integration ")
 	}
