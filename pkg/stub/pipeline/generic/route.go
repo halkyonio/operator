@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package common
+package generic
 
 import (
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"

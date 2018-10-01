@@ -21,7 +21,7 @@ import (
 	"context"
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
 	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline/common"
+	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline/generic"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
@@ -31,7 +31,7 @@ func NewHandler() sdk.Handler {
 	return &Handler{
 		innerLoopSteps: []pipeline.Step{
 			//innerloop.NewDeployStep(),
-			common.NewServiceStep(),
+			generic.NewServiceStep(),
 			//common.NewPVCStep(),
 			//common.NewRouteStep(),
 		},

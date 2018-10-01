@@ -20,6 +20,7 @@ package innerloop
 import (
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
 	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
+	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline/generic"
 )
 
 // NewDeployStep creates a step that handles the creation of the DeploymentConfig
@@ -45,5 +46,10 @@ func (deployStep) Handle(springboot *v1alpha1.SpringBoot) error {
 
 func installDeployment(sb *v1alpha1.SpringBoot) error {
 	// TODO
+	newRoute := generic.NewRouteStep()
+	err := newRoute.Handle(nil)
+	if err != nil {
+		return err
+	}
 	return nil
 }

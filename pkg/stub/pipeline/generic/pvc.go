@@ -1,4 +1,4 @@
-package common
+package generic
 
 import (
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
