@@ -20,6 +20,7 @@ package installation
 import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
+	"github.com/snowdrop/spring-boot-cloud-devex/pkg/buildpack/types"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -28,29 +29,10 @@ import (
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
 	"github.com/snowdrop/spring-boot-operator/pkg/util/oc"
 	"github.com/snowdrop/spring-boot-operator/pkg/util/template"
+
 	restclient "k8s.io/client-go/rest"
 	"strings"
 )
-
-type Application struct {
-	Name            string
-	Version         string
-	Namespace       string
-	Replica         int
-	Cpu             string `default:"100m"`
-	Memory          string `default:"250Mi"`
-	Port            int32  `default:"8080"`
-	SupervisordName string
-	Image           Image
-}
-
-type Image struct {
-	Name           string
-	AnnotationCmds bool
-	Repo           string
-	Tag            string
-	DockerImage    bool
-}
 
 var (
 	zero             = int64(0)
@@ -80,16 +62,17 @@ func (imageStreamStep) Handle(springboot *v1alpha1.SpringBoot) error {
 	return nil
 }
 
-var defaultImages = []Image{
+var defaultImages = []types.Image{
 	*CreateTypeImage(true, "dev-s2i", "latest", javaImage, false),
 	*CreateTypeImage(true, "copy-supervisord", "latest", supervisordImage, true),
 }
 
-func CreateDefaultImageStreams(config *restclient.Config, appConfig Application) {
+func CreateDefaultImageStreams(config *restclient.Config) {
+	appConfig := NewApplication()
 	CreateImageStreamTemplate(config, appConfig, defaultImages)
 }
 
-func CreateImageStreamTemplate(config *restclient.Config, appConfig Application, images []Image) {
+func CreateImageStreamTemplate(config *restclient.Config, appConfig types.Application, images []types.Image) {
 	imageClient := getImageClient(config)
 	appCfg := appConfig
 
@@ -102,7 +85,7 @@ func CreateImageStreamTemplate(config *restclient.Config, appConfig Application,
 		} else {
 			// Parse ImageStream Template
 			tName := strings.Join([]string{template.BuilderPath, "imagestream"}, "/")
-			var b = template.ParseTemplate(tName, appCfg)
+			var b = template.ParseTemplate(tName, nil)
 
 			// Create ImageStream struct using the generated ImageStream string
 			img := imagev1.ImageStream{}
@@ -127,7 +110,7 @@ func getImageClient(config *restclient.Config) *imageclientsetv1.ImageV1Client {
 	return imageClient
 }
 
-func DeleteDefaultImageStreams(config *restclient.Config, appConfig Application) {
+func DeleteDefaultImageStreams(config *restclient.Config, appConfig types.Application) {
 	for _, img := range defaultImages {
 		// first check that the image stream hasn't already been created
 		if oc.Exists("imagestream", img.Name) {
@@ -140,12 +123,18 @@ func DeleteDefaultImageStreams(config *restclient.Config, appConfig Application)
 	}
 }
 
-func CreateTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) *Image {
-	return &Image{
+func CreateTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) *types.Image {
+	return &types.Image{
 		DockerImage:    dockerImage,
 		Name:           name,
 		Repo:           repo,
 		AnnotationCmds: annotationCmd,
 		Tag:            tag,
+	}
+}
+
+func NewApplication() types.Application {
+	return types.Application{
+		Name: "toto",
 	}
 }
