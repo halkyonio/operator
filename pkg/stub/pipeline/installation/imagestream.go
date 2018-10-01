@@ -91,10 +91,9 @@ func CreateDefaultImageStreams(config *restclient.Config, appConfig Application)
 
 func CreateImageStreamTemplate(config *restclient.Config, appConfig Application, images []Image) {
 	imageClient := getImageClient(config)
-
 	appCfg := appConfig
-	for _, img := range images {
 
+	for _, img := range images {
 		appCfg.Image = img
 
 		// first check that the image stream hasn't already been created

@@ -164,10 +164,10 @@
   version = "1.0.1"
 
 [[projects]]
+  branch = "release-3.11"
   name = "github.com/openshift/api"
   packages = ["image/docker10","image/dockerpre012","image/v1"]
-  revision = "0d921e363e951d89f583292c60d013c318df64dc"
-  version = "v3.9.0"
+  revision = "5ad8479f64f1b60ee9c62ce8ef1fe6638838725e"
 
 [[projects]]
   branch = "master"
@@ -228,12 +228,6 @@
   packages = ["."]
   revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
   version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/snowdrop/spring-boot-cloud-devex"
-  packages = ["pkg/buildpack/types","pkg/common/oc"]
-  revision = "d6be5a6146a489c2fb62f756e3bffd8566fd123c"
-  version = "v0.15.0"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -342,6 +336,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8ea4ad30dfd020d501f5672ab796fa868034c95cf7ec92eacdbb582dd954fab8"
+  inputs-digest = "0f3c76279ae8ee0ff5c71c7a17fccea4bc724b91cbb2a96138a147eae5ef8975"
   solver-name = "gps-cdcl"
   solver-version = 1

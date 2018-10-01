@@ -75,4 +75,6 @@ func (serviceStep) Handle(integration *v1alpha1.SpringBoot) error {
 		return errors.Wrap(err, "could not get service for integration ")
 	}
 	log.Info("Get service")
+
+	return nil
 }
