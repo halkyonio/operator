@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package installation
+package pipeline
 
 import "github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
 
@@ -26,8 +26,8 @@ type Step interface {
 	Name() string
 
 	// returns true if the action can handle the integration
-	CanHandle(integration *v1alpha1.SpringBoot) bool
+	CanHandle(springboot *v1alpha1.SpringBoot) bool
 
 	// executes the handling function
-	Handle(integration *v1alpha1.SpringBoot) error
+	Handle(springboot *v1alpha1.SpringBoot) error
 }

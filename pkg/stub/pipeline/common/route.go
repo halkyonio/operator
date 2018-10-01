@@ -15,34 +15,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package installation
+package common
 
 import (
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
 )
 
-// NewDeployStep creates a step that handles the creation of the DeploymentConfig
-func NewDeployStep() Step {
-	return &deployStep{}
+// NewRouteStep creates a step that handles the creation of the DeploymentConfig
+func NewRouteStep() pipeline.Step {
+	return &routeStep{}
 }
 
-type deployStep struct {
+type routeStep struct {
 }
 
-func (deployStep) Name() string {
-	return "deploy"
+func (routeStep) Name() string {
+	return "route"
 }
 
-func (deployStep) CanHandle(springboot *v1alpha1.SpringBoot) bool {
+func (routeStep) CanHandle(springboot *v1alpha1.SpringBoot) bool {
 	return true
 }
 
-func (deployStep) Handle(springboot *v1alpha1.SpringBoot) error {
-	target := springboot.DeepCopy()
-	return installDeployment(target)
-}
-
-func installDeployment(sb *v1alpha1.SpringBoot) error {
-	// TODO
+func (routeStep) Handle(springboot *v1alpha1.SpringBoot) error {
 	return nil
 }

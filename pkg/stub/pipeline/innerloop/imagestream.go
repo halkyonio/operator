@@ -15,11 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package installation
+package innerloop
 
 import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
+	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -42,7 +43,7 @@ var (
 )
 
 // NewImageStreamStep creates a step that handles the creation of the DeploymentConfig
-func NewImageStreamStep() Step {
+func NewImageStreamStep() pipeline.Step {
 	return &imageStreamStep{}
 }
 

@@ -15,20 +15,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package installation
+package common
 
 import (
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // NewServiceStep creates a step that handles the creation of the DeploymentConfig
-func NewServiceStep() Step {
+func NewServiceStep() pipeline.Step {
 	return &serviceStep{}
 }
 

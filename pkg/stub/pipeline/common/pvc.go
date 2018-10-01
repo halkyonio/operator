@@ -1,9 +1,12 @@
-package installation
+package common
 
-import "github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+import (
+	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
+)
 
 // NewPVCStep creates a step that handles the creation of the DeploymentConfig
-func NewPVCStep() Step {
+func NewPVCStep() pipeline.Step {
 	return &pvcStep{}
 }
 
