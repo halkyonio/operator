@@ -11,7 +11,6 @@ import (
 	stub "github.com/snowdrop/spring-boot-operator/pkg/stub"
 
 	"github.com/sirupsen/logrus"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 func printVersion() {

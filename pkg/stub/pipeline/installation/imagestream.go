@@ -20,13 +20,13 @@ package installation
 import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/spring-boot-cloud-devex/pkg/buildpack/types"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	imagev1 "github.com/openshift/api/image/v1"
 	imageclientsetv1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+	"github.com/snowdrop/spring-boot-operator/pkg/types"
 	"github.com/snowdrop/spring-boot-operator/pkg/util/oc"
 	"github.com/snowdrop/spring-boot-operator/pkg/util/template"
 
