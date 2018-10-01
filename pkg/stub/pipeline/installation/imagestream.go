@@ -26,8 +26,8 @@ import (
 	imagev1 "github.com/openshift/api/image/v1"
 	imageclientsetv1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
-	"github.com/snowdrop/spring-boot-operator/pkg/util/template"
 	"github.com/snowdrop/spring-boot-operator/pkg/util/oc"
+	"github.com/snowdrop/spring-boot-operator/pkg/util/template"
 	restclient "k8s.io/client-go/rest"
 	"strings"
 )

@@ -17,7 +17,15 @@ limitations under the License.
 
 package installation
 
-import "github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+import (
+	"github.com/operator-framework/operator-sdk/pkg/sdk"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+)
 
 // NewServiceStep creates a step that handles the creation of the DeploymentConfig
 func NewServiceStep() Step {
@@ -36,6 +44,35 @@ func (serviceStep) CanHandle(integration *v1alpha1.SpringBoot) bool {
 }
 
 func (serviceStep) Handle(integration *v1alpha1.SpringBoot) error {
-	// TODO
-	return nil
+	// TODO : Refactor to create a real service
+	serviceName := "toto"
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   serviceName,
+			Labels: map[string]string{"name": serviceName},
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "v1",
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Port:     8080,
+					Protocol: corev1.ProtocolTCP,
+					TargetPort: intstr.IntOrString{
+						Type:   intstr.String,
+						StrVal: "8080",
+					},
+					Name: serviceName,
+				},
+			},
+			Selector: map[string]string{"name": serviceName},
+		},
+	}
+	err := sdk.Get(service, nil)
+	if err != nil {
+		return errors.Wrap(err, "could not get service for integration ")
+	}
+	log.Info("Get service")
 }

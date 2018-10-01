@@ -16,3 +16,27 @@ limitations under the License.
 */
 
 package installation
+
+import (
+	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+)
+
+// NewRouteStep creates a step that handles the creation of the DeploymentConfig
+func NewRouteStep() Step {
+	return &routeStep{}
+}
+
+type routeStep struct {
+}
+
+func (routeStep) Name() string {
+	return "route"
+}
+
+func (routeStep) CanHandle(springboot *v1alpha1.SpringBoot) bool {
+	return true
+}
+
+func (routeStep) Handle(springboot *v1alpha1.SpringBoot) error {
+	return nil
+}

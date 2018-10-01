@@ -2,10 +2,10 @@ package oc
 
 import (
 	"bytes"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"strings"
-	log "github.com/sirupsen/logrus"
 )
 
 var Client struct {
@@ -68,4 +68,3 @@ func GetNamesByLabel(kind string, labelName string, labelValue string) []string 
 		return strings.Fields(s)
 	}
 }
-

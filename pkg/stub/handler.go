@@ -12,8 +12,9 @@ import (
 func NewHandler() sdk.Handler {
 	return &Handler{
 		installationSteps: []installation.Step{
-			installation.NewDeployStep(),
+			//installation.NewDeployStep(),
 			installation.NewServiceStep(),
+			//installation.NewRouteStep(),
 		},
 	}
 }
