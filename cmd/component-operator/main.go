@@ -22,9 +22,9 @@ func printVersion() {
 func main() {
 	printVersion()
 
-	//sdk.ExposeMetricsPort()
+	sdk.ExposeMetricsPort()
 
-	resource := "springboot.snowdrop.me/v1alpha1"
+	resource := "component.k8s.io/v1alpha1"
 	kind := "SpringBoot"
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {

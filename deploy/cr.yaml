@@ -1,4 +1,4 @@
-apiVersion: "springboot.snowdrop.me/v1alpha1"
-kind: "SpringBoot"
+apiVersion: "component.k8s.io/v1alpha1"
+kind: "Component"
 metadata:
   name: "example"

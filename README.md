@@ -1,31 +1,32 @@
-## Spring Boot's kubernetes operator
+## component's kubernetes operator
 
-Instructions followed to create the Spring Boot's CRD, operator using the `operator-sdk`'s kit
+Instructions followed to create the Component's CRD, operator using the `operator-sdk`'s kit
 
 - Execute this command within the `$GOPATH/github.com/$ORG/` folder is a terminal
   ```bash
   operator-sdk new spring-boot-operator --api-version=springboot.snowdrop.me/v1alpha1 --kind=SpringBoot
+  operator-sdk new component-operator --api-version=component.k8s.io/v1alpha1 --kind=Component --skip-git-init
   ```
   using the following parameters 
 
-  Name of the folder to be created : `spring-boot-operator`
-  Api Group Name   : `springboot.snowdrop.me`
+  Name of the folder to be created : `component-operator`
+  Api Group Name   : `component.k8s.io`
   Api Version      : `v1alpha1`
-  Kind of Resource : `SpringBoot` 
+  Kind of Resource : `Component` 
 
-- Build and push the `spring-boot-operator` image to `quai.io`s registry
+- Build and push the `component-operator` image to `quai.io`s registry
   ```bash
-  $ operator-sdk build quay.io/snowdrop/spring-boot-operator
-  $ docker push quay.io/snowdrop/spring-boot-operator
+  $ operator-sdk build quay.io/snowdrop/component-operator
+  $ docker push quay.io/snowdrop/component-operator
   ```
   
 - Update the operator's manifest to use the built image name
   ```bash
-  sed -i 's|REPLACE_IMAGE|quay.io/snowdrop/spring-boot-operator|g' deploy/operator.yaml
+  sed -i 's|REPLACE_IMAGE|quay.io/snowdrop/component-operator|g' deploy/operator.yaml
   ```
-- Create a namespace `spring-boot-operator`
+- Create a namespace `component-operator`
 
-- Deploy the spring-boot-operator
+- Deploy the component-operator
   ```bash
   oc create -f deploy/sa.yaml
   oc create -f deploy/rbac.yaml
@@ -33,7 +34,7 @@ Instructions followed to create the Spring Boot's CRD, operator using the `opera
   oc create -f deploy/operator.yaml
   ```
 
-- By default, creating a custom resource (Spring Boot App) triggers the `spring-boot-operator` to deploy a busybox pod
+- By default, creating a custom resource triggers the `component-operator` to deploy a busybox pod
   ```bash
   oc create -f deploy/cr.yaml
   ```

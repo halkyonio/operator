@@ -19,9 +19,10 @@ package stub
 
 import (
 	"context"
-	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+	"github.com/snowdrop/spring-boot-operator/tmp/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline/generic"
+	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline/innerloop"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
@@ -30,8 +31,8 @@ import (
 func NewHandler() sdk.Handler {
 	return &Handler{
 		innerLoopSteps: []pipeline.Step{
-			//innerloop.NewDeployStep(),
-			generic.NewServiceStep(),
+			innerloop.NewDeployStep(),
+			//generic.NewServiceStep(),
 			//common.NewPVCStep(),
 			//common.NewRouteStep(),
 		},
@@ -44,7 +45,7 @@ type Handler struct {
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
-	case *v1alpha1.SpringBoot:
+	case *v1alpha1.Component:
 		for _, a := range h.innerLoopSteps {
 			if a.CanHandle(o) {
 				logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)

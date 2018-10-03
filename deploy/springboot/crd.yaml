@@ -1,0 +1,13 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: springboots.springboot.snowdrop.me
+spec:
+  group: springboot.snowdrop.me
+  names:
+    kind: SpringBoot
+    listKind: SpringBootList
+    plural: springboots
+    singular: springboot
+  scope: Namespaced
+  version: v1alpha1

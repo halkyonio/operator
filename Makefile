@@ -13,7 +13,7 @@ clean:
 
 build:
 	@echo "> Build go application"
-	go build ${BUILD_FLAGS} -o ${BIN_DIR}/sb ${BUILD_PATH}
+	go build ${BUILD_FLAGS} -o ${BIN_DIR}/sd ${BUILD_PATH}
 
 cross: clean
-	gox -osarch="darwin/amd64 linux/amd64" -output="${BIN_DIR}/bin/{{.OS}}-{{.Arch}}/sb" $(BUILD_FLAGS)
+	gox -osarch="darwin/amd64 linux/amd64" -output="${BIN_DIR}/bin/{{.OS}}-{{.Arch}}/sd" $(BUILD_FLAGS)
