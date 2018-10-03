@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/spf13/cobra"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -64,38 +64,38 @@ func (o *installCmdOptions) create(cmd *cobra.Command, args []string) error {
 	} else {
 		name = args[0]
 	}
-	springboot, err := o.createSpringBootApplication(name)
+	component, err := o.createComponentApplication(name)
 	if err != nil {
 		return err
 	}
-	fmt.Print("SpringBoot : ", springboot)
+	fmt.Print("Component : ", component)
 	return nil
 }
 
-func (o *installCmdOptions) createSpringBootApplication(name string) (*v1alpha1.SpringBoot, error) {
-	springboot := v1alpha1.SpringBoot{
+func (o *installCmdOptions) createComponentApplication(name string) (*v1alpha1.Component, error) {
+	component := v1alpha1.Component{
 		TypeMeta: v1.TypeMeta{
-			Kind:       v1alpha1.SpringBootKind,
+			Kind:       v1alpha1.ComponentKind,
 			APIVersion: v1alpha1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: v1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
 		},
-		Spec: v1alpha1.SpringBootSpec{},
+		Spec: v1alpha1.ComponentSpec{},
 	}
 
 	existed := false
-	err := sdk.Create(&springboot)
+	err := sdk.Create(&component)
 	if err != nil && k8serrors.IsAlreadyExists(err) {
 		existed = true
-		clone := springboot.DeepCopy()
+		clone := component.DeepCopy()
 		err = sdk.Get(clone)
 		if err != nil {
 			return nil, err
 		}
-		springboot.ResourceVersion = clone.ResourceVersion
-		err = sdk.Update(&springboot)
+		component.ResourceVersion = clone.ResourceVersion
+		err = sdk.Update(&component)
 	}
 
 	if err != nil {
@@ -103,10 +103,10 @@ func (o *installCmdOptions) createSpringBootApplication(name string) (*v1alpha1.
 	}
 
 	if !existed {
-		fmt.Printf("springboot \"%s\" created\n", name)
+		fmt.Printf("component \"%s\" created\n", name)
 	} else {
-		fmt.Printf("springboot \"%s\" updated\n", name)
+		fmt.Printf("component \"%s\" updated\n", name)
 	}
 
-	return &springboot, nil
+	return &component, nil
 }

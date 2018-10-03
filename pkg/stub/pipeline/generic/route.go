@@ -18,8 +18,8 @@ limitations under the License.
 package generic
 
 import (
-	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 )
 
 // NewRouteStep creates a step that handles the creation of the DeploymentConfig
@@ -34,10 +34,10 @@ func (routeStep) Name() string {
 	return "route"
 }
 
-func (routeStep) CanHandle(springboot *v1alpha1.SpringBoot) bool {
+func (routeStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (routeStep) Handle(springboot *v1alpha1.SpringBoot) error {
+func (routeStep) Handle(component *v1alpha1.Component) error {
 	return nil
 }

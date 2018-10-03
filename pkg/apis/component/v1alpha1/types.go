@@ -27,3 +27,8 @@ type ComponentSpec struct {
 type ComponentStatus struct {
 	// Fill me
 }
+
+const (
+	// ComponentKind --
+	ComponentKind string = "Component"
+)

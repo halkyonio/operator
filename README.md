@@ -1,10 +1,9 @@
-## component's kubernetes operator
+## Component's kubernetes operator
 
 Instructions followed to create the Component's CRD, operator using the `operator-sdk`'s kit
 
 - Execute this command within the `$GOPATH/github.com/$ORG/` folder is a terminal
   ```bash
-  operator-sdk new spring-boot-operator --api-version=springboot.snowdrop.me/v1alpha1 --kind=SpringBoot
   operator-sdk new component-operator --api-version=component.k8s.io/v1alpha1 --kind=Component --skip-git-init
   ```
   using the following parameters 

@@ -17,7 +17,7 @@ limitations under the License.
 
 package pipeline
 
-import "github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
+import "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 
 // Action --
 type Step interface {
@@ -26,8 +26,8 @@ type Step interface {
 	Name() string
 
 	// returns true if the action can handle the integration
-	CanHandle(springboot *v1alpha1.SpringBoot) bool
+	CanHandle(component *v1alpha1.Component) bool
 
 	// executes the handling function
-	Handle(springboot *v1alpha1.SpringBoot) error
+	Handle(component *v1alpha1.Component) error
 }

@@ -19,10 +19,9 @@ package stub
 
 import (
 	"context"
-	"github.com/snowdrop/spring-boot-operator/tmp/component-operator/pkg/apis/component/v1alpha1"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline/generic"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline/innerloop"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline/innerloop"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"

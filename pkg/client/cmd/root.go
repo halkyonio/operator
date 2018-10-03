@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/spring-boot-operator/pkg/util/kubernetes"
+	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -40,8 +40,8 @@ type RootCmdOptions struct {
 	ApplicationName string
 }
 
-// NewSpringBootCommand --
-func NewSpringBootCommand(ctx context.Context) (*cobra.Command, error) {
+// NewComponentCommand --
+func NewComponentCommand(ctx context.Context) (*cobra.Command, error) {
 	options := RootCmdOptions{
 		Context: ctx,
 	}

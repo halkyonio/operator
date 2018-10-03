@@ -18,9 +18,9 @@ limitations under the License.
 package innerloop
 
 import (
-	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline/generic"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline/generic"
 )
 
 // NewDeployStep creates a step that handles the creation of the DeploymentConfig
@@ -35,16 +35,16 @@ func (deployStep) Name() string {
 	return "deploy"
 }
 
-func (deployStep) CanHandle(springboot *v1alpha1.SpringBoot) bool {
+func (deployStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (deployStep) Handle(springboot *v1alpha1.SpringBoot) error {
-	target := springboot.DeepCopy()
+func (deployStep) Handle(component *v1alpha1.Component) error {
+	target := component.DeepCopy()
 	return installDeployment(target)
 }
 
-func installDeployment(sb *v1alpha1.SpringBoot) error {
+func installDeployment(component *v1alpha1.Component) error {
 	// TODO
 	newRoute := generic.NewRouteStep()
 	err := newRoute.Handle(nil)

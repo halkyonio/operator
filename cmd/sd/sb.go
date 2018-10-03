@@ -20,7 +20,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/snowdrop/spring-boot-operator/pkg/client/cmd"
+	"github.com/snowdrop/component-operator/pkg/client/cmd"
 	"math/rand"
 	"os"
 	"time"
@@ -30,7 +30,7 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	ctx := context.Background()
-	rootCmd, err := cmd.NewSpringBootCommand(ctx)
+	rootCmd, err := cmd.NewComponentCommand(ctx)
 	exitOnError(err)
 
 	err = rootCmd.Execute()

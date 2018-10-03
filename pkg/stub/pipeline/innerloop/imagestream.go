@@ -20,16 +20,16 @@ package innerloop
 import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	imagev1 "github.com/openshift/api/image/v1"
 	imageclientsetv1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
-	"github.com/snowdrop/spring-boot-operator/pkg/types"
-	"github.com/snowdrop/spring-boot-operator/pkg/util/oc"
-	"github.com/snowdrop/spring-boot-operator/pkg/util/template"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/types"
+	"github.com/snowdrop/component-operator/pkg/util/oc"
+	"github.com/snowdrop/component-operator/pkg/util/template"
 
 	restclient "k8s.io/client-go/rest"
 	"strings"
@@ -54,11 +54,11 @@ func (imageStreamStep) Name() string {
 	return "imagestream"
 }
 
-func (imageStreamStep) CanHandle(springboot *v1alpha1.SpringBoot) bool {
+func (imageStreamStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (imageStreamStep) Handle(springboot *v1alpha1.SpringBoot) error {
+func (imageStreamStep) Handle(component *v1alpha1.Component) error {
 	// TODO
 	return nil
 }

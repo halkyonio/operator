@@ -21,8 +21,8 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/spring-boot-operator/pkg/apis/springboot/v1alpha1"
-	"github.com/snowdrop/spring-boot-operator/pkg/stub/pipeline"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -40,11 +40,11 @@ func (serviceStep) Name() string {
 	return "service"
 }
 
-func (serviceStep) CanHandle(integration *v1alpha1.SpringBoot) bool {
+func (serviceStep) CanHandle(integration *v1alpha1.Component) bool {
 	return true
 }
 
-func (serviceStep) Handle(integration *v1alpha1.SpringBoot) error {
+func (serviceStep) Handle(integration *v1alpha1.Component) error {
 	// TODO : Refactor to create a real service
 	serviceName := "toto"
 	service := &corev1.Service{

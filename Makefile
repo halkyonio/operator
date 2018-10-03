@@ -1,9 +1,9 @@
 VERSION     ?= 0.0.1
 GITCOMMIT    := $(shell git rev-parse --short HEAD 2>/dev/null)
-PROJECT_NAME := spring-boot-operator
+PROJECT_NAME := component-operator
 BIN_DIR      := ./tmp/_output/bin
 REPO_PATH    := github.com/snowdrop/$(PROJECT_NAME)
-BUILD_PATH   := $(REPO_PATH)/cmd/sb
+BUILD_PATH   := $(REPO_PATH)/cmd/sd
 BUILD_FLAGS := -ldflags="-w -X $(PROJECT)/cmd.GITCOMMIT=$(GITCOMMIT) -X $(PROJECT_NAME)/cmd.VERSION=$(VERSION)"
 GO          ?= go
 
