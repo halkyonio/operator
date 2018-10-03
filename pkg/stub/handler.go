@@ -19,7 +19,6 @@ package stub
 
 import (
 	"context"
-	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline/innerloop"
@@ -47,7 +46,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
 	case *v1alpha1.Component:
 		if comp := o.Spec.DeploymentMode; comp == "innerloop" {
-			logrus.Debug("DeploymentMode :",comp)
+			logrus.Debug("DeploymentMode :", comp)
 			for _, a := range h.innerLoopSteps {
 				if a.CanHandle(o) {
 					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)

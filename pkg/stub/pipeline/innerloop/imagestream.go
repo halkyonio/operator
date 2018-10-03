@@ -32,7 +32,6 @@ import (
 	"github.com/snowdrop/component-operator/pkg/util/template"
 
 	restclient "k8s.io/client-go/rest"
-	"strings"
 )
 
 var (
@@ -85,8 +84,7 @@ func CreateImageStreamTemplate(config *restclient.Config, appConfig types.Applic
 			log.Infof("'%s' ImageStream already exists, skipping", img.Name)
 		} else {
 			// Parse ImageStream Template
-			tName := strings.Join([]string{template.BuilderPath, "imagestream"}, "/")
-			var b = template.ParseTemplate(tName, nil)
+			var b = template.ParseTemplate(template.GetTemplateFullName("imagestream"), types.Application{})
 
 			// Create ImageStream struct using the generated ImageStream string
 			img := imagev1.ImageStream{}

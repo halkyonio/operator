@@ -27,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 )
+
 func newCmdInstall(rootCmdOptions *RootCmdOptions) *cobra.Command {
 	options := installCmdOptions{
 		RootCmdOptions: rootCmdOptions,

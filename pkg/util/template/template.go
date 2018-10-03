@@ -20,29 +20,78 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"github.com/shurcooL/httpfs/vfsutil"
+	"github.com/snowdrop/component-operator/pkg/types"
 	log "github.com/sirupsen/logrus"
-	"go/types"
+	"os"
+	"strings"
 	"text/template"
 )
 
 var (
-	templates = make(map[string]template.Template)
+	TemplateAssets	   = Assets
+	TemplatePath 	   = "java"
+	TemplateFiles      []string
+	Templates          = make(map[string]template.Template)
 )
 
-const (
-	BuilderPath = "java"
-	PvcName     = "m2-data"
-)
+
+func init() {
+	walkFn := func(path string, fi os.FileInfo, err error) error {
+		if err != nil {
+			log.Printf("can't stat file %s: %v\n", path, err)
+			return nil
+		}
+
+		if fi.IsDir() {
+			return nil
+		}
+
+		log.Debugf("Path of the file to be added as template : %s" + path)
+		TemplateFiles = append(TemplateFiles, path)
+		return nil
+	}
+
+	errW := vfsutil.Walk(TemplateAssets, TemplatePath, walkFn)
+	if errW != nil {
+		panic(errW)
+	}
+
+	// Fill an array with the k8s/openshift yaml files
+	for i := range TemplateFiles {
+		log.Debugf(" File : %s", TemplateFiles[i])
+
+		// Create a new Template using the File name as key and add it to the array
+		t := template.New(TemplateFiles[i])
+
+		// Read Template's content
+		data, err := vfsutil.ReadFile(TemplateAssets, TemplateFiles[i])
+		if err != nil {
+			log.Error(err)
+		}
+		t, err = t.Parse(bytes.NewBuffer(data).String())
+		if err != nil {
+			log.Error(err)
+		}
+		Templates[TemplateFiles[i]] = *t
+	}
+}
+
 
 // Parse the file's template using the Application struct
-func ParseTemplate(tmpl string, cfg types.Object) bytes.Buffer {
+func ParseTemplate(tmpl string, obj types.Application) bytes.Buffer {
 	// Create Template and parse it
 	var b bytes.Buffer
-	t := templates[tmpl]
-	err := t.Execute(&b, cfg)
+	t := Templates[tmpl]
+	err := t.Execute(&b, obj)
 	if err != nil {
 		fmt.Println("There was an error:", err.Error())
 	}
 	log.Debug("Generated :", b.String())
 	return b
+}
+
+//
+func GetTemplateFullName(artifact string) string {
+	return strings.Join([]string{"java", artifact}, "/")
 }
