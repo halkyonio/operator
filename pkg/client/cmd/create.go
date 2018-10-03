@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 )
-
 func newCmdInstall(rootCmdOptions *RootCmdOptions) *cobra.Command {
 	options := installCmdOptions{
 		RootCmdOptions: rootCmdOptions,
@@ -64,7 +63,7 @@ func (o *installCmdOptions) create(cmd *cobra.Command, args []string) error {
 	} else {
 		name = args[0]
 	}
-	component, err := o.createComponentApplication(name)
+	component, err := o.createComponent(name)
 	if err != nil {
 		return err
 	}
@@ -72,7 +71,7 @@ func (o *installCmdOptions) create(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (o *installCmdOptions) createComponentApplication(name string) (*v1alpha1.Component, error) {
+func (o *installCmdOptions) createComponent(name string) (*v1alpha1.Component, error) {
 	component := v1alpha1.Component{
 		TypeMeta: v1.TypeMeta{
 			Kind:       v1alpha1.ComponentKind,
@@ -82,7 +81,9 @@ func (o *installCmdOptions) createComponentApplication(name string) (*v1alpha1.C
 			Namespace: namespace,
 			Name:      name,
 		},
-		Spec: v1alpha1.ComponentSpec{},
+		Spec: v1alpha1.ComponentSpec{
+			DeploymentMode: "innerloop",
+		},
 	}
 
 	existed := false

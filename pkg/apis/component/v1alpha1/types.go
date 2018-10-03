@@ -22,7 +22,7 @@ type Component struct {
 }
 
 type ComponentSpec struct {
-	// Fill me
+	DeploymentMode string `json:"deployment,omitempty"`
 }
 type ComponentStatus struct {
 	// Fill me
