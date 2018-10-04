@@ -237,9 +237,10 @@
 
 [[projects]]
   branch = "release-3.11"
-  digest = "1:65eb73ca003878c6b1aa71d74c3cd91c876e2f99c522f278732ad93fc180aefc"
+  digest = "1:731c479c0c26fef8799870539fa5a3ed098f43fea88f0ab9de329d8d2e2d68ee"
   name = "github.com/openshift/api"
   packages = [
+    "apps/v1",
     "image/docker10",
     "image/dockerpre012",
     "image/v1",
@@ -247,17 +248,6 @@
   ]
   pruneopts = "NUT"
   revision = "5ad8479f64f1b60ee9c62ce8ef1fe6638838725e"
-
-[[projects]]
-  branch = "release-3.11"
-  digest = "1:d880521c0a14409c7ee8cdedc96c400b1bb0de963a1ccb43ab1e92b352efcebb"
-  name = "github.com/openshift/client-go"
-  packages = [
-    "image/clientset/versioned/scheme",
-    "image/clientset/versioned/typed/image/v1",
-  ]
-  pruneopts = "NUT"
-  revision = "431ec9a26e5021f35fa41ee9a89842db9bfdb370"
 
 [[projects]]
   branch = "master"
@@ -685,9 +675,9 @@
   analyzer-version = 1
   input-imports = [
     "github.com/ghodss/yaml",
+    "github.com/openshift/api/apps/v1",
     "github.com/openshift/api/image/v1",
     "github.com/openshift/api/route/v1",
-    "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1",
     "github.com/operator-framework/operator-sdk/pkg/sdk",
     "github.com/operator-framework/operator-sdk/pkg/util/k8sutil",
     "github.com/operator-framework/operator-sdk/version",
@@ -703,7 +693,6 @@
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/apimachinery/pkg/util/intstr",
     "k8s.io/apimachinery/pkg/util/yaml",
-    "k8s.io/client-go/rest",
     "k8s.io/client-go/tools/clientcmd",
     "k8s.io/client-go/tools/clientcmd/api",
     "k8s.io/client-go/tools/clientcmd/api/latest",

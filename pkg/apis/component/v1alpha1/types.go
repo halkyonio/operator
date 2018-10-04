@@ -30,6 +30,7 @@ type ComponentSpec struct {
 	Port            int32  `json:"port,omitempty"`
 	SupervisordName string
 	Image           Image `json:"image,omitempty"`
+	Env             []Env `json:"env,omitempty"`
 	Storage         Storage `json:"storage,omitempty"`
 }
 
@@ -43,6 +44,11 @@ type Image struct {
 	Repo           string
 	Tag            string
 	DockerImage    bool
+}
+
+type Env struct {
+	Name  string
+	Value string
 }
 
 type Storage struct {
