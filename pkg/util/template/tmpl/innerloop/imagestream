@@ -1,8 +1,8 @@
-{{$nameApp := .Name }}
-apiVersion: v1
+{{$nameApp := .Name }}apiVersion: v1
 kind: List
 items:
-- {{ range .Spec.Image }}apiVersion: image.openshift.io/v1
+{{ range .Spec.Image }}
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:
@@ -24,5 +24,4 @@ items:
       name: latest
       referencePolicy:
         type: Source
-    {{end}}
-  {{end}}
+    {{end}}{{end}}
