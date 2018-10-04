@@ -75,11 +75,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 			if err != nil {
 				return err
 			}
-		}
-
-		if strings.HasPrefix("innerloop/imagestream", tmpl.Name()) {
-
-		} else {
+		default:
 			err := createResource(tmpl, component, namespace)
 			if err != nil {
 				return err
