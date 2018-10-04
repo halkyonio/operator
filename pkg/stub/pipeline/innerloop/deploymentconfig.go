@@ -24,7 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func JavaDeploymentConfig(component *v1alpha1.Component, commands string) *appsv1.DeploymentConfig {
+func InnerLoopDeploymentconfig(component *v1alpha1.Component, commands string) *appsv1.DeploymentConfig {
 	if commands == "" {
 		commands = "run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
 	}
