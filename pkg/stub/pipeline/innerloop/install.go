@@ -76,6 +76,12 @@ func installInnerLoop(component *v1alpha1.Component) error {
 			if err != nil {
 				return err
 			}
+		case "innerloop/deploymentconfig":
+			component.Spec.SupervisordName = "copy-supervisord"
+			err := createResource(tmpl, component, namespace)
+			if err != nil {
+				return err
+			}
 		default:
 			err := createResource(tmpl, component, namespace)
 			if err != nil {
