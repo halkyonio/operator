@@ -18,59 +18,60 @@ limitations under the License.
 package innerloop
 
 import (
-	routev1 "github.com/openshift/api/route/v1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/types"
-	"github.com/snowdrop/component-operator/pkg/util/template"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"text/template"
 )
 
-// NewDeployStep creates a step that handles the creation of the DeploymentConfig
-func NewDeployStep() pipeline.Step {
-	return &deployStep{}
+var (
+	namespace = "my-spring-app"
+)
+
+// NewInstallStep creates a step that handles the creation of the DeploymentConfig
+func NewInstallStep() pipeline.Step {
+	return &installStep{}
 }
 
-type deployStep struct {
+type installStep struct {
 }
 
-func (deployStep) Name() string {
+func (installStep) Name() string {
 	return "deploy"
 }
 
-func (deployStep) CanHandle(component *v1alpha1.Component) bool {
+func (installStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (deployStep) Handle(component *v1alpha1.Component) error {
+func (installStep) Handle(component *v1alpha1.Component) error {
 	target := component.DeepCopy()
-	return installDeploymentConfig(target)
+	return installInnerLoop(target)
 }
 
-func installDeploymentConfig(component *v1alpha1.Component) error {
-	//route := newComponentRoute(component.Name)
-	route, err := newComponentRouteFromTemplate(component.Name)
-	if err != nil {
-		return err
-	}
-	err = sdk.Create(route)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		return err
+func installInnerLoop(component *v1alpha1.Component) error {
+	for _, tmpl := range util.Templates {
+		res, err := newResourceFromTemplate(tmpl, component, namespace)
+		if err != nil {
+			return err
+		}
+		err = sdk.Create(res)
+		if err != nil && !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
 	}
 	return nil
 }
 
-func newComponentRouteFromTemplate(name string) (runtime.Object, error) {
-	var namespace = "component-operator"
-	var b = template.ParseTemplate(template.GetTemplateFullName("route"), types.Application{Name: name})
+func newResourceFromTemplate(template template.Template, component v1alpha1.Component, namespace string) (runtime.Object, error) {
+	var b = util.Parse(template, component)
 
-	// Create Route struct using the generated Route string
-	//route := routev1.Route{}
-	//err := yaml.Unmarshal(b.Bytes(), &route)
 	obj, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
 	if err != nil {
 		return nil, err
@@ -81,26 +82,6 @@ func newComponentRouteFromTemplate(name string) (runtime.Object, error) {
 		metaObject.SetNamespace(namespace)
 	}
 	return obj, nil
-}
-
-func newComponentRoute(name string) *routev1.Route {
-	return &routev1.Route{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Route",
-			APIVersion: "route.openshift.io/v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Labels:    getLabels(name),
-			Namespace: "component-operator",
-		},
-		Spec: routev1.RouteSpec{
-			To: routev1.RouteTargetReference{
-				Kind: "Service",
-				Name: name,
-			},
-		},
-	}
 }
 
 func getLabels(component string) map[string]string {

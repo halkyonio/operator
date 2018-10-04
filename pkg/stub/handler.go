@@ -33,7 +33,7 @@ import (
 func NewHandler() sdk.Handler {
 	return &Handler{
 		innerLoopSteps: []pipeline.Step{
-			innerloop.NewDeployStep(),
+			innerloop.NewInstallStep(),
 			//generic.NewServiceStep(),
 			//common.NewPVCStep(),
 			//common.NewRouteStep(),

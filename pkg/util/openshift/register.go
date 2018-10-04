@@ -18,6 +18,7 @@ limitations under the License.
 package openshift
 
 import (
+	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	"github.com/sirupsen/logrus"
@@ -36,6 +37,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	var err error
 
 	// Standardized groups
+	err = doAdd(image.Install, scheme, err)
 	err = doAdd(route.Install, scheme, err)
 
 	return err

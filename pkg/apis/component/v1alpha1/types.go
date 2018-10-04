@@ -22,10 +22,26 @@ type Component struct {
 }
 
 type ComponentSpec struct {
-	DeploymentMode string `json:"deployment,omitempty"`
+	DeploymentMode  string `json:"deployment,omitempty"`
+	Version         string
+	Namespace       string
+	Cpu             string `default:"100m"`
+	Memory          string `default:"250Mi"`
+	Port            int32  `default:"8080"`
+	SupervisordName string
+	Image           Image
 }
+
 type ComponentStatus struct {
 	// Fill me
+}
+
+type Image struct {
+	Name           string
+	AnnotationCmds bool
+	Repo           string
+	Tag            string
+	DockerImage    bool
 }
 
 const (

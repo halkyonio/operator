@@ -15,24 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package types
+// +build dev
 
-type Application struct {
-	Name            string
-	Version         string
-	Namespace       string
-	Replica         int
-	Cpu             string `default:"100m"`
-	Memory          string `default:"250Mi"`
-	Port            int32  `default:"8080"`
-	SupervisordName string
-	Image           Image
-}
+package template
 
-type Image struct {
-	Name           string
-	AnnotationCmds bool
-	Repo           string
-	Tag            string
-	DockerImage    bool
-}
+import "net/http"
+
+var Assets http.FileSystem = http.Dir("tmpl")
