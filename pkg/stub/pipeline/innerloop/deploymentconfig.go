@@ -24,16 +24,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func InnerLoopDeploymentconfig(component *v1alpha1.Component, commands string) *appsv1.DeploymentConfig {
+func InnerLoopDeploymentconfig(component *v1alpha1.Component, namespace, commands string) *appsv1.DeploymentConfig {
 	if commands == "" {
 		commands = "run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
 	}
 	return &appsv1.DeploymentConfig{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion:"apps.openshift.io/v1",
+			Kind: "DeploymentConfig",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: component.Name,
 			Labels: map[string]string{
 				"app":        component.Name,
 			},
+			Namespace: namespace,
 		},
 		Spec: appsv1.DeploymentConfigSpec{
 			Replicas: 1,
@@ -64,7 +69,7 @@ func InnerLoopDeploymentconfig(component *v1alpha1.Component, commands string) *
 									Protocol:      corev1.ProtocolTCP,
 								},
 							},
-							Env: populateEnvVar(component),
+							Env: populateEnvVar(*component),
 							/*							Resources: corev1.ResourceRequirements{
 														Limits: corev1.ResourceList{
 															corev1.ResourceCPU: resource.MustParse(appConfig.Cpu),

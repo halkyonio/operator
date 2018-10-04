@@ -83,11 +83,11 @@ func installInnerLoop(component *v1alpha1.Component) error {
 			}
 		}
 	}
-	// TODO - Create a Template for the DC
-	err = sdk.Create(InnerLoopDeploymentconfig(component, namespace))
+/*	// TODO - Create a Template for the DC
+	err = sdk.Create(InnerLoopDeploymentconfig(component, namespace, ""))
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
-	}
+	}*/
 	return nil
 }
 
