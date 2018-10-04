@@ -18,15 +18,16 @@ limitations under the License.
 package innerloop
 
 import (
-	"github.com/ghodss/yaml"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/types"
 	"github.com/snowdrop/component-operator/pkg/util/template"
+	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // NewDeployStep creates a step that handles the creation of the DeploymentConfig
@@ -51,28 +52,35 @@ func (deployStep) Handle(component *v1alpha1.Component) error {
 }
 
 func installDeploymentConfig(component *v1alpha1.Component) error {
-	// Create Route
 	//route := newComponentRoute(component.Name)
-	route := newComponentRouteFromTemplate(component.Name)
-	err := sdk.Create(route)
+	route, err := newComponentRouteFromTemplate(component.Name)
+	if err != nil {
+		return err
+	}
+	err = sdk.Create(route)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
 	return nil
 }
 
-func newComponentRouteFromTemplate(name string) *routev1.Route {
-	// Parse Route Template
+func newComponentRouteFromTemplate(name string) (runtime.Object, error) {
+	var namespace = "component-operator"
 	var b = template.ParseTemplate(template.GetTemplateFullName("route"), types.Application{Name: name})
 
 	// Create Route struct using the generated Route string
-	route := routev1.Route{}
-	err := yaml.Unmarshal(b.Bytes(), &route)
+	//route := routev1.Route{}
+	//err := yaml.Unmarshal(b.Bytes(), &route)
+	obj, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	route.Namespace = "component-operator"
-	return &route
+
+	// Define the namespace
+	if metaObject, ok := obj.(metav1.Object); ok {
+		metaObject.SetNamespace(namespace)
+	}
+	return obj, nil
 }
 
 func newComponentRoute(name string) *routev1.Route {

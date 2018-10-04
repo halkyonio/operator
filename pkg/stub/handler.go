@@ -25,6 +25,9 @@ import (
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
+
+	// import openshift to register scheme
+	_ "github.com/snowdrop/component-operator/pkg/util/openshift"
 )
 
 func NewHandler() sdk.Handler {
