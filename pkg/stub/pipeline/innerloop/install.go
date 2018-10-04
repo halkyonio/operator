@@ -108,15 +108,19 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, names
 		return err
 	}
 
-	err = sdk.Create(res)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		return err
+	for _, r := range res {
+		err = sdk.Create(r)
+		if err != nil && !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func newResourceFromTemplate(template template.Template, component *v1alpha1.Component, namespace string) (runtime.Object, error) {
+func newResourceFromTemplate(template template.Template, component *v1alpha1.Component, namespace string) ([]runtime.Object, error) {
+	var result = []runtime.Object{}
+
 	var b = util.Parse(template, component)
 	r, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
 	if err != nil {
@@ -132,13 +136,13 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 			r, err := k8sutil.RuntimeObjectFromUnstructured(&item)
 			if err != nil {
 				return nil, err
-			} else {
-				// Define the namespace for the object
-				if metaObject, ok := r.(metav1.Object); ok {
-					metaObject.SetNamespace(namespace)
-				}
-				return r, nil
 			}
+
+			// Define the namespace for the object
+			if metaObject, ok := r.(metav1.Object); ok {
+				metaObject.SetNamespace(namespace)
+			}
+			result = append(result, r)
 		}
 	} else {
 		obj, err := k8sutil.RuntimeObjectFromUnstructured(r)
@@ -150,9 +154,9 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 		if metaObject, ok := obj.(metav1.Object); ok {
 			metaObject.SetNamespace(namespace)
 		}
-		return obj, nil
+		result = append(result, r)
 	}
-	return nil, nil
+	return result, nil
 }
 
 func getLabels(component string) map[string]string {
