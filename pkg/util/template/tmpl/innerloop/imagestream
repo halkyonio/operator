@@ -1,23 +1,26 @@
+{{$nameApp := .Name }}
+{{ range .Spec.Image }}
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   labels:
-    app: {{.Name}}
-  name: {{.Spec.Image.Name}}
+    app: {{$nameApp}}
+  name: {{.Name}}
 spec:
   lookupPolicy:
     local: false
-  {{if .Spec.Image.DockerImage}}
+  {{if .DockerImage}}
   tags:
-  - {{if .Spec.Image.AnnotationCmds}}
+  - {{if .AnnotationCmds}}
     annotations:
       cmds: "run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
     {{end}}
     from:
       kind: DockerImage
-      name: {{.Spec.Image.Repo}}
+      name: {{.Repo}}
     importPolicy: {}
     name: latest
     referencePolicy:
       type: Source
   {{end}}
+{{end}}
