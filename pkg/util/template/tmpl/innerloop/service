@@ -7,9 +7,9 @@ metadata:
     name: {{.Name}}
 spec:
   ports:
-  - port: {{.Port}}
+  - port: {{.Spec.Port}}
     protocol: TCP
-    targetPort: {{.Port}}
+    targetPort: {{.Spec.Port}}
   selector:
     app: {{.Name}}
     deploymentconfig: {{.Name}}

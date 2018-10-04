@@ -77,7 +77,7 @@ func init() {
 }
 
 // Parse the file's template using the Component and the path of the template asset to use
-func ParseTemplate(tmpl string, obj v1alpha1.Component) bytes.Buffer {
+func ParseTemplate(tmpl string, obj *v1alpha1.Component) bytes.Buffer {
 	t := Templates[tmpl]
 	return Parse(t, obj)
 }

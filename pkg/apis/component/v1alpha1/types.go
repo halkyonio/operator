@@ -25,15 +25,15 @@ type ComponentSpec struct {
 	DeploymentMode  string `json:"deployment,omitempty"`
 	Version         string
 	Namespace       string
-	Cpu             string `default:"100m"`
-	Memory          string `default:"250Mi"`
-	Port            int32  `default:"8080"`
+	Cpu             string `json:"cpu,omitempty"`
+	Memory          string `json:"memory,omitempty"`
+	Port            int32  `json:"port,omitempty"`
 	SupervisordName string
-	Image           Image
+	Image           Image  `json:"image,omitempty"`
 }
 
 type ComponentStatus struct {
-	// Fill me
+	Phase  Phase `json:"phase,omitempty"`
 }
 
 type Image struct {
@@ -44,7 +44,20 @@ type Image struct {
 	DockerImage    bool
 }
 
+
+// IntegrationPhase --
+type Phase string
+
 const (
 	// ComponentKind --
 	ComponentKind string = "Component"
+
+	// PhaseBuilding --
+	PhaseBuilding Phase = "Building"
+	// PhaseDeploying --
+	PhaseDeploying Phase = "Deploying"
+	// PhaseRunning --
+	PhaseRunning Phase = "Running"
+	// PhaseError --
+	PhaseError Phase = "Error"
 )

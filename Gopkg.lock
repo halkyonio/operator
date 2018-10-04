@@ -342,6 +342,14 @@
   revision = "418d78d0b9a7b7de3a6bbc8a23def624cc977bb2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:7ca2584fa7da0520cd2d1136a10194fe5a5b220bdb215074ab6f7b5ad91115f4"
+  name = "github.com/shurcooL/httpfs"
+  packages = ["vfsutil"]
+  pruneopts = "NUT"
+  revision = "809beceb23714880abc4a382a00c05f89d13b1cc"
+
+[[projects]]
   digest = "1:01252cd79aac70f16cac02a72a1067dd136e0ad6d5b597d0129cf74c739fd8d1"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
@@ -684,14 +692,17 @@
     "github.com/operator-framework/operator-sdk/pkg/util/k8sutil",
     "github.com/operator-framework/operator-sdk/version",
     "github.com/pkg/errors",
+    "github.com/shurcooL/httpfs/vfsutil",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
+    "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/apimachinery/pkg/util/intstr",
+    "k8s.io/apimachinery/pkg/util/yaml",
     "k8s.io/client-go/rest",
     "k8s.io/client-go/tools/clientcmd",
     "k8s.io/client-go/tools/clientcmd/api",

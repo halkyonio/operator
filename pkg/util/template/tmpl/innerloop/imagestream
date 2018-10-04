@@ -3,19 +3,19 @@ kind: ImageStream
 metadata:
   labels:
     app: {{.Name}}
-  name: {{.Image.Name}}
+  name: {{.Spec.Image.Name}}
 spec:
   lookupPolicy:
     local: false
-  {{if .Image.DockerImage}}
+  {{if .Spec.Image.DockerImage}}
   tags:
-  - {{if .Image.AnnotationCmds}}
+  - {{if .Spec.Image.AnnotationCmds}}
     annotations:
       cmds: "run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
     {{end}}
     from:
       kind: DockerImage
-      name: {{.Image.Repo}}
+      name: {{.Spec.Image.Repo}}
     importPolicy: {}
     name: latest
     referencePolicy:

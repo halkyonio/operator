@@ -60,7 +60,7 @@ func (o *installCmdOptions) create(cmd *cobra.Command, args []string) error {
 	log.Info("Start command called")
 	name := ""
 	if len(args) == 0 {
-		name = "sb-a"
+		name = "make sb-a"
 	} else {
 		name = args[0]
 	}
@@ -84,6 +84,8 @@ func (o *installCmdOptions) createComponent(name string) (*v1alpha1.Component, e
 		},
 		Spec: v1alpha1.ComponentSpec{
 			DeploymentMode: "innerloop",
+			Port: 8080,
+			SupervisordName: "copy-supervisord",
 		},
 	}
 
