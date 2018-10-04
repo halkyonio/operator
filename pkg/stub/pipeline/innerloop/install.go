@@ -89,7 +89,6 @@ func installInnerLoop(component *v1alpha1.Component) error {
 		return err
 	}
 	return nil
-	return nil
 }
 
 func createResource(tmpl template.Template, component *v1alpha1.Component, namespace string) error {
