@@ -19,6 +19,7 @@ package innerloop
 
 import (
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
+	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
@@ -26,6 +27,8 @@ import (
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
+
 	// metav1unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"text/template"
@@ -105,37 +108,51 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, names
 		return err
 	}
 
-	if listObject, ok := res.(*metav1.List); ok {
-		for _, item := range listObject.Items {
-			log.Info("Obj :",item.Object)
-			err = sdk.Create(nil)
-			if err != nil && !k8serrors.IsAlreadyExists(err) {
-				return err
-			}
-		}
-	} else {
-		err = sdk.Create(res)
-		if err != nil && !k8serrors.IsAlreadyExists(err) {
-			return err
-		}
+	err = sdk.Create(res)
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
+		return err
 	}
+
 	return nil
 }
 
 func newResourceFromTemplate(template template.Template, component *v1alpha1.Component, namespace string) (runtime.Object, error) {
 	var b = util.Parse(template, component)
-
-	obj, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
+	r, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
 	if err != nil {
 		return nil, err
 	}
 
-	// Define the namespace for the object
-	if metaObject, ok := obj.(metav1.Object); ok {
-		metaObject.SetNamespace(namespace)
-	}
+	if strings.HasSuffix(r.GetKind(), "List") {
+		l, err := r.ToList()
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range l.Items {
+			r, err := k8sutil.RuntimeObjectFromUnstructured(&item)
+			if err != nil {
+				return nil, err
+			} else {
+				// Define the namespace for the object
+				if metaObject, ok := r.(metav1.Object); ok {
+					metaObject.SetNamespace(namespace)
+				}
+				return r, nil
+			}
+		}
+	} else {
+		obj, err := k8sutil.RuntimeObjectFromUnstructured(r)
+		if err != nil {
+			return nil, err
+		}
 
-	return obj, nil
+		// Define the namespace for the object
+		if metaObject, ok := obj.(metav1.Object); ok {
+			metaObject.SetNamespace(namespace)
+		}
+		return obj, nil
+	}
+	return nil, nil
 }
 
 func getLabels(component string) map[string]string {

@@ -18,13 +18,11 @@ limitations under the License.
 package kubernetes
 
 import (
-	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-func PopulateKubernetesObjectFromYaml(data string) (runtime.Object, error) {
+func PopulateKubernetesObjectFromYaml(data string) (*unstructured.Unstructured, error) {
 	yml := []byte(data)
 	json, err := yaml.ToJSON(yml)
 	if err != nil {
@@ -35,5 +33,5 @@ func PopulateKubernetesObjectFromYaml(data string) (runtime.Object, error) {
 	if err != nil {
 		return nil, err
 	}
-	return k8sutil.RuntimeObjectFromUnstructured(&u)
+	return &u, nil
 }
