@@ -1,0 +1,82 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: {{.Name}}
+  name: {{.Name}}
+spec:
+  replicas: 1
+  selector:
+    app: {{.Name}}
+    deploymentconfig: {{.Name}}
+  strategy:
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: {{.Name}}
+        deploymentconfig: {{.Name}}
+      name: {{.Name}}
+    spec:
+      containers:
+      - args:
+        - -c
+        - /var/lib/supervisord/conf/supervisor.conf
+        command:
+        - /var/lib/supervisord/bin/supervisord
+        env:
+        - name: JAVA_APP_DIR
+          value: /deployments
+        - name: JAVA_DEBUG
+          value: "true"
+        - name: JAVA_DEBUG_PORT
+          value: "5005"
+        - name: JAVA_APP_JAR
+          value: app.jar
+        image: "dev-s2i:latest"
+        imagePullPolicy: Always
+        name: {{.Name}}
+        ports:
+        - containerPort: {{.Spec.Port}}
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/lib/supervisord
+          name: shared-data
+        - mountPath: /tmp/artifacts
+          name: m2-data
+      initContainers:
+      - env:
+        - name: CMDS
+          value: run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp
+        image: "{{.Spec.SupervisordName}}:latest"
+        imagePullPolicy: Always
+        name: copy-supervisord
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/supervisord
+          name: shared-data
+      volumes:
+      - emptyDir: {}
+        name: shared-data
+      - name: m2-data
+        persistentVolumeClaim:
+          claimName: m2-data
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - copy-supervisord
+      from:
+        kind: ImageStreamTag
+        name: copy-supervisord:latest
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - {{.Name}}
+      from:
+        kind: ImageStreamTag
+        name: dev-s2i:latest
