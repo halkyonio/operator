@@ -26,11 +26,20 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"strings"
 	"text/template"
 )
 
 var (
-	namespace = "my-spring-app"
+	namespace        = "my-spring-app"
+	zero             = int64(0)
+	deleteOptions    = &metav1.DeleteOptions{GracePeriodSeconds: &zero}
+	javaImage        = "quay.io/snowdrop/spring-boot-s2i"
+	supervisordImage = "quay.io/snowdrop/supervisord"
+    defaultImages    = []v1alpha1.Image{
+		*CreateTypeImage(true, "dev-s2i", "latest", javaImage, false),
+		*CreateTypeImage(true, "copy-supervisord", "latest", supervisordImage, true),
+	}
 )
 
 // NewInstallStep creates a step that handles the creation of the DeploymentConfig
@@ -55,16 +64,34 @@ func (installStep) Handle(component *v1alpha1.Component) error {
 }
 
 func installInnerLoop(component *v1alpha1.Component) error {
-	// TODO Add a key to get the templates associated to the innerloop, ....
+	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
 	for _, tmpl := range util.Templates {
-		res, err := newResourceFromTemplate(tmpl, component, namespace)
-		if err != nil {
-			return err
+		if strings.HasPrefix("innerloop/imagestream",tmpl.Name()) {
+			for _, img := range defaultImages {
+				component.Spec.Image = img
+				err := createResource(tmpl, component, namespace)
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			err := createResource(tmpl, component, namespace)
+			if err != nil {
+				return err
+			}
 		}
-		err = sdk.Create(res)
-		if err != nil && !k8serrors.IsAlreadyExists(err) {
-			return err
-		}
+	}
+	return nil
+}
+
+func createResource(tmpl template.Template, component *v1alpha1.Component, namespace string) error {
+	res, err := newResourceFromTemplate(tmpl, component, namespace)
+	if err != nil {
+		return err
+	}
+	err = sdk.Create(res)
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
+		return err
 	}
 	return nil
 }
@@ -82,6 +109,16 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 		metaObject.SetNamespace(namespace)
 	}
 	return obj, nil
+}
+
+func CreateTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) *v1alpha1.Image {
+	return &v1alpha1.Image{
+		DockerImage:    dockerImage,
+		Name:           name,
+		Repo:           repo,
+		AnnotationCmds: annotationCmd,
+		Tag:            tag,
+	}
 }
 
 func getLabels(component string) map[string]string {

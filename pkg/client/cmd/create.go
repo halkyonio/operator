@@ -19,12 +19,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/spf13/cobra"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 )
 
@@ -60,7 +62,7 @@ func (o *installCmdOptions) create(cmd *cobra.Command, args []string) error {
 	log.Info("Start command called")
 	name := ""
 	if len(args) == 0 {
-		name = "make sb-a"
+		name = "my-spring-boot"
 	} else {
 		name = args[0]
 	}
@@ -68,7 +70,7 @@ func (o *installCmdOptions) create(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Print("Component : ", component)
+	printComponent(component)
 	return nil
 }
 
@@ -86,6 +88,9 @@ func (o *installCmdOptions) createComponent(name string) (*v1alpha1.Component, e
 			DeploymentMode: "innerloop",
 			Port: 8080,
 			SupervisordName: "copy-supervisord",
+		},
+		Status:v1alpha1.ComponentStatus{
+			Phase: "",
 		},
 	}
 
@@ -113,4 +118,12 @@ func (o *installCmdOptions) createComponent(name string) (*v1alpha1.Component, e
 	}
 
 	return &component, nil
+}
+
+func printComponent(obj runtime.Object) {
+	res, err := yaml.Marshal(obj)
+	if err != nil {
+		log.Error("Unexpected error: %v", err)
+	}
+	log.Info(string(res))
 }

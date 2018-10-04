@@ -26,7 +26,7 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
 
-	// import openshift to register scheme
+	// import openshift package to register the OpenShift schemes (route, image, ...)
 	_ "github.com/snowdrop/component-operator/pkg/util/openshift"
 )
 

@@ -53,3 +53,14 @@ Instructions followed to create the Component's CRD, operator using the `operato
   oc delete -f deploy/rbac.yaml
   oc delete -f deploy/sa.yaml
   ```
+
+- Start operator locally
+
+  ```bash
+  $ oc new-project my-spring-app
+  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=/Users/dabou/.kube/config go run cmd/component-operator/main.go
+  $ go run cmd/sd/sd.go create my-spring-boot        
+
+  oc get route,svc,components,is
+  oc delete components,route,svc,is --all=true
+  ```  
