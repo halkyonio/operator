@@ -49,7 +49,7 @@ func InitKubeClient(kubeconfig string) error {
 }
 
 func getK8Config(kubeconfig string) string {
-	log.Info("Get K8s config file")
+	log.Debug("Get K8s config file")
 	if kubeconfig == "" {
 		return HomeKubePath()
 	} else {

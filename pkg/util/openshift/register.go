@@ -18,9 +18,9 @@ limitations under the License.
 package openshift
 
 import (
+	deploymentconfig "github.com/openshift/api/apps/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
-	deploymentconfig "github.com/openshift/api/apps/v1"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"

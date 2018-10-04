@@ -19,6 +19,7 @@ package innerloop
 
 import (
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
+	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
@@ -89,11 +90,13 @@ func installInnerLoop(component *v1alpha1.Component) error {
 			}
 		}
 	}
-/*	// TODO - Create a Template for the DC
-	err = sdk.Create(InnerLoopDeploymentconfig(component, namespace, ""))
+	log.Infof("%s component created", component.Name)
+	component.Status.Phase = v1alpha1.PhaseDeploying
+
+	err = sdk.Update(component)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
-	}*/
+	}
 	return nil
 }
 

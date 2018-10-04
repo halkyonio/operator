@@ -30,13 +30,13 @@ func InnerLoopDeploymentconfig(component *v1alpha1.Component, namespace, command
 	}
 	return &appsv1.DeploymentConfig{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion:"apps.openshift.io/v1",
-			Kind: "DeploymentConfig",
+			APIVersion: "apps.openshift.io/v1",
+			Kind:       "DeploymentConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: component.Name,
 			Labels: map[string]string{
-				"app":        component.Name,
+				"app": component.Name,
 			},
 			Namespace: namespace,
 		},
@@ -159,7 +159,7 @@ func populateEnvVar(component v1alpha1.Component) []corev1.EnvVar {
 		envs = append(envs, corev1.EnvVar{Name: e.Name, Value: e.Value})
 	}
 
-	if ! contains(envs,"JAVA_APP_JAR") {
+	if !contains(envs, "JAVA_APP_JAR") {
 		envs = append(envs, corev1.EnvVar{Name: "JAVA_APP_JAR", Value: "app.jar"})
 	}
 
@@ -194,4 +194,3 @@ func supervisordInitContainer(name string, commands string) *corev1.Container {
 		},
 	}
 }
-
