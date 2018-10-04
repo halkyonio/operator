@@ -26,12 +26,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"strings"
 	"text/template"
-)
-
-var (
-	namespace = "my-spring-app"
 )
 
 // NewInstallStep creates a step that handles the creation of the DeploymentConfig
@@ -56,6 +51,12 @@ func (installStep) Handle(component *v1alpha1.Component) error {
 }
 
 func installInnerLoop(component *v1alpha1.Component) error {
+	// Get Current Namespace
+	namespace, err := kubernetes.GetClientCurrentNamespace("")
+	if err != nil {
+		return err
+	}
+
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
 	for _, tmpl := range util.Templates {
 		switch tmpl.Name() {
