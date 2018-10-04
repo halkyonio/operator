@@ -23,13 +23,13 @@ import (
 )
 
 var (
-	zero             = int64(0)
-	deleteOptions    = &metav1.DeleteOptions{GracePeriodSeconds: &zero}
+	zero          = int64(0)
+	deleteOptions = &metav1.DeleteOptions{GracePeriodSeconds: &zero}
 
 	javaImage        = "quay.io/snowdrop/spring-boot-s2i"
 	supervisordImage = "quay.io/snowdrop/supervisord"
 
-	defaultImages    = []v1alpha1.Image{
+	defaultImages = []v1alpha1.Image{
 		*CreateTypeImage(true, "dev-s2i", "latest", javaImage, false),
 		*CreateTypeImage(true, "copy-supervisord", "latest", supervisordImage, true),
 	}

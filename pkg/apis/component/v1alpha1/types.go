@@ -29,11 +29,12 @@ type ComponentSpec struct {
 	Memory          string `json:"memory,omitempty"`
 	Port            int32  `json:"port,omitempty"`
 	SupervisordName string
-	Image           Image  `json:"image,omitempty"`
+	Image           Image `json:"image,omitempty"`
+	Storage         Storage `json:"storage,omitempty"`
 }
 
 type ComponentStatus struct {
-	Phase  Phase `json:"phase,omitempty"`
+	Phase Phase `json:"phase,omitempty"`
 }
 
 type Image struct {
@@ -44,6 +45,11 @@ type Image struct {
 	DockerImage    bool
 }
 
+type Storage struct {
+	Name     string `json:"name,omitempty"`
+	Capacity string `json:"capacity,omitempty"`
+	Mode     string `json:"mode,omitempty"`
+}
 
 // IntegrationPhase --
 type Phase string

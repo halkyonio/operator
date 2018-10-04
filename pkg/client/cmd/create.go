@@ -85,11 +85,11 @@ func (o *installCmdOptions) createComponent(name string) (*v1alpha1.Component, e
 			Name:      name,
 		},
 		Spec: v1alpha1.ComponentSpec{
-			DeploymentMode: "innerloop",
-			Port: 8080,
+			DeploymentMode:  "innerloop",
+			Port:            8080,
 			SupervisordName: "copy-supervisord",
 		},
-		Status:v1alpha1.ComponentStatus{
+		Status: v1alpha1.ComponentStatus{
 			Phase: "",
 		},
 	}

@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	namespace        = "my-spring-app"
+	namespace = "my-spring-app"
 )
 
 // NewInstallStep creates a step that handles the creation of the DeploymentConfig
@@ -58,7 +58,8 @@ func (installStep) Handle(component *v1alpha1.Component) error {
 func installInnerLoop(component *v1alpha1.Component) error {
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
 	for _, tmpl := range util.Templates {
-		if strings.HasPrefix("innerloop/imagestream",tmpl.Name()) {
+		switch tmpl.Name() {
+		case "innerloop/imagestream":
 			for _, img := range defaultImages {
 				component.Spec.Image = img
 				err := createResource(tmpl, component, namespace)
@@ -66,6 +67,18 @@ func installInnerLoop(component *v1alpha1.Component) error {
 					return err
 				}
 			}
+		case "innerloop/pvc":
+			component.Spec.Storage.Name = "m2-data"
+			component.Spec.Storage.Capacity = "1Gi"
+			component.Spec.Storage.Mode = "ReadWriteOnce"
+			err := createResource(tmpl, component, namespace)
+			if err != nil {
+				return err
+			}
+		}
+
+		if strings.HasPrefix("innerloop/imagestream", tmpl.Name()) {
+
 		} else {
 			err := createResource(tmpl, component, namespace)
 			if err != nil {
