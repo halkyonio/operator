@@ -29,7 +29,7 @@ type ComponentSpec struct {
 	Memory          string `json:"memory,omitempty"`
 	Port            int32  `json:"port,omitempty"`
 	SupervisordName string
-	Image           Image   `json:"image,omitempty"`
+	Image           []Image   `json:"image,omitempty"`
 	Env             []Env   `json:"env,omitempty"`
 	Storage         Storage `json:"storage,omitempty"`
 }

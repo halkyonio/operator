@@ -1,7 +1,7 @@
 apiVersion: component.k8s.io/v1alpha1
 kind: Component
 metadata:
-  name: my-spring-boot-1
+  name: my-spring-boot
 spec:
   deployment: innerloop
   port: 8080

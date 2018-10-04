@@ -62,12 +62,10 @@ func installInnerLoop(component *v1alpha1.Component) error {
 	for _, tmpl := range util.Templates {
 		switch tmpl.Name() {
 		case "innerloop/imagestream":
-			for _, img := range defaultImages {
-				component.Spec.Image = img
-				err := createResource(tmpl, component, namespace)
-				if err != nil {
-					return err
-				}
+			component.Spec.Image = defaultImages
+			err := createResource(tmpl, component, namespace)
+			if err != nil {
+				return err
 			}
 		case "innerloop/pvc":
 			component.Spec.Storage.Name = "m2-data"
