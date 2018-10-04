@@ -154,7 +154,7 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 		if metaObject, ok := obj.(metav1.Object); ok {
 			metaObject.SetNamespace(namespace)
 		}
-		result = append(result, r)
+		result = append(result, obj)
 	}
 	return result, nil
 }
