@@ -21,20 +21,19 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/shurcooL/httpfs/vfsutil"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"os"
 	"strings"
 	"text/template"
 )
 
 var (
-	TemplateAssets	   = Assets
-	TemplatePath 	   = "innerloop"
-	TemplateFiles      []string
-	Templates          = make(map[string]template.Template)
+	TemplateAssets = Assets
+	TemplatePath   = "innerloop"
+	TemplateFiles  []string
+	Templates      = make(map[string]template.Template)
 )
-
 
 func init() {
 	walkFn := func(path string, fi os.FileInfo, err error) error {
@@ -77,7 +76,6 @@ func init() {
 	}
 }
 
-
 // Parse the file's template using the Component and the path of the template asset to use
 func ParseTemplate(tmpl string, obj v1alpha1.Component) bytes.Buffer {
 	t := Templates[tmpl]
@@ -85,7 +83,7 @@ func ParseTemplate(tmpl string, obj v1alpha1.Component) bytes.Buffer {
 }
 
 // Parse the file's template using the Application struct
-func Parse(t template.Template, obj v1alpha1.Component) bytes.Buffer {
+func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
 	var b bytes.Buffer
 	err := t.Execute(&b, obj)
 	if err != nil {

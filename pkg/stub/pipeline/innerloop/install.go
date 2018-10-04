@@ -21,7 +21,6 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
-	"github.com/snowdrop/component-operator/pkg/types"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -56,6 +55,7 @@ func (installStep) Handle(component *v1alpha1.Component) error {
 }
 
 func installInnerLoop(component *v1alpha1.Component) error {
+	// TODO Add a key to get the templates associated to the innerloop, ....
 	for _, tmpl := range util.Templates {
 		res, err := newResourceFromTemplate(tmpl, component, namespace)
 		if err != nil {
@@ -69,7 +69,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 	return nil
 }
 
-func newResourceFromTemplate(template template.Template, component v1alpha1.Component, namespace string) (runtime.Object, error) {
+func newResourceFromTemplate(template template.Template, component *v1alpha1.Component, namespace string) (runtime.Object, error) {
 	var b = util.Parse(template, component)
 
 	obj, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
