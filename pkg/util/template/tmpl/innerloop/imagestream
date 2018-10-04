@@ -1,26 +1,28 @@
 {{$nameApp := .Name }}
-{{ range .Spec.Image }}
-apiVersion: image.openshift.io/v1
-kind: ImageStream
-metadata:
-  labels:
-    app: {{$nameApp}}
-  name: {{.Name}}
-spec:
-  lookupPolicy:
-    local: false
-  {{if .DockerImage}}
-  tags:
-  - {{if .AnnotationCmds}}
-    annotations:
-      cmds: "run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
+apiVersion: v1
+kind: List
+items:
+- {{ range .Spec.Image }}apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: {{$nameApp}}
+    name: {{.Name}}
+  spec:
+    lookupPolicy:
+      local: false
+    {{if .DockerImage}}
+    tags:
+    - {{if .AnnotationCmds}}
+      annotations:
+        cmds: "run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
+      {{end}}
+      from:
+        kind: DockerImage
+        name: {{.Repo}}
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
     {{end}}
-    from:
-      kind: DockerImage
-      name: {{.Repo}}
-    importPolicy: {}
-    name: latest
-    referencePolicy:
-      type: Source
   {{end}}
-{{end}}

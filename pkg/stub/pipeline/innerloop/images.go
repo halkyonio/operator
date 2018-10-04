@@ -30,13 +30,13 @@ var (
 	supervisordImage = "quay.io/snowdrop/supervisord"
 
 	defaultImages = []v1alpha1.Image{
-		*CreateTypeImage(true, "dev-s2i", "latest", javaImage, false),
-		*CreateTypeImage(true, "copy-supervisord", "latest", supervisordImage, true),
+		CreateTypeImage(true, "dev-s2i", "latest", javaImage, false),
+		CreateTypeImage(true, "copy-supervisord", "latest", supervisordImage, true),
 	}
 )
 
-func CreateTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) *v1alpha1.Image {
-	return &v1alpha1.Image{
+func CreateTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) v1alpha1.Image {
+	return v1alpha1.Image{
 		DockerImage:    dockerImage,
 		Name:           name,
 		Repo:           repo,
