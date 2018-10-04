@@ -59,8 +59,11 @@ Instructions followed to create the Component's CRD, operator using the `operato
   ```bash
   $ oc new-project my-spring-app
   $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=/Users/dabou/.kube/config go run cmd/component-operator/main.go
-  $ oc delete components,route,svc,is,pvc,dc --all=true && go run cmd/sd/sd.go create my-spring-boot        
-
-  oc get all,pvc,components,dc
+  
+  $ oc delete components,route,svc,is,pvc,dc --all=true && go run cmd/sd/sd.go create my-spring-boot
+  OR
+  $ oc apply -f deploy/component1.yml
+  $ oc get all,pvc,components,dc
+  
   oc delete components,route,svc,is,pvc,dc --all=true
   ```  
