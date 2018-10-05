@@ -60,6 +60,17 @@
   component.component.k8s.io/my-spring-boot   15s
   ```
   
+- Next scaffold (optional) a Spring Boot project, package it and push it to the dev's pod 
+
+  ```bash
+  cd /path/to/project
+  sd create -t rest -i my-spring-boot
+  mvn clean package
+  sd push --mode binary
+  sd exec start
+  URL="http://$(oc get routes/my-spring-boot -o jsonpath='{.spec.host}')"
+  curl $URL/api/greeting
+  ```
 
 - To cleanup the project installed (component)
   ```bash  
