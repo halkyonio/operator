@@ -1,5 +1,91 @@
 ## Component's kubernetes operator
 
+### How to play with operator locally
+
+- Log on to an OpenShift cluster >=3.10 with cluster-admin rights
+- Create a namespace `component-operator`
+  ```bash
+  $ oc new-project component-operator
+  ```
+
+- Deploy the resources : service account, rbac amd crd definition
+  ```bash
+  $ oc create -f deploy/sa.yaml
+  $ oc create -f deploy/rbac.yaml
+  $ oc create -f deploy/crd.yaml
+  ```
+
+- Start the Operator locally
+  ```bash
+  $ oc new-project my-spring-app
+  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/component-operator/main.go
+  
+- In a separate terminal, the client using the create command
+
+  ```bash
+  $ go run cmd/sd/sd.go create my-spring-boot
+  ```
+- Or using a component's crd created manually
+  ```bash
+  $ oc apply -f deploy/component1.yml 
+  ```  
+
+- Check if the operation has configured the `innerloop` with the following resources
+  ```bash
+  oc get all,pvc,component
+  NAME                         READY     STATUS    RESTARTS   AGE
+  pod/my-spring-boot-1-hrzcv   1/1       Running   0          11s
+  
+  NAME                                     DESIRED   CURRENT   READY     AGE
+  replicationcontroller/my-spring-boot-1   1         1         1         12s
+  
+  NAME                         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
+  service/component-operator   ClusterIP   172.30.54.114    <none>        60000/TCP   3m
+  service/my-spring-boot       ClusterIP   172.30.189.247   <none>        8080/TCP    15s
+  
+  NAME                                                REVISION   DESIRED   CURRENT   TRIGGERED BY
+  deploymentconfig.apps.openshift.io/my-spring-boot   1          1         1         image(copy-supervisord:latest),image(dev-s2i:latest)
+  
+  NAME                                              DOCKER REPO                                      TAGS      UPDATED
+  imagestream.image.openshift.io/copy-supervisord   172.30.1.1:5000/my-spring-app/copy-supervisord   latest    13 seconds ago
+  imagestream.image.openshift.io/dev-s2i            172.30.1.1:5000/my-spring-app/dev-s2i            latest    12 seconds ago
+  
+  NAME                                      HOST/PORT                                           PATH      SERVICES         PORT      TERMINATION   WILDCARD
+  route.route.openshift.io/my-spring-boot   my-spring-boot-my-spring-app.192.168.99.50.nip.io             my-spring-boot   <all>                   None
+  
+  NAME                            STATUS    VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+  persistentvolumeclaim/m2-data   Bound     pv0065    100Gi      RWO,ROX,RWX                   15s
+  
+  NAME                                        AGE
+  component.component.k8s.io/my-spring-boot   15s
+  ```
+  
+
+- To cleanup the project installed (component)
+  ```bash  
+  $ oc delete components,route,svc,is,pvc,dc --all=true && 
+  ```
+  
+### How to install the operator on the cluster
+
+  ```bash
+  operator-sdk build quay.io/snowdrop/component-operator
+  docker push quay.io/snowdrop/component-operator
+  oc create -f deploy/operator.yaml
+  ```  
+
+### Cleanup
+
+  ```bash
+  oc delete -f deploy/cr.yaml
+  oc delete -f deploy/crd.yaml
+  oc delete -f deploy/operator.yaml
+  oc delete -f deploy/rbac.yaml
+  oc delete -f deploy/sa.yaml
+  ```    
+
+### How To create the operator, crd
+
 Instructions followed to create the Component's CRD, operator using the `operator-sdk`'s kit
 
 - Execute this command within the `$GOPATH/github.com/$ORG/` folder is a terminal
