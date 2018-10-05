@@ -8,7 +8,7 @@ import (
 
 func SetNamespaceAndOwnerReference(resource interface{}, component *v1alpha1.Component) {
 	if obj, ok := resource.(metav1.Object); ok {
-		obj.SetNamespace(component.Namespace)
+		obj.SetNamespace(component.Spec.Namespace)
 
 		obj.SetOwnerReferences([]metav1.OwnerReference{
 			*metav1.NewControllerRef(component, schema.GroupVersionKind{

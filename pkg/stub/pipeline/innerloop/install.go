@@ -26,7 +26,6 @@ import (
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 
 	// metav1unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -61,13 +60,14 @@ func installInnerLoop(component *v1alpha1.Component) error {
 	if err != nil {
 		return err
 	}
+	component.Spec.Namespace = namespace
 
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
 	for _, tmpl := range util.Templates {
 		switch tmpl.Name() {
 		case "innerloop/imagestream":
 			component.Spec.Image = defaultImages
-			err := createResource(tmpl, component, namespace)
+			err := createResource(tmpl, component)
 			if err != nil {
 				return err
 			}
@@ -75,18 +75,18 @@ func installInnerLoop(component *v1alpha1.Component) error {
 			component.Spec.Storage.Name = "m2-data"
 			component.Spec.Storage.Capacity = "1Gi"
 			component.Spec.Storage.Mode = "ReadWriteOnce"
-			err := createResource(tmpl, component, namespace)
+			err := createResource(tmpl, component)
 			if err != nil {
 				return err
 			}
 		case "innerloop/deploymentconfig":
 			component.Spec.SupervisordName = "copy-supervisord"
-			err := createResource(tmpl, component, namespace)
+			err := createResource(tmpl, component)
 			if err != nil {
 				return err
 			}
 		default:
-			err := createResource(tmpl, component, namespace)
+			err := createResource(tmpl, component)
 			if err != nil {
 				return err
 			}
@@ -102,8 +102,8 @@ func installInnerLoop(component *v1alpha1.Component) error {
 	return nil
 }
 
-func createResource(tmpl template.Template, component *v1alpha1.Component, namespace string) error {
-	res, err := newResourceFromTemplate(tmpl, component, namespace)
+func createResource(tmpl template.Template, component *v1alpha1.Component) error {
+	res, err := newResourceFromTemplate(tmpl, component)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, names
 	return nil
 }
 
-func newResourceFromTemplate(template template.Template, component *v1alpha1.Component, namespace string) ([]runtime.Object, error) {
+func newResourceFromTemplate(template template.Template, component *v1alpha1.Component) ([]runtime.Object, error) {
 	var result = []runtime.Object{}
 
 	var b = util.Parse(template, component)
@@ -133,13 +133,13 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 			return nil, err
 		}
 		for _, item := range l.Items {
-			r, err := k8sutil.RuntimeObjectFromUnstructured(&item)
+			obj, err := k8sutil.RuntimeObjectFromUnstructured(&item)
 			if err != nil {
 				return nil, err
 			}
 
-			kubernetes.SetNamespaceAndOwnerReference(r, component)
-			result = append(result, r)
+			kubernetes.SetNamespaceAndOwnerReference(obj, component)
+			result = append(result, obj)
 		}
 	} else {
 		obj, err := k8sutil.RuntimeObjectFromUnstructured(r)
@@ -147,7 +147,7 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 			return nil, err
 		}
 
-		kubernetes.SetNamespaceAndOwnerReference(r, component)
+		kubernetes.SetNamespaceAndOwnerReference(obj, component)
 		result = append(result, obj)
 	}
 	return result, nil
