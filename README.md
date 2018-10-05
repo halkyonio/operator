@@ -20,14 +20,18 @@
   $ oc new-project my-spring-app
   $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/component-operator/main.go
   
-- In a separate terminal, the client using the create command
-
+- In a separate terminal a component's yaml file with a project `/path/to/project`
   ```bash
-  $ go run cmd/sd/sd.go create my-spring-boot
-  ```
-- Or using a component's crd created manually
-  ```bash
-  $ oc apply -f deploy/component1.yml 
+  $ echo component.yml << EOF
+  apiVersion: component.k8s.io/v1alpha1
+  kind: Component
+  metadata:
+    name: my-spring-boot
+  spec:
+    deployment: innerloop
+    port: 8080
+    EOF
+  $ oc apply -f component.yml 
   ```  
 
 - Check if the operation has configured the `innerloop` with the following resources
@@ -76,6 +80,12 @@
   ```bash  
   $ oc delete components,route,svc,is,pvc,dc --all=true && 
   ```
+  
+** REMARK ** : You can also use the go client to create and publish a component CRD using the API
+
+  ```bash
+  $ go run cmd/sd/sd.go create my-spring-boot
+  ```  
   
 ### How to install the operator on the cluster
 
