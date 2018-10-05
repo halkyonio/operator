@@ -138,10 +138,7 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 				return nil, err
 			}
 
-			// Define the namespace for the object
-			if metaObject, ok := r.(metav1.Object); ok {
-				metaObject.SetNamespace(namespace)
-			}
+			kubernetes.SetNamespaceAndOwnerReference(r, component)
 			result = append(result, r)
 		}
 	} else {
@@ -150,10 +147,7 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 			return nil, err
 		}
 
-		// Define the namespace for the object
-		if metaObject, ok := obj.(metav1.Object); ok {
-			metaObject.SetNamespace(namespace)
-		}
+		kubernetes.SetNamespaceAndOwnerReference(r, component)
 		result = append(result, obj)
 	}
 	return result, nil
