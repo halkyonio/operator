@@ -1,7 +1,7 @@
 {{$nameApp := .Name }}apiVersion: v1
 kind: List
 items:
-{{ range .Spec.Image }}
+{{ range .Spec.Images }}
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:

@@ -66,7 +66,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 	for _, tmpl := range util.Templates {
 		switch tmpl.Name() {
 		case "innerloop/imagestream":
-			component.Spec.Image = defaultImages
+			component.Spec.Images = defaultImages
 			err := createResource(tmpl, component)
 			if err != nil {
 				return err
@@ -80,6 +80,9 @@ func installInnerLoop(component *v1alpha1.Component) error {
 				return err
 			}
 		case "innerloop/deploymentconfig":
+			if (component.Spec.Port == 0) {
+				component.Spec.Port = 8080 // Add a default port if empty
+			}
 			component.Spec.SupervisordName = "copy-supervisord"
 			err := createResource(tmpl, component)
 			if err != nil {

@@ -155,7 +155,7 @@ func populateEnvVar(component v1alpha1.Component) []corev1.EnvVar {
 		corev1.EnvVar{Name: "JAVA_DEBUG_PORT", Value: "5005"})
 
 	// enrich with User's env var from MANIFEST
-	for _, e := range component.Spec.Env {
+	for _, e := range component.Spec.Envs {
 		envs = append(envs, corev1.EnvVar{Name: e.Name, Value: e.Value})
 	}
 

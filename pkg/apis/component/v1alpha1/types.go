@@ -29,9 +29,10 @@ type ComponentSpec struct {
 	Memory          string `json:"memory,omitempty"`
 	Port            int32  `json:"port,omitempty"`
 	SupervisordName string
-	Image           []Image   `json:"image,omitempty"`
-	Env             []Env   `json:"env,omitempty"`
 	Storage         Storage `json:"storage,omitempty"`
+	Images          []Image `json:"image,omitempty"`
+	Envs            []Env   `json:"env,omitempty"`
+	Services        []Service
 }
 
 type ComponentStatus struct {
@@ -47,6 +48,19 @@ type Image struct {
 }
 
 type Env struct {
+	Name  string
+	Value string
+}
+
+type Service struct {
+	Class      string
+	Name       string
+	Plan       string `default:"dev"`
+	ExternalId string
+	Parameters []Parameter
+}
+
+type Parameter struct {
 	Name  string
 	Value string
 }
