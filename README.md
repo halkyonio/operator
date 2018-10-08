@@ -29,7 +29,6 @@
     name: my-spring-boot
   spec:
     deployment: innerloop
-    port: 8080
     EOF
   $ oc apply -f component.yml 
   ```  

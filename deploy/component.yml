@@ -4,4 +4,3 @@ metadata:
   name: my-spring-boot
 spec:
   deployment: innerloop
-  port: 8080

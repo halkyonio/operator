@@ -23,7 +23,8 @@ type Component struct {
 
 type ComponentSpec struct {
 	DeploymentMode  string `json:"deployment,omitempty"`
-	Version         string
+	Runtime         string `json:"runtime,omitempty"`
+	ExposeService   bool   `json:"exposeService,omitempty"`
 	Cpu             string `json:"cpu,omitempty"`
 	Memory          string `json:"memory,omitempty"`
 	Port            int32  `json:"port,omitempty"`
