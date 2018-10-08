@@ -24,7 +24,6 @@ type Component struct {
 type ComponentSpec struct {
 	DeploymentMode  string `json:"deployment,omitempty"`
 	Version         string
-	Namespace       string
 	Cpu             string `json:"cpu,omitempty"`
 	Memory          string `json:"memory,omitempty"`
 	Port            int32  `json:"port,omitempty"`

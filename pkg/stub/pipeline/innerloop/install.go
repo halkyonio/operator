@@ -60,7 +60,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 	if err != nil {
 		return err
 	}
-	component.Spec.Namespace = namespace
+	component.ObjectMeta.Namespace = namespace
 
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
 	for _, tmpl := range util.Templates {
