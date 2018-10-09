@@ -23,6 +23,14 @@ type Component struct {
 }
 
 type ComponentSpec struct {
+	// The name represents a human readable string describing from a business perspective what this component is related to
+	// Example : payment-frontend, retail-backend
+	Name string
+	// The packagingMode refers to the archive file's type which has been used to package the code
+	// Example : jar, war, ...
+	PackagingMode string
+	// The type is related to how the component is installed, as a pod, job, statefulset
+	Type string
 	// DeploymentMode indicates the strategy to be adopted to install the resources into a namespace
 	// and next to create a pod. 2 strategies are currently supported; inner and outer loop
 	// where outer loop refers to a build of the code and the packaging of the application into a container's image
