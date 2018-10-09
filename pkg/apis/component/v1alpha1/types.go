@@ -13,7 +13,8 @@ type ComponentList struct {
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
+//
+//
 type Component struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
@@ -22,16 +23,31 @@ type Component struct {
 }
 
 type ComponentSpec struct {
+	// DeploymentMode indicates the strategy to be adopted to install the resources into a namespace
+	// and next to create a pod. 2 strategies are currently supported; inner and outer loop
+	// where outer loop refers to a build of the code and the packaging of the application into a container's image
+	// while the inner loop will install a pod's running a supervisord daemon used to trigger actions such as : assemble, run, ...
 	DeploymentMode  string `json:"deployment,omitempty"`
+	// Runtime is the framework used to start within the container the application
+	// It corresponds to one of the following values: spring-boot, vertx, tornthail, nodejs
 	Runtime         string `json:"runtime,omitempty"`
+	// To indicate if we want to expose the service out side of the cluster as a route
 	ExposeService   bool   `json:"exposeService,omitempty"`
+	// Cpu is the cpu to be assigned to the pod's running the application
 	Cpu             string `json:"cpu,omitempty"`
+	// Cpu is the memory to be assigned to the pod's running the application
 	Memory          string `json:"memory,omitempty"`
+	// Port is the HTTP/TCP port number used within the pod by the runtime
 	Port            int32  `json:"port,omitempty"`
+	//
 	SupervisordName string
+	// The storage allows to specify the capacity and mode of the volume to be mounted for the pod
 	Storage         Storage `json:"storage,omitempty"`
+	// The list of the images created according to the DeploymentMode to install the loop
 	Images          []Image `json:"image,omitempty"`
+	// Array of env variables containing extra/additional info to be used to configure the runtime
 	Envs            []Env   `json:"env,omitempty"`
+	// List of services consumed by the runtime and created as a service instance from a Service Catalog
 	Services        []Service
 }
 
