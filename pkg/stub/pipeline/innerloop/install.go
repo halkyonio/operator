@@ -80,7 +80,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 				return err
 			}
 		case "innerloop/deploymentconfig":
-			if (component.Spec.Port == 0) {
+			if component.Spec.Port == 0 {
 				component.Spec.Port = 8080 // Add a default port if empty
 			}
 			component.Spec.SupervisordName = "copy-supervisord"
@@ -89,14 +89,14 @@ func installInnerLoop(component *v1alpha1.Component) error {
 				return err
 			}
 		case "innerloop/route":
-			if (component.Spec.ExposeService) {
+			if component.Spec.ExposeService {
 				err := createResource(tmpl, component)
 				if err != nil {
 					return err
 				}
 			}
 		case "innerloop/service":
-			if (component.Spec.Port == 0) {
+			if component.Spec.Port == 0 {
 				component.Spec.Port = 8080 // Add a default port if empty
 			}
 			err := createResource(tmpl, component)
