@@ -92,10 +92,10 @@ type Env struct {
 }
 
 type Service struct {
-	Class      string
-	Name       string
-	Plan       string `default:"dev"`
-	ExternalId string
+	Class      string `json:"class,omitempty"`
+	Name       string `json:"name,omitempty"`
+	Plan       string `json:"plan,omitempty"`
+	ExternalId string `json:"externalid,omitempty"`
 	Parameters []Parameter `json:"parameters,omitempty"`
 	ParametersJSon string
 }
@@ -118,6 +118,8 @@ const (
 	// ComponentKind --
 	ComponentKind string = "Component"
 
+	// PhaseServiceCreation --
+	PhaseServiceCreation Phase = "CreatingService"
 	// PhaseBuilding --
 	PhaseBuilding Phase = "Building"
 	// PhaseDeploying --

@@ -47,7 +47,7 @@ func (serviceInstanceStep) Name() string {
 }
 
 func (serviceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
-	return true
+	return component.Status.Phase == ""
 }
 
 func (serviceInstanceStep) Handle(component *v1alpha1.Component) error {
@@ -76,7 +76,7 @@ func createService(component *v1alpha1.Component) error {
 		}
 	}
 	log.Infof("%s service created", component.Name)
-	component.Status.Phase = v1alpha1.PhaseDeploying
+	component.Status.Phase = v1alpha1.PhaseServiceCreation
 
 	err = sdk.Update(component)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {

@@ -1,5 +1,5 @@
 {{$nameApp := .Name }}
-{{ range .Spec.Images }}apiVersion: servicecatalog.k8s.io/v1beta1
+{{ range .Spec.Services }}apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ServiceInstance
 metadata:
   name: {{.Name}}
