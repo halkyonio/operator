@@ -33,6 +33,10 @@ spec:
           value: "5005"
         - name: JAVA_APP_JAR
           value: app.jar
+        {{ range .Spec.Envs }}
+        - name: {{.Name}}
+          value: {{.Value}}
+        {{end}}
         image: "dev-s2i:latest"
         imagePullPolicy: Always
         name: {{.Name}}

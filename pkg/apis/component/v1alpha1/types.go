@@ -87,8 +87,8 @@ type Image struct {
 }
 
 type Env struct {
-	Name  string
-	Value string
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 type Service struct {
