@@ -21,6 +21,9 @@ import (
 	"encoding/json"
 	"time"
 
+	appsv1 "github.com/openshift/api/apps/v1"
+	v1 "github.com/openshift/api/apps/v1"
+	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	log "github.com/sirupsen/logrus"
@@ -28,12 +31,9 @@ import (
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
-	v1 "github.com/openshift/api/apps/v1"
-	appsv1 "github.com/openshift/api/apps/v1"
-	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 
 	// metav1unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -76,7 +76,7 @@ func createService(component *v1alpha1.Component) error {
 		mapParams := ParametersAsMap(s.Parameters)
 		rawJSON := string(BuildParameters(mapParams).Raw)
 		s.ParametersJSon = rawJSON
-		newServices = append(newServices,s)
+		newServices = append(newServices, s)
 	}
 	component.Spec.Services = newServices
 
@@ -110,7 +110,7 @@ func createService(component *v1alpha1.Component) error {
 
 	// Create a DeploymentRequest and redeploy it
 
-	duration := time.Duration(10)*time.Second
+	duration := time.Duration(10) * time.Second
 	time.Sleep(duration)
 
 	deploymentConfigV1client := getAppsClient()
@@ -147,7 +147,6 @@ func getAppsClient() *appsocpv1.AppsV1Client {
 	return deploymentConfigV1client
 }
 
-
 func addSecretAsEnvFromSource(secretName string) []corev1.EnvFromSource {
 	return []corev1.EnvFromSource{
 		{
@@ -162,11 +161,11 @@ func GetDeploymentConfig(namespace string, name string) (*v1.DeploymentConfig, e
 	dc := v1.DeploymentConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps.openshift.io/v1",
-			Kind: "DeploymentConfig",
+			Kind:       "DeploymentConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: name,
+			Name:      name,
 		},
 	}
 	if err := sdk.Get(&dc); err != nil {

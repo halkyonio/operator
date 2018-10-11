@@ -53,8 +53,8 @@ func init() {
 
 	for _, p := range TemplatePath {
 		err := vfsutil.Walk(TemplateAssets, p, walkFn)
-		if err != nil{
-		   log.Error(err.Error())
+		if err != nil {
+			log.Error(err.Error())
 		}
 	}
 

@@ -38,7 +38,7 @@ func NewInstallStep() pipeline.Step {
 	return &installStep{}
 }
 
-type installStep struct {}
+type installStep struct{}
 
 func (installStep) Name() string {
 	return "deploy"
@@ -63,7 +63,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
 	for _, tmpl := range util.Templates {
-		if strings.HasPrefix(tmpl.Name(),"innerloop") {
+		if strings.HasPrefix(tmpl.Name(), "innerloop") {
 
 			switch tmpl.Name() {
 			case "innerloop/imagestream":

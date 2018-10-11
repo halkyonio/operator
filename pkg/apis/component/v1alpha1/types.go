@@ -92,17 +92,17 @@ type Env struct {
 }
 
 type Service struct {
-	Class      string `json:"class,omitempty"`
-	Name       string `json:"name,omitempty"`
-	Plan       string `json:"plan,omitempty"`
-	ExternalId string `json:"externalid,omitempty"`
-	SecretName string `json:"secretname,omitempty"`
-	Parameters []Parameter `json:"parameters,omitempty"`
+	Class          string      `json:"class,omitempty"`
+	Name           string      `json:"name,omitempty"`
+	Plan           string      `json:"plan,omitempty"`
+	ExternalId     string      `json:"externalid,omitempty"`
+	SecretName     string      `json:"secretname,omitempty"`
+	Parameters     []Parameter `json:"parameters,omitempty"`
 	ParametersJSon string
 }
 
 type Parameter struct {
-	Name  string  `json:"name,omitempty"`
+	Name  string `json:"name,omitempty"`
 	Value string `json:"value,omitempty"`
 }
 
