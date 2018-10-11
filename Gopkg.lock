@@ -200,6 +200,18 @@
   revision = "b729f2633dfe35f4d1d8a32385f6685610ce1cb5"
 
 [[projects]]
+  digest = "1:92d158b0c20da8668ccd2d9126a606a1f0528445cb93efd8592da882e85f1d9b"
+  name = "github.com/kubernetes-incubator/service-catalog"
+  packages = [
+    "pkg/apis/servicecatalog",
+    "pkg/apis/servicecatalog/v1beta1",
+    "pkg/filter",
+  ]
+  pruneopts = "NUT"
+  revision = "f3a7a072ac60d9ccb7bd55b05ada0de18db3cab1"
+  version = "v0.1.35"
+
+[[projects]]
   branch = "master"
   digest = "1:84a5a2b67486d5d67060ac393aa255d05d24ed5ee41daecd5635ec22657b6492"
   name = "github.com/mailru/easyjson"
@@ -675,6 +687,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/ghodss/yaml",
+    "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1",
     "github.com/openshift/api/apps/v1",
     "github.com/openshift/api/image/v1",
     "github.com/openshift/api/route/v1",

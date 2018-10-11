@@ -38,8 +38,7 @@ func NewInstallStep() pipeline.Step {
 	return &installStep{}
 }
 
-type installStep struct {
-}
+type installStep struct {}
 
 func (installStep) Name() string {
 	return "deploy"

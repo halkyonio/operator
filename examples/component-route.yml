@@ -4,4 +4,5 @@ metadata:
   name: my-spring-boot
 spec:
   deployment: innerloop
+  runtime: springboot
   exposeService: true

@@ -30,7 +30,7 @@ import (
 
 var (
 	TemplateAssets = Assets
-	TemplatePath   = "innerloop"
+	TemplatePath   = []string{"innerloop", "servicecatalog"}
 	TemplateFiles  []string
 	Templates      = make(map[string]template.Template)
 )
@@ -51,9 +51,11 @@ func init() {
 		return nil
 	}
 
-	errW := vfsutil.Walk(TemplateAssets, TemplatePath, walkFn)
-	if errW != nil {
-		panic(errW)
+	for _, p := range TemplatePath {
+		err := vfsutil.Walk(TemplateAssets, p, walkFn)
+		if err != nil{
+		   log.Error(err.Error())
+		}
 	}
 
 	// Fill an array with the k8s/openshift yaml files

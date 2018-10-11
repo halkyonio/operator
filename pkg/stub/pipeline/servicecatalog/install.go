@@ -15,9 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package innerloop
+package servicecatalog
 
 import (
+	"encoding/json"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	log "github.com/sirupsen/logrus"
@@ -33,23 +34,23 @@ import (
 	"text/template"
 )
 
-// NewInstallStep creates a step that handles the creation of the Service from the catalog
-func NewInstallStep() pipeline.Step {
-	return &installStep{}
+// NewServiceInstanceStep creates a step that handles the creation of the Service from the catalog
+func NewServiceInstanceStep() pipeline.Step {
+	return &serviceInstanceStep{}
 }
 
-type installStep struct {
+type serviceInstanceStep struct {
 }
 
-func (installStep) Name() string {
+func (serviceInstanceStep) Name() string {
 	return "create service"
 }
 
-func (installStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase == ""
+func (serviceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
+	return true
 }
 
-func (installStep) Handle(component *v1alpha1.Component) error {
+func (serviceInstanceStep) Handle(component *v1alpha1.Component) error {
 	target := component.DeepCopy()
 	return createService(target)
 }
@@ -61,19 +62,13 @@ func createService(component *v1alpha1.Component) error {
 		return err
 	}
 	component.ObjectMeta.Namespace = namespace
-
-	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
+	// Convert the parameters into a JSon string
+	for _, s := range component.Spec.Services {
+		mapParams := ParametersAsMap(s.Parameters)
+		s.ParametersJSon = string(BuildParameters(mapParams).Raw)
+	}
 	for _, tmpl := range util.Templates {
-		switch tmpl.Name() {
-		case "innerloop/service":
-			if component.Spec.Port == 0 {
-				component.Spec.Port = 8080 // Add a default port if empty
-			}
-			err := createResource(tmpl, component)
-			if err != nil {
-				return err
-			}
-		default:
+		if strings.HasPrefix(tmpl.Name(), "servicecatalog") {
 			err := createResource(tmpl, component)
 			if err != nil {
 				return err
@@ -88,6 +83,27 @@ func createService(component *v1alpha1.Component) error {
 		return err
 	}
 	return nil
+}
+
+// BuildParameters converts a map of variable assignments to a byte encoded json document,
+// which is what the ServiceCatalog API consumes.
+func BuildParameters(params interface{}) *runtime.RawExtension {
+	paramsJSON, err := json.Marshal(params)
+	if err != nil {
+		// This should never be hit because marshalling a map[string]string is pretty safe
+		// I'd rather throw a panic then force handling of an error that I don't think is possible.
+		log.Errorf("unable to marshal the request parameters %v (%s)", params, err)
+	}
+	return &runtime.RawExtension{Raw: paramsJSON}
+}
+
+// Convert Array of parameters to a Map
+func ParametersAsMap(parameters []v1alpha1.Parameter) map[string]string {
+	result := make(map[string]string)
+	for _, parameter := range parameters {
+		result[parameter.Name] = parameter.Value
+	}
+	return result
 }
 
 func createResource(tmpl template.Template, component *v1alpha1.Component) error {
@@ -139,11 +155,4 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 		result = append(result, obj)
 	}
 	return result, nil
-}
-
-func getLabels(component string) map[string]string {
-	labels := map[string]string{
-		"Component": component,
-	}
-	return labels
 }

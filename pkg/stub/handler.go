@@ -22,6 +22,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline/innerloop"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline/servicecatalog"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
@@ -34,23 +35,36 @@ func NewHandler() sdk.Handler {
 	return &Handler{
 		innerLoopSteps: []pipeline.Step{
 			innerloop.NewInstallStep(),
-			//generic.NewServiceStep(),
-			//common.NewPVCStep(),
-			//common.NewRouteStep(),
+		},
+		serviceCatalogSteps: []pipeline.Step{
+			servicecatalog.NewServiceInstanceStep(),
 		},
 	}
 }
 
 type Handler struct {
-	innerLoopSteps []pipeline.Step
+	innerLoopSteps      []pipeline.Step
+	serviceCatalogSteps []pipeline.Step
 }
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
 	case *v1alpha1.Component:
-		if comp := o.Spec.DeploymentMode; comp == "innerloop" {
-			logrus.Debug("DeploymentMode :", comp)
+		// Check the DeploymentMode to install the component/runtime
+		if o.Spec.DeploymentMode == "innerloop" && o.Spec.Runtime != "" {
+			logrus.Debug("DeploymentMode :", o.Spec.DeploymentMode)
 			for _, a := range h.innerLoopSteps {
+				if a.CanHandle(o) {
+					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
+					if err := a.Handle(o); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		// Check if the component is a service
+		if o.Spec.Services != nil {
+			for _, a := range h.serviceCatalogSteps {
 				if a.CanHandle(o) {
 					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
 					if err := a.Handle(o); err != nil {

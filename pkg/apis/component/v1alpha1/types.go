@@ -58,13 +58,14 @@ type ComponentSpec struct {
 	// The list of the images created according to the DeploymentMode to install the loop
 	Images []Image `json:"image,omitempty"`
 	// Array of env variables containing extra/additional info to be used to configure the runtime
-	Envs []Env `json:"env,omitempty"`
+	Envs []Env `json:"envs,omitempty"`
 	// List of services consumed by the runtime and created as service instance from a Service Catalog
-	Services []Service
+	// and next binded to a DeploymentConfig using a service binding
+	Services []Service `json:"services,omitempty"`
 	// The features represents a capability that it is required to have, to install to allow the component
 	// to operate with by example a Prometheus backend system to collect metrics, an OpenTracing datastore
 	// to centralize the traces/logs of the runtime, to deploy a servicemesh, ...
-	Features []Feature
+	Features []Feature `json:"features,omitempty"`
 }
 
 type ComponentStatus struct {
@@ -95,12 +96,13 @@ type Service struct {
 	Name       string
 	Plan       string `default:"dev"`
 	ExternalId string
-	Parameters []Parameter
+	Parameters []Parameter `json:"parameters,omitempty"`
+	ParametersJSon string
 }
 
 type Parameter struct {
-	Name  string
-	Value string
+	Name  string  `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 type Storage struct {
