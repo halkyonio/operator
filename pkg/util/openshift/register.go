@@ -21,6 +21,7 @@ import (
 	deploymentconfig "github.com/openshift/api/apps/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
+	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -41,6 +42,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	err = doAdd(image.Install, scheme, err)
 	err = doAdd(route.Install, scheme, err)
 	err = doAdd(deploymentconfig.Install, scheme, err)
+	err = doAdd(servicecatalog.AddToScheme, scheme, err)
 
 	return err
 }
