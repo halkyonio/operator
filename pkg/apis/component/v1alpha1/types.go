@@ -96,6 +96,7 @@ type Service struct {
 	Name       string `json:"name,omitempty"`
 	Plan       string `json:"plan,omitempty"`
 	ExternalId string `json:"externalid,omitempty"`
+	SecretName string `json:"secretname,omitempty"`
 	Parameters []Parameter `json:"parameters,omitempty"`
 	ParametersJSon string
 }

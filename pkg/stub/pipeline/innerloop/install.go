@@ -63,49 +63,52 @@ func installInnerLoop(component *v1alpha1.Component) error {
 
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
 	for _, tmpl := range util.Templates {
-		switch tmpl.Name() {
-		case "innerloop/imagestream":
-			component.Spec.Images = defaultImages
-			err := createResource(tmpl, component)
-			if err != nil {
-				return err
-			}
-		case "innerloop/pvc":
-			component.Spec.Storage.Name = "m2-data"
-			component.Spec.Storage.Capacity = "1Gi"
-			component.Spec.Storage.Mode = "ReadWriteOnce"
-			err := createResource(tmpl, component)
-			if err != nil {
-				return err
-			}
-		case "innerloop/deploymentconfig":
-			if component.Spec.Port == 0 {
-				component.Spec.Port = 8080 // Add a default port if empty
-			}
-			component.Spec.SupervisordName = "copy-supervisord"
-			err := createResource(tmpl, component)
-			if err != nil {
-				return err
-			}
-		case "innerloop/route":
-			if component.Spec.ExposeService {
+		if strings.HasPrefix(tmpl.Name(),"innerloop") {
+
+			switch tmpl.Name() {
+			case "innerloop/imagestream":
+				component.Spec.Images = defaultImages
 				err := createResource(tmpl, component)
 				if err != nil {
 					return err
 				}
-			}
-		case "innerloop/service":
-			if component.Spec.Port == 0 {
-				component.Spec.Port = 8080 // Add a default port if empty
-			}
-			err := createResource(tmpl, component)
-			if err != nil {
-				return err
-			}
-		default:
-			err := createResource(tmpl, component)
-			if err != nil {
-				return err
+			case "innerloop/pvc":
+				component.Spec.Storage.Name = "m2-data"
+				component.Spec.Storage.Capacity = "1Gi"
+				component.Spec.Storage.Mode = "ReadWriteOnce"
+				err := createResource(tmpl, component)
+				if err != nil {
+					return err
+				}
+			case "innerloop/deploymentconfig":
+				if component.Spec.Port == 0 {
+					component.Spec.Port = 8080 // Add a default port if empty
+				}
+				component.Spec.SupervisordName = "copy-supervisord"
+				err := createResource(tmpl, component)
+				if err != nil {
+					return err
+				}
+			case "innerloop/route":
+				if component.Spec.ExposeService {
+					err := createResource(tmpl, component)
+					if err != nil {
+						return err
+					}
+				}
+			case "innerloop/service":
+				if component.Spec.Port == 0 {
+					component.Spec.Port = 8080 // Add a default port if empty
+				}
+				err := createResource(tmpl, component)
+				if err != nil {
+					return err
+				}
+			default:
+				err := createResource(tmpl, component)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
