@@ -41,6 +41,10 @@ type ComponentSpec struct {
 	Runtime string `json:"runtime,omitempty"`
 	// To indicate if we want to expose the service out side of the cluster as a route
 	ExposeService bool `json:"exposeService,omitempty"`
+	// Debug port is the port exposed by the JVM for remote debugging
+	DebugPort int `json:"debugPort,omitempty"`
+	// The hotReload, when supported by the runtime, allows to expose an endpoint used to restart the application
+	hotReload bool `json:"hotReload,omitempty"`
 	// Cpu is the cpu to be assigned to the pod's running the application
 	Cpu string `json:"cpu,omitempty"`
 	// Cpu is the memory to be assigned to the pod's running the application
