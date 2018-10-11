@@ -20,11 +20,13 @@ package kubernetes
 import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/snowdrop/spring-boot-cloud-devex/pkg/common/config"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
+	restclient "k8s.io/client-go/rest"
 	"os/user"
 	"strings"
 )
@@ -32,6 +34,11 @@ import (
 const (
 	KUBECONFILE = ".kube/config"
 )
+
+type Kube struct {
+	MasterURL string
+	Config    string
+}
 
 // InitKubeClient initialize the k8s client
 func InitKubeClient(kubeconfig string) error {
@@ -46,6 +53,23 @@ func InitKubeClient(kubeconfig string) error {
 	}
 
 	return nil
+}
+
+func GetK8RestConfig() *restclient.Config {
+   return createKubeRestconfig()
+}
+
+// Create Kube Rest's Config Client
+func createKubeRestconfig() *restclient.Config {
+	kube := Kube{
+		Config: config.HomeKubePath(),
+		MasterURL: "192.168.99.50:8443",
+	}
+	kubeRestClient, err := clientcmd.BuildConfigFromFlags(kube.MasterURL, kube.Config)
+	if err != nil {
+		log.Fatalf("Error building kubeconfig: %s", err.Error())
+	}
+	return kubeRestClient
 }
 
 func getK8Config(kubeconfig string) string {
