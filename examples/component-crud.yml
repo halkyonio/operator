@@ -6,6 +6,7 @@ spec:
   deployment: innerloop
   runtime: springboot
   version: 1.5.16
+  exposeService: true
   envs:
   - name: SPRING_PROFILES_ACTIVE
     value: openshift-catalog

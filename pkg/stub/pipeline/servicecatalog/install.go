@@ -26,6 +26,10 @@ import (
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
+	appsv1 "github.com/openshift/api/apps/v1"
+	deploymentconfig "github.com/openshift/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"strings"
 
@@ -73,6 +77,7 @@ func createService(component *v1alpha1.Component) error {
 	}
 	component.Spec.Services = newServices
 
+	// Create the ServiceInstance and ServiceBinding using the template
 	for _, tmpl := range util.Templates {
 		if strings.HasPrefix(tmpl.Name(), "servicecatalog") {
 			err := createResource(tmpl, component)
@@ -81,6 +86,39 @@ func createService(component *v1alpha1.Component) error {
 			}
 		}
 	}
+
+	// Get DeploymentConfig to inject EnvFrom using Secret and restart it
+	dc, err := GetDeploymentConfig(namespace, component.Name)
+	if err != nil {
+		return err
+	}
+
+	// TODO
+	secretName := "my-postgresql-db"
+	// Add the Secret as EnvVar to the container
+	dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
+
+	// Update the DeploymentConfig
+	err = sdk.Update(dc)
+	if err != nil {
+		log.Fatalf("DeploymentConfig not updated : %s", err.Error())
+	}
+	log.Infof("'%s' EnvFrom secret added to the DeploymentConfig", secretName)
+
+	// Create a DeploymentRequest and redeploy it
+	request := &appsv1.DeploymentRequest{
+		Name:   component.Name,
+		Latest: true,
+		Force:  true,
+	}
+
+	err = sdk.Update(request)
+	if err != nil {
+		log.Fatalf("Redeployment of the DeploymentConfig failed %s", err.Error())
+	}
+	log.Infof("'%s' Deployment Config rollout succeeded to latest", secretName)
+
+
 	log.Infof("%s service created", component.Name)
 	component.Status.Phase = v1alpha1.PhaseServiceCreation
 
@@ -89,6 +127,33 @@ func createService(component *v1alpha1.Component) error {
 		return err
 	}
 	return nil
+}
+
+func addSecretAsEnvFromSource(secretName string) []corev1.EnvFromSource {
+	return []corev1.EnvFromSource{
+		{
+			SecretRef: &corev1.SecretEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
+			},
+		},
+	}
+}
+
+func GetDeploymentConfig(namespace string, name string) (*deploymentconfig.DeploymentConfig, error) {
+	dc := deploymentconfig.DeploymentConfig{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind: "DeploymentConfig",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: name,
+		},
+	}
+	if err := sdk.Get(&dc); err != nil {
+		return nil, err
+	}
+	return &dc, nil
 }
 
 // BuildParameters converts a map of variable assignments to a byte encoded json document,
