@@ -26,8 +26,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
-	appsv1 "github.com/openshift/api/apps/v1"
-	deploymentconfig "github.com/openshift/api/apps/v1"
+	v1 "github.com/openshift/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -87,14 +86,15 @@ func createService(component *v1alpha1.Component) error {
 		}
 	}
 
+	// TODO
+	secretName := "my-postgresql-db"
+	componentName := "my-spring-boot"
 	// Get DeploymentConfig to inject EnvFrom using Secret and restart it
-	dc, err := GetDeploymentConfig(namespace, component.Name)
+	dc, err := GetDeploymentConfig(namespace, componentName)
 	if err != nil {
 		return err
 	}
 
-	// TODO
-	secretName := "my-postgresql-db"
 	// Add the Secret as EnvVar to the container
 	dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
 
@@ -106,18 +106,7 @@ func createService(component *v1alpha1.Component) error {
 	log.Infof("'%s' EnvFrom secret added to the DeploymentConfig", secretName)
 
 	// Create a DeploymentRequest and redeploy it
-	request := &appsv1.DeploymentRequest{
-		Name:   component.Name,
-		Latest: true,
-		Force:  true,
-	}
-
-	err = sdk.Update(request)
-	if err != nil {
-		log.Fatalf("Redeployment of the DeploymentConfig failed %s", err.Error())
-	}
-	log.Infof("'%s' Deployment Config rollout succeeded to latest", secretName)
-
+	// TODO
 
 	log.Infof("%s service created", component.Name)
 	component.Status.Phase = v1alpha1.PhaseServiceCreation
@@ -139,10 +128,10 @@ func addSecretAsEnvFromSource(secretName string) []corev1.EnvFromSource {
 	}
 }
 
-func GetDeploymentConfig(namespace string, name string) (*deploymentconfig.DeploymentConfig, error) {
-	dc := deploymentconfig.DeploymentConfig{
+func GetDeploymentConfig(namespace string, name string) (*v1.DeploymentConfig, error) {
+	dc := v1.DeploymentConfig{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
+			APIVersion: "apps.openshift.io/v1",
 			Kind: "DeploymentConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
