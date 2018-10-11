@@ -65,17 +65,26 @@ type ComponentSpec struct {
 	// The features represents a capability that it is required to have, to install to allow the component
 	// to operate with by example a Prometheus backend system to collect metrics, an OpenTracing datastore
 	// to centralize the traces/logs of the runtime, to deploy a servicemesh, ...
-	Features []Feature `json:"features,omitempty"`
+	Features []Feature `json:"features,omitempty" `
+	//
+	Link Link `json:"link,omitempty"`
 }
 
 type ComponentStatus struct {
 	Phase Phase `json:"phase,omitempty"`
 }
 
+type Link struct {
+	Name                string `json:"name,omitempty" yaml:"name,omitempty"`
+	TargetComponentName string `json:"targetcomponentname,omitempty" yaml:"targetcomponentname,omitempty"`
+	Kind                string `json:"kind,omitempty" yaml:"kind,omitempty"`
+	Ref                 string `json:"ref,omitempty" yaml:"ref,omitempty"`
+}
+
 type Feature struct {
-	Name        string
-	Description string
-	Id          int
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Id          int    `json:"id,omitempty"`
 }
 
 type Image struct {

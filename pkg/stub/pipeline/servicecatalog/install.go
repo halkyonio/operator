@@ -19,11 +19,6 @@ package servicecatalog
 
 import (
 	"encoding/json"
-	"time"
-
-	appsv1 "github.com/openshift/api/apps/v1"
-	v1 "github.com/openshift/api/apps/v1"
-	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	log "github.com/sirupsen/logrus"
@@ -31,9 +26,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
-	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 
 	// metav1unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -70,62 +63,22 @@ func createService(component *v1alpha1.Component) error {
 	}
 	component.ObjectMeta.Namespace = namespace
 
-	// Convert the parameters into a JSon string
-	newServices := []v1alpha1.Service{}
-	for _, s := range component.Spec.Services {
+	// newServices := []v1alpha1.Service{}
+	for i, s := range component.Spec.Services {
+		// Convert the parameters into a JSon string
 		mapParams := ParametersAsMap(s.Parameters)
 		rawJSON := string(BuildParameters(mapParams).Raw)
-		s.ParametersJSon = rawJSON
-		newServices = append(newServices, s)
-	}
-	component.Spec.Services = newServices
+		component.Spec.Services[i].ParametersJSon = rawJSON
 
-	// Create the ServiceInstance and ServiceBinding using the template
-	for _, tmpl := range util.Templates {
-		if strings.HasPrefix(tmpl.Name(), "servicecatalog") {
-			err := createResource(tmpl, component)
-			if err != nil {
-				return err
+		// Create the ServiceInstance and ServiceBinding using the template
+		for _, tmpl := range util.Templates {
+			if strings.HasPrefix(tmpl.Name(), "servicecatalog") {
+				err := createResource(tmpl, component)
+				if err != nil {
+					return err
+				}
 			}
 		}
-	}
-
-	secretName := "my-postgresql-db"
-	componentName := "my-spring-boot"
-	// Get DeploymentConfig to inject EnvFrom using Secret and restart it
-	dc, err := GetDeploymentConfig(namespace, componentName)
-	if err != nil {
-		return err
-	}
-
-	// Add the Secret as EnvVar to the container
-	dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
-
-	// Update the DeploymentConfig
-	err = sdk.Update(dc)
-	if err != nil {
-		log.Fatalf("DeploymentConfig not updated : %s", err.Error())
-	}
-	log.Infof("'%s' EnvFrom secret added to the DeploymentConfig", secretName)
-
-	// Create a DeploymentRequest and redeploy it
-
-	duration := time.Duration(10) * time.Second
-	time.Sleep(duration)
-
-	deploymentConfigV1client := getAppsClient()
-	deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
-
-	// Redeploy it
-	request := &appsv1.DeploymentRequest{
-		Name:   componentName,
-		Latest: true,
-		Force:  true,
-	}
-
-	_, errRedeploy := deploymentConfigs.Instantiate(componentName, request)
-	if errRedeploy != nil {
-		log.Fatalf("Redeployment of the DeploymentConfig failed %s", errRedeploy.Error())
 	}
 
 	log.Infof("%s service created", component.Name)
@@ -136,42 +89,6 @@ func createService(component *v1alpha1.Component) error {
 		return err
 	}
 	return nil
-}
-
-func getAppsClient() *appsocpv1.AppsV1Client {
-	config := kubernetes.GetK8RestConfig()
-	deploymentConfigV1client, err := appsocpv1.NewForConfig(config)
-	if err != nil {
-		log.Fatalf("Can't get DeploymentConfig Clientset: %s", err.Error())
-	}
-	return deploymentConfigV1client
-}
-
-func addSecretAsEnvFromSource(secretName string) []corev1.EnvFromSource {
-	return []corev1.EnvFromSource{
-		{
-			SecretRef: &corev1.SecretEnvSource{
-				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
-			},
-		},
-	}
-}
-
-func GetDeploymentConfig(namespace string, name string) (*v1.DeploymentConfig, error) {
-	dc := v1.DeploymentConfig{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "apps.openshift.io/v1",
-			Kind:       "DeploymentConfig",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
-	}
-	if err := sdk.Get(&dc); err != nil {
-		return nil, err
-	}
-	return &dc, nil
 }
 
 // BuildParameters converts a map of variable assignments to a byte encoded json document,

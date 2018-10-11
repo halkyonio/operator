@@ -22,6 +22,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline/innerloop"
+	"github.com/snowdrop/component-operator/pkg/stub/pipeline/link"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline/servicecatalog"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
@@ -39,12 +40,16 @@ func NewHandler() sdk.Handler {
 		serviceCatalogSteps: []pipeline.Step{
 			servicecatalog.NewServiceInstanceStep(),
 		},
+		linkSteps: []pipeline.Step{
+			link.NewLinkStep(),
+		},
 	}
 }
 
 type Handler struct {
 	innerLoopSteps      []pipeline.Step
 	serviceCatalogSteps []pipeline.Step
+	linkSteps           []pipeline.Step
 }
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
@@ -67,6 +72,17 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			for _, a := range h.serviceCatalogSteps {
 				if a.CanHandle(o) {
 					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
+					if err := a.Handle(o); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		// Check if the component is a Link
+		if o.Spec.Link.Name != "" {
+			for _, a := range h.linkSteps {
+				if a.CanHandle(o) {
+					logrus.Debug("Invoking link ", a.Name(), " on Spring Boot ", o.Name)
 					if err := a.Handle(o); err != nil {
 						return err
 					}
