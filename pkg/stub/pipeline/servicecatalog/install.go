@@ -62,11 +62,17 @@ func createService(component *v1alpha1.Component) error {
 		return err
 	}
 	component.ObjectMeta.Namespace = namespace
+
 	// Convert the parameters into a JSon string
+	newServices := []v1alpha1.Service{}
 	for _, s := range component.Spec.Services {
 		mapParams := ParametersAsMap(s.Parameters)
-		s.ParametersJSon = string(BuildParameters(mapParams).Raw)
+		rawJSON := string(BuildParameters(mapParams).Raw)
+		s.ParametersJSon = rawJSON
+		newServices = append(newServices,s)
 	}
+	component.Spec.Services = newServices
+
 	for _, tmpl := range util.Templates {
 		if strings.HasPrefix(tmpl.Name(), "servicecatalog") {
 			err := createResource(tmpl, component)
