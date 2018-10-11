@@ -19,6 +19,8 @@ package servicecatalog
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	log "github.com/sirupsen/logrus"
@@ -27,6 +29,8 @@ import (
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	v1 "github.com/openshift/api/apps/v1"
+	appsv1 "github.com/openshift/api/apps/v1"
+	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -86,7 +90,6 @@ func createService(component *v1alpha1.Component) error {
 		}
 	}
 
-	// TODO
 	secretName := "my-postgresql-db"
 	componentName := "my-spring-boot"
 	// Get DeploymentConfig to inject EnvFrom using Secret and restart it
@@ -106,7 +109,24 @@ func createService(component *v1alpha1.Component) error {
 	log.Infof("'%s' EnvFrom secret added to the DeploymentConfig", secretName)
 
 	// Create a DeploymentRequest and redeploy it
-	// TODO
+
+	duration := time.Duration(10)*time.Second
+	time.Sleep(duration)
+
+	deploymentConfigV1client := getAppsClient()
+	deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
+
+	// Redeploy it
+	request := &appsv1.DeploymentRequest{
+		Name:   componentName,
+		Latest: true,
+		Force:  true,
+	}
+
+	_, errRedeploy := deploymentConfigs.Instantiate(componentName, request)
+	if errRedeploy != nil {
+		log.Fatalf("Redeployment of the DeploymentConfig failed %s", errRedeploy.Error())
+	}
 
 	log.Infof("%s service created", component.Name)
 	component.Status.Phase = v1alpha1.PhaseServiceCreation
@@ -117,6 +137,16 @@ func createService(component *v1alpha1.Component) error {
 	}
 	return nil
 }
+
+func getAppsClient() *appsocpv1.AppsV1Client {
+	config := kubernetes.GetK8RestConfig()
+	deploymentConfigV1client, err := appsocpv1.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("Can't get DeploymentConfig Clientset: %s", err.Error())
+	}
+	return deploymentConfigV1client
+}
+
 
 func addSecretAsEnvFromSource(secretName string) []corev1.EnvFromSource {
 	return []corev1.EnvFromSource{
