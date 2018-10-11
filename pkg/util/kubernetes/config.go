@@ -20,7 +20,6 @@ package kubernetes
 import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/spring-boot-cloud-devex/pkg/common/config"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/clientcmd"
@@ -62,7 +61,7 @@ func GetK8RestConfig() *restclient.Config {
 // Create Kube Rest's Config Client
 func createKubeRestconfig() *restclient.Config {
 	kube := Kube{
-		Config: config.HomeKubePath(),
+		Config: HomeKubePath(),
 		MasterURL: "192.168.99.50:8443",
 	}
 	kubeRestClient, err := clientcmd.BuildConfigFromFlags(kube.MasterURL, kube.Config)
