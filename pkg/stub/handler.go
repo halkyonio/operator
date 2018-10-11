@@ -79,7 +79,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			}
 		}
 		// Check if the component is a Link
-		if o.Spec.Link.Name != "" {
+		if o.Spec.Link != nil {
 			for _, a := range h.linkSteps {
 				if a.CanHandle(o) {
 					logrus.Debug("Invoking link ", a.Name(), " on Spring Boot ", o.Name)
