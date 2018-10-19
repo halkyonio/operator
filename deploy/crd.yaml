@@ -12,15 +12,15 @@ spec:
     singular: component
     shortNames:
     - cp
-  scope: Namespaced
+  scope: Cluster
   additionalPrinterColumns:
   - name: Runtime
     type: string
-    description: The runtime's technology/framework such as : Spring Boot, Eclipse Vert.x, ....
+    description: "The runtime's technology/framework such as : Spring Boot, Eclipse Vert.x, ...."
     JSONPath: .spec.runtime
   - name: Version
     type: string
-    description: The version of the runtime
+    description: "The version of the runtime"
     JSONPath: .spec.version
   # categories is a list of grouped resources the custom resource belongs to.
   categories:
