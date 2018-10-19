@@ -4,10 +4,24 @@ metadata:
   name: components.component.k8s.io
 spec:
   group: component.k8s.io
+  version: v1alpha1
   names:
     kind: Component
     listKind: ComponentList
     plural: components
     singular: component
+    shortNames:
+    - cp
   scope: Namespaced
-  version: v1alpha1
+  additionalPrinterColumns:
+  - name: Runtime
+    type: string
+    description: The runtime's technology/framework such as : Spring Boot, Eclipse Vert.x, ....
+    JSONPath: .spec.runtime
+  - name: Version
+    type: string
+    description: The version of the runtime
+    JSONPath: .spec.version
+  # categories is a list of grouped resources the custom resource belongs to.
+  categories:
+  - all
