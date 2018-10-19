@@ -36,9 +36,11 @@ type ComponentSpec struct {
 	// where outer loop refers to a build of the code and the packaging of the application into a container's image
 	// while the inner loop will install a pod's running a supervisord daemon used to trigger actions such as : assemble, run, ...
 	DeploymentMode string `json:"deployment,omitempty"`
-	// Runtime is the framework used to start within the container the application
-	// It corresponds to one of the following values: spring-boot, vertx, tornthail, nodejs
+	// Runtime is the framework/language used to start with a linux's container an application.
+	// It corresponds to one of the following values: spring-boot, vertx, tornthail, nodejs, python, php, ruby
 	Runtime string `json:"runtime,omitempty"`
+	// Runtime's version
+	Version string `json:"version,omitempty"`
 	// To indicate if we want to expose the service out side of the cluster as a route
 	ExposeService bool `json:"exposeService,omitempty"`
 	// Debug port is the port exposed by the JVM for remote debugging
