@@ -63,7 +63,6 @@ func createService(component *v1alpha1.Component) error {
 	}
 	component.ObjectMeta.Namespace = namespace
 
-	// newServices := []v1alpha1.Service{}
 	for i, s := range component.Spec.Services {
 		// Convert the parameters into a JSon string
 		mapParams := ParametersAsMap(s.Parameters)
