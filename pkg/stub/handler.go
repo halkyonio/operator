@@ -56,7 +56,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
 	case *v1alpha1.Component:
 		// Check the DeploymentMode to install the component/runtime
-		if o.Spec.DeploymentMode == "innerloop" && o.Spec.Runtime != "" {
+		if o.Spec.Runtime != "" && o.Spec.DeploymentMode == "innerloop" {
 			logrus.Debug("DeploymentMode :", o.Spec.DeploymentMode)
 			for _, a := range h.innerLoopSteps {
 				if a.CanHandle(o) {
@@ -66,6 +66,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 					}
 				}
 			}
+			break
 		}
 		// Check if the component is a service
 		if o.Spec.Services != nil {
@@ -77,6 +78,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 					}
 				}
 			}
+			break
 		}
 		// Check if the component is a Link
 		if o.Spec.Link != nil {
@@ -88,6 +90,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 					}
 				}
 			}
+			break
 		}
 	}
 	return nil
