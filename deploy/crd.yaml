@@ -25,3 +25,6 @@ spec:
     type: string
     description: "The version of the runtime"
     JSONPath: .spec.version
+  - name: Age
+    type: date
+    JSONPath: .metadata.creationTimestamp
