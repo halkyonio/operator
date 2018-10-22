@@ -5,16 +5,16 @@ metadata:
 spec:
   group: component.k8s.io
   version: v1alpha1
-names:
-  kind: Component
-  listKind: ComponentList
-  plural: components
-  singular: component
-  shortNames:
-  - cp
-  # categories is a list of grouped resources the custom resource belongs to.
-  categories:
-  - all
+  names:
+    kind: Component
+    listKind: ComponentList
+    plural: components
+    singular: component
+    shortNames:
+      - cp
+    # categories is a list of grouped resources the custom resource belongs to.
+    categories:
+      - all
   scope: Cluster
   additionalPrinterColumns:
   - name: Runtime
