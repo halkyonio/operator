@@ -1,0 +1,8 @@
+apiVersion: component.k8s.io/v1alpha1
+kind: Component
+metadata:
+  name: my-cool-vertx
+spec:
+  deployment: innerloop
+  runtime: vert.x
+  version: v3.5.4
