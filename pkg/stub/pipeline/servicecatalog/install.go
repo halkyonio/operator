@@ -80,6 +80,7 @@ func deleteService(component *v1alpha1.Component) error {
 				if err != nil {
 					return err
 				}
+				log.Infof("ServiceBinding %s deleted",sb.Name)
 			}
 		}
 
@@ -100,6 +101,7 @@ func deleteService(component *v1alpha1.Component) error {
 			if err != nil {
 				return err
 			}
+			log.Infof("Service Instance %s deleted",si.Name)
 		}
 	}
 	return nil
