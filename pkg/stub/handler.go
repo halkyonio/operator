@@ -55,13 +55,29 @@ type Handler struct {
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
 	case *v1alpha1.Component:
+		// Deletion status
+		deleted := event.Deleted
+		if event.Deleted {
+			// the object `v1alpha1.Component` was deleted
+			// handle the delete event here
+			if o.Spec.Services != nil {
+				for _, a := range h.serviceCatalogSteps {
+					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
+					if err := a.Handle(o, deleted); err != nil {
+						return err
+					}
+				}
+				break
+			}
+			return nil
+		}
 		// Check the DeploymentMode to install the component/runtime
 		if o.Spec.Runtime != "" && o.Spec.DeploymentMode == "innerloop" {
 			logrus.Debug("DeploymentMode :", o.Spec.DeploymentMode)
 			for _, a := range h.innerLoopSteps {
 				if a.CanHandle(o) {
 					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
-					if err := a.Handle(o); err != nil {
+					if err := a.Handle(o, deleted); err != nil {
 						return err
 					}
 				}
@@ -73,7 +89,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			for _, a := range h.serviceCatalogSteps {
 				if a.CanHandle(o) {
 					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
-					if err := a.Handle(o); err != nil {
+					if err := a.Handle(o, deleted); err != nil {
 						return err
 					}
 				}
@@ -85,7 +101,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			for _, a := range h.linkSteps {
 				if a.CanHandle(o) {
 					logrus.Debug("Invoking link ", a.Name(), " on Spring Boot ", o.Name)
-					if err := a.Handle(o); err != nil {
+					if err := a.Handle(o, deleted); err != nil {
 						return err
 					}
 				}
