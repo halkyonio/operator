@@ -146,8 +146,12 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 			if err != nil {
 				return nil, err
 			}
-
-			kubernetes.SetNamespaceAndOwnerReference(obj, component)
+			kind := obj.GetObjectKind().GroupVersionKind().Kind
+			if strings.HasPrefix(kind, "ServiceInstance") || strings.HasPrefix(kind, "ServiceBinding") {
+				kubernetes.SetNamespace(obj, component)
+			} else {
+				kubernetes.SetNamespaceAndOwnerReference(obj, component)
+			}
 			result = append(result, obj)
 		}
 	} else {
@@ -156,7 +160,12 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 			return nil, err
 		}
 
-		kubernetes.SetNamespaceAndOwnerReference(obj, component)
+		kind := obj.GetObjectKind().GroupVersionKind().Kind
+		if strings.HasPrefix(kind, "ServiceInstance") || strings.HasPrefix(kind, "ServiceBinding") {
+			kubernetes.SetNamespace(obj, component)
+		} else {
+			kubernetes.SetNamespaceAndOwnerReference(obj, component)
+		}
 		result = append(result, obj)
 	}
 	return result, nil
