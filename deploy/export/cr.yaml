@@ -1,0 +1,6 @@
+apiVersion: component.k8s.io/v1alpha1
+kind: Export
+metadata:
+  name: "my-spring-boot-export"
+spec:
+  name: "my-spring-boot"

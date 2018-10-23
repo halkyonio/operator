@@ -54,6 +54,12 @@ type Handler struct {
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
+
+	case *v1alpha1.Export:
+		if o.Spec.Name != "" {
+			logrus.Info("Invoking action on Spring Boot ", o.Name)
+		}
+
 	case *v1alpha1.Component:
 		// Deletion status
 		deleted := event.Deleted
