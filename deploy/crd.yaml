@@ -15,7 +15,7 @@ spec:
     # categories is a list of grouped resources the custom resource belongs to.
     categories:
       - all
-  scope: Cluster
+  scope: Namespaced
   additionalPrinterColumns:
   - name: Runtime
     type: string
