@@ -29,5 +29,5 @@ type Step interface {
 	CanHandle(component *v1alpha1.Component) bool
 
 	// executes the handling function
-	Handle(component *v1alpha1.Component) error
+	Handle(component *v1alpha1.Component, deleted bool) error
 }

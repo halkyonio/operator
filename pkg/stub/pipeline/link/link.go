@@ -48,7 +48,7 @@ func (linkStep) CanHandle(component *v1alpha1.Component) bool {
 	return component.Status.Phase == ""
 }
 
-func (linkStep) Handle(component *v1alpha1.Component) error {
+func (linkStep) Handle(component *v1alpha1.Component, deleted bool) error {
 	target := component.DeepCopy()
 	return createLink(target)
 }
