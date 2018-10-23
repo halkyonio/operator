@@ -57,7 +57,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	case *v1alpha1.Component:
 		// Deletion status
 		deleted := event.Deleted
-		if event.Deleted {
+		if deleted {
 			// the object `v1alpha1.Component` was deleted
 			// handle the delete event here
 			if o.Spec.Services != nil {
