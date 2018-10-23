@@ -25,6 +25,8 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"strings"
@@ -50,9 +52,57 @@ func (serviceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
 	return component.Status.Phase == ""
 }
 
-func (serviceInstanceStep) Handle(component *v1alpha1.Component) error {
+func (serviceInstanceStep) Handle(component *v1alpha1.Component, deleted bool) error {
 	target := component.DeepCopy()
-	return createService(target)
+	if (deleted) {
+		return deleteService(target)
+	} else {
+		return createService(target)
+	}
+}
+
+func deleteService(component *v1alpha1.Component) error {
+	for _, s := range component.Spec.Services {
+		// Let's retrieve the ServiceBindings to delete them first
+		listServiceBindings := new(servicecatalog.ServiceBindingList)
+		listServiceBindings.TypeMeta = metav1.TypeMeta{
+			Kind:       "ServiceBinding",
+			APIVersion: "servicecatalog.k8s.io/v1beta1",
+		}
+		err := sdk.List(component.ObjectMeta.Namespace, listServiceBindings)
+		if err != nil {
+			return err
+		}
+		// Delete ServiceBinding(s) linked to the ServiceInstance
+		for _, sb := range listServiceBindings.Items {
+			if sb.Name == s.Name {
+				err := sdk.Delete(&sb)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		// Retrieve ServiceInstances
+		listServiceInstance := new(servicecatalog.ServiceInstanceList)
+		listServiceInstance.TypeMeta = metav1.TypeMeta{
+			Kind:       "ServiceInstance",
+			APIVersion: "servicecatalog.k8s.io/v1beta1",
+		}
+		err = sdk.List(component.ObjectMeta.Namespace, listServiceInstance)
+		if err != nil {
+			return err
+		}
+
+		// Delete ServiceInstance(s)
+		for _, si := range listServiceInstance.Items {
+			err := sdk.Delete(&si)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func createService(component *v1alpha1.Component) error {
