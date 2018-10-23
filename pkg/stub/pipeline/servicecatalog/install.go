@@ -62,46 +62,42 @@ func (serviceInstanceStep) Handle(component *v1alpha1.Component, deleted bool) e
 }
 
 func deleteService(component *v1alpha1.Component) error {
+	selector := getComponentSelector()
 	for _, s := range component.Spec.Services {
 		// Let's retrieve the ServiceBindings to delete them first
-		listServiceBindings := new(servicecatalog.ServiceBindingList)
-		listServiceBindings.TypeMeta = metav1.TypeMeta{
-			Kind:       "ServiceBinding",
-			APIVersion: "servicecatalog.k8s.io/v1beta1",
-		}
-		err := sdk.List(component.ObjectMeta.Namespace, listServiceBindings)
+		list, err := listServiceBindings(component, selector)
 		if err != nil {
 			return err
 		}
 		// Delete ServiceBinding(s) linked to the ServiceInstance
-		for _, sb := range listServiceBindings.Items {
+		for _, sb := range list.Items {
 			if sb.Name == s.Name {
 				err := sdk.Delete(&sb)
 				if err != nil {
 					return err
 				}
-				log.Infof("ServiceBinding %s deleted",sb.Name)
+				log.Infof("ServiceBinding %s deleted", sb.Name)
 			}
 		}
 
 		// Retrieve ServiceInstances
-		listServiceInstance := new(servicecatalog.ServiceInstanceList)
-		listServiceInstance.TypeMeta = metav1.TypeMeta{
+		list = new(servicecatalog.ServiceInstanceList)
+		list.TypeMeta = metav1.TypeMeta{
 			Kind:       "ServiceInstance",
 			APIVersion: "servicecatalog.k8s.io/v1beta1",
 		}
-		err = sdk.List(component.ObjectMeta.Namespace, listServiceInstance)
+		err = sdk.List(component.ObjectMeta.Namespace, list)
 		if err != nil {
 			return err
 		}
 
 		// Delete ServiceInstance(s)
-		for _, si := range listServiceInstance.Items {
+		for _, si := range list.Items {
 			err := sdk.Delete(&si)
 			if err != nil {
 				return err
 			}
-			log.Infof("Service Instance %s deleted",si.Name)
+			log.Infof("Service Instance %s deleted", si.Name)
 		}
 	}
 	return nil
@@ -221,4 +217,23 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 		result = append(result, obj)
 	}
 	return result, nil
+}
+
+func listServiceBindings(component *v1alpha1.Component, listoptions metav1.ListOptions) (*servicecatalog.ServiceInstanceList, error) {
+	listServiceInstance := new(servicecatalog.ServiceInstanceList)
+	listServiceInstance.TypeMeta = metav1.TypeMeta{
+		Kind:       "ServiceInstance",
+		APIVersion: "servicecatalog.k8s.io/v1beta1",
+	}
+	err := sdk.List(component.ObjectMeta.Namespace, listServiceInstance, sdk.WithListOptions(&listoptions))
+	if err != nil {
+		return nil, err
+	}
+	return listServiceInstance, nil
+}
+
+func getComponentSelector() metav1.ListOptions {
+	return metav1.ListOptions {
+		LabelSelector: "app=my-spring-boot-service",
+	}
 }
