@@ -3,10 +3,13 @@ kind: Component
 metadata:
   name: my-spring-boot
 spec:
-  deployment: innerloop
-  runtime: springboot
-  version: 1.5.16
-  exposeService: true
+  deployment: innerloop # By default, that should be "innerloop"
+  runtime: springboot # Why ? To inform the operator to use java runtime's image
+  version: 1.5.16 #
+  exposeService: true # Create a Route
   envs:
   - name: SPRING_PROFILES_ACTIVE
     value: openshift-catalog
+  features:
+    istioEnable: true
+    opentracing: true
