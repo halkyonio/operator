@@ -61,7 +61,7 @@ func InnerLoopDeploymentconfig(component *v1alpha1.Component, namespace, command
 					InitContainers: []corev1.Container{*supervisordInitContainer(component.Spec.SupervisordName, commands)},
 					Containers: []corev1.Container{
 						{
-							Image: "dev-s2i:latest",
+							Image: "dev-runtime:latest",
 							Name:  component.Name,
 							Ports: []corev1.ContainerPort{
 								{
@@ -136,7 +136,7 @@ func InnerLoopDeploymentconfig(component *v1alpha1.Component, namespace, command
 						},
 						From: corev1.ObjectReference{
 							Kind: "ImageStreamTag",
-							Name: "dev-s2i:latest",
+							Name: "dev-runtime:latest",
 						},
 					},
 				},
