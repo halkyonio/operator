@@ -81,7 +81,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 				}
 
 				// Append runtime's image
-				component.Spec.Images = append(component.Spec.Images, CreateTypeImage(true, "dev-runtime", "latest", image[imageKey] , false))
+				component.Spec.Images = append(component.Spec.Images, CreateTypeImage(true, "dev-runtime", "latest", image[imageKey], false))
 
 				err := createResource(tmpl, component)
 				if err != nil {

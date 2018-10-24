@@ -19,16 +19,16 @@ package servicecatalog
 
 import (
 	"encoding/json"
+	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 
 	// metav1unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -54,7 +54,7 @@ func (serviceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
 
 func (serviceInstanceStep) Handle(component *v1alpha1.Component, deleted bool) error {
 	target := component.DeepCopy()
-	if (deleted) {
+	if deleted {
 		return deleteService(target)
 	} else {
 		return createService(target)
@@ -233,7 +233,7 @@ func listServiceBindings(component *v1alpha1.Component, listoptions metav1.ListO
 }
 
 func getComponentSelector() metav1.ListOptions {
-	return metav1.ListOptions {
+	return metav1.ListOptions{
 		LabelSelector: "app=my-spring-boot-service",
 	}
 }

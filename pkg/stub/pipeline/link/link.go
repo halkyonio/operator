@@ -18,7 +18,6 @@ limitations under the License.
 package link
 
 import (
-
 	appsv1 "github.com/openshift/api/apps/v1"
 	v1 "github.com/openshift/api/apps/v1"
 	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
