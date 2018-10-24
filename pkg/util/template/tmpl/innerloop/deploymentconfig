@@ -37,7 +37,7 @@ spec:
         - name: {{.Name}}
           value: {{.Value}}
         {{end}}
-        image: "dev-s2i:latest"
+        image: "dev-runtime:latest"
         imagePullPolicy: Always
         name: {{.Name}}
         ports:
@@ -83,4 +83,4 @@ spec:
       - {{.Name}}
       from:
         kind: ImageStreamTag
-        name: dev-s2i:latest
+        name: dev-runtime:latest

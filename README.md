@@ -47,11 +47,11 @@
   service/my-spring-boot       ClusterIP   172.30.189.247   <none>        8080/TCP    15s
   
   NAME                                                REVISION   DESIRED   CURRENT   TRIGGERED BY
-  deploymentconfig.apps.openshift.io/my-spring-boot   1          1         1         image(copy-supervisord:latest),image(dev-s2i:latest)
+  deploymentconfig.apps.openshift.io/my-spring-boot   1          1         1         image(copy-supervisord:latest),image(dev-runtime:latest)
   
   NAME                                              DOCKER REPO                                      TAGS      UPDATED
   imagestream.image.openshift.io/copy-supervisord   172.30.1.1:5000/my-spring-app/copy-supervisord   latest    13 seconds ago
-  imagestream.image.openshift.io/dev-s2i            172.30.1.1:5000/my-spring-app/dev-s2i            latest    12 seconds ago
+  imagestream.image.openshift.io/dev-runtime            172.30.1.1:5000/my-spring-app/dev-runtime            latest    12 seconds ago
   
   NAME                                      HOST/PORT                                           PATH      SERVICES         PORT      TERMINATION   WILDCARD
   route.route.openshift.io/my-spring-boot   my-spring-boot-my-spring-app.192.168.99.50.nip.io             my-spring-boot   <all>                   None

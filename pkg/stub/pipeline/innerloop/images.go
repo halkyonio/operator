@@ -23,17 +23,16 @@ import (
 )
 
 var (
-	zero          = int64(0)
-	deleteOptions = &metav1.DeleteOptions{GracePeriodSeconds: &zero}
-
-	javaImage        = "quay.io/snowdrop/spring-boot-s2i"
-	supervisordImage = "quay.io/snowdrop/supervisord"
-
-	defaultImages = []v1alpha1.Image{
-		CreateTypeImage(true, "dev-s2i", "latest", javaImage, false),
-		CreateTypeImage(true, "copy-supervisord", "latest", supervisordImage, true),
-	}
+	zero             = int64(0)
+	deleteOptions    = &metav1.DeleteOptions{GracePeriodSeconds: &zero}
+	image            = make(map[string]string)
 )
+
+func init() {
+	image["java"]        = "quay.io/snowdrop/spring-boot-s2i"
+	image["nodejs"]      = "docker.io/centos/nodejs-8-centos7"
+	image["supervisord"] = "quay.io/snowdrop/supervisord"
+}
 
 func CreateTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) v1alpha1.Image {
 	return v1alpha1.Image{
@@ -42,5 +41,11 @@ func CreateTypeImage(dockerImage bool, name string, tag string, repo string, ann
 		Repo:           repo,
 		AnnotationCmds: annotationCmd,
 		Tag:            tag,
+	}
+}
+
+func GetSupervisordImage() []v1alpha1.Image{
+	return []v1alpha1.Image{
+		CreateTypeImage(true, "copy-supervisord", "latest", image["supervisord"], true),
 	}
 }
