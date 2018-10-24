@@ -66,7 +66,23 @@ func installInnerLoop(component *v1alpha1.Component) error {
 
 			switch tmpl.Name() {
 			case "innerloop/imagestream":
-				component.Spec.Images = defaultImages
+				// Get supervisord imagestream
+				component.Spec.Images = GetSupervisordImage()
+
+				// Define the key of the image to search accoring to the runtime
+				imageKey := ""
+				switch r := component.Spec.Runtime; r {
+				case "spring-boot", "vert.x", "thornthail":
+					imageKey = "java"
+				case "nodejs":
+					imageKey = "nodejs"
+				default:
+					imageKey = "java"
+				}
+
+				// Append runtime's image
+				component.Spec.Images = append(component.Spec.Images, CreateTypeImage(true, "dev-runtime", "latest", image[imageKey] , false))
+
 				err := createResource(tmpl, component)
 				if err != nil {
 					return err
