@@ -29,11 +29,11 @@ spec:
     type: string
     description: "The service created from the catalog"
     JSONPath: .spec.services[0].name
-  - name: Link Type
+  - name: Type
     type: string
     description: "The relation which exists between a component and a service, ..."
     JSONPath: .spec.link.kind
-  - name: Link To
+  - name: Consumed by
     type: string
     JSONPath: .spec.link.targetcomponentname
   - name: Age
