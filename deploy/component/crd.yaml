@@ -25,6 +25,10 @@ spec:
     type: string
     description: "The version of the runtime"
     JSONPath: .spec.version
+  - name: Service
+    type: string
+    description: "The service created from the catalog"
+    JSONPath: .spec.services[0].name
   - name: Age
     type: date
     JSONPath: .metadata.creationTimestamp
