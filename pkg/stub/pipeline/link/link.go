@@ -106,6 +106,7 @@ func createLink(component *v1alpha1.Component) error {
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
+	log.Info("### Pipeline 'link' ended ###")
 	return nil
 }
 
