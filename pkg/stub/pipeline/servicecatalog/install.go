@@ -76,7 +76,7 @@ func deleteService(component *v1alpha1.Component) error {
 				if err != nil {
 					return err
 				}
-				log.Infof("ServiceBinding %s deleted", sb.Name)
+				log.Infof("#### Deleted serviceBinding '%s' for the service '%s'", sb.Name, s.Name)
 			}
 		}
 
@@ -97,7 +97,7 @@ func deleteService(component *v1alpha1.Component) error {
 			if err != nil {
 				return err
 			}
-			log.Infof("Service Instance %s deleted", si.Name)
+			log.Infof("#### Deleted serviceInstance '%s' for the service '%s'", si.Name, s.Name)
 		}
 	}
 	return nil
@@ -126,15 +126,17 @@ func createService(component *v1alpha1.Component) error {
 				}
 			}
 		}
+		log.Infof("#### Created service instance's '%s' for the service/class '%s' and plan '%s'",s.Name,s.Class,s.Plan)
 	}
 
-	log.Infof("%s service created", component.Name)
+	log.Infof("#### Created %s CRD's service component", component.Name)
 	component.Status.Phase = v1alpha1.PhaseServiceCreation
 
 	err = sdk.Update(component)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
+	log.Info("### Pipeline 'service catalog' ended ###")
 	return nil
 }
 

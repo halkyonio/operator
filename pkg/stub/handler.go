@@ -26,7 +26,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/stub/pipeline/servicecatalog"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	// import openshift package to register the OpenShift schemes (route, image, ...)
 	_ "github.com/snowdrop/component-operator/pkg/util/openshift"
@@ -57,7 +57,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 
 	case *v1alpha1.Export:
 		if o.Spec.Name != "" {
-			logrus.Info("Invoking action on Spring Boot ", o.Name)
+			log.Info("### Invoking export on ", o.Name)
 		}
 
 	case *v1alpha1.Component:
@@ -68,7 +68,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			// handle the delete event here
 			if o.Spec.Services != nil {
 				for _, a := range h.serviceCatalogSteps {
-					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
+					log.Infof("### Invoking pipeline 'service catalog', action 'delete' on %s", o.Name)
 					if err := a.Handle(o, deleted); err != nil {
 						return err
 					}
@@ -79,10 +79,10 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		}
 		// Check the DeploymentMode to install the component/runtime
 		if o.Spec.Runtime != "" && o.Spec.DeploymentMode == "innerloop" {
-			logrus.Debug("DeploymentMode :", o.Spec.DeploymentMode)
+			// log.Debug("DeploymentMode :", o.Spec.DeploymentMode)
 			for _, a := range h.innerLoopSteps {
 				if a.CanHandle(o) {
-					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
+					log.Infof("### Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), o.Name)
 					if err := a.Handle(o, deleted); err != nil {
 						return err
 					}
@@ -94,7 +94,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		if o.Spec.Services != nil {
 			for _, a := range h.serviceCatalogSteps {
 				if a.CanHandle(o) {
-					logrus.Debug("Invoking action ", a.Name(), " on Spring Boot ", o.Name)
+					log.Infof("### Invoking'service catalog', action '%s' on %s", a.Name(), o.Name)
 					if err := a.Handle(o, deleted); err != nil {
 						return err
 					}
@@ -106,7 +106,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		if o.Spec.Link != nil {
 			for _, a := range h.linkSteps {
 				if a.CanHandle(o) {
-					logrus.Debug("Invoking link ", a.Name(), " on Spring Boot ", o.Name)
+					log.Infof("### Invoking'link', action '%s' on %s", a.Name(), o.Name)
 					if err := a.Handle(o, deleted); err != nil {
 						return err
 					}

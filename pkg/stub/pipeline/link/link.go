@@ -81,7 +81,7 @@ func createLink(component *v1alpha1.Component) error {
 	if err != nil {
 		log.Fatalf("DeploymentConfig not updated : %s", err.Error())
 	}
-	log.Infof("'%s' EnvFrom secret added to the DeploymentConfig", secretName)
+	log.Infof("#### Added the deploymentConfig's EnvFrom reference of the secret '%s'", secretName)
 
 	// Create a DeploymentRequest and redeploy it
 	deploymentConfigV1client := getAppsClient()
@@ -98,8 +98,8 @@ func createLink(component *v1alpha1.Component) error {
 	if errRedeploy != nil {
 		log.Fatalf("Redeployment of the DeploymentConfig failed %s", errRedeploy.Error())
 	}
-
-	log.Infof("%s link added", componentName)
+	log.Infof("#### Rollout the DeploymentConfig of the '%s' component", component.Name)
+	log.Infof("#### Added %s link's CRD component", componentName)
 	component.Status.Phase = v1alpha1.PhaseServiceCreation
 
 	err = sdk.Update(component)
