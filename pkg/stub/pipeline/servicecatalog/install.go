@@ -38,69 +38,23 @@ import (
 
 // NewServiceInstanceStep creates a step that handles the creation of the Service from the catalog
 func NewServiceInstanceStep() pipeline.Step {
-	return &serviceInstanceStep{}
+	return &newServiceInstanceStep{}
 }
 
-type serviceInstanceStep struct {
+type newServiceInstanceStep struct {
 }
 
-func (serviceInstanceStep) Name() string {
+func (newServiceInstanceStep) Name() string {
 	return "create service"
 }
 
-func (serviceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
+func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
 	return component.Status.Phase == ""
 }
 
-func (serviceInstanceStep) Handle(component *v1alpha1.Component, deleted bool) error {
+func (newServiceInstanceStep) Handle(component *v1alpha1.Component, deleted bool) error {
 	target := component.DeepCopy()
-	if deleted {
-		return deleteService(target)
-	} else {
-		return createService(target)
-	}
-}
-
-func deleteService(component *v1alpha1.Component) error {
-	selector := getComponentSelector()
-	for _, s := range component.Spec.Services {
-		// Let's retrieve the ServiceBindings to delete them first
-		list, err := listServiceBindings(component, selector)
-		if err != nil {
-			return err
-		}
-		// Delete ServiceBinding(s) linked to the ServiceInstance
-		for _, sb := range list.Items {
-			if sb.Name == s.Name {
-				err := sdk.Delete(&sb)
-				if err != nil {
-					return err
-				}
-				log.Infof("#### Deleted serviceBinding '%s' for the service '%s'", sb.Name, s.Name)
-			}
-		}
-
-		// Retrieve ServiceInstances
-		list = new(servicecatalog.ServiceInstanceList)
-		list.TypeMeta = metav1.TypeMeta{
-			Kind:       "ServiceInstance",
-			APIVersion: "servicecatalog.k8s.io/v1beta1",
-		}
-		err = sdk.List(component.ObjectMeta.Namespace, list)
-		if err != nil {
-			return err
-		}
-
-		// Delete ServiceInstance(s)
-		for _, si := range list.Items {
-			err := sdk.Delete(&si)
-			if err != nil {
-				return err
-			}
-			log.Infof("#### Deleted serviceInstance '%s' for the service '%s'", si.Name, s.Name)
-		}
-	}
-	return nil
+	return createService(target)
 }
 
 func createService(component *v1alpha1.Component) error {

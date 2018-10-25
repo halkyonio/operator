@@ -61,29 +61,19 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		}
 
 	case *v1alpha1.Component:
-		// Deletion status
-		deleted := event.Deleted
-		if deleted {
-			// the object `v1alpha1.Component` was deleted
-			// handle the delete event here
-			if o.Spec.Services != nil {
-				for _, a := range h.serviceCatalogSteps {
-					log.Infof("### Invoking pipeline 'service catalog', action 'delete' on %s", o.Name)
-					if err := a.Handle(o, deleted); err != nil {
-						return err
-					}
-				}
-				break
-			}
-			return nil
-		}
 		// Check the DeploymentMode to install the component/runtime
 		if o.Spec.Runtime != "" && o.Spec.DeploymentMode == "innerloop" {
 			// log.Debug("DeploymentMode :", o.Spec.DeploymentMode)
 			for _, a := range h.innerLoopSteps {
+				action := ""
 				if a.CanHandle(o) {
-					log.Infof("### Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), o.Name)
-					if err := a.Handle(o, deleted); err != nil {
+					if event.Deleted {
+						action = "deleted"
+					} else {
+						action = a.Name()
+					}
+					log.Infof("### Invoking pipeline 'innerloop', action '%s' on %s", action, o.Name)
+					if err := a.Handle(o, event.Deleted); err != nil {
 						return err
 					}
 				}
@@ -92,10 +82,17 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		}
 		// Check if the component is a service
 		if o.Spec.Services != nil {
+			removeServiceInstanceStep := servicecatalog.RemoveServiceInstanceStep()
+			if event.Deleted {
+				log.Infof("### Invoking'service catalog', action '%s' on %s", "delete", o.Name)
+				if err := removeServiceInstanceStep.Handle(o, event.Deleted); err != nil {
+					return err
+				}
+			}
 			for _, a := range h.serviceCatalogSteps {
 				if a.CanHandle(o) {
 					log.Infof("### Invoking'service catalog', action '%s' on %s", a.Name(), o.Name)
-					if err := a.Handle(o, deleted); err != nil {
+					if err := a.Handle(o, event.Deleted); err != nil {
 						return err
 					}
 				}
@@ -105,9 +102,15 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		// Check if the component is a Link
 		if o.Spec.Link != nil {
 			for _, a := range h.linkSteps {
+				action := ""
 				if a.CanHandle(o) {
-					log.Infof("### Invoking'link', action '%s' on %s", a.Name(), o.Name)
-					if err := a.Handle(o, deleted); err != nil {
+					if event.Deleted {
+						action = "deleted"
+					} else {
+						action = a.Name()
+					}
+					log.Infof("### Invoking'link', action '%s' on %s", action, o.Name)
+					if err := a.Handle(o, event.Deleted); err != nil {
 						return err
 					}
 				}
