@@ -10,6 +10,3 @@ spec:
   envs:
   - name: SPRING_PROFILES_ACTIVE
     value: openshift-catalog
-  features:
-    istioEnable: true
-    opentracing: true
