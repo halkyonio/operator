@@ -99,16 +99,22 @@ func installInnerLoop(component *v1alpha1.Component) error {
 					return err
 				}
 				log.Infof("#### Created '%s' persistent volume storage; capacity: '%s'; mode '%s'", component.Spec.Storage.Name, component.Spec.Storage.Capacity, component.Spec.Storage.Mode)
+
 			case "innerloop/deploymentconfig":
 				if component.Spec.Port == 0 {
 					component.Spec.Port = 8080 // Add a default port if empty
 				}
 				component.Spec.SupervisordName = "copy-supervisord"
+
+				// Enrich Env Vars with Default values
+				populateEnvVar(component)
+
 				err := createResource(tmpl, component)
 				if err != nil {
 					return err
 				}
 				log.Infof("#### Created dev's deployment config containing as initContainer : supervisord")
+
 			case "innerloop/route":
 				if component.Spec.ExposeService {
 					err := createResource(tmpl, component)
@@ -117,6 +123,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 					}
 					log.Infof("#### Exposed service's port '%d' as cluster's route",component.Spec.Port)
 				}
+
 			case "innerloop/service":
 				if component.Spec.Port == 0 {
 					component.Spec.Port = 8080 // Add a default port if empty
@@ -126,6 +133,7 @@ func installInnerLoop(component *v1alpha1.Component) error {
 					return err
 				}
 				log.Infof("#### Created service's port '%d'",component.Spec.Port)
+
 			default:
 				err := createResource(tmpl, component)
 				if err != nil {

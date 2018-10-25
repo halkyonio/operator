@@ -25,14 +25,6 @@ spec:
         command:
         - /var/lib/supervisord/bin/supervisord
         env:
-        - name: JAVA_APP_DIR
-          value: /deployments
-        - name: JAVA_DEBUG
-          value: "true"
-        - name: JAVA_DEBUG_PORT
-          value: "5005"
-        - name: JAVA_APP_JAR
-          value: app.jar
         {{ range .Spec.Envs }}
         - name: {{.Name}}
           value: {{.Value}}
