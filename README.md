@@ -13,6 +13,7 @@
   $ oc create -f deploy/sa.yaml
   $ oc create -f deploy/rbac.yaml
   $ oc create -f deploy/crd.yaml
+  $ oc create -f deploy/export/crd.yaml
   ```
 
 - Start the Operator locally
