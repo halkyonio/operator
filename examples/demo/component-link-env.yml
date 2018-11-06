@@ -9,4 +9,4 @@ spec:
     kind: Env
     envs:
     - name: OPENSHIFT_ENDPOINT_FRUIT
-      value: http://my-spring-boot-client-my-spring-app/api/fruits
+      value: http://fruit-backend-my-spring-app/api/fruits
