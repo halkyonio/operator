@@ -81,6 +81,8 @@ type Link struct {
 	TargetComponentName string `json:"targetcomponentname,omitempty" yaml:"targetcomponentname,omitempty"`
 	Kind                string `json:"kind,omitempty" yaml:"kind,omitempty"`
 	Ref                 string `json:"ref,omitempty" yaml:"ref,omitempty"`
+	// Array of env variables containing extra/additional info to be used to configure the runtime
+	Envs 				[]Env `json:"envs,omitempty"`
 }
 
 type Feature struct {
