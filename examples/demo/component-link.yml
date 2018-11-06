@@ -1,7 +1,7 @@
 apiVersion: component.k8s.io/v1alpha1
 kind: Component
 metadata:
-  name: fruit-database
+  name: fruit-database-config
 spec:
   link:
     name: Secret to be injectd as EnvVar using Service's secret
