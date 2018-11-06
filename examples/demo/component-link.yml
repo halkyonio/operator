@@ -1,10 +1,10 @@
 apiVersion: component.k8s.io/v1alpha1
 kind: Component
 metadata:
-  name: my-spring-boot-link
+  name: fruit-database
 spec:
   link:
     name: Secret to be injectd as EnvVar using Service's secret
-    targetcomponentname: my-spring-boot
+    targetcomponentname: fruit-backend
     kind: Secret
-    ref: my-postgresql-db
+    ref: postgresql-db
