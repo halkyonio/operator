@@ -1,0 +1,12 @@
+apiVersion: component.k8s.io/v1alpha1
+kind: Component
+metadata:
+  name: my-spring-boot-link-env
+spec:
+  link:
+    name: Env Var to be injected
+    targetcomponentname: fruit-client
+    kind: Env
+    envs:
+    - name: OPENSHIFT_ENDPOINT_FRUIT
+      value: http://my-spring-boot-client-my-spring-app/api/fruits
