@@ -61,7 +61,6 @@ func createLink(component *v1alpha1.Component) error {
 
 	component.ObjectMeta.Namespace = namespace
 	componentName := component.Spec.Link.TargetComponentName
-	secretName := component.Spec.Link.Ref
 
 	// Get DeploymentConfig to inject EnvFrom using Secret and restart it
 	dc, err := GetDeploymentConfig(namespace, componentName)
@@ -69,8 +68,20 @@ func createLink(component *v1alpha1.Component) error {
 		return err
 	}
 
-	// Add the Secret as EnvVar to the container
-	dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
+	logMessage := ""
+	kind := component.Spec.Link.Kind
+	switch kind {
+	case "Secret":
+		secretName := component.Spec.Link.Ref
+		// Add the Secret as EnvVar to the container
+		dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
+		logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
+	case "Env":
+		key := component.Spec.Link.Envs[0].Name
+		val := component.Spec.Link.Envs[0].Value
+		dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env,addKeyValueAsEnvVar(key,val))
+		logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
+	}
 
 	// TODO -> Find a way to wait till service is up and running before to do the rollout
 	//duration := time.Duration(10) * time.Second
@@ -81,7 +92,7 @@ func createLink(component *v1alpha1.Component) error {
 	if err != nil {
 		log.Fatalf("DeploymentConfig not updated : %s", err.Error())
 	}
-	log.Infof("#### Added the deploymentConfig's EnvFrom reference of the secret '%s'", secretName)
+	log.Info(logMessage)
 
 	// Create a DeploymentRequest and redeploy it
 	deploymentConfigV1client := getAppsClient()
@@ -126,6 +137,13 @@ func addSecretAsEnvFromSource(secretName string) []corev1.EnvFromSource {
 				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
 			},
 		},
+	}
+}
+
+func addKeyValueAsEnvVar(key, value string) corev1.EnvVar {
+	return corev1.EnvVar{
+		Name: key,
+		Value: value,
 	}
 }
 
