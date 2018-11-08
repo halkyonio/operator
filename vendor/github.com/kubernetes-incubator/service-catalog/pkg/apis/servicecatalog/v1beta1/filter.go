@@ -40,12 +40,6 @@ func ConvertServiceClassToProperties(serviceClass *ServiceClass) filter.Properti
 	}
 }
 
-// IsValidServiceClassProperty returns true if the specified property
-// is a valid filterable property of ServiceClasses
-func IsValidServiceClassProperty(p string) bool {
-	return p == FilterName || p == FilterSpecExternalName || p == FilterSpecExternalID
-}
-
 // ConvertServicePlanToProperties takes a Service Plan and pulls out the
 // properties we support for filtering, converting them into a map in the
 // expected format.
@@ -62,12 +56,6 @@ func ConvertServicePlanToProperties(servicePlan *ServicePlan) filter.Properties 
 	}
 }
 
-// IsValidServicePlanProperty returns true if the specified property
-// is a valid filterable property of ServicePlans
-func IsValidServicePlanProperty(p string) bool {
-	return p == FilterName || p == FilterSpecExternalName || p == FilterSpecExternalID || p == FilterSpecServiceClassName || p == FilterSpecFree
-}
-
 // ConvertClusterServiceClassToProperties takes a Service Class and pulls out the
 // properties we support for filtering, converting them into a map in the
 // expected format.
@@ -80,12 +68,6 @@ func ConvertClusterServiceClassToProperties(serviceClass *ClusterServiceClass) f
 		FilterSpecExternalName: serviceClass.Spec.ExternalName,
 		FilterSpecExternalID:   serviceClass.Spec.ExternalID,
 	}
-}
-
-// IsValidClusterServiceClassProperty returns true if the specified property
-// is a valid filterable property of ClusterServiceClasses
-func IsValidClusterServiceClassProperty(p string) bool {
-	return p == FilterName || p == FilterSpecExternalName || p == FilterSpecExternalID
 }
 
 // ConvertClusterServicePlanToProperties takes a Service Plan and pulls out the
@@ -102,10 +84,4 @@ func ConvertClusterServicePlanToProperties(servicePlan *ClusterServicePlan) filt
 		FilterSpecClusterServiceClassName: servicePlan.Spec.ClusterServiceClassRef.Name,
 		FilterSpecFree:                    strconv.FormatBool(servicePlan.Spec.Free),
 	}
-}
-
-// IsValidClusterServicePlanProperty returns true if the specified property
-// is a valid filterable property of ServicePlans
-func IsValidClusterServicePlanProperty(p string) bool {
-	return p == FilterName || p == FilterSpecExternalName || p == FilterSpecExternalID || p == FilterSpecClusterServiceClassName || p == FilterSpecFree
 }

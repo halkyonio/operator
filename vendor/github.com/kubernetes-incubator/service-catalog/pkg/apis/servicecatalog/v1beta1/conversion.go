@@ -93,9 +93,7 @@ func ServiceInstanceFieldLabelConversionFunc(label, value string) (string, strin
 		"metadata.namespace",
 		"spec.externalID",
 		"spec.clusterServiceClassRef.name",
-		"spec.clusterServicePlanRef.name",
-		"spec.serviceClassRef.name",
-		"spec.servicePlanRef.name":
+		"spec.clusterServicePlanRef.name":
 		return label, value, nil
 	default:
 		return "", "", fmt.Errorf("field label not supported: %s", label)

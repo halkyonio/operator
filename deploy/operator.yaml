@@ -15,7 +15,7 @@ spec:
       serviceAccountName: component-operator
       containers:
         - name: component-operator
-          image: quay.io/snowdrop/component-operator
+          image: quay.io/snowdrop/component-operator:0.0.1
           ports:
           - containerPort: 60000
             name: metrics
@@ -24,8 +24,10 @@ spec:
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
+              value:
+            - name: POD_NAME
               valueFrom:
                 fieldRef:
-                  fieldPath: metadata.namespace
+                  fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "component-operator"

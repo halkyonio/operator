@@ -1,0 +1,123 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2.1
+
+orbs:
+  # defined at https://github.com/snowdrop/circleci-orbs
+  # needs to have been published before being used here
+  openshift: snowdrop/openshift@dev:master
+
+executors:
+  go-executor:
+    docker:
+    - image: circleci/golang:1.11
+    working_directory: /go/src/github.com/snowdrop/component-operator
+
+jobs:
+  # Steps
+  # - Checkout the git project
+  # - Install the missing packages
+  # - Generate the Assets (template such crud, rest, custom, ...)
+  # - Build the go operator
+  build:
+    # executor: go-executor
+    docker:
+    - image: circleci/golang:1.11
+    working_directory: /go/src/github.com/snowdrop/component-operator
+
+    steps:
+    - checkout
+    - run:
+        name: Build go operator
+        command: |
+          go get github.com/shurcooL/vfsgen
+          go get github.com/mitchellh/gox
+          make assets
+          make build
+          make cross
+
+  # Steps
+  # - Checkout the git project
+  # - Install the missing packages
+  # - Generate the Assets (template such crud, rest, custom, ...)
+  # - Build the go operator
+  # - Create the docker image of the operator and publish it on quay
+  docker-image:
+    docker:
+    - image: circleci/golang:1.11
+    working_directory: /go/src/github.com/snowdrop/component-operator
+
+    steps:
+    - checkout
+    - setup_remote_docker:
+        docker_layer_caching: true
+    - run:
+        name: Build go operator and generate docker image
+        command: |
+          go get github.com/shurcooL/vfsgen
+          go get github.com/mitchellh/gox
+          make assets
+          make build-linux
+          VERSION=0.0.1
+          docker build -t component-operator:${VERSION} -f deploy/docker/Dockerfile .
+          TAG_ID=$(docker images -q component-operator:${VERSION})
+          docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
+          docker login quay.io -u="${QUAY_ROBOT_USER}" -p="${QUAY_ROBOT_TOKEN}"
+          docker push quay.io/snowdrop/component-operator:${VERSION}
+
+  # Steps
+  # - Checkout the git project
+  # - Download and start okd, kubectl tools
+  # - Launch okd, grand cluster admin role to the admin user
+  # - Deploy the operator
+  okd-test:
+    machine: true
+    steps:
+    - checkout
+    - openshift/launch_openshift_311
+    - run:
+        name: Deploy the operator
+        command: |
+          oc login -u admin -p admin
+          oc new-project component-operator
+          CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
+          oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/sa.yaml
+          oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-rbac.yaml
+          oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crd.yaml
+          oc create -f ${CIRCLE_WORKING_DIRECTORY}/examples/operator.yaml
+
+    - run:
+        name: Copy cloned project under GOPATH to let go to use project's vendor folder
+        command: |
+          CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
+          GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
+          PROJECT_PATH=src/github.com/snowdrop/component-operator
+          mkdir -p ${GO_PATH_FIRST}/${PROJECT_PATH}
+          cp -R ${CIRCLE_WORKING_DIRECTORY}/* ${GO_PATH_FIRST}/${PROJECT_PATH}
+
+    - run:
+        name: Perform E2E tests
+        command: |
+          CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
+          GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
+          PROJECT_PATH=src/github.com/snowdrop/component-operator
+          oc new-project my-spring-boot
+          oc create -f ${CIRCLE_WORKING_DIRECTORY}/examples/component.yml
+          sleep 30s
+          cd ${GO_PATH_FIRST}/${PROJECT_PATH}
+          go get github.com/onsi/ginkgo
+          go get github.com/onsi/gomega
+          go test -v ./e2e -ginkgo.v
+
+workflows:
+  version: 2
+  build-operator:
+    jobs:
+    - docker-image:
+        filters:
+          branches:
+            only: operator-0.1.1
+    - okd-test:
+         requires:
+           - docker-image
