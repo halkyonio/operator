@@ -117,7 +117,7 @@ workflows:
     - docker-image:
         filters:
           branches:
-            only: operator-0.1.1
+            only: master
     - okd-test:
          requires:
            - docker-image
