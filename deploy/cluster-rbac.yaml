@@ -55,6 +55,13 @@ rules:
   verbs:
   - "*"
 - apiGroups:
+  - servicecatalog.k8s.io
+  resources:
+  - serviceinstances
+  - servicebindings
+  verbs:
+  - "*"
+- apiGroups:
   - policy
   resources:
   - poddisruptionbudgets
