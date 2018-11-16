@@ -1,5 +1,7 @@
 ## Component's kubernetes operator
 
+[![CircleCI](https://circleci.com/gh/snowdrop/component-operator/tree/master.svg?style=shield)](https://circleci.com/gh/snowdrop/component-operator/tree/master)
+
 ### How to play with operator locally
 
 - Log on to an OpenShift cluster >=3.10 with cluster-admin rights
