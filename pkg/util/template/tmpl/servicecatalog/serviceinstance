@@ -10,8 +10,4 @@ spec:
   clusterServiceClassExternalName: {{.Class}}
   clusterServicePlanExternalName: {{.Plan}}
   parameters: {{.ParametersJSon}}
-  userInfo:
-    extra:
-      scopes.authorization.openshift.io:
-      - 'user:full'
 {{end}}

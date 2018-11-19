@@ -62,6 +62,12 @@ rules:
   verbs:
   - "*"
 - apiGroups:
+  - automationbroker.io
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
   - policy
   resources:
   - poddisruptionbudgets
