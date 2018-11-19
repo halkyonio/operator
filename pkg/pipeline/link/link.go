@@ -24,13 +24,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
-	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 // NewLinkStep creates a step that handles the creation of the Service from the catalog
@@ -97,6 +96,8 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 	log.Info(logMessage)
 
 	// Create a DeploymentRequest and redeploy it
+	// As the Controller client can't process k8s sub-resource, then a separate
+	// k8s client is needed
 	deploymentConfigV1client := getAppsClient()
 	deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
 
@@ -124,7 +125,10 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 }
 
 func getAppsClient() *appsocpv1.AppsV1Client {
-	config := kubernetes.GetK8RestConfig()
+	config, err := config.GetConfig()
+	if err != nil {
+		log.Fatalf("Can't get the K8s config: %s", err.Error())
+	}
 	deploymentConfigV1client, err := appsocpv1.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Can't get DeploymentConfig Clientset: %s", err.Error())
