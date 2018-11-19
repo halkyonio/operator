@@ -64,9 +64,9 @@ rules:
 - apiGroups:
   - automationbroker.io
   resources:
-  - "*"
+  - "access"
   verbs:
-  - "*"
+  - "create"
 - apiGroups:
   - policy
   resources:
