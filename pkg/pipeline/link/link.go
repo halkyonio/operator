@@ -54,12 +54,6 @@ func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, nam
 }
 
 func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
-	// Get Current Namespace
-	/*	namespace, err := kubernetes.GetClientCurrentNamespace("")
-		if err != nil {
-			return err
-		}*/
-
 	component.ObjectMeta.Namespace = namespace
 	componentName := component.Spec.Link.TargetComponentName
 
