@@ -5,7 +5,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/runtime/scheme"
 )
 
-
 const (
 	version   = "v1alpha1"
 	groupName = "component.k8s.io"

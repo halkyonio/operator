@@ -58,7 +58,7 @@ func deleteService(component *v1alpha1.Component, c client.Client, namespace str
 		// Delete ServiceBinding(s) linked to the ServiceInstance
 		for _, sb := range list.Items {
 			if sb.Name == s.Name {
-				err := c.Delete(context.TODO(),&sb)
+				err := c.Delete(context.TODO(), &sb)
 				if err != nil {
 					return err
 				}
@@ -75,14 +75,14 @@ func deleteService(component *v1alpha1.Component, c client.Client, namespace str
 		listOps := &client.ListOptions{
 			Namespace: component.ObjectMeta.Namespace,
 		}
-		err = c.List(context.TODO(),listOps,serviceInstanceList)
+		err = c.List(context.TODO(), listOps, serviceInstanceList)
 		if err != nil {
 			return err
 		}
 
 		// Delete ServiceInstance(s)
 		for _, si := range serviceInstanceList.Items {
-			err := c.Delete(context.TODO(),&si)
+			err := c.Delete(context.TODO(), &si)
 			if err != nil {
 				return err
 			}

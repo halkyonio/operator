@@ -28,15 +28,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	log "github.com/sirupsen/logrus"
 
 	. "github.com/snowdrop/component-operator/pkg/util/helper"
-
 )
 
 // Add creates a new AppService Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -63,8 +62,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 }
 
 var (
-	_ reconcile.Reconciler = &ReconcileComponent{}
-	svcFinalizerName = "service.component.k8s.io"
+	_                reconcile.Reconciler = &ReconcileComponent{}
+	svcFinalizerName                      = "service.component.k8s.io"
 )
 
 // newReconciler returns a new reconcile.Reconciler

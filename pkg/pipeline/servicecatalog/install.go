@@ -24,6 +24,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
+	. "github.com/snowdrop/component-operator/pkg/util/helper"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -31,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
-	. "github.com/snowdrop/component-operator/pkg/util/helper"
 
 	// metav1unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -77,7 +77,7 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 				}
 			}
 		}
-		log.Infof("#### Created service instance's '%s' for the service/class '%s' and plan '%s'",s.Name,s.Class,s.Plan)
+		log.Infof("#### Created service instance's '%s' for the service/class '%s' and plan '%s'", s.Name, s.Class, s.Plan)
 	}
 
 	log.Infof("#### Created %s CRD's service component", component.Name)
@@ -87,7 +87,7 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 		component.ObjectMeta.Finalizers = append(component.ObjectMeta.Finalizers, svcFinalizerName)
 	}
 
-	err := c.Update(context.TODO(),component)
+	err := c.Update(context.TODO(), component)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
@@ -123,7 +123,7 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	}
 
 	for _, r := range res {
-		err = c.Create(context.TODO(),r)
+		err = c.Create(context.TODO(), r)
 		if err != nil && !k8serrors.IsAlreadyExists(err) {
 			return err
 		}
@@ -183,7 +183,7 @@ func listServiceBindings(component *v1alpha1.Component, c client.Client) (*servi
 		APIVersion: "servicecatalog.k8s.io/v1beta1",
 	}
 	listOps := client.ListOptions{
-		Namespace: component.ObjectMeta.Namespace,
+		Namespace:     component.ObjectMeta.Namespace,
 		LabelSelector: getLabelsSelector(component.ObjectMeta.Labels),
 	}
 	err := c.List(context.TODO(), &listOps, listServiceBinding)

@@ -56,9 +56,9 @@ func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, nam
 func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
 	// Get Current Namespace
 	/*	namespace, err := kubernetes.GetClientCurrentNamespace("")
-	if err != nil {
-		return err
-	}*/
+		if err != nil {
+			return err
+		}*/
 
 	component.ObjectMeta.Namespace = namespace
 	componentName := component.Spec.Link.TargetComponentName
@@ -80,7 +80,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 	case "Env":
 		key := component.Spec.Link.Envs[0].Name
 		val := component.Spec.Link.Envs[0].Value
-		dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env,addKeyValueAsEnvVar(key,val))
+		dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
 		logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
 	}
 
@@ -89,7 +89,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 	//time.Sleep(duration)
 
 	// Update the DeploymentConfig
-	err = c.Update(context.TODO(),dc)
+	err = c.Update(context.TODO(), dc)
 	if err != nil {
 		log.Fatalf("DeploymentConfig not updated : %s", err.Error())
 	}
@@ -116,7 +116,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 	log.Infof("#### Added %s link's CRD component", componentName)
 	component.Status.Phase = v1alpha1.PhaseServiceCreation
 
-	err = c.Update(context.TODO(),component)
+	err = c.Update(context.TODO(), component)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
@@ -148,14 +148,14 @@ func addSecretAsEnvFromSource(secretName string) []corev1.EnvFromSource {
 
 func addKeyValueAsEnvVar(key, value string) corev1.EnvVar {
 	return corev1.EnvVar{
-		Name: key,
+		Name:  key,
 		Value: value,
 	}
 }
 
 func GetDeploymentConfig(namespace string, name string, c client.Client) (*v1.DeploymentConfig, error) {
 	dc := &v1.DeploymentConfig{}
-	if err := c.Get(context.TODO(),types.NamespacedName{Name: name, Namespace: namespace},dc); err != nil {
+	if err := c.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, dc); err != nil {
 		return nil, err
 	}
 	return dc, nil

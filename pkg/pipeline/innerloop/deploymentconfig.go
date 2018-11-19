@@ -27,18 +27,18 @@ var (
 )
 
 func init() {
-	defaultEnvVar["JAVA_APP_DIR"]    = "/deployment"
-	defaultEnvVar["JAVA_DEBUG"]      = "\"false\""
+	defaultEnvVar["JAVA_APP_DIR"] = "/deployment"
+	defaultEnvVar["JAVA_DEBUG"] = "\"false\""
 	defaultEnvVar["JAVA_DEBUG_PORT"] = "\"5005\""
-	defaultEnvVar["JAVA_APP_JAR"]    = "app.jar"
+	defaultEnvVar["JAVA_APP_JAR"] = "app.jar"
 }
 
 func populateEnvVar(component *v1alpha1.Component) {
-	envs      := component.Spec.Envs
+	envs := component.Spec.Envs
 	tmpEnvVar := make(map[string]string)
 
 	// Convert Slice to Map
-	for i := 0; i < len(envs); i +=1 {
+	for i := 0; i < len(envs); i += 1 {
 		tmpEnvVar[envs[i].Name] = envs[i].Value
 	}
 

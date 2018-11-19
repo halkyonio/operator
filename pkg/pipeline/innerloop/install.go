@@ -55,10 +55,10 @@ func (installStep) Handle(component *v1alpha1.Component, client *client.Client, 
 
 func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace string) error {
 	// Get Current Namespace
-   /*	namespace, err := kubernetes.GetClientCurrentNamespace("")
-	if err != nil {
-		return err
-	}*/
+	/*	namespace, err := kubernetes.GetClientCurrentNamespace("")
+		if err != nil {
+			return err
+		}*/
 	component.ObjectMeta.Namespace = namespace
 
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
@@ -122,7 +122,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 					if err != nil {
 						return err
 					}
-					log.Infof("#### Exposed service's port '%d' as cluster's route",component.Spec.Port)
+					log.Infof("#### Exposed service's port '%d' as cluster's route", component.Spec.Port)
 				}
 
 			case "innerloop/service":
@@ -133,7 +133,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 				if err != nil {
 					return err
 				}
-				log.Infof("#### Created service's port '%d'",component.Spec.Port)
+				log.Infof("#### Created service's port '%d'", component.Spec.Port)
 
 			default:
 				err := createResource(tmpl, component, c)
@@ -146,7 +146,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	log.Infof("#### Created %s CRD's component ", component.Name)
 	component.Status.Phase = v1alpha1.PhaseDeploying
 
-	err := c.Update(context.TODO(),component)
+	err := c.Update(context.TODO(), component)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
@@ -163,7 +163,7 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	}
 
 	for _, r := range res {
-		err = c.Create(context.TODO(),r)
+		err = c.Create(context.TODO(), r)
 		if err != nil && !k8serrors.IsAlreadyExists(err) {
 			return err
 		}
