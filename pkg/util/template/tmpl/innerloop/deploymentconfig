@@ -43,7 +43,7 @@ spec:
       initContainers:
       - env:
         - name: CMDS
-          value: run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp
+          value: run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp
         image: "{{.Spec.SupervisordName}}:latest"
         imagePullPolicy: Always
         name: copy-supervisord
