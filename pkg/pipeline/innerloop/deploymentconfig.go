@@ -31,7 +31,7 @@ func init() {
 	defaultEnvVar["JAVA_DEBUG"] = "\"false\""
 	defaultEnvVar["JAVA_DEBUG_PORT"] = "\"5005\""
 	defaultEnvVar["JAVA_APP_JAR"] = "app.jar"
-	defaultEnvVar["CMDS"] = "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
+	// defaultEnvVar["CMDS"] = "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
 }
 
 func populateEnvVar(component *v1alpha1.Component) {
