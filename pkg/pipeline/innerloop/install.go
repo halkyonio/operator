@@ -54,11 +54,6 @@ func (installStep) Handle(component *v1alpha1.Component, client *client.Client, 
 }
 
 func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace string) error {
-	// Get Current Namespace
-	/*	namespace, err := kubernetes.GetClientCurrentNamespace("")
-		if err != nil {
-			return err
-		}*/
 	component.ObjectMeta.Namespace = namespace
 
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
