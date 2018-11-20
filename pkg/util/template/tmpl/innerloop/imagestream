@@ -15,7 +15,7 @@ items:
     tags:
     - {{if .AnnotationCmds}}
       annotations:
-        cmds: "run-java:/usr/local/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
+        cmds: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
       {{end}}
       from:
         kind: DockerImage
