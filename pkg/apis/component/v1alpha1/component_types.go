@@ -25,6 +25,8 @@ type ComponentSpec struct {
 	// Runtime is the framework/language used to start with a linux's container an application.
 	// It corresponds to one of the following values: spring-boot, vertx, tornthail, nodejs, python, php, ruby
 	Runtime string `json:"runtime,omitempty"`
+	// RuntimeName is the name of the runtime used bu the operator to configure/create the imageStream and DeploymentConfig
+	RuntimeName string `json:"runtimename,omitempty"`
 	// Runtime's version
 	Version string `json:"version,omitempty"`
 	// To indicate if we want to expose the service out side of the cluster as a route
