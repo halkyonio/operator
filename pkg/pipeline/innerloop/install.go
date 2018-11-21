@@ -55,6 +55,8 @@ func (installStep) Handle(component *v1alpha1.Component, client *client.Client, 
 
 func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace string) error {
 	component.ObjectMeta.Namespace = namespace
+	// Append dev runtime's image (java, nodejs, ...)
+	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime",strings.ToLower(component.Spec.Runtime)},"-")
 
 	// TODO Add a key to get the templates associated to a category such as : innerloop, ....
 	for _, tmpl := range util.Templates {
@@ -76,8 +78,6 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 					imageKey = "java"
 				}
 
-				// Append dev runtime's image (java, nodejs, ...)
-				component.Spec.RuntimeName = strings.Join([]string{"dev-runtime",strings.ToLower(component.Spec.Runtime)},"-")
 				component.Spec.Images = append(component.Spec.Images, CreateTypeImage(true, component.Spec.RuntimeName, "latest", image[imageKey], false))
 
 				err := createResource(tmpl, component, c)
