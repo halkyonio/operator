@@ -31,7 +31,7 @@
   metadata:
     name: my-spring-boot
   spec:
-    deployment: innerloop
+    deploymentMode: innerloop
     EOF
   $ oc apply -f component.yml 
   ```  
