@@ -3,7 +3,7 @@ kind: Component
 metadata:
   name: my-spring-boot
 spec:
-  deployment: innerloop
+  deploymentMode: innerloop
   runtime: spring-boot
   version: 1.5.16
   envs:

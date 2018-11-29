@@ -3,7 +3,7 @@ kind: Component
 metadata:
   name: fruit-client
 spec:
-  deployment: innerloop
+  deploymentMode: innerloop
   runtime: springboot # Why ? To inform the operator to use java runtime's image
   version: 1.5.16
   exposeService: true # Create a Route

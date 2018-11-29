@@ -3,6 +3,6 @@ kind: Component
 metadata:
   name: my-cool-vertx
 spec:
-  deployment: innerloop
+  deploymentMode: innerloop
   runtime: vert.x
   version: v3.5.4
