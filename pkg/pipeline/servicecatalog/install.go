@@ -51,7 +51,7 @@ func (newServiceInstanceStep) Name() string {
 }
 
 func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase == ""
+	return component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
 }
 
 func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
