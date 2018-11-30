@@ -159,7 +159,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if the component is a Link
-	if component.Spec.Link != nil {
+	if component.Spec.Links != nil {
 		for _, a := range r.linkSteps {
 			if a.CanHandle(component) {
 				log.Infof("### Invoking'link', action '%s' on %s", a.Name(), component.Name)
