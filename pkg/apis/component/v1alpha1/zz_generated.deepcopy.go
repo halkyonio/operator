@@ -113,8 +113,10 @@ func (in *ComponentSpec) DeepCopyInto(out *ComponentSpec) {
 	}
 	if in.Link != nil {
 		in, out := &in.Link, &out.Link
-		*out = new(Link)
-		(*in).DeepCopyInto(*out)
+		*out = make([]Link, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }
