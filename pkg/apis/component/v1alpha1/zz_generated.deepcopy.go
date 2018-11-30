@@ -111,8 +111,8 @@ func (in *ComponentSpec) DeepCopyInto(out *ComponentSpec) {
 		*out = make([]Feature, len(*in))
 		copy(*out, *in)
 	}
-	if in.Link != nil {
-		in, out := &in.Link, &out.Link
+	if in.Links != nil {
+		in, out := &in.Links, &out.Links
 		*out = make([]Link, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])

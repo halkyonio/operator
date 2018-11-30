@@ -57,7 +57,7 @@ type ComponentSpec struct {
 	// to centralize the traces/logs of the runtime, to deploy a servicemesh, ...
 	Features []Feature `json:"features,omitempty" `
 	//
-	Link []Link `json:"links,omitempty"`
+	Links []Link `json:"links,omitempty"`
 }
 
 // ComponentStatus defines the observed state of Component
