@@ -21,6 +21,7 @@ import (
 	appsv1 "github.com/openshift/api/apps/v1"
 	v1 "github.com/openshift/api/apps/v1"
 	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
@@ -55,63 +56,68 @@ func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, nam
 
 func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
 	component.ObjectMeta.Namespace = namespace
-	// TODO - ADD A Loop to iterate through the list of Links
-	componentName := component.Spec.Link[0].TargetComponentName
+	for _, l := range component.Spec.Link {
+		componentName := l.TargetComponentName
+		if componentName != "" {
+			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
+			dc, err := GetDeploymentConfig(namespace, componentName, c)
+			if err != nil {
+				return err
+			}
 
-	// Get DeploymentConfig to inject EnvFrom using Secret and restart it
-	dc, err := GetDeploymentConfig(namespace, componentName, c)
-	if err != nil {
-		return err
+			logMessage := ""
+			kind := component.Spec.Link[0].Kind
+			switch kind {
+			case "Secret":
+				secretName := component.Spec.Link[0].Ref
+				// Add the Secret as EnvVar to the container
+				dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
+				logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
+			case "Env":
+				key := component.Spec.Link[0].Envs[0].Name
+				val := component.Spec.Link[0].Envs[0].Value
+				dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
+				logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
+			}
+
+			// TODO -> Find a way to wait till service is up and running before to do the rollout
+			//duration := time.Duration(10) * time.Second
+			//time.Sleep(duration)
+
+			// Update the DeploymentConfig
+			err = c.Update(context.TODO(), dc)
+			if err != nil {
+				log.Fatalf("DeploymentConfig not updated : %s", err.Error())
+			}
+			log.Info(logMessage)
+
+			// Create a DeploymentRequest and redeploy it
+			// As the Controller client can't process k8s sub-resource, then a separate
+			// k8s client is needed
+			deploymentConfigV1client := getAppsClient()
+			deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
+
+			// Redeploy it
+			request := &appsv1.DeploymentRequest{
+				Name:   componentName,
+				Latest: true,
+				Force:  true,
+			}
+
+			_, errRedeploy := deploymentConfigs.Instantiate(componentName, request)
+			if errRedeploy != nil {
+				log.Fatalf("Redeployment of the DeploymentConfig failed %s", errRedeploy.Error())
+			}
+			log.Infof("#### Added %s link's CRD component", componentName)
+			log.Infof("#### Rollout the DeploymentConfig of the '%s' component", component.Name)
+		} else {
+			return errors.New("Target component is not defined !!")
+		}
 	}
 
-	logMessage := ""
-	kind := component.Spec.Link[0].Kind
-	switch kind {
-	case "Secret":
-		secretName := component.Spec.Link[0].Ref
-		// Add the Secret as EnvVar to the container
-		dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
-		logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
-	case "Env":
-		key := component.Spec.Link[0].Envs[0].Name
-		val := component.Spec.Link[0].Envs[0].Value
-		dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
-		logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
-	}
-
-	// TODO -> Find a way to wait till service is up and running before to do the rollout
-	//duration := time.Duration(10) * time.Second
-	//time.Sleep(duration)
-
-	// Update the DeploymentConfig
-	err = c.Update(context.TODO(), dc)
-	if err != nil {
-		log.Fatalf("DeploymentConfig not updated : %s", err.Error())
-	}
-	log.Info(logMessage)
-
-	// Create a DeploymentRequest and redeploy it
-	// As the Controller client can't process k8s sub-resource, then a separate
-	// k8s client is needed
-	deploymentConfigV1client := getAppsClient()
-	deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
-
-	// Redeploy it
-	request := &appsv1.DeploymentRequest{
-		Name:   componentName,
-		Latest: true,
-		Force:  true,
-	}
-
-	_, errRedeploy := deploymentConfigs.Instantiate(componentName, request)
-	if errRedeploy != nil {
-		log.Fatalf("Redeployment of the DeploymentConfig failed %s", errRedeploy.Error())
-	}
-	log.Infof("#### Rollout the DeploymentConfig of the '%s' component", component.Name)
-	log.Infof("#### Added %s link's CRD component", componentName)
 	component.Status.Phase = v1alpha1.PhaseServiceCreation
 
-	err = c.Update(context.TODO(), component)
+	err := c.Update(context.TODO(), component)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
