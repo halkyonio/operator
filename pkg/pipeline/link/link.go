@@ -56,7 +56,7 @@ func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, nam
 
 func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
 	component.ObjectMeta.Namespace = namespace
-	for _, l := range component.Spec.Link {
+	for _, l := range component.Spec.Links {
 		componentName := l.TargetComponentName
 		if componentName != "" {
 			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
@@ -66,16 +66,17 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 			}
 
 			logMessage := ""
-			kind := component.Spec.Link[0].Kind
+			// TODO Iterate through Links
+			kind := component.Spec.Links[0].Kind
 			switch kind {
 			case "Secret":
-				secretName := component.Spec.Link[0].Ref
+				secretName := component.Spec.Links[0].Ref
 				// Add the Secret as EnvVar to the container
 				dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
 				logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
 			case "Env":
-				key := component.Spec.Link[0].Envs[0].Name
-				val := component.Spec.Link[0].Envs[0].Value
+				key := component.Spec.Links[0].Envs[0].Name
+				val := component.Spec.Links[0].Envs[0].Value
 				dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
 				logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
 			}
