@@ -3,8 +3,8 @@ kind: Component
 metadata:
   name: fruit-endpoint
 spec:
-  link:
-    name: Env Var to be injected
+  links:
+  - name: Env Var to be injected
     targetcomponentname: fruit-client
     kind: Env
     envs:
