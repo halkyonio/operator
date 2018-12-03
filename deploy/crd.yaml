@@ -35,7 +35,7 @@ spec:
     JSONPath: .spec.link.kind
   - name: Consumed by
     type: string
-    JSONPath: .spec.link.targetcomponentname
+    JSONPath: .spec.link.targetComponentName
   - name: Age
     type: date
     JSONPath: .metadata.creationTimestamp

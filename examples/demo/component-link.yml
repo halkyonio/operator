@@ -5,6 +5,6 @@ metadata:
 spec:
   - links:
       name: Secret to be injectd as EnvVar using Service's secret
-      targetcomponentname: fruit-backend
+      targetComponentName: fruit-backend
       kind: Secret
       ref: postgresql-db

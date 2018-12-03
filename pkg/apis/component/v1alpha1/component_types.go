@@ -66,10 +66,10 @@ type ComponentStatus struct {
 }
 
 type Link struct {
-	Name                string `json:"name,omitempty" yaml:"name,omitempty"`
-	TargetComponentName string `json:"targetcomponentname,omitempty" yaml:"targetcomponentname,omitempty"`
-	Kind                string `json:"kind,omitempty" yaml:"kind,omitempty"`
-	Ref                 string `json:"ref,omitempty" yaml:"ref,omitempty"`
+	Name                string `json:"name,omitempty"`
+	TargetComponentName string `json:"targetComponentName,omitempty"`
+	Kind                string `json:"kind,omitempty"`
+	Ref                 string `json:"ref,omitempty"`
 	// Array of env variables containing extra/additional info to be used to configure the runtime
 	Envs []Env `json:"envs,omitempty"`
 }

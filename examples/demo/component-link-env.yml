@@ -5,7 +5,7 @@ metadata:
 spec:
   links:
   - name: Env Var to be injected
-    targetcomponentname: fruit-client
+    targetComponentName: fruit-client
     kind: Env
     envs:
     - name: OPENSHIFT_ENDPOINT_FRUIT
