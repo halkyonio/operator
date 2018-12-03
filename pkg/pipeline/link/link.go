@@ -67,16 +67,16 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 
 			logMessage := ""
 			// TODO Iterate through Links
-			kind := component.Spec.Links[0].Kind
+			kind := l.Kind
 			switch kind {
 			case "Secret":
-				secretName := component.Spec.Links[0].Ref
+				secretName := l.Ref
 				// Add the Secret as EnvVar to the container
 				dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
 				logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
 			case "Env":
-				key := component.Spec.Links[0].Envs[0].Name
-				val := component.Spec.Links[0].Envs[0].Value
+				key := l.Envs[0].Name
+				val := l.Envs[0].Value
 				dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
 				logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
 			}
