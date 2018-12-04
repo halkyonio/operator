@@ -46,7 +46,7 @@ func (linkStep) Name() string {
 }
 
 func (linkStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase == ""
+	return component.Status.Phase == v1alpha1.PhaseDeploying
 }
 
 func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
@@ -87,8 +87,9 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 
 			// Update the DeploymentConfig
 			err = c.Update(context.TODO(), dc)
-			if err != nil {
-				log.Fatalf("DeploymentConfig not updated : %s", err.Error())
+			if err != nil && k8serrors.IsConflict(err) {
+				// Retry reconcile
+				return err
 			}
 			log.Info(logMessage)
 
@@ -106,8 +107,9 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 			}
 
 			_, errRedeploy := deploymentConfigs.Instantiate(componentName, request)
-			if errRedeploy != nil {
-				log.Fatalf("Redeployment of the DeploymentConfig failed %s", errRedeploy.Error())
+			if errRedeploy != nil && k8serrors.IsConflict(err) {
+				// Retry reconcile
+				return err
 			}
 			log.Infof("#### Added %s link's CRD component", componentName)
 			log.Infof("#### Rollout the DeploymentConfig of the '%s' component", component.Name)
