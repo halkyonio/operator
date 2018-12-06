@@ -137,8 +137,9 @@ Instructions followed to create the Component's CRD, operator using the `operato
 
 - Deploy the component-operator
   ```bash
+  oc new-project component-operator
   oc create -f deploy/sa.yaml
-  oc create -f deploy/rbac.yaml
+  oc create -f deploy/cluster-rbac.yaml
   oc create -f deploy/crd.yaml
   oc create -f deploy/operator.yaml
   ```
@@ -160,7 +161,7 @@ Instructions followed to create the Component's CRD, operator using the `operato
   oc delete -f deploy/cr.yaml
   oc delete -f deploy/crd.yaml
   oc delete -f deploy/operator.yaml
-  oc delete -f deploy/rbac.yaml
+  oc delete -f deploy/cluster-rbac.yaml
   oc delete -f deploy/sa.yaml
   ```
 
