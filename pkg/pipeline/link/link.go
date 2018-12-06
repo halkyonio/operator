@@ -61,13 +61,13 @@ func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, nam
 }
 
 func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
-	retryInterval, _ := time.ParseDuration("10s")
+	retryInterval, _ := time.ParseDuration("5s")
 	component.ObjectMeta.Namespace = namespace
 	for _, l := range component.Spec.Links {
 		componentName := l.TargetComponentName
 		if componentName != "" {
 			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
-			err := wait.Poll(retryInterval, time.Duration(5)*retryInterval, func() (done bool, err error) {
+			err := wait.Poll(retryInterval, time.Duration(3)*retryInterval, func() (done bool, err error) {
 				dc, err := GetDeploymentConfig(namespace, componentName, c)
 				if err != nil {
 					return false, err
