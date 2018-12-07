@@ -48,16 +48,11 @@ func (linkStep) Name() string {
 }
 
 func (linkStep) CanHandle(component *v1alpha1.Component) bool {
-	if component.Status.Phase == "" {
-		return true
-	} else {
-		return false
-	}
+	return component.Status.Phase == v1alpha1.PhaseDeploying
 }
 
 func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	target := component.DeepCopy()
-	return createLink(target, *client, namespace)
+	return createLink(component, *client, namespace)
 }
 
 func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
