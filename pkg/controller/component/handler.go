@@ -131,6 +131,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// Component Custom Resource instance has been created
 	operation = "created"
+	log.Printf("Status : %s", component.Status.Phase)
 
 	// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
 	if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
@@ -170,7 +171,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			}
 		}
 	}
-
+	log.Printf("Status : %s", component.Status.Phase)
 	log.Printf("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
 	return reconcile.Result{}, nil
 }
