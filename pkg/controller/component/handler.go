@@ -93,6 +93,7 @@ type ReconcileComponent struct {
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	operation := ""
+	resourceVersion:= ""
 	// Fetch the AppService instance
 	component := &v1alpha1.Component{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
@@ -101,9 +102,14 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			// Component has been deleted like also its dependencies
 			operation = "deleted"
 		}
-		// Error reading the object - requeue the request.
+		// Error reading the object
 		log.Printf("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
-		return reconcile.Result{}, err
+		return reconcile.Result{}, nil
+	}
+
+	// Store resourceversion
+	if resourceVersion == "" {
+		resourceVersion = component.ResourceVersion
 	}
 
 	// See finalizer doc for more info : https://book.kubebuilder.io/beyond_basics/using_finalizers.html
@@ -158,8 +164,8 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	}
 
-	// Check if the component is a Link
-	if component.Spec.Links != nil {
+	// Check if the component is a Link and that
+	if component.Spec.Links != nil && component.ResourceVersion == resourceVersion {
 		for _, a := range r.linkSteps {
 			if a.CanHandle(component) {
 				log.Infof("### Invoking'link', action '%s' on %s", a.Name(), component.Name)
