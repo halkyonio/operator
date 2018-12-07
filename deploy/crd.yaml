@@ -16,6 +16,8 @@ spec:
     categories:
       - all
   scope: Namespaced
+  subresources:
+    status: {}
   additionalPrinterColumns:
   - name: Runtime
     type: string
