@@ -50,8 +50,7 @@ func (installStep) CanHandle(component *v1alpha1.Component) bool {
 }
 
 func (installStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	target := component.DeepCopy()
-	return installInnerLoop(target, *client, namespace)
+	return installInnerLoop(component, *client, namespace)
 }
 
 func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace string) error {

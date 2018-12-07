@@ -56,8 +56,9 @@ func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
 }
 
 func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	target := component.DeepCopy()
-	return createService(target, *client, namespace)
+	//target := component.DeepCopy()
+	//return createService(target, *client, namespace)
+	return createService(component, *client, namespace)
 }
 
 func createService(component *v1alpha1.Component, c client.Client, namespace string) error {
