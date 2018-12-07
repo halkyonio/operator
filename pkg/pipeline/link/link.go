@@ -127,6 +127,11 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 			return errors.New("Target component is not defined !!")
 		}
 	}
+	component.Status.Phase = v1alpha1.PhaseLinking
+	err := c.Status().Update(context.TODO(),component)
+	if err != nil && k8serrors.IsConflict(err) {
+		return err
+	}
 	log.Info("### Pipeline 'link' ended ###")
 	return nil
 }
