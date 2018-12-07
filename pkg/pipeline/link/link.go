@@ -68,7 +68,6 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 					return false, err
 				}
 				logMessage := ""
-				// TODO Iterate through Links
 				kind := l.Kind
 				switch kind {
 				case "Secret":
@@ -77,6 +76,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 					dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
 					logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
 				case "Env":
+					// TODO Iterate through Env vars
 					key := l.Envs[0].Name
 					val := l.Envs[0].Value
 					dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
@@ -126,6 +126,11 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 		} else {
 			return errors.New("Target component is not defined !!")
 		}
+	}
+	component.Status.Phase = v1alpha1.PhaseLinking
+	err := c.Update(context.TODO(), component)
+	if err != nil && k8serrors.IsConflict(err) {
+		return err
 	}
 	log.Info("### Pipeline 'link' ended ###")
 	return nil

@@ -21,7 +21,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"golang.org/x/net/context"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/snowdrop/component-operator/pkg/pipeline"
@@ -143,17 +142,8 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	component.Status.Phase = v1alpha1.PhaseDeploying
 
 	err := c.Update(context.TODO(), component)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		clone := component.DeepCopy()
-		err = c.Get(context.TODO(),types.NamespacedName{Name: component.Name, Namespace: namespace},clone)
-		if err != nil {
-			return err
-		}
-		component.ResourceVersion = clone.ResourceVersion
-		err = c.Update(context.TODO(),component)
-		if err != nil {
-			return err
-		}
+	if err != nil && k8serrors.IsConflict(err) {
+		return err
 	}
 	log.Info("### Pipeline 'innerloop' ended ###")
 

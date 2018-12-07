@@ -30,7 +30,6 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
@@ -90,17 +89,9 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 	}
 
 	err := c.Update(context.TODO(), component)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		clone := component.DeepCopy()
-		err = c.Get(context.TODO(),types.NamespacedName{Name: component.Name, Namespace: namespace},clone)
-		if err != nil {
-			return err
-		}
-		component.ResourceVersion = clone.ResourceVersion
-		err = c.Update(context.TODO(),component)
-		if err != nil {
-			return err
-		}
+	if err != nil && k8serrors.IsConflict(err) {
+		// Retry reconcile
+		return err
 	}
 	log.Info("### Pipeline 'service catalog' ended ###")
 	return nil
