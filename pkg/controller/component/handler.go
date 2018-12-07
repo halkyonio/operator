@@ -132,11 +132,11 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	// Component Custom Resource instance has been created
 	operation = "created"
 
-	// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
-	if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
-		for _, a := range r.innerLoopSteps {
+	// Check if the component is a Service to be installed from the catalog
+	if component.Spec.Services != nil {
+		for _, a := range r.serviceCatalogSteps {
 			if a.CanHandle(component) {
-				log.Infof("### Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
+				log.Infof("### Invoking'service catalog', action '%s' on %s", a.Name(), component.Name)
 				if err := a.Handle(component, &r.client, request.Namespace); err != nil {
 					log.Error(err)
 					return reconcile.Result{}, err
@@ -145,11 +145,11 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	}
 
-	// Check if the component is a Service to be installed from the catalog
-	if component.Spec.Services != nil {
-		for _, a := range r.serviceCatalogSteps {
+	// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
+	if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
+		for _, a := range r.innerLoopSteps {
 			if a.CanHandle(component) {
-				log.Infof("### Invoking'service catalog', action '%s' on %s", a.Name(), component.Name)
+				log.Infof("### Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
 				if err := a.Handle(component, &r.client, request.Namespace); err != nil {
 					log.Error(err)
 					return reconcile.Result{}, err
