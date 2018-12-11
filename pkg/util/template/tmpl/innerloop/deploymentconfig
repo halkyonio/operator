@@ -56,9 +56,9 @@ spec:
       volumes:
       - emptyDir: {}
         name: shared-data
-      - name: m2-data
+      - name: {{.Spec.Storage.Name}}
         persistentVolumeClaim:
-          claimName: m2-data
+          claimName: {{.Spec.Storage.Name}}
   triggers:
   - type: ImageChange
     imageChangeParams:
