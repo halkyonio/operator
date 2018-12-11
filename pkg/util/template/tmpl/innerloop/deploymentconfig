@@ -39,7 +39,7 @@ spec:
         - mountPath: /var/lib/supervisord
           name: shared-data
         - mountPath: /tmp/artifacts
-          name: m2-data
+          name: {{.Spec.Storage.Name}}
       initContainers:
       - env:
         - name: CMDS

@@ -87,7 +87,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 				log.Infof("#### Created 'supervisord and '%s' imagestreams", image[imageKey])
 
 			case "innerloop/pvc":
-				component.Spec.Storage.Name = "m2-data"
+				component.Spec.Storage.Name = "m2-data-" + component.Name
 				component.Spec.Storage.Capacity = "1Gi"
 				component.Spec.Storage.Mode = "ReadWriteOnce"
 				err := createResource(tmpl, component, c)
