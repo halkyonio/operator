@@ -48,7 +48,7 @@ func (linkStep) Name() string {
 }
 
 func (linkStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase == v1alpha1.PhaseDeploying
+     return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying
 }
 
 func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
@@ -56,19 +56,18 @@ func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, nam
 }
 
 func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
-	retryInterval, _ := time.ParseDuration("5s")
+	retryInterval, _ := time.ParseDuration("10s")
 	component.ObjectMeta.Namespace = namespace
 	for _, l := range component.Spec.Links {
 		componentName := l.TargetComponentName
 		if componentName != "" {
 			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
-			err := wait.Poll(retryInterval, time.Duration(3)*retryInterval, func() (done bool, err error) {
+			err := wait.Poll(retryInterval, time.Duration(2)*retryInterval, func() (done bool, err error) {
 				dc, err := GetDeploymentConfig(namespace, componentName, c)
 				if err != nil {
 					return false, err
 				}
 				logMessage := ""
-				// TODO Iterate through Links
 				kind := l.Kind
 				switch kind {
 				case "Secret":
@@ -77,6 +76,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 					dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
 					logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
 				case "Env":
+					// TODO Iterate through Env vars
 					key := l.Envs[0].Name
 					val := l.Envs[0].Value
 					dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
@@ -128,7 +128,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 		}
 	}
 	component.Status.Phase = v1alpha1.PhaseLinking
-	err := c.Status().Update(context.TODO(),component)
+	err := c.Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
 		return err
 	}

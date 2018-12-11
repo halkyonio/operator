@@ -101,9 +101,9 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			// Component has been deleted like also its dependencies
 			operation = "deleted"
 		}
-		// Error reading the object - requeue the request.
+		// Error reading the object
 		log.Printf("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
-		return reconcile.Result{}, err
+		return reconcile.Result{}, nil
 	}
 
 	// See finalizer doc for more info : https://book.kubebuilder.io/beyond_basics/using_finalizers.html
@@ -131,6 +131,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// Component Custom Resource instance has been created
 	operation = "created"
+	log.Printf("Status : %s", component.Status.Phase)
 
 	// Check if the component is a Service to be installed from the catalog
 	if component.Spec.Services != nil {
@@ -158,7 +159,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	}
 
-	// Check if the component is a Link
+	// Check if the component is a Link and that
 	if component.Spec.Links != nil {
 		for _, a := range r.linkSteps {
 			if a.CanHandle(component) {
@@ -170,7 +171,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			}
 		}
 	}
-
+	log.Printf("Status : %s", component.Status.Phase)
 	log.Printf("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
 	return reconcile.Result{}, nil
 }
