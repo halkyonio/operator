@@ -44,8 +44,7 @@ func (removeServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
 }
 
 func (removeServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	target := component.DeepCopy()
-	return deleteService(target, *client, namespace)
+	return deleteService(component, *client, namespace)
 }
 
 func deleteService(component *v1alpha1.Component, c client.Client, namespace string) error {

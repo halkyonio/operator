@@ -50,13 +50,13 @@ func (newServiceInstanceStep) Name() string {
 	return "create service"
 }
 
+// Service is installed when the status of the component is empty.
+// Such case occurs the first time the component is created AND before the innerloop takes place
 func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
+	return component.Status.Phase != v1alpha1.PhaseServiceCreation
 }
 
 func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	//target := component.DeepCopy()
-	//return createService(target, *client, namespace)
 	return createService(component, *client, namespace)
 }
 
@@ -90,7 +90,6 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 
 	err := c.Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
-		// Retry reconcile
 		return err
 	}
 	log.Info("### Pipeline 'service catalog' ended ###")

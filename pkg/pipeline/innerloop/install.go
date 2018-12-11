@@ -45,7 +45,7 @@ func (installStep) Name() string {
 }
 
 func (installStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase == ""
+	return component.Status.Phase != v1alpha1.PhaseDeploying
 }
 
 func (installStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
@@ -140,13 +140,12 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	}
 	log.Infof("#### Created %s CRD's component ", component.Name)
 	component.Status.Phase = v1alpha1.PhaseDeploying
-
+  
 	err := c.Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
 		return err
 	}
 	log.Info("### Pipeline 'innerloop' ended ###")
-
 	return nil
 }
 
