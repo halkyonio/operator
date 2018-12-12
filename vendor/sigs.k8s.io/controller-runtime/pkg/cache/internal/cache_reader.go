@@ -73,25 +73,21 @@ func (c *CacheReader) Get(_ context.Context, key client.ObjectKey, out runtime.O
 	// TODO(directxman12): revisit the decision to always deepcopy
 	obj = obj.(runtime.Object).DeepCopyObject()
 
-	oType := reflect.TypeOf(obj)
-	_, ok := oType.MethodByName("DeepCopyInto")
-	if ok {
-		reflect.ValueOf(obj).MethodByName("DeepCopyInto").Call([]reflect.Value{reflect.ValueOf(out)})
-	} else {
-		// Copy the value of the item in the cache to the returned value
-		outVal := reflect.ValueOf(out)
-		objVal := reflect.ValueOf(obj)
-		if !objVal.Type().AssignableTo(outVal.Type()) {
-			return fmt.Errorf("cache had type %s, but %s was asked for", objVal.Type(), outVal.Type())
-		}
-	    reflect.Indirect(outVal).Set(reflect.Indirect(objVal))
+	// Copy the value of the item in the cache to the returned value
+	// TODO(directxman12): this is a terrible hack, pls fix (we should have deepcopyinto)
+	outVal := reflect.ValueOf(out)
+	objVal := reflect.ValueOf(obj)
+	if !objVal.Type().AssignableTo(outVal.Type()) {
+		return fmt.Errorf("cache had type %s, but %s was asked for", objVal.Type(), outVal.Type())
 	}
+	reflect.Indirect(outVal).Set(reflect.Indirect(objVal))
 	out.GetObjectKind().SetGroupVersionKind(c.groupVersionKind)
+
 	return nil
 }
 
 // List lists items out of the indexer and writes them to out
-func (c *CacheReader) List(ctx context.Context, opts *client.ListOptions, out runtime.Object) error {
+func (c *CacheReader) List(_ context.Context, opts *client.ListOptions, out runtime.Object) error {
 	var objs []interface{}
 	var err error
 
