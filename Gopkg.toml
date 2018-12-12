@@ -30,12 +30,14 @@ required = [
 [[override]]
   name = "k8s.io/apimachinery"
   # revision for tag "kubernetes-1.11.2"
-  revision = "103fd098999dc9c0c88536f5c9ad2e5da39373ae"
+  # revision = "103fd098999dc9c0c88536f5c9ad2e5da39373ae"
+  version = "kubernetes-1.11.2"
 
 [[override]]
   name = "k8s.io/client-go"
   # revision for tag "kubernetes-1.11.2"
-  revision = "1f13a808da65775f22cbf47862c4e5898d8f4ca1"
+  # revision = "1f13a808da65775f22cbf47862c4e5898d8f4ca1"
+  version = "kubernetes-1.11.2"
 
 [[override]]
   name="github.com/openshift/client-go"
@@ -47,9 +49,9 @@ required = [
 
 [[override]]
   name = "sigs.k8s.io/controller-runtime"
-  version = "v0.1.4"
+  version = "v0.1.6"
 
-[[constraint]]
+[[override]]
   name = "github.com/kubernetes-incubator/service-catalog"
   version = "v0.1.30"
 
@@ -67,12 +69,16 @@ required = [
   non-go = false
   unused-packages = false
 
-[[constraint]]
+[[override]]
   name = "github.com/operator-framework/operator-sdk"
   # The version rule is used for a specific release and the master branch for in between releases.
-  branch = "master" #osdk_branch_annotation
-  # version = "v0.1.1" #osdk_version_annotation
+  # branch = "master" #osdk_branch_annotation
+  version = "v0.1.1" #osdk_version_annotation
 
 [[override]]
   name="github.com/sirupsen/logrus"
   version="v1.0.5"
+
+[[override]]
+  source = "https://github.com/fsnotify/fsnotify/archive/v1.4.7.tar.gz"
+  name = "gopkg.in/fsnotify.v1"
