@@ -1,5 +1,6 @@
 package e2e
 
+// +build test
 import (
 	goctx "context"
 	"fmt"
