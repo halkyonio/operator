@@ -1,6 +1,6 @@
 // +build !test
 
-package e2e
+package test
 
 import (
 	goctx "context"
