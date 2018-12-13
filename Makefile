@@ -58,3 +58,7 @@ lint:
 .PHONY: test-e2e
 test-e2e:
 	go test -v $(REPO_PATH)/e2e -ginkgo.v
+
+.PHONY: unit-test
+unit-test:
+	go test ./e2e/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crd.yaml
