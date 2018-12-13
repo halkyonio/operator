@@ -60,7 +60,7 @@ jobs:
           go get github.com/mitchellh/gox
           make assets
           make build-linux
-          VERSION=0.0.1
+          VERSION=master
           docker build -t component-operator:${VERSION} -f deploy/docker/Dockerfile .
           TAG_ID=$(docker images -q component-operator:${VERSION})
           docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
@@ -111,6 +111,77 @@ jobs:
           go get github.com/onsi/gomega
           go test -v ./e2e -ginkgo.v
 
+  # Creates a github release and pushes all the assets
+  release:
+    docker:
+      - image: circleci/golang:1.11
+    working_directory: /go/src/github.com/snowdrop/component-operator
+
+    steps:
+    - checkout
+
+    - run:
+        name: Install gox
+        command: |
+          go get github.com/mitchellh/gox
+
+    - run:
+        name: Install file
+        command:
+          sudo apt-get install file
+
+    - run:
+        name: Perform release
+        command: |
+          tagRE='release-(.*)'
+          if [[ "${CIRCLE_TAG}" =~ ${tagRE} ]]; then
+            # This will use gox to create the artifacts and the scripts in scripts to do the actual release
+            # For the is to work, the GITHUB_API_TOKEN env var needs to be set in the CircleCI config
+            make upload VERSION=${BASH_REMATCH[1]}
+          else
+            echo "${CIRCLE_TAG} does NOT match the expected pattern. This is probably a job configuration issue"
+            exit 1
+          fi
+
+  # Creates a docker image from a github release
+  # This job needs to be in machine because it has COPY inside the Dockerfile
+  # which cannot be handled in the docker type jobs
+  docker-image-release:
+    machine: true
+
+    steps:
+    - checkout
+
+    - run:
+        name: Build Docker image
+        command: |
+          tagRE='release-(.*)'
+          if [[ "${CIRCLE_TAG}" =~ ${tagRE} ]]; then
+            go get github.com/shurcooL/vfsgen
+            go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
+            go get github.com/mitchellh/gox
+            make assets
+            make build-linux
+
+            VERSION=${BASH_REMATCH[1]}
+            docker build -t component-operator:${VERSION} -f deploy/docker/Dockerfile .
+            TAG_ID=$(docker images -q component-operator:${VERSION})
+            docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
+            docker tag ${TAG_ID} quay.io/snowdrop/component-operator:latest
+            docker login quay.io -u="${QUAY_ROBOT_USER}" -p="${QUAY_ROBOT_TOKEN}"
+            docker push quay.io/snowdrop/component-operator:${VERSION}
+            docker push quay.io/snowdrop/component-operator:latest
+
+            # Remove the trigger tag
+            scripts/delete_release_manually.sh "${GITHUB_API_TOKEN}" "${CIRCLE_TAG}"
+
+            # Add the commits that correspond to the tag to the description of the GitHub reelase
+            scripts/update_release_change_log.sh "${GITHUB_API_TOKEN}" "v${VERSION}"
+          else
+            echo "${CIRCLE_TAG} does NOT match the expected pattern. This is probably a job configuration issue"
+            exit 1
+          fi
+
 workflows:
   version: 2
   build-operator:
@@ -122,3 +193,19 @@ workflows:
     - okd-test:
          requires:
            - docker-image
+  release-operator:
+    jobs:
+    - release:
+        filters:
+          tags:
+            only: /^release-.*$/
+          branches:
+            ignore: /.*/
+    - docker-image-release:
+        requires:
+          - release
+        filters:
+          tags:
+            only: /^release-.*$/
+          branches:
+            ignore: /.*/
