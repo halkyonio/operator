@@ -45,7 +45,7 @@ func (installStep) Name() string {
 }
 
 func (installStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase != v1alpha1.PhaseDeploying
+	return component.Status.Phase == ""
 }
 
 func (installStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {

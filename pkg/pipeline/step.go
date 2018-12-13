@@ -18,8 +18,8 @@ limitations under the License.
 package pipeline
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 )
 
 // Action --

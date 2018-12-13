@@ -53,7 +53,7 @@ func (newServiceInstanceStep) Name() string {
 // Service is installed when the status of the component is empty.
 // Such case occurs the first time the component is created AND before the innerloop takes place
 func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase != v1alpha1.PhaseServiceCreation
+	return component.Status.Phase == "" || component.Status.Phase == v1alpha1.PhaseDeploying
 }
 
 func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {

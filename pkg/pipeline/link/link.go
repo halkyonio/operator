@@ -48,7 +48,7 @@ func (linkStep) Name() string {
 }
 
 func (linkStep) CanHandle(component *v1alpha1.Component) bool {
-     return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying
+     return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
 }
 
 func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
