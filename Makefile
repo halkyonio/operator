@@ -4,7 +4,7 @@ PROJECT_NAME := component-operator
 BIN_DIR      := ./build/_output/bin
 REPO_PATH    := github.com/snowdrop/$(PROJECT_NAME)
 BUILD_PATH   := $(REPO_PATH)/cmd/manager
-BUILD_FLAGS  := -ldflags="-w -X $(PROJECT)/cmd.GITCOMMIT=$(GITCOMMIT) -X $(PROJECT_NAME)/cmd.VERSION=$(VERSION)"
+BUILD_FLAGS  := -ldflags="-w -X main.Version=$(VERSION)"
 
 GO           ?= go
 GOFMT        ?= $(GO)fmt

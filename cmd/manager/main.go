@@ -21,10 +21,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
 
+var (
+	Version = "0.0.1"
+)
+
 func printVersion() {
 	log.Printf("Go Version: %s", runtime.Version())
 	log.Printf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
 	log.Printf("operator-sdk Version: %v", sdkVersion.Version)
+	log.Printf("component-operator version: %v", Version)
 }
 
 func main() {
