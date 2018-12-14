@@ -58,9 +58,9 @@ jobs:
           go get github.com/shurcooL/vfsgen
           go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
           go get github.com/mitchellh/gox
+          VERSION=master
           make assets
           make build-linux
-          VERSION=master
           docker build -t component-operator:${VERSION} -f deploy/docker/Dockerfile .
           TAG_ID=$(docker images -q component-operator:${VERSION})
           docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
@@ -144,26 +144,29 @@ jobs:
           fi
 
   # Creates a docker image from a github release
-  # This job needs to be in machine because it has COPY inside the Dockerfile
-  # which cannot be handled in the docker type jobs
   docker-image-release:
-    machine: true
+    docker:
+      - image: circleci/golang:1.11
+    working_directory: /go/src/github.com/snowdrop/component-operator
 
     steps:
     - checkout
-
+    - setup_remote_docker:
+        docker_layer_caching: true
     - run:
         name: Build Docker image
         command: |
           tagRE='release-(.*)'
           if [[ "${CIRCLE_TAG}" =~ ${tagRE} ]]; then
+            VERSION=${BASH_REMATCH[1]}
+
             go get github.com/shurcooL/vfsgen
             go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
             go get github.com/mitchellh/gox
+
             make assets
             make build-linux
-
-            VERSION=${BASH_REMATCH[1]}
+            
             docker build -t component-operator:${VERSION} -f deploy/docker/Dockerfile .
             TAG_ID=$(docker images -q component-operator:${VERSION})
             docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
