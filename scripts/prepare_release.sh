@@ -1,9 +1,11 @@
 #!/bin/bash
 
+set -e
+
 # this script assumes that runs on linux
 
-BIN_DIR="./dist/bin/"
-RELEASE_DIR="./dist/release/"
+BIN_DIR="./build/_output/bin/bin"
+RELEASE_DIR="./build/_output/bin/release"
 APP="component-operator"
 
 mkdir -p $RELEASE_DIR
@@ -26,7 +28,7 @@ for arch in `ls -1 $BIN_DIR/`;do
 
     # Create a gzip of the binary
     echo "tar compress the $target_file as $target_file.tgz"
-    cd $RELEASE_DIR/
+    pushd $RELEASE_DIR/ > /dev/null
     tar -czf $target_file.tgz $target_file
-    cd ../..
+    popd > /dev/null
 done

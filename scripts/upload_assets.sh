@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 CONFIG=$@
 
 for line in $CONFIG; do
@@ -20,8 +22,8 @@ CURL_ARGS="-LJO#"
 TAG="v$VERSION"
 GH_TAGS="$GH_REPO/releases/tags/$TAG"
 
-BIN_DIR="./dist/bin/"
-RELEASE_DIR="./dist/release"
+BIN_DIR="./build/_output/bin/bin/"
+RELEASE_DIR="./build/_output/bin/release/"
 APP="component-operator"
 
 echo "git tag"

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 TAG_ID=$2
 GITHUB_API_TOKEN=$1
 
