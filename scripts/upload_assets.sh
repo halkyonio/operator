@@ -26,7 +26,9 @@ BIN_DIR="./build/_output/bin/bin/"
 RELEASE_DIR="./build/_output/bin/release/"
 APP="component-operator"
 
-echo "git tag"
+echo "git tag using snowbot account"
+git config user.email "snow-bot@snowdrop.me"
+git config user.name "Snow-bot"
 git tag -a $TAG -m "$TAG release"
 
 echo "Create Release for tag $TAG"
