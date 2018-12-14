@@ -62,3 +62,11 @@ test-e2e:
 .PHONY: unit-test
 unit-test:
 	go test ./e2e/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crd.yaml
+
+.PHONY: prepare-release
+prepare-release: cross
+	./scripts/prepare_release.sh
+
+.PHONY: upload
+upload: prepare-release
+	./scripts/upload_assets.sh
