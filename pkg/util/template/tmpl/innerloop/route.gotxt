@@ -1,4 +1,5 @@
-apiVersion: route.openshift.io/v1
+{{- /*gotype: github.com/snowdrop/component-operator/pkg/pipeline/innerloop.TmplComponent*/ -}}
+route.openshift.io/v1
 kind: Route
 metadata:
   name: {{.Name}}

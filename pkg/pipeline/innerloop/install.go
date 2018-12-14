@@ -54,7 +54,7 @@ func (installStep) Handle(component *v1alpha1.Component, client *client.Client, 
 	return installInnerLoop(component, *client, namespace)
 }
 
-type tmplComponent struct {
+type TmplComponent struct {
 	RuntimeName     string
 	Images          []v1alpha1.Image
 	SupervisordName string
@@ -63,7 +63,7 @@ type tmplComponent struct {
 }
 
 func installInnerLoop(cmp *v1alpha1.Component, c client.Client, namespace string) error {
-	component := tmplComponent{
+	component := TmplComponent{
 		Component: cmp,
 	}
 	component.ObjectMeta.Namespace = namespace
@@ -77,7 +77,7 @@ func installInnerLoop(cmp *v1alpha1.Component, c client.Client, namespace string
 
 			var msg string
 			switch tmpl.Name() {
-			case "innerloop/imagestream":
+			case "innerloop/imagestream.gotxt":
 				// Get supervisord imagestream
 				component.Images = GetSupervisordImage()
 
@@ -95,12 +95,12 @@ func installInnerLoop(cmp *v1alpha1.Component, c client.Client, namespace string
 				component.Images = append(component.Images, CreateTypeImage(true, component.RuntimeName, "latest", image[imageKey], false))
 				msg = fmt.Sprintf("#### Created 'supervisord and '%s' imagestreams", image[imageKey])
 
-			case "innerloop/pvc":
+			case "innerloop/pvc.gotxt":
 				component.Spec.Storage.Capacity = "1Gi"
 				component.Spec.Storage.Mode = "ReadWriteOnce"
 				msg = fmt.Sprintf("#### Created '%s' persistent volume storage; capacity: '%s'; mode '%s'", component.Spec.Storage.Name, component.Spec.Storage.Capacity, component.Spec.Storage.Mode)
 
-			case "innerloop/deploymentconfig":
+			case "innerloop/deploymentconfig.gotxt":
 				if component.Spec.Port == 0 {
 					component.Spec.Port = 8080 // Add a default port if empty
 				}
@@ -111,14 +111,14 @@ func installInnerLoop(cmp *v1alpha1.Component, c client.Client, namespace string
 
 				msg = fmt.Sprintf("#### Created dev's deployment config containing as initContainer : supervisord")
 
-			case "innerloop/route":
+			case "innerloop/route.gotxt":
 				if component.Spec.ExposeService {
 					msg = fmt.Sprintf("#### Exposed service's port '%d' as cluster's route", component.Spec.Port)
 				} else {
 					component.skip = true
 				}
 
-			case "innerloop/service":
+			case "innerloop/service.gotxt":
 				if component.Spec.Port == 0 {
 					component.Spec.Port = 8080 // Add a default port if empty
 				}
@@ -143,7 +143,7 @@ func installInnerLoop(cmp *v1alpha1.Component, c client.Client, namespace string
 	return nil
 }
 
-func createResource(tmpl template.Template, component tmplComponent, c client.Client, msg string) error {
+func createResource(tmpl template.Template, component TmplComponent, c client.Client, msg string) error {
 	if !component.skip {
 		res, err := newResourceFromTemplate(tmpl, component)
 		if err != nil {
@@ -160,7 +160,7 @@ func createResource(tmpl template.Template, component tmplComponent, c client.Cl
 	return nil
 }
 
-func newResourceFromTemplate(template template.Template, component tmplComponent) ([]runtime.Object, error) {
+func newResourceFromTemplate(template template.Template, component TmplComponent) ([]runtime.Object, error) {
 	var result = []runtime.Object{}
 
 	var b = util.Parse(template, component)

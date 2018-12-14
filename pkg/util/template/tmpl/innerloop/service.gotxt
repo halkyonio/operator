@@ -1,0 +1,16 @@
+{{- /*gotype: github.com/snowdrop/component-operator/pkg/pipeline/innerloop.TmplComponent*/ -}}
+apiVersion: v1
+kind: Service
+metadata:
+name: {{.Name}}
+labels:
+app: {{.Name}}
+name: {{.Name}}
+spec:
+ports:
+- port: {{.Spec.Port}}
+protocol: TCP
+targetPort: {{.Spec.Port}}
+selector:
+app: {{.Name}}
+deploymentconfig: {{.Name}}

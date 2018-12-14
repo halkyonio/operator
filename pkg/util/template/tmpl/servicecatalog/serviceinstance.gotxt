@@ -1,0 +1,14 @@
+{{- /*gotype: github.com/snowdrop/component-operator/pkg/pipeline/innerloop.TmplComponent*/ -}}
+{{$nameApp := .Name }}
+{{ range .Spec.Services }}apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceInstance
+metadata:
+name: {{.Name}}
+labels:
+app: {{$nameApp}}
+name: {{$nameApp}}
+spec:
+clusterServiceClassExternalName: {{.Class}}
+clusterServicePlanExternalName: {{.Plan}}
+parameters: {{.ParametersJSon}}
+{{end}}
