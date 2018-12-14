@@ -18,12 +18,13 @@ limitations under the License.
 package innerloop
 
 import (
+	api "github.com/snowdrop/component-api/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 )
 
 var (
 	defaultEnvVar = make(map[string]string)
-	envs          = []v1alpha1.Env{}
+	envs          = []api.Env{}
 )
 
 func init() {
@@ -51,9 +52,9 @@ func populateEnvVar(component *v1alpha1.Component) {
 	}
 
 	// Convert Map to Slice
-	newEnvVars := []v1alpha1.Env{}
+	newEnvVars := []api.Env{}
 	for k, v := range tmpEnvVar {
-		newEnvVars = append(newEnvVars, v1alpha1.Env{Name: k, Value: v})
+		newEnvVars = append(newEnvVars, api.Env{Name: k, Value: v})
 	}
 
 	// Store result

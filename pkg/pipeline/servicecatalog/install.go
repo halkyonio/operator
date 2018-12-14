@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	log "github.com/sirupsen/logrus"
+	api "github.com/snowdrop/component-api/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	. "github.com/snowdrop/component-operator/pkg/util/helper"
@@ -53,7 +54,7 @@ func (newServiceInstanceStep) Name() string {
 // Service is installed when the status of the component is empty.
 // Such case occurs the first time the component is created AND before the innerloop takes place
 func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase == "" || component.Status.Phase == v1alpha1.PhaseDeploying
+	return component.Status.Phase == api.Unknown || component.Status.Phase == api.Deploying
 }
 
 func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
@@ -82,7 +83,7 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 	}
 
 	log.Infof("#### Created %s CRD's service component", component.Name)
-	component.Status.Phase = v1alpha1.PhaseServiceCreation
+	component.Status.Phase = api.ServiceCreation
 	svcFinalizerName := "service.component.k8s.io"
 	if !ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
 		component.ObjectMeta.Finalizers = append(component.ObjectMeta.Finalizers, svcFinalizerName)
@@ -109,7 +110,7 @@ func BuildParameters(params interface{}) *runtime.RawExtension {
 }
 
 // Convert Array of parameters to a Map
-func ParametersAsMap(parameters []v1alpha1.Parameter) map[string]string {
+func ParametersAsMap(parameters []api.Parameter) map[string]string {
 	result := make(map[string]string)
 	for _, parameter := range parameters {
 		result[parameter.Name] = parameter.Value

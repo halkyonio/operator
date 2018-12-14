@@ -85,7 +85,7 @@ func ParseTemplate(tmpl string, obj *v1alpha1.Component) bytes.Buffer {
 }
 
 // Parse the file's template using the Application struct
-func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
+func Parse(t template.Template, obj interface{}) bytes.Buffer {
 	var b bytes.Buffer
 	err := t.Execute(&b, obj)
 	if err != nil {

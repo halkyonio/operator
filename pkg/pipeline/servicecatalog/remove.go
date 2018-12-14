@@ -21,6 +21,7 @@ import (
 	"context"
 	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	log "github.com/sirupsen/logrus"
+	api "github.com/snowdrop/component-api/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +41,7 @@ func (removeServiceInstanceStep) Name() string {
 }
 
 func (removeServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
-	return component.Status.Phase == "CreatingService"
+	return component.Status.Phase == api.ServiceCreation
 }
 
 func (removeServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {

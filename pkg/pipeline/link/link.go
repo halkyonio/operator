@@ -18,11 +18,12 @@ limitations under the License.
 package link
 
 import (
+	"github.com/openshift/api/apps/v1"
 	appsv1 "github.com/openshift/api/apps/v1"
-	v1 "github.com/openshift/api/apps/v1"
 	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	api "github.com/snowdrop/component-api/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"golang.org/x/net/context"
@@ -48,7 +49,7 @@ func (linkStep) Name() string {
 }
 
 func (linkStep) CanHandle(component *v1alpha1.Component) bool {
-     return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
+	return component.Status.Phase == api.ServiceCreation || component.Status.Phase == api.Deploying || component.Status.Phase == api.Unknown
 }
 
 func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
@@ -127,7 +128,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 			return errors.New("Target component is not defined !!")
 		}
 	}
-	component.Status.Phase = v1alpha1.PhaseLinking
+	component.Status.Phase = api.Linking
 	err := c.Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
 		return err

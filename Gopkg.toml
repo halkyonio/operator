@@ -12,6 +12,10 @@ required = [
   "k8s.io/gengo/args",
 ]
 
+[[constraint]]
+  name = "github.com/snowdrop/component-api"
+  branch = "master"
+
 [[override]]
   name = "k8s.io/code-generator"
   version = "kubernetes-1.11.2"
