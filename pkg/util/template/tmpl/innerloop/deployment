@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{.Name}}
+  name: {{.Name}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Name}}
+  template:
+    metadata:
+      labels:
+        app: {{.Name}}
+      name: {{.Name}}
+    spec:
+      containers:
+      - args:
+        - -c
+        - /var/lib/supervisord/conf/supervisor.conf
+        command:
+        - /var/lib/supervisord/bin/supervisord
+        env:
+        {{ range .Spec.Envs }}
+        - name: {{.Name}}
+          value: {{.Value}}
+        {{end}}
+        image: quay.io/snowdrop/spring-boot-s2i:latest
+        imagePullPolicy: Always
+        name: {{.Name}}
+        ports:
+        - containerPort: {{.Spec.Port}}
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/lib/supervisord
+          name: shared-data
+        - mountPath: /tmp/artifacts
+          name: {{.Spec.Storage.Name}}
+      initContainers:
+      - env:
+        - name: CMDS
+          value: run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp
+        image: quay.io/snowdrop/supervisord:latest
+        imagePullPolicy: Always
+        name: copy-supervisord
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/supervisord
+          name: shared-data
+      volumes:
+      - emptyDir: {}
+        name: shared-data
+      - name: {{.Spec.Storage.Name}}
+        persistentVolumeClaim:
+          claimName: {{.Spec.Storage.Name}}

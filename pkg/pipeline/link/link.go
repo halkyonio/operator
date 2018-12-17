@@ -25,8 +25,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
+	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
+	appv1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -58,67 +60,110 @@ func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, nam
 func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
 	retryInterval, _ := time.ParseDuration("10s")
 	component.ObjectMeta.Namespace = namespace
+
+	isOpenshift, err := kubernetes.DetectOpenShift()
+	if err != nil {
+		return err
+	}
+
 	for _, l := range component.Spec.Links {
 		componentName := l.TargetComponentName
 		if componentName != "" {
 			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
 			err := wait.Poll(retryInterval, time.Duration(2)*retryInterval, func() (done bool, err error) {
-				dc, err := GetDeploymentConfig(namespace, componentName, c)
-				if err != nil {
-					return false, err
-				}
-				logMessage := ""
-				kind := l.Kind
-				switch kind {
-				case "Secret":
-					secretName := l.Ref
-					// Add the Secret as EnvVar to the container
-					dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
-					logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
-				case "Env":
-					// TODO Iterate through Env vars
-					key := l.Envs[0].Name
-					val := l.Envs[0].Value
-					dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
-					logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
-				}
+				if (isOpenshift) {
+					dc, err := GetDeploymentConfig(namespace, componentName, c)
+					if err != nil {
+						return false, err
+					}
+					logMessage := ""
+					kind := l.Kind
+					switch kind {
+					case "Secret":
+						secretName := l.Ref
+						// Add the Secret as EnvVar to the container
+						dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
+						logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
+					case "Env":
+						// TODO Iterate through Env vars
+						key := l.Envs[0].Name
+						val := l.Envs[0].Value
+						dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
+						logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
+					}
 
-				// Update the DeploymentConfig
-				err = c.Update(context.TODO(), dc)
-				if err != nil && k8serrors.IsConflict(err) {
-					// Retry function on conflict
-					return false, nil
-				}
-				if err != nil {
-					return false, err
-				}
-				log.Info(logMessage)
+					// Update the DeploymentConfig
+					err = c.Update(context.TODO(), dc)
+					if err != nil && k8serrors.IsConflict(err) {
+						// Retry function on conflict
+						return false, nil
+					}
+					if err != nil {
+						return false, err
+					}
+					log.Info(logMessage)
 
-				// Create a DeploymentRequest and redeploy it
-				// As the Controller client can't process k8s sub-resource, then a separate
-				// k8s client is needed
-				deploymentConfigV1client := getAppsClient()
-				deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
+					// Create a DeploymentRequest and redeploy it
+					// As the Controller client can't process k8s sub-resource, then a separate
+					// k8s client is needed
+					deploymentConfigV1client := getAppsClient()
+					deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
 
-				// Redeploy it
-				request := &appsv1.DeploymentRequest{
-					Name:   componentName,
-					Latest: true,
-					Force:  true,
-				}
+					// Redeploy it
+					request := &appsv1.DeploymentRequest{
+						Name:   componentName,
+						Latest: true,
+						Force:  true,
+					}
 
-				_, errRedeploy := deploymentConfigs.Instantiate(componentName, request)
-				if errRedeploy != nil && k8serrors.IsConflict(err) {
-					// Retry reconcile
-					return false, nil
-				}
-				if err != nil {
-					return false, err
-				}
-				log.Infof("#### Added %s link's CRD component", componentName)
-				log.Infof("#### Rollout the DeploymentConfig of the '%s' component", component.Name)
+					_, errRedeploy := deploymentConfigs.Instantiate(componentName, request)
+					if errRedeploy != nil && k8serrors.IsConflict(err) {
+						// Retry reconcile
+						return false, nil
+					}
+					if err != nil {
+						return false, err
+					}
+					log.Infof("#### Added %s link's CRD component", componentName)
+					log.Infof("#### Rollout the DeploymentConfig of the '%s' component", component.Name)
+					return true, nil
+				} else {
+					// K8s platform. We will fetch a deployment
+					d, err := GetDeployment(namespace, componentName, c)
+					if err != nil {
+						return false, err
+					}
+					logMessage := ""
+					kind := l.Kind
+					switch kind {
+					case "Secret":
+						secretName := l.Ref
+						// Add the Secret as EnvVar to the container
+						d.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
+						logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
+					case "Env":
+						// TODO Iterate through Env vars
+						key := l.Envs[0].Name
+						val := l.Envs[0].Value
+						d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
+						logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
+					}
 
-				return true, nil
+					// Update the Deployment
+					err = c.Update(context.TODO(), d)
+					if err != nil && k8serrors.IsConflict(err) {
+						// Retry function on conflict
+						return false, nil
+					}
+					if err != nil {
+						return false, err
+					}
+					log.Info(logMessage)
+
+					log.Infof("#### Added %s link's CRD component", componentName)
+					log.Infof("#### Rollout Deployment of the '%s' component", component.Name)
+					return true, nil
+				}
 			})
 			if err != nil {
 				return err
@@ -128,7 +173,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 		}
 	}
 	component.Status.Phase = v1alpha1.PhaseLinking
-	err := c.Update(context.TODO(), component)
+	err = c.Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
 		return err
 	}
@@ -171,4 +216,12 @@ func GetDeploymentConfig(namespace string, name string, c client.Client) (*v1.De
 		return nil, err
 	}
 	return dc, nil
+}
+
+func GetDeployment(namespace string, name string, c client.Client) (*appv1.Deployment, error) {
+	d := &appv1.Deployment{}
+	if err := c.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, d); err != nil {
+		return nil, err
+	}
+	return d, nil
 }
