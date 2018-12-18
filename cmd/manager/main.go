@@ -22,7 +22,8 @@ import (
 )
 
 var (
-	Version = "0.0.1"
+	Version   = "unset"
+	GitCommit = "HEAD"
 )
 
 func printVersion() {
@@ -30,6 +31,7 @@ func printVersion() {
 	log.Printf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
 	log.Printf("operator-sdk Version: %v", sdkVersion.Version)
 	log.Printf("component-operator version: %v", Version)
+	log.Printf("component-operator git commit: %v", GitCommit)
 }
 
 func main() {
