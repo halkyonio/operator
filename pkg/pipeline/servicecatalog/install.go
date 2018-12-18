@@ -88,7 +88,8 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 		component.ObjectMeta.Finalizers = append(component.ObjectMeta.Finalizers, svcFinalizerName)
 	}
 
-	err := c.Update(context.TODO(), component)
+	// err := c.Update(context.TODO(), component)
+	err := c.Status().Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
 		return err
 	}

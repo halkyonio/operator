@@ -173,7 +173,8 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 		}
 	}
 	component.Status.Phase = v1alpha1.PhaseLinking
-	err = c.Update(context.TODO(), component)
+	//err = c.Update(context.TODO(), component)
+	err = c.Status().Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
 		return err
 	}

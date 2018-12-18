@@ -175,7 +175,8 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 
 	log.Infof("#### Created %s CRD's component ", component.Name)
 	component.Status.Phase = v1alpha1.PhaseDeploying
-	err = c.Update(context.TODO(), component)
+	// err = c.Update(context.TODO(), component)
+	err = c.Status().Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
 		return err
 	}
