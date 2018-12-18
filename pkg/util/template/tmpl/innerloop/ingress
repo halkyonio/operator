@@ -6,7 +6,7 @@ metadata:
     app: {{.Name}}
 spec:
   rules:
-  - host:
+  - host: {{.Name}}
     http:
       paths:
       - path: /
