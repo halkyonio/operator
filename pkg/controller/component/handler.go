@@ -107,13 +107,13 @@ type ReconcileComponent struct {
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	operation := ""
-	// Fetch the AppService instance
+	// Fetch the Component created, deleted or updated
 	component := &v1alpha1.Component{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Component has been deleted like also its dependencies
-			operation = "deleted"
+          // Finalizer has been removed and component deleted. So we can exit
+          return reconcile.Result{}, nil
 		}
 	}
 
@@ -122,6 +122,9 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	if !component.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is being deleted
 		if ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
+			// Component has been deleted like also its dependencies
+			operation = "deleted"
+
 			// our finalizer is present, so lets handle our external dependency
 			// Check if the component is a Service and then delete the ServiceInstance, ServiceBinding
 			if component.Spec.Services != nil {
