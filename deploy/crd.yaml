@@ -43,13 +43,10 @@ spec:
     type: string
     description: "The service created from the catalog"
     JSONPath: .spec.services[0].name
-  - name: Type
+  - name: Injected
     type: string
     description: "The relation which exists between a component and a service, ..."
-    JSONPath: .spec.link.kind
-  - name: Consumed by
-    type: string
-    JSONPath: .spec.link.targetComponentName
+    JSONPath: .spec.links[0].kind
   - name: Age
     type: date
     JSONPath: .metadata.creationTimestamp
