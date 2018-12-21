@@ -70,12 +70,18 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 		component.Spec.Services[i].ParametersJSon = rawJSON
 
 		// Create the ServiceInstance and ServiceBinding using the template
-		for _, tmpl := range util.Templates {
-			if strings.HasPrefix(tmpl.Name(), "servicecatalog") {
-				err := createResource(tmpl, component, c)
-				if err != nil {
-					return err
-				}
+		tmpl, ok := util.Templates["servicecatalog/serviceinstance"]
+		if ok {
+			err := createResource(tmpl, component, c)
+			if err != nil {
+				return err
+			}
+		}
+		tmpl, ok = util.Templates["servicecatalog/servicebinding"]
+		if ok {
+			err := createResource(tmpl, component, c)
+			if err != nil {
+				return err
 			}
 		}
 		log.Infof("#### Created service instance's '%s' for the service/class '%s' and plan '%s'", s.Name, s.Class, s.Plan)
