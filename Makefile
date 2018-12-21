@@ -1,10 +1,10 @@
-VERSION     ?= 0.0.1
+VERSION     ?= unset
 GITCOMMIT    := $(shell git rev-parse --short HEAD 2>/dev/null)
 PROJECT_NAME := component-operator
 BIN_DIR      := ./build/_output/bin
 REPO_PATH    := github.com/snowdrop/$(PROJECT_NAME)
 BUILD_PATH   := $(REPO_PATH)/cmd/manager
-BUILD_FLAGS  := -ldflags="-w -X main.Version=$(VERSION)"
+BUILD_FLAGS  := -ldflags="-w -X main.Version=$(VERSION) -X main.GitCommit=$(GITCOMMIT)"
 
 GO           ?= go
 GOFMT        ?= $(GO)fmt
