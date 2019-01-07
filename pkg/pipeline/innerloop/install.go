@@ -71,7 +71,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			// Define the key of the image to search accoring to the runtime
 			imageKey := ""
 			switch r := component.Spec.Runtime; r {
-			case "spring-boot", "vert.x", "thornthail":
+			case "spring-boot", "vert.x", "thorntail":
 				imageKey = "java"
 			case "nodejs":
 				imageKey = "nodejs"
