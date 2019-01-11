@@ -61,7 +61,7 @@ test-e2e:
 
 .PHONY: unit-test
 unit-test:
-	go test ./test/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crd.yaml -v -parallel=2
+	go test ./test/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crd.yaml
 
 .PHONY: prepare-release
 prepare-release: cross
