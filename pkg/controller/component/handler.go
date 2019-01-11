@@ -87,6 +87,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		scheme: mgr.GetScheme(),
 		innerLoopSteps: []pipeline.Step{
 			innerloop.NewInstallStep(),
+			innerloop.ExportStep(),
 		},
 		serviceCatalogSteps: []pipeline.Step{
 			servicecatalog.NewServiceInstanceStep(),
