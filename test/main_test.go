@@ -6,6 +6,9 @@ import (
 	goctx "context"
 	"fmt"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
+	"k8s.io/apimachinery/pkg/types"
+
+	//"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
 	"testing"
 	"time"
 
@@ -16,7 +19,7 @@ import (
 )
 
 var (
-	retryInterval        = time.Second * 5
+	retryInterval        = time.Second * 8
 	timeout              = time.Second * 60
 	cleanupRetryInterval = time.Second * 1
 	cleanupTimeout       = time.Second * 5
@@ -65,10 +68,13 @@ func componentTest(t *testing.T, f *f.Framework, ctx *f.TestCtx) error {
 	if err != nil {
 		return err
 	}
-	return nil
 
-	// wait for example-component to ... TODO
-	//return e2eutil.WaitForDeployment(t, f.KubeClient, namespace, "example-component", 4, retryInterval, timeout)
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "example-component", Namespace: namespace},component)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func TestComponentCRD(t *testing.T) {
@@ -83,14 +89,17 @@ func TestComponentCRD(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	// get global framework variables
 	f := f.Global
+
 	// wait for component-operator to be ready
 	err = e2eutil.WaitForDeployment(t, f.KubeClient, namespace, "component-operator", 1, retryInterval, timeout)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	// Let's create a Component
 	if err = componentTest(t, f, ctx); err != nil {
 		t.Fatal(err)
 	}
