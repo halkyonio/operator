@@ -4,14 +4,15 @@ import (
 	"flag"
 	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/tools/clientcmd"
+	"strings"
+
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/dynamic"
+	//"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/tools/clientcmd"
+	//"k8s.io/client-go/dynamic"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path/filepath"
-	"sort"
 )
 
 var (
@@ -37,42 +38,48 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-    // Get Server Resources
+	// Get Server Resources
 	serverResources, err := c.Discovery().ServerResources()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	// Print Server Group Version
-	serverGroupVersions := groupVersions(serverResources)
-	sort.Strings(serverGroupVersions)
-	for _, serverGroupVersion := range serverGroupVersions {
-		fmt.Println("Item : ", serverGroupVersion)
+	for _, serverResource := range serverResources {
+		groupVersion := serverResource.GroupVersion
+		s := strings.Split(groupVersion, "/")
+		parentGroup := ""
+		parentVersion := ""
+		if len(s) == 1 {
+			parentVersion = s[0]
+		} else if len(s) == 2 {
+			parentGroup = s[0]
+			parentVersion = s[1]
+		}
+		kindsOfServerResource := []string{}
+		for _, apiResource := range serverResource.APIResources {
+			effectiveVersion := apiResource.Version
+			if effectiveVersion == "" {
+				effectiveVersion = parentVersion
+			}
+			effectiveGroup := apiResource.Group
+			if effectiveGroup == "" {
+				effectiveGroup = parentGroup
+			}
 
-		// TODO
-		dc, err := dynamic.NewForConfig(cfg)
-		if err != nil {
-			panic(err.Error())
-		}
-		gvk := &schema.GroupVersionResource{
-			Resource: "",
-			Group: "",
-			Version: "",
-		}
-		opts := metav1.ListOptions{}
-		_, err = dc.Resource(*gvk).List(opts)
-		if err != nil {
-			panic(err.Error())
-		}
-		// fmt.Println(t)
-	}
+			kind := apiResource.Kind
+			found := false
+			// make sure we don't print duplicates
+			for _, alreadySeenKind := range kindsOfServerResource {
+				if alreadySeenKind == kind {
+					found = true
+					break
+				}
+			}
 
-	// Print GVK of Server Resources
-	// Print Server Group Version
-	l := gvkList(serverResources)
-	for _, gvkArray := range l {
-		for _, gvk := range gvkArray {
-			fmt.Printf("Group, Version, Kind : %s, %s, %s\n",gvk.Group, gvk.Version, gvk.Kind)
+			if !found {
+				kindsOfServerResource = append(kindsOfServerResource, kind)
+				fmt.Printf("Group, Version, Kind : %s, %s, %s\n", effectiveGroup, effectiveVersion, apiResource.Kind)
+			}
 		}
 	}
 
@@ -100,4 +107,3 @@ func homeDir() string {
 	}
 	return os.Getenv("USERPROFILE") // windows
 }
-
