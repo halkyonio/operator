@@ -67,10 +67,11 @@ func main() {
 		// fmt.Println(t)
 	}
 
-	// Print API resource
-	for _, apiResourceList := range serverResources {
-		apiResources := apiResourceList.APIResources
-		for _, gvk := range apiResources {
+	// Print GVK of Server Resources
+	// Print Server Group Version
+	l := gvkList(serverResources)
+	for _, gvkArray := range l {
+		for _, gvk := range gvkArray {
 			fmt.Printf("Group, Version, Kind : %s, %s, %s\n",gvk.Group, gvk.Version, gvk.Kind)
 		}
 	}
@@ -81,6 +82,14 @@ func groupVersions(resources []*metav1.APIResourceList) []string {
 	result := []string{}
 	for _, resourceList := range resources {
 		result = append(result, resourceList.GroupVersion)
+	}
+	return result
+}
+
+func gvkList(apiList []*metav1.APIResourceList) [][]metav1.APIResource {
+	result := [][]metav1.APIResource{}
+	for _, resourceList := range apiList {
+		result = append(result, resourceList.APIResources)
 	}
 	return result
 }
