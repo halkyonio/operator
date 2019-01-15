@@ -4,10 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"strings"
+
 	//"k8s.io/client-go/dynamic"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
@@ -48,9 +51,10 @@ func main() {
 		panic(err.Error())
 	}
 
-	gvks, err := discovery.GroupVersionResources(serverResources)
+	gvksMap, err := discovery.GroupVersionResources(serverResources)
+	gvks := filterGvks(gvksMap)
 
-	for gvk := range gvks {
+	for _, gvk := range gvks {
 		list, err := dc.Resource(gvk).Namespace("default").List(metav1.ListOptions{
 			LabelSelector: fmt.Sprintf("%v=%v", "docker-registry", "default"),
 		})
@@ -67,4 +71,36 @@ func homeDir() string {
 		return h
 	}
 	return os.Getenv("USERPROFILE") // windows
+}
+
+var allowedGroups = []string{"build.openshift.io", "image.openshift.io", "route.openshift.io", "component.k8s.io", "apps", "apps.openshift.io"}
+var allowedCoreResources = []string{"pod", "replicationcontrollers", "services"}
+
+func filterGvks(input map[schema.GroupVersionResource]struct{}) []schema.GroupVersionResource {
+	result := []schema.GroupVersionResource{}
+
+	for gvk := range input {
+		if strings.Contains(gvk.Resource, "/") {
+			continue
+		}
+		add := false
+		if gvk.Group == "" {
+			for _, res := range allowedCoreResources {
+				if res == gvk.Resource {
+					add = true
+				}
+			}
+		} else {
+			for _, grp := range allowedGroups {
+				if grp == gvk.Group {
+					add = true
+				}
+			}
+		}
+		if add {
+			result = append(result, gvk)
+		}
+	}
+
+	return result
 }
