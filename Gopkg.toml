@@ -42,7 +42,7 @@ required = [
 
 [[override]]
   name = "sigs.k8s.io/controller-runtime"
-  version = "=v0.1.4"
+  version = "=v0.1.8"
 
 [[override]]
   name = "github.com/kubernetes-incubator/service-catalog"
