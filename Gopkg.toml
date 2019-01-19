@@ -33,12 +33,12 @@ required = [
   version = "kubernetes-1.11.2"
 
 [[override]]
-  name="github.com/openshift/client-go"
-  branch="release-3.11"
+  name = "github.com/openshift/client-go"
+  branch = "release-3.11"
 
 [[override]]
-  name="github.com/openshift/api"
-  branch="release-3.11"
+  name = "github.com/openshift/api"
+  branch = "release-3.11"
 
 [[override]]
   name = "sigs.k8s.io/controller-runtime"
@@ -63,8 +63,8 @@ required = [
   version = "=v0.1.1"
 
 [[override]]
-  name="github.com/sirupsen/logrus"
-  version="v1.0.5"
+  name ="github.com/sirupsen/logrus"
+  version = "v1.0.5"
 
 # Dependency added to avoid dep panic error reported
 [[override]]
