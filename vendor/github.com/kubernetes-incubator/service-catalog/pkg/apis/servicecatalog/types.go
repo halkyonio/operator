@@ -155,9 +155,9 @@ type CommonServiceBrokerSpec struct {
 //   spec.clusterServiceClass.name - the value set to ClusterServicePlan.Spec.ClusterServiceClassRef.Name
 type CatalogRestrictions struct {
 	// ServiceClass represents a selector for plans, used to filter catalog re-lists.
-	ServicePlan []string
-	// ServicePlan represents a selector for classes, used to filter catalog re-lists.
 	ServiceClass []string
+	// ServicePlan represents a selector for classes, used to filter catalog re-lists.
+	ServicePlan []string
 }
 
 // ClusterServiceBrokerSpec represents a description of a Broker.
@@ -192,7 +192,7 @@ const (
 )
 
 // ClusterServiceBrokerAuthInfo is a union type that contains information on
-// one of the authentication methods the the service catalog and brokers may
+// one of the authentication methods the service catalog and brokers may
 // support, according to the OpenServiceBroker API specification
 // (https://github.com/openservicebrokerapi/servicebroker/blob/master/spec.md).
 type ClusterServiceBrokerAuthInfo struct {
@@ -228,7 +228,7 @@ type ClusterBearerTokenAuthConfig struct {
 }
 
 // ServiceBrokerAuthInfo is a union type that contains information on
-// one of the authentication methods the the service catalog and brokers may
+// one of the authentication methods the service catalog and brokers may
 // support, according to the OpenServiceBroker API specification
 // (https://github.com/openservicebrokerapi/servicebroker/blob/master/spec.md).
 type ServiceBrokerAuthInfo struct {
@@ -471,6 +471,13 @@ type CommonServiceClassSpec struct {
 	// Foundry.  These 'permissions' have no meaning within Kubernetes and an
 	// ServiceInstance provisioned from this ServiceClass will not work correctly.
 	Requires []string
+
+	// DefaultProvisionParameters are default parameters passed to the broker
+	// when an instance of this class is provisioned. Any parameters defined on
+	// the plan and instance are merged with these defaults, with
+	// plan and then instance-defined parameters taking precedence over the class
+	// defaults.
+	DefaultProvisionParameters *runtime.RawExtension
 }
 
 // ClusterServiceClassSpec represents the details about a ClusterServiceClass.
@@ -576,6 +583,12 @@ type CommonServicePlanSpec struct {
 	// broker's response, which allows clients to see what the credentials
 	// will look like even before the binding operation is performed.
 	ServiceBindingCreateResponseSchema *runtime.RawExtension
+
+	// DefaultProvisionParameters are default parameters passed to the broker
+	// when an instance of this plan is provisioned. Any parameters defined on
+	// the instance are merged with these defaults, with instance-defined
+	// parameters taking precedence over defaults.
+	DefaultProvisionParameters *runtime.RawExtension
 }
 
 // ClusterServicePlanSpec represents details about the ClusterServicePlan
@@ -881,6 +894,10 @@ type ServiceInstanceStatus struct {
 	// DeprovisionStatus describes what has been done to deprovision the
 	// ServiceInstance.
 	DeprovisionStatus ServiceInstanceDeprovisionStatus
+
+	// DefaultProvisionParameters are the default parameters applied to this
+	// instance.
+	DefaultProvisionParameters *runtime.RawExtension
 }
 
 // ServiceInstanceCondition contains condition information about an Instance.
@@ -1285,7 +1302,7 @@ type AddKeyTransform struct {
 }
 
 // AddKeysFromTransform specifies that Service Catalog should merge
-// an existing secret into the the Secret associated with the ServiceBinding.
+// an existing secret into the Secret associated with the ServiceBinding.
 type AddKeysFromTransform struct {
 	SecretRef *ObjectReference
 }

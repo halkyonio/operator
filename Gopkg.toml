@@ -12,29 +12,57 @@ required = [
   "k8s.io/gengo/args",
 ]
 
+#[[override]]
+#  name = "k8s.io/code-generator"
+#  version = "kubernetes-1.11.2"
+#
+#[[override]]
+#  name = "k8s.io/api"
+#  version = "kubernetes-1.11.2"
+#
+#[[override]]
+#  name = "k8s.io/apiextensions-apiserver"
+#  version = "kubernetes-1.11.2"
+#
+#[[override]]
+#  name = "k8s.io/apimachinery"
+#  version = "kubernetes-1.11.2"
+#
+#[[override]]
+#  name = "k8s.io/client-go"
+#  version = "kubernetes-1.11.2"
+#
+#[[override]]
+#  name = "github.com/openshift/client-go"
+#  branch = "release-3.11"
+
 [[override]]
-  name = "k8s.io/code-generator"
-  version = "kubernetes-1.11.2"
+  name = "k8s.io/kubernetes"
+  version = "=1.12.3"
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.11.2"
-
-[[override]]
-  name = "k8s.io/apiextensions-apiserver"
-  version = "kubernetes-1.11.2"
+  version = "kubernetes-1.12.3"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  version = "kubernetes-1.11.2"
+  version = "kubernetes-1.12.3"
+
+[[override]]
+  name = "k8s.io/apiextensions-apiserver"
+  version = "kubernetes-1.12.3"
+
+[[override]]
+  name = "k8s.io/apiserver"
+  version = "kubernetes-1.12.3"
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.11.2"
+  version = "kubernetes-1.12.3"
 
 [[override]]
-  name = "github.com/openshift/client-go"
-  branch = "release-3.11"
+  name = "k8s.io/cli-runtime"
+  version = "kubernetes-1.12.3"
 
 [[override]]
   name = "github.com/openshift/api"
@@ -46,7 +74,7 @@ required = [
 
 [[override]]
   name = "github.com/kubernetes-incubator/service-catalog"
-  version = "=v0.1.30"
+  version = "=v0.1.39"
 
 [prune]
   go-tests = true
