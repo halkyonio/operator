@@ -21,7 +21,7 @@ var _ = Describe("ComponentE2E", func() {
 
 	tmpDir, _ := ioutil.TempDir("", "component-operator")
 	namespace := "my-spring-boot"
-	compA := "component-a"
+	compA := "my-spring-boot"
 	fmt.Print("Temp dir : ", tmpDir, "\n")
 
 	Describe("Component name", func() {
