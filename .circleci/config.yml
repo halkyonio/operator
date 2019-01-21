@@ -80,7 +80,7 @@ jobs:
     - run:
         name: Deploy the operator
         command: |
-          rm -rf /usr/local/go
+          sudo rm -rf /usr/local/go
           curl -O https://dl.google.com/go/go1.11.4.linux-amd64.tar.gz
           tar -C /usr/local -xzf go1.11.4.linux-amd64.tar.gz
           sudo mv go /usr/local
