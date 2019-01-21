@@ -73,8 +73,7 @@ jobs:
   # - Launch okd, grand cluster admin role to the admin user
   # - Deploy the operator
   okd-test:
-    machine:
-      image: circleci/golang:1.11
+    machine: true
     steps:
     - checkout
     - openshift/launch_openshift_311
