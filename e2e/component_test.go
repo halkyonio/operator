@@ -47,13 +47,13 @@ var _ = Describe("ComponentE2E", func() {
 		It("should have a component installed", func() {
 			// checking component deployed
 			componentName := runCmd("oc get cp " + compA + " -o go-template='{{.metadata.name}}'")
-			Expect(componentName).To(ContainSubstring("component-a"))
+			Expect(componentName).To(ContainSubstring("my-spring-boot"))
 		})
 
 		It("should have deploymentconfig, service, imagestream", func() {
 			// checking component deployed
 			componentName := runCmd("oc get cp " + compA + " -o go-template='{{.metadata.name}}'")
-			Expect(componentName).To(ContainSubstring("component-a"))
+			Expect(componentName).To(ContainSubstring("my-spring-boot"))
 		})
 
 	})
