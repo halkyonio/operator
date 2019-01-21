@@ -80,7 +80,6 @@ jobs:
     - run:
         name: Deploy the operator
         command: |
-          sudo apt update
           sudo apt install snapd
           sudo snap install --classic go
           go env
