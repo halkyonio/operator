@@ -81,6 +81,7 @@ jobs:
     - run:
         name: Deploy the operator
         command: |
+          go env
           oc login -u admin -p admin
           oc new-project component-operator
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
