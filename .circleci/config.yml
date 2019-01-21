@@ -80,7 +80,11 @@ jobs:
     - run:
         name: Deploy the operator
         command: |
+          sudo apt update
+          sudo apt install snapd
+          sudo snap install --classic go
           go env
+          go version
           oc login -u admin -p admin
           oc new-project component-operator
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
