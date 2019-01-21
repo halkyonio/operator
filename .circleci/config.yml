@@ -80,9 +80,10 @@ jobs:
     - run:
         name: Deploy the operator
         command: |
-          sudo apt install snapd
-          sudo snap install --classic go
-          go env
+          sudo apt-get purge golang*
+          curl -O https://dl.google.com/go/go1.11.4.linux-amd64.tar.gz
+          tar -C /usr/local -xzf go1.11.4.linux-amd64.tar.gz
+          sudo mv go /usr/local
           go version
           oc login -u admin -p admin
           oc new-project component-operator
