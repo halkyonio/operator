@@ -83,7 +83,6 @@ jobs:
           sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
           curl -O https://dl.google.com/go/go1.11.4.linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf go1.11.4.linux-amd64.tar.gz
-          go version
           oc login -u admin -p admin
           oc new-project component-operator
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
