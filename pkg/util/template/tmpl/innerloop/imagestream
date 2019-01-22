@@ -6,7 +6,8 @@ items:
   kind: ImageStream
   metadata:
     labels:
-      app: {{$nameApp}}
+      app: {{$nameApp}}{{ range $key, $value := .ObjectMeta.Labels }}
+      {{ $key }}: {{ $value }}{{ end }}
     name: {{.Name}}
   spec:
     lookupPolicy:

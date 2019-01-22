@@ -58,6 +58,9 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
 	component.Spec.Storage.Name = "m2-data-" + component.Name
 
+	// Enrich Component with k8s recommend Labels
+	kubernetes.EnrichComponentWithLabels(component)
+
 	isOpenshift, err := kubernetes.DetectOpenShift()
 	if err != nil {
 		return err

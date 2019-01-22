@@ -3,7 +3,8 @@ kind: Ingress
 metadata:
   name: {{.Name}}
   labels:
-    app: {{.Name}}
+    app: {{.Name}}{{ range $key, $value := .ObjectMeta.Labels }}
+    {{ $key }}: {{ $value }}{{ end }}
 spec:
   rules:
   - host: {{.Name}}

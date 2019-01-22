@@ -5,6 +5,8 @@ metadata:
   labels:
     app: {{.Name}}
     name: {{.Name}}
+    {{ range $key, $value := .ObjectMeta.Labels }}
+    {{ $key }}: {{ $value }}{{ end }}
 spec:
   accessModes:
   - {{.Spec.Storage.Mode}}

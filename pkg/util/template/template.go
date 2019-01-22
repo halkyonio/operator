@@ -88,6 +88,7 @@ func ParseTemplate(tmpl string, obj *v1alpha1.Component) bytes.Buffer {
 func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
 	var b bytes.Buffer
 	err := t.Execute(&b, obj)
+	//fmt.Println(&b, obj)
 	if err != nil {
 		fmt.Println("There was an error:", err.Error())
 	}

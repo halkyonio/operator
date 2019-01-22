@@ -63,6 +63,9 @@ func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *clie
 func createService(component *v1alpha1.Component, c client.Client, namespace string) error {
 	component.ObjectMeta.Namespace = namespace
 
+	// Enrich Component with k8s recommend Labels
+	kubernetes.EnrichComponentWithLabels(component)
+
 	for i, s := range component.Spec.Services {
 		// Convert the parameters into a JSon string
 		mapParams := ParametersAsMap(s.Parameters)
