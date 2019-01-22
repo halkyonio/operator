@@ -1,4 +1,5 @@
-{{$nameApp := .Name }}apiVersion: v1
+{{$nameApp := .Name }}
+{{$labels := .ObjectMeta.Labels }}apiVersion: v1
 kind: List
 items:
 {{ range .Spec.Images }}
@@ -6,7 +7,7 @@ items:
   kind: ImageStream
   metadata:
     labels:
-      app: {{$nameApp}}{{ range $key, $value := .ObjectMeta.Labels }}
+      app: {{$nameApp}}{{ range $key, $value := $labels }}
       {{ $key }}: {{ $value }}{{ end }}
     name: {{.Name}}
   spec:
