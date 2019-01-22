@@ -19,7 +19,8 @@ package generic
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
-	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
+	"github.com/snowdrop/component-operator/pkg/pipeline"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // NewPVCStep creates a step that handles the creation of the DeploymentConfig
@@ -38,6 +39,6 @@ func (pvcStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (pvcStep) Handle(component *v1alpha1.Component) error {
+func (pvcStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
 	return nil
 }

@@ -22,10 +22,11 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
-	"github.com/snowdrop/component-operator/pkg/stub/pipeline"
+	"github.com/snowdrop/component-operator/pkg/pipeline"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // NewServiceStep creates a step that handles the creation of the DeploymentConfig
@@ -44,7 +45,7 @@ func (serviceStep) CanHandle(integration *v1alpha1.Component) bool {
 	return true
 }
 
-func (serviceStep) Handle(integration *v1alpha1.Component) error {
+func (serviceStep) Handle(integration *v1alpha1.Component, client *client.Client, namespace string) error {
 	// TODO : Refactor to create a real service
 	serviceName := "toto"
 	service := &corev1.Service{
