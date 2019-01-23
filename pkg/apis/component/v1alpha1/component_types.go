@@ -136,13 +136,14 @@ const (
 
 
 	// See https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/
-	NameLabelKey = "app.kubernetes.io/name"
-	VersionLabelKey = "app.kubernetes.io/version"
-	InstanceLabelKey = "app.kubernetes.io/instance"
-	PartOfLabelKey = "app.kubernetes.io/part-of"
+	NameLabelKey      = "app.kubernetes.io/name"
+	VersionLabelKey   = "app.kubernetes.io/version"
+	InstanceLabelKey  = "app.kubernetes.io/instance"
+	PartOfLabelKey    = "app.kubernetes.io/part-of"
 	ComponentLabelKey = "app.kubernetes.io/component"
 	ManagedByLabelKey = "app.kubernetes.io/managed-by"
-
+    RuntimeLabelKey   = "app.openshift.io/runtime"
+    RuntimeVersionLabelKey = "app.openshift.io/version"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
