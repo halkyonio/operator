@@ -225,11 +225,12 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 				return nil, err
 			}
 			ro, ok := obj.(v1.Object)
+			ro.SetNamespace(component.Namespace)
 			if !ok {
 				return nil, err
 			}
-			controllerutil.SetControllerReference(ro, component, scheme)
-			// kubernetes.SetNamespaceAndOwnerReference(obj, component)
+			controllerutil.SetControllerReference(component, ro, scheme)
+			//kubernetes.SetNamespaceAndOwnerReference(obj, component)
 			result = append(result, obj)
 		}
 	} else {
@@ -239,11 +240,12 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 		}
 
 		ro, ok := obj.(v1.Object)
+		ro.SetNamespace(component.Namespace)
 		if !ok {
 			return nil, err
 		}
-		controllerutil.SetControllerReference(ro, component, scheme)
-		// kubernetes.SetNamespaceAndOwnerReference(obj, component)
+		controllerutil.SetControllerReference(component, ro, scheme)
+		//kubernetes.SetNamespaceAndOwnerReference(obj, component)
 		result = append(result, obj)
 	}
 	return result, nil
