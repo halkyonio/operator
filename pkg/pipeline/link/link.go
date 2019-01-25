@@ -30,6 +30,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	appv1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -53,11 +54,11 @@ func (linkStep) CanHandle(component *v1alpha1.Component) bool {
      return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
 }
 
-func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	return createLink(component, *client, namespace)
+func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return createLink(component, *client, namespace, *scheme)
 }
 
-func createLink(component *v1alpha1.Component, c client.Client, namespace string) error {
+func createLink(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
 	retryInterval, _ := time.ParseDuration("10s")
 	component.ObjectMeta.Namespace = namespace
 

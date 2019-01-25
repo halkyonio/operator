@@ -18,6 +18,7 @@ limitations under the License.
 package pipeline
 
 import (
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 )
@@ -32,5 +33,5 @@ type Step interface {
 	CanHandle(component *v1alpha1.Component) bool
 
 	// executes the handling function
-	Handle(component *v1alpha1.Component, client *client.Client, namespace string) error
+	Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error
 }

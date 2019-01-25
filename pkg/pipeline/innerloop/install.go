@@ -18,9 +18,11 @@ limitations under the License.
 package innerloop
 
 import (
+	"github.com/kubernetes-sigs/controller-runtime/pkg/controller/controllerutil"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"golang.org/x/net/context"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/snowdrop/component-operator/pkg/pipeline"
@@ -48,11 +50,11 @@ func (installStep) CanHandle(component *v1alpha1.Component) bool {
 	return component.Status.Phase == ""
 }
 
-func (installStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	return installInnerLoop(component, *client, namespace)
+func (installStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return installInnerLoop(component, *client, namespace, *scheme)
 }
 
-func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace string) error {
+func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 	// Append dev runtime's image (java, nodejs, ...)
 	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
@@ -71,7 +73,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		if ok {
 			component.Spec.Images = GetSupervisordImage()
 
-			// Define the key of the image to search accoring to the runtime
+			// Define the key of the image to search according to the runtime
 			imageKey := ""
 			switch r := component.Spec.Runtime; r {
 			case "spring-boot", "vert.x", "thorntail":
@@ -84,7 +86,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 
 			component.Spec.Images = append(component.Spec.Images, CreateTypeImage(true, component.Spec.RuntimeName, "latest", image[imageKey], false))
 
-			err := createResource(tmpl, component, c)
+			err := createResource(tmpl, component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -102,7 +104,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			// Enrich Env Vars with Default values
 			populateEnvVar(component)
 
-			err := createResource(tmpl, component, c)
+			err := createResource(tmpl, component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -112,7 +114,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		tmpl, ok = util.Templates["innerloop/route"]
 		if ok {
 			if component.Spec.ExposeService {
-				err := createResource(tmpl, component, c)
+				err := createResource(tmpl, component, c, &scheme)
 				if err != nil {
 					return err
 				}
@@ -131,7 +133,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			// Enrich Env Vars with Default values
 			populateEnvVar(component)
 
-			err := createResource(tmpl, component, c)
+			err := createResource(tmpl, component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -141,7 +143,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		tmpl, ok = util.Templates["innerloop/ingress"]
 		if ok {
 			if component.Spec.ExposeService {
-				err := createResource(tmpl, component, c)
+				err := createResource(tmpl, component, c, &scheme)
 				if err != nil {
 					return err
 				}
@@ -156,7 +158,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	if ok {
 		component.Spec.Storage.Capacity = "1Gi"
 		component.Spec.Storage.Mode = "ReadWriteOnce"
-		err := createResource(tmpl, component, c)
+		err := createResource(tmpl, component, c, &scheme)
 		if err != nil {
 			return err
 		}
@@ -168,7 +170,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		if component.Spec.Port == 0 {
 			component.Spec.Port = 8080 // Add a default port if empty
 		}
-		err := createResource(tmpl, component, c)
+		err := createResource(tmpl, component, c, &scheme)
 		if err != nil {
 			return err
 		}
@@ -187,8 +189,8 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	return nil
 }
 
-func createResource(tmpl template.Template, component *v1alpha1.Component, c client.Client) error {
-	res, err := newResourceFromTemplate(tmpl, component)
+func createResource(tmpl template.Template, component *v1alpha1.Component, c client.Client, scheme *runtime.Scheme) error {
+	res, err := newResourceFromTemplate(tmpl, component, scheme)
 	if err != nil {
 		return err
 	}
@@ -203,7 +205,7 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	return nil
 }
 
-func newResourceFromTemplate(template template.Template, component *v1alpha1.Component) ([]runtime.Object, error) {
+func newResourceFromTemplate(template template.Template, component *v1alpha1.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {
 	var result = []runtime.Object{}
 
 	var b = util.Parse(template, component)
@@ -222,8 +224,12 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 			if err != nil {
 				return nil, err
 			}
-
-			kubernetes.SetNamespaceAndOwnerReference(obj, component)
+			ro, ok := obj.(v1.Object)
+			if !ok {
+				return nil, err
+			}
+			controllerutil.SetControllerReference(ro, component, scheme)
+			// kubernetes.SetNamespaceAndOwnerReference(obj, component)
 			result = append(result, obj)
 		}
 	} else {
@@ -232,7 +238,12 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 			return nil, err
 		}
 
-		kubernetes.SetNamespaceAndOwnerReference(obj, component)
+		ro, ok := obj.(v1.Object)
+		if !ok {
+			return nil, err
+		}
+		controllerutil.SetControllerReference(ro, component, scheme)
+		// kubernetes.SetNamespaceAndOwnerReference(obj, component)
 		result = append(result, obj)
 	}
 	return result, nil

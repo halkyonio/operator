@@ -20,6 +20,7 @@ package innerloop
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/snowdrop/component-operator/pkg/pipeline"
@@ -40,11 +41,11 @@ func (exportStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (exportStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	return exportResources(component, *client, namespace)
+func (exportStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return exportResources(component, *client, namespace, scheme)
 }
 
-func exportResources(component *v1alpha1.Component, c client.Client, namespace string) error {
+func exportResources(component *v1alpha1.Component, c client.Client, namespace string, scheme *runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 	//_ := new(runtime.Object)
 	_ = client.ListOptions{

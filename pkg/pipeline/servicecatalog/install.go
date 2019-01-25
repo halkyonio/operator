@@ -56,11 +56,11 @@ func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
 	return component.Status.Phase == "" || component.Status.Phase == v1alpha1.PhaseDeploying
 }
 
-func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string) error {
-	return createService(component, *client, namespace)
+func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return createService(component, *client, namespace, *scheme)
 }
 
-func createService(component *v1alpha1.Component, c client.Client, namespace string) error {
+func createService(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
 	// Enrich Component with k8s recommend Labels

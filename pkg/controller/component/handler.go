@@ -131,7 +131,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			if component.Spec.Services != nil {
 				removeServiceInstanceStep := servicecatalog.RemoveServiceInstanceStep()
 				log.Infof("### Invoking'service catalog', action '%s' on %s", "delete", component.Name)
-				if err := removeServiceInstanceStep.Handle(component, &r.client, request.Namespace); err != nil {
+				if err := removeServiceInstanceStep.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
 					log.Error(err)
 				}
 			}
@@ -156,7 +156,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		for _, a := range r.innerLoopSteps {
 			if a.CanHandle(component) {
 				log.Infof("### Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
-				if err := a.Handle(component, &r.client, request.Namespace); err != nil {
+				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
 					log.Error(err)
 					return reconcile.Result{}, err
 				}
@@ -169,7 +169,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		for _, a := range r.serviceCatalogSteps {
 			if a.CanHandle(component) {
 				log.Infof("### Invoking'service catalog', action '%s' on %s", a.Name(), component.Name)
-				if err := a.Handle(component, &r.client, request.Namespace); err != nil {
+				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
 					log.Error(err)
 					return reconcile.Result{}, err
 				}
@@ -182,7 +182,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		for _, a := range r.linkSteps {
 			if a.CanHandle(component) {
 				log.Infof("### Invoking'link', action '%s' on %s", a.Name(), component.Name)
-				if err := a.Handle(component, &r.client, request.Namespace); err != nil {
+				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
 					log.Error(err)
 					return reconcile.Result{}, err
 				}
