@@ -7,15 +7,13 @@ import (
 
 	"github.com/snowdrop/component-operator/pkg/apis"
 	"github.com/snowdrop/component-operator/pkg/controller"
+	k8sutil "github.com/snowdrop/component-operator/pkg/util/kubernetes"
 
 	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	deploymentconfig "github.com/openshift/api/apps/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
 
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
@@ -29,7 +27,6 @@ var (
 func printVersion() {
 	log.Printf("Go Version: %s", runtime.Version())
 	log.Printf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
-	log.Printf("operator-sdk Version: %v", sdkVersion.Version)
 	log.Printf("component-operator version: %v", Version)
 	log.Printf("component-operator git commit: %v", GitCommit)
 }
