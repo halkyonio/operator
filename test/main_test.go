@@ -5,17 +5,15 @@ package test
 import (
 	goctx "context"
 	"fmt"
-	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
 	"k8s.io/apimachinery/pkg/types"
 
-	//"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
+	f "github.com/operator-framework/operator-sdk/pkg/test"
+	"github.com/snowdrop/component-operator/pkg/apis"
+	v1alpha1 "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 	"time"
-
-	v1alpha1 "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/snowdrop/component-operator/pkg/apis"
-	f "github.com/operator-framework/operator-sdk/pkg/test"
 )
 
 var (
@@ -94,7 +92,7 @@ func TestComponentCRD(t *testing.T) {
 	f := f.Global
 
 	// wait for component-operator to be ready
-	err = e2eutil.WaitForDeployment(t, f.KubeClient, namespace, "component-operator", 1, retryInterval, timeout)
+	err = kubernetes.WaitForDeployment(t, f.KubeClient, namespace, "component-operator", 1, retryInterval, timeout)
 	if err != nil {
 		t.Fatal(err)
 	}
