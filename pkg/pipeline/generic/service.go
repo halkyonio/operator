@@ -18,13 +18,15 @@ limitations under the License.
 package generic
 
 import (
-	"github.com/operator-framework/operator-sdk/pkg/sdk"
+	"context"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -41,11 +43,15 @@ func (serviceStep) Name() string {
 	return "service"
 }
 
-func (serviceStep) CanHandle(integration *v1alpha1.Component) bool {
+func (serviceStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (serviceStep) Handle(integration *v1alpha1.Component, client *client.Client, namespace string) error {
+func (serviceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return installService(component, *client, namespace, *scheme)
+}
+
+func installService(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
 	// TODO : Refactor to create a real service
 	serviceName := "toto"
 	service := &corev1.Service{
@@ -72,7 +78,7 @@ func (serviceStep) Handle(integration *v1alpha1.Component, client *client.Client
 			Selector: map[string]string{"name": serviceName},
 		},
 	}
-	err := sdk.Get(service)
+	err := c.Get(context.TODO(),types.NamespacedName{Name: "", Namespace: namespace},service)
 	if err != nil {
 		return errors.Wrap(err, "could not get service for integration ")
 	}
