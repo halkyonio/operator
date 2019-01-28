@@ -47,9 +47,9 @@
   name = "github.com/operator-framework/operator-sdk"
   version = "=v0.1.1"
 
-[[override]]
+[[constraint]]
   name ="github.com/sirupsen/logrus"
-  version = "v1.0.5"
+  version = "v1.3.0"
 
 # Dependency added to avoid dep panic error reported
 [[override]]
