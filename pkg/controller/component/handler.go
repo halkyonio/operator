@@ -19,6 +19,9 @@ package component
 
 import (
 	"context"
+
+	"github.com/sirupsen/logrus"
+
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"github.com/snowdrop/component-operator/pkg/pipeline/innerloop"
@@ -30,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -39,6 +41,9 @@ import (
 
 	. "github.com/snowdrop/component-operator/pkg/util/helper"
 )
+
+// Create a new instance of the logger. You can have any number of instances.
+var log = logrus.New()
 
 // Add creates a new AppService Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -107,6 +112,8 @@ type ReconcileComponent struct {
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	log.Infof("Reconciling Component %s, namespace : %s",request.Name,request.Namespace)
+
 	operation := ""
 	// Fetch the Component created, deleted or updated
 	component := &v1alpha1.Component{}
@@ -133,9 +140,10 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			// Check if the component is a Service and then delete the ServiceInstance, ServiceBinding
 			if component.Spec.Services != nil {
 				removeServiceInstanceStep := servicecatalog.RemoveServiceInstanceStep()
-				log.Infof("### Invoking'service catalog', action '%s' on %s", "delete", component.Name)
+				log.Infof("### Invoking'service catalog', action '%s' on %s", "delete",component.Name)
+				//log.Infof("### Invoking'service catalog', action '%s' on %s", "delete", component.Name)
 				if err := removeServiceInstanceStep.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Error(err)
+					log.Errorf("Removing Service Instance, binding failed %s",err)
 				}
 			}
 
@@ -146,13 +154,13 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			}
 		}
 		// Error reading the object
-		log.Printf("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
+		log.Infof("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
 		return reconcile.Result{}, nil
 	}
 
 	// Component Custom Resource instance has been created
 	operation = "created"
-	log.Printf("Status : %s", component.Status.Phase)
+	log.Infof("Status : %s", component.Status.Phase)
 
 	// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
 	if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
@@ -160,7 +168,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			if a.CanHandle(component) {
 				log.Infof("### Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
 				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Error(err)
+					log.Errorf("Innerloop creation failed",err)
 					return reconcile.Result{}, err
 				}
 			}
@@ -173,7 +181,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			if a.CanHandle(component) {
 				log.Infof("### Invoking'service catalog', action '%s' on %s", a.Name(), component.Name)
 				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Error(err)
+					log.Errorf("Service instance, binding creation failed",err)
 					return reconcile.Result{}, err
 				}
 			}
@@ -186,14 +194,14 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			if a.CanHandle(component) {
 				log.Infof("### Invoking'link', action '%s' on %s", a.Name(), component.Name)
 				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Error(err)
+					log.Errorf("Linking components failed",err)
 					return reconcile.Result{}, err
 				}
 			}
 		}
 	}
 
-	log.Printf("Status : %s", component.Status.Phase)
-	log.Printf("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
+	log.Infof("Status : %s", component.Status.Phase)
+	log.Infof("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
 	return reconcile.Result{}, nil
 }
