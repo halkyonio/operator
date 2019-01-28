@@ -113,9 +113,12 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
 	if err != nil {
 		if errors.IsNotFound(err) {
+		  // Object not found, return.  Created objects are automatically garbage collected.
           // Finalizer has been removed and component deleted. So we can exit
           return reconcile.Result{}, nil
 		}
+		// Error reading the object - requeue the request.
+		return reconcile.Result{}, err
 	}
 
 	// See finalizer doc for more info : https://book.kubebuilder.io/beyond_basics/using_finalizers.html
