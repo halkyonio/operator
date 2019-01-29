@@ -13,7 +13,8 @@ spec:
   template:
     metadata:
       labels:
-        app: {{.Name}}
+        app: {{.Name}}{{ range $key, $value := .ObjectMeta.Labels }}
+        {{ $key }}: {{ $value }}{{ end }}
       name: {{.Name}}
     spec:
       containers:

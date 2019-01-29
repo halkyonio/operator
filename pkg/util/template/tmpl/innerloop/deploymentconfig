@@ -15,7 +15,8 @@ spec:
   template:
     metadata:
       labels:
-        app: {{.Name}}
+        app: {{.Name}}{{ range $key, $value := .ObjectMeta.Labels }}
+        {{ $key }}: {{ $value }}{{ end }}
         deploymentconfig: {{.Name}}
       name: {{.Name}}
     spec:
