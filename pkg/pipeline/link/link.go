@@ -73,7 +73,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
 			err := wait.Poll(retryInterval, time.Duration(2)*retryInterval, func() (done bool, err error) {
 				if (isOpenshift) {
-					dc, err := GetDeploymentConfig(namespace, componentName, c)
+					found, err := GetDeploymentConfig(namespace, componentName, c)
 					if err != nil {
 						return false, err
 					}
@@ -83,18 +83,18 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 					case "Secret":
 						secretName := l.Ref
 						// Add the Secret as EnvVar to the container
-						dc.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
+						found.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
 						logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
 					case "Env":
 						// TODO Iterate through Env vars
 						key := l.Envs[0].Name
 						val := l.Envs[0].Value
-						dc.Spec.Template.Spec.Containers[0].Env = append(dc.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
+						found.Spec.Template.Spec.Containers[0].Env = append(found.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
 						logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
 					}
 
 					// Update the DeploymentConfig
-					err = c.Update(context.TODO(), dc)
+					err = c.Update(context.TODO(), found)
 					if err != nil && k8serrors.IsConflict(err) {
 						// Retry function on conflict
 						return false, nil
@@ -104,27 +104,12 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 					}
 					log.Info(logMessage)
 
-					// Create a DeploymentRequest and redeploy it
-					// As the Controller client can't process k8s sub-resource, then a separate
-					// k8s client is needed
-					deploymentConfigV1client := getAppsClient()
-					deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
-
-					// Redeploy it
-					request := &appsv1.DeploymentRequest{
-						Name:   componentName,
-						Latest: true,
-						Force:  true,
-					}
-
-					_, errRedeploy := deploymentConfigs.Instantiate(componentName, request)
-					if errRedeploy != nil && k8serrors.IsConflict(err) {
-						// Retry reconcile
-						return false, nil
-					}
+					// Rollout the DC
+					err = rolloutDeploymentConfig(componentName, namespace)
 					if err != nil {
 						return false, err
 					}
+
 					log.Infof("#### Added %s link's CRD component", componentName)
 					log.Infof("#### Rollout the DeploymentConfig of the '%s' component", component.Name)
 					return true, nil
@@ -180,6 +165,28 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 		return err
 	}
 	log.Info("### Pipeline 'link' ended ###")
+	return nil
+}
+
+func rolloutDeploymentConfig(name, namespace string) error {
+	// Create a DeploymentRequest and redeploy it
+	// As the Controller client can't process k8s sub-resource, then a separate
+	// k8s client is needed
+	deploymentConfigV1client := getAppsClient()
+	deploymentConfigs := deploymentConfigV1client.DeploymentConfigs(namespace)
+
+	// Redeploy it
+	request := &appsv1.DeploymentRequest{
+		Name:   name,
+		Latest: true,
+		Force:  true,
+	}
+
+	_, err := deploymentConfigs.Instantiate(name, request)
+	if err != nil && k8serrors.IsConflict(err) {
+		// Can't rollout deployment config. We requeue
+		return err
+	}
 	return nil
 }
 
