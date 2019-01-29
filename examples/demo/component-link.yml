@@ -3,8 +3,8 @@ kind: Component
 metadata:
   name: fruit-database-config
 spec:
-  - links:
-      name: Secret to be injectd as EnvVar using Service's secret
-      targetComponentName: fruit-backend
-      kind: Secret
-      ref: postgresql-db
+  links:
+  - name: Secret to be injectd as EnvVar using Service's secret
+    targetComponentName: fruit-backend
+    kind: Secret
+    ref: postgresql-db
