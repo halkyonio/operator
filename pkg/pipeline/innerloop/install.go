@@ -29,6 +29,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -62,7 +63,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	component.Spec.Storage.Name = "m2-data-" + component.Name
 
 	// Enrich Component with k8s recommend Labels
-	kubernetes.EnrichComponentWithLabels(component)
+	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(component)
 
 	isOpenshift, err := kubernetes.DetectOpenShift()
 	if err != nil {
@@ -200,6 +201,9 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	}
 
 	for _, r := range res {
+		if obj, ok := r.(metav1.Object); ok {
+			obj.SetLabels(kubernetes.PopulateK8sLabels(component))
+		}
 		err = c.Create(context.TODO(), r)
 		if err != nil && k8serrors.IsNotFound(err) {
 			return err

@@ -64,9 +64,6 @@ func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *clie
 func createService(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
-	// Enrich Component with k8s recommend Labels
-	kubernetes.EnrichComponentWithLabels(component)
-
 	for i, s := range component.Spec.Services {
 		// Convert the parameters into a JSon string
 		mapParams := ParametersAsMap(s.Parameters)
@@ -139,6 +136,9 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	}
 
 	for _, r := range res {
+		if obj, ok := r.(metav1.Object); ok {
+			obj.SetLabels(kubernetes.PopulateK8sLabels(component))
+		}
 		err = c.Create(context.TODO(), r)
 		if err != nil && !k8serrors.IsAlreadyExists(err) {
 			return err
