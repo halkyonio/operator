@@ -63,7 +63,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	component.Spec.Storage.Name = "m2-data-" + component.Name
 
 	// Enrich Component with k8s recommend Labels
-	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(component)
+	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(component, "Backend")
 
 	isOpenshift, err := kubernetes.DetectOpenShift()
 	if err != nil {
@@ -202,7 +202,7 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 
 	for _, r := range res {
 		if obj, ok := r.(metav1.Object); ok {
-			obj.SetLabels(kubernetes.PopulateK8sLabels(component))
+			obj.SetLabels(kubernetes.PopulateK8sLabels(component, "Backend"))
 		}
 		err = c.Create(context.TODO(), r)
 		if err != nil && k8serrors.IsNotFound(err) {

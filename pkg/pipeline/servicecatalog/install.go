@@ -137,7 +137,7 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 
 	for _, r := range res {
 		if obj, ok := r.(metav1.Object); ok {
-			obj.SetLabels(kubernetes.PopulateK8sLabels(component))
+			obj.SetLabels(kubernetes.PopulateK8sLabels(component,"Service"))
 		}
 		err = c.Create(context.TODO(), r)
 		if err != nil && !k8serrors.IsAlreadyExists(err) {
