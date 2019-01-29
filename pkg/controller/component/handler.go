@@ -160,12 +160,12 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, nil
 	}
 
-	// Component Custom Resource instance has been created
-	operation = "CREATION"
-
 	// We only call the pipeline when the component has been created
 	// and if the Status Revision Number is the same
 	if component.Status.RevNumber == component.ObjectMeta.ResourceVersion {
+
+		// Component Custom Resource instance has been created
+		operation = "CREATION"
 
 		// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
 		if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
@@ -206,6 +206,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			}
 		}
 	} else {
+		operation = "UPDATE"
 		log.Info("No pipeline invoked")
 		log.Info("------------------------------------------------------")
 	}
