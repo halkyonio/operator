@@ -30,7 +30,7 @@ import (
 
 var (
 	TemplateAssets = Assets
-	TemplatePath   = []string{"innerloop", "servicecatalog"}
+	TemplatePath   = []string{"innerloop", "servicecatalog","outerloop"}
 	TemplateFiles  []string
 	Templates      = make(map[string]template.Template)
 )

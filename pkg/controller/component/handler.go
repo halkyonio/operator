@@ -19,6 +19,7 @@ package component
 
 import (
 	"context"
+	"github.com/snowdrop/component-operator/pkg/pipeline/outerloop"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
@@ -81,6 +82,9 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		innerLoopSteps: []pipeline.Step{
 			innerloop.NewInstallStep(),
 		},
+		outerLoopSteps: []pipeline.Step{
+			outerloop.NewInstallStep(),
+		},
 		serviceCatalogSteps: []pipeline.Step{
 			servicecatalog.NewServiceInstanceStep(),
 		},
@@ -94,6 +98,7 @@ type ReconcileComponent struct {
 	client              client.Client
 	scheme              *runtime.Scheme
 	innerLoopSteps      []pipeline.Step
+	outerLoopSteps      []pipeline.Step
 	serviceCatalogSteps []pipeline.Step
 	linkSteps           []pipeline.Step
 }
@@ -207,8 +212,21 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	} else {
 		operation = "UPDATE"
-		log.Info("No pipeline invoked")
-		log.Info("------------------------------------------------------")
+
+		if component.Spec.DeploymentMode == "outerloop" {
+			for _, a := range r.outerLoopSteps {
+				if a.CanHandle(component) {
+					log.Infof("## Invoking pipeline 'outerloop', action '%s' on %s", a.Name(), component.Name)
+					if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+						log.Errorf("Outerloop creation failed", err)
+						return reconcile.Result{}, err
+					}
+				}
+			}
+		} else {
+			log.Info("No pipeline invoked")
+			log.Info("------------------------------------------------------")
+		}
 	}
 
 	log.Infof("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
