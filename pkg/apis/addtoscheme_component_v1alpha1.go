@@ -7,6 +7,7 @@ import (
 	deploymentconfig "github.com/openshift/api/apps/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
+	build "github.com/openshift/api/build/v1"
 )
 
 func init() {
@@ -16,5 +17,6 @@ func init() {
 		deploymentconfig.AddToScheme,
 		image.AddToScheme,
 		route.AddToScheme,
-		servicecatalog.AddToScheme)
+		servicecatalog.AddToScheme,
+		build.AddToScheme)
 }
