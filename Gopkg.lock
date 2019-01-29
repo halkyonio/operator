@@ -274,10 +274,11 @@
 
 [[projects]]
   branch = "release-3.11"
-  digest = "1:731c479c0c26fef8799870539fa5a3ed098f43fea88f0ab9de329d8d2e2d68ee"
+  digest = "1:58ff62434aa57e743ba038773a3095d364af15763f3afd626e6ede543e4e1e3c"
   name = "github.com/openshift/api"
   packages = [
     "apps/v1",
+    "build/v1",
     "image/docker10",
     "image/dockerpre012",
     "image/v1",
@@ -811,6 +812,7 @@
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gexec",
     "github.com/openshift/api/apps/v1",
+    "github.com/openshift/api/build/v1",
     "github.com/openshift/api/image/v1",
     "github.com/openshift/api/route/v1",
     "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1",
@@ -841,10 +843,8 @@
     "sigs.k8s.io/controller-runtime/pkg/client/config",
     "sigs.k8s.io/controller-runtime/pkg/controller",
     "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil",
-    "sigs.k8s.io/controller-runtime/pkg/event",
     "sigs.k8s.io/controller-runtime/pkg/handler",
     "sigs.k8s.io/controller-runtime/pkg/manager",
-    "sigs.k8s.io/controller-runtime/pkg/predicate",
     "sigs.k8s.io/controller-runtime/pkg/reconcile",
     "sigs.k8s.io/controller-runtime/pkg/runtime/scheme",
     "sigs.k8s.io/controller-runtime/pkg/runtime/signals",
