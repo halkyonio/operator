@@ -197,7 +197,7 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 
 	for _, r := range res {
 		err = c.Create(context.TODO(), r)
-		if err != nil && !k8serrors.IsAlreadyExists(err) {
+		if err != nil && k8serrors.IsNotFound(err) {
 			return err
 		}
 	}
