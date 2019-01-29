@@ -63,6 +63,7 @@ type ComponentSpec struct {
 // ComponentStatus defines the observed state of Component
 type ComponentStatus struct {
 	Phase Phase `json:"phase,omitempty"`
+	RevNumber string
 }
 
 type Link struct {
