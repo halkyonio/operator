@@ -57,7 +57,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to Component CRD
+	// Watch for changes to primary resource Component
 	err = c.Watch(&source.Kind{Type: &v1alpha1.Component{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err

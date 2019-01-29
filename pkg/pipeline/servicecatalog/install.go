@@ -195,7 +195,7 @@ func listServiceBindings(component *v1alpha1.Component, c client.Client) (*servi
 	}
 	listOps := client.ListOptions{
 		Namespace:     component.ObjectMeta.Namespace,
-		LabelSelector: getLabelsSelector(component.ObjectMeta.Labels),
+		// LabelSelector: getLabelsSelector(component.ObjectMeta.Labels),
 	}
 	err := c.List(context.TODO(), &listOps, listServiceBinding)
 	if err != nil {
