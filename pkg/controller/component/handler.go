@@ -28,9 +28,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/pipeline/link"
 	"github.com/snowdrop/component-operator/pkg/pipeline/servicecatalog"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -59,20 +57,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Create a source to watch Component events
-	src := &source.Kind{Type: &v1alpha1.Component{}}
-
-	// Create a handler for handling events from Components
-	h := &handler.EnqueueRequestForObject{}
-
-	pred := predicate.Funcs{
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			return !e.DeleteStateUnknown
-		},
-	}
-
-	// Watch for changes to primary resource AppService
-	err = c.Watch(src, h, pred)
+	// Watch for changes to Component CRD
+	err = c.Watch(&source.Kind{Type: &v1alpha1.Component{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
