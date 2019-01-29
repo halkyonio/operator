@@ -91,7 +91,7 @@
   
 ### A more complex scenario   
 
-This project provides a more complex scenation where we will deploy 2 components: frontend, backend, a service from a catalog
+This project provides a more complex scenario where we will deploy 2 components: frontend, backend, a service from a catalog
 like also the `links` needed to update the DeploymentConfig in order to get the service's parameters or endpoint address
 
   ```bash
