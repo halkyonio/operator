@@ -105,8 +105,20 @@
   oc delete -f deploy/operator.yaml
   oc delete -f deploy/rbac.yaml
   oc delete -f deploy/sa.yaml
-  ```    
+  ```   
 
+### A more complex scenario   
+
+This project provides a more complex scenation where we will deploy 2 components: frontend, backend, a service from a catalog
+like also the `links` needed to update the DeploymentConfig in order to get the service's parameters or endpoint address
+
+  ```bash
+  oc apply -f examples/demo/component-client.yml
+  oc apply -f examples/demo/component-link-env.yml
+  oc apply -f examples/demo/component-crud.yml
+  oc apply -f examples/demo/component-service.yml
+  oc apply -f examples/demo/component-link.yml
+  ```
 ### How To create the operator, crd
 
 Instructions followed to create the Component's CRD, operator using the `operator-sdk`'s kit
