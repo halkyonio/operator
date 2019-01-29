@@ -19,6 +19,7 @@ package component
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 
@@ -67,8 +68,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 }
 
 var (
-	_                reconcile.Reconciler = &ReconcileComponent{}
-	svcFinalizerName                      = "service.component.k8s.io"
+	_                   reconcile.Reconciler = &ReconcileComponent{}
+	svcFinalizerName                         = "service.component.k8s.io"
+	firstCreation = true
 )
 
 // newReconciler returns a new reconcile.Reconciler
@@ -78,7 +80,6 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		scheme: mgr.GetScheme(),
 		innerLoopSteps: []pipeline.Step{
 			innerloop.NewInstallStep(),
-			innerloop.ExportStep(),
 		},
 		serviceCatalogSteps: []pipeline.Step{
 			servicecatalog.NewServiceInstanceStep(),
@@ -98,20 +99,35 @@ type ReconcileComponent struct {
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	log.Infof("Reconciling Component %s, namespace : %s",request.Name,request.Namespace)
 
 	operation := ""
+
 	// Fetch the Component created, deleted or updated
 	component := &v1alpha1.Component{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
+
 	if err != nil {
 		if errors.IsNotFound(err) {
-		  // Object not found, return.  Created objects are automatically garbage collected.
-          // Finalizer has been removed and component deleted. So we can exit
-          return reconcile.Result{}, nil
+			// Object not found, return.  Created objects are automatically garbage collected.
+			// Finalizer has been removed and component deleted. So we can exit
+			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
+	}
+
+	log.Info("----------------------------------------------------")
+	log.Infof("***** Reconciling Component %s, namespace %s", request.Name, request.Namespace)
+	log.Infof("** Status of the component : %s", component.Status.Phase)
+	log.Infof("** Creation time : %s", component.ObjectMeta.CreationTimestamp)
+	log.Infof("** Resource version : %s", component.ObjectMeta.ResourceVersion)
+	log.Infof("** Generation version : %s", strconv.FormatInt(component.ObjectMeta.Generation, 10))
+	log.Infof("** Deletion time : %s", component.ObjectMeta.DeletionTimestamp)
+	log.Info("----------------------------------------------------")
+
+	// Assign the generated ResourceVersion to the resource status
+	if component.Status.RevNumber == "" {
+		component.Status.RevNumber = component.ObjectMeta.ResourceVersion
 	}
 
 	// See finalizer doc for more info : https://book.kubebuilder.io/beyond_basics/using_finalizers.html
@@ -120,16 +136,16 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		// The object is being deleted
 		if ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
 			// Component has been deleted like also its dependencies
-			operation = "deleted"
+			operation = "DELETION"
 
 			// our finalizer is present, so lets handle our external dependency
 			// Check if the component is a Service and then delete the ServiceInstance, ServiceBinding
 			if component.Spec.Services != nil {
 				removeServiceInstanceStep := servicecatalog.RemoveServiceInstanceStep()
-				log.Infof("### Invoking'service catalog', action '%s' on %s", "delete",component.Name)
-				//log.Infof("### Invoking'service catalog', action '%s' on %s", "delete", component.Name)
+				log.Infof("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
+				//log.Infof("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
 				if err := removeServiceInstanceStep.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Errorf("Removing Service Instance, binding failed %s",err)
+					log.Errorf("Removing Service Instance, binding failed %s", err)
 				}
 			}
 
@@ -139,55 +155,62 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 				return reconcile.Result{Requeue: true}, nil
 			}
 		}
-		// Error reading the object
-		log.Infof("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
+		log.Infof("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
+		log.Infof("***** Operation performed : %s", operation)
 		return reconcile.Result{}, nil
 	}
 
 	// Component Custom Resource instance has been created
-	operation = "created"
-	log.Infof("Status : %s", component.Status.Phase)
+	operation = "CREATION"
 
-	// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
-	if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
-		for _, a := range r.innerLoopSteps {
-			if a.CanHandle(component) {
-				log.Infof("### Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
-				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Errorf("Innerloop creation failed",err)
-					return reconcile.Result{}, err
+	// We only call the pipeline when the component has been created
+	// and if the Status Revision Number is the same
+	if component.Status.RevNumber == component.ObjectMeta.ResourceVersion {
+
+		// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
+		if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
+			for _, a := range r.innerLoopSteps {
+				if a.CanHandle(component) {
+					log.Infof("## Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
+					if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+						log.Errorf("Innerloop creation failed", err)
+						return reconcile.Result{}, err
+					}
 				}
 			}
 		}
-	}
 
-	// Check if the component is a Service to be installed from the catalog
-	if component.Spec.Services != nil {
-		for _, a := range r.serviceCatalogSteps {
-			if a.CanHandle(component) {
-				log.Infof("### Invoking'service catalog', action '%s' on %s", a.Name(), component.Name)
-				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Errorf("Service instance, binding creation failed",err)
-					return reconcile.Result{}, err
+		// Check if the component is a Service to be installed from the catalog
+		if component.Spec.Services != nil {
+			for _, a := range r.serviceCatalogSteps {
+				if a.CanHandle(component) {
+					log.Infof("## Invoking pipeline 'service catalog', action '%s' on %s", a.Name(), component.Name)
+					if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+						log.Errorf("Service instance, binding creation failed", err)
+						return reconcile.Result{}, err
+					}
 				}
 			}
 		}
-	}
 
-	// Check if the component is a Link and that
-	if component.Spec.Links != nil {
-		for _, a := range r.linkSteps {
-			if a.CanHandle(component) {
-				log.Infof("### Invoking'link', action '%s' on %s", a.Name(), component.Name)
-				if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Errorf("Linking components failed",err)
-					return reconcile.Result{}, err
+		// Check if the component is a Link and that
+		if component.Spec.Links != nil {
+			for _, a := range r.linkSteps {
+				if a.CanHandle(component) {
+					log.Infof("## Invoking pipeline 'link', action '%s' on %s", a.Name(), component.Name)
+					if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+						log.Errorf("Linking components failed", err)
+						return reconcile.Result{}, err
+					}
 				}
 			}
 		}
+	} else {
+		log.Info("No pipeline invoked")
+		log.Info("------------------------------------------------------")
 	}
 
-	log.Infof("Status : %s", component.Status.Phase)
-	log.Infof("Reconciling AppService %s/%s - operation %s\n", request.Namespace, request.Name, operation)
+	log.Infof("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
+	log.Infof("***** Operation performed : %s", operation)
 	return reconcile.Result{}, nil
 }

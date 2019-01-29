@@ -51,7 +51,8 @@ func (linkStep) Name() string {
 }
 
 func (linkStep) CanHandle(component *v1alpha1.Component) bool {
-     return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
+	 // log.Infof("## Status to be checked : %s", component.Status.Phase)
+	 return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
 }
 
 func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
@@ -75,6 +76,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 				if (isOpenshift) {
 					found, err := GetDeploymentConfig(namespace, componentName, c)
 					if err != nil {
+						log.Info("### DeploymentConfig not found")
 						return false, err
 					}
 					logMessage := ""
@@ -84,34 +86,38 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 						secretName := l.Ref
 						// Add the Secret as EnvVar to the container
 						found.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
-						logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
+						logMessage = "### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
 					case "Env":
 						// TODO Iterate through Env vars
 						key := l.Envs[0].Name
 						val := l.Envs[0].Value
 						found.Spec.Template.Spec.Containers[0].Env = append(found.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
-						logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
+						logMessage = "### Added the deploymentConfig's EnvVar : " + key + ", " + val
 					}
 
 					// Update the DeploymentConfig
 					err = c.Update(context.TODO(), found)
 					if err != nil && k8serrors.IsConflict(err) {
 						// Retry function on conflict
+						log.Info("### DeploymentConfig update failed due to conflict!")
 						return false, nil
 					}
 					if err != nil {
+						log.Info("### DeploymentConfig update failed !")
 						return false, err
 					}
+					log.Info("### DeploymentConfig updated")
 					log.Info(logMessage)
 
 					// Rollout the DC
 					err = rolloutDeploymentConfig(componentName, namespace)
 					if err != nil {
+						log.Info("Deployment Config rollout failed !")
 						return false, err
 					}
 
-					log.Infof("#### Added %s link's CRD component", componentName)
-					log.Infof("#### Rollout the DeploymentConfig of the '%s' component", component.Name)
+					log.Infof("### Added %s link's CRD component", componentName)
+					log.Infof("### Rollout the DeploymentConfig of the '%s' component", component.Name)
 					return true, nil
 				} else {
 					// K8s platform. We will fetch a deployment
@@ -126,13 +132,13 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 						secretName := l.Ref
 						// Add the Secret as EnvVar to the container
 						d.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
-						logMessage = "#### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
+						logMessage = "### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
 					case "Env":
 						// TODO Iterate through Env vars
 						key := l.Envs[0].Name
 						val := l.Envs[0].Value
 						d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
-						logMessage = "#### Added the deploymentConfig's EnvVar : " + key + ", " + val
+						logMessage = "### Added the deploymentConfig's EnvVar : " + key + ", " + val
 					}
 
 					// Update the Deployment
@@ -146,8 +152,8 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 					}
 					log.Info(logMessage)
 
-					log.Infof("#### Added %s link's CRD component", componentName)
-					log.Infof("#### Rollout Deployment of the '%s' component", component.Name)
+					log.Infof("### Added %s link's CRD component", componentName)
+					log.Infof("### Rollout Deployment of the '%s' component", component.Name)
 					return true, nil
 				}
 			})
@@ -158,13 +164,19 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 			return errors.New("Target component is not defined !!")
 		}
 	}
+
+	log.Info("### Component Link updated.")
+
 	component.Status.Phase = v1alpha1.PhaseLinking
-	//err = c.Update(context.TODO(), component)
-	err = c.Status().Update(context.TODO(), component)
-	if err != nil && k8serrors.IsConflict(err) {
+	// err = c.Status().Update(context.TODO(), found)
+	err = c.Update(context.TODO(),component)
+	if err != nil && k8serrors.IsNotFound(err) {
+		log.Info("## Component link - status update failed")
 		return err
 	}
-	log.Info("### Pipeline 'link' ended ###")
+	log.Info("## Pipeline 'link' ended ##")
+	log.Infof("## Status updated : %s ##",component.Status.Phase)
+	log.Info("------------------------------------------------------")
 	return nil
 }
 

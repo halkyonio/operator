@@ -53,6 +53,7 @@ func (newServiceInstanceStep) Name() string {
 // Service is installed when the status of the component is empty.
 // Such case occurs the first time the component is created AND before the innerloop takes place
 func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
+	// log.Infof("## Status to be checked : %s", component.Status.Phase)
 	return component.Status.Phase == "" || component.Status.Phase == v1alpha1.PhaseDeploying
 }
 
@@ -77,6 +78,7 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 		if ok {
 			err := createResource(tmpl, component, c)
 			if err != nil {
+				log.Infof("## Service instance creation failed !")
 				return err
 			}
 		}
@@ -84,13 +86,14 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 		if ok {
 			err := createResource(tmpl, component, c)
 			if err != nil {
+				log.Infof("## Service Binding creation failed !")
 				return err
 			}
 		}
-		log.Infof("#### Created service instance's '%s' for the service/class '%s' and plan '%s'", s.Name, s.Class, s.Plan)
+		log.Infof("### Created service instance's '%s' for the service/class '%s' and plan '%s'", s.Name, s.Class, s.Plan)
 	}
 
-	log.Infof("#### Created %s CRD's service component", component.Name)
+	log.Infof("### Created %s CRD's service component", component.Name)
 	component.Status.Phase = v1alpha1.PhaseServiceCreation
 	svcFinalizerName := "service.component.k8s.io"
 	if !ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
@@ -98,11 +101,13 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 	}
 
 	err := c.Update(context.TODO(), component)
-	// err := c.Status().Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
+		log.Infof("## Component Service - status update failed")
 		return err
 	}
-	log.Info("### Pipeline 'service catalog' ended ###")
+	log.Info("## Pipeline 'service catalog' ended ##")
+	log.Infof("## Status updated : %s ##",component.Status.Phase)
+	log.Info("------------------------------------------------------")
 	return nil
 }
 

@@ -62,7 +62,7 @@ func deleteService(component *v1alpha1.Component, c client.Client, namespace str
 				if err != nil {
 					return err
 				}
-				log.Infof("#### Deleted serviceBinding '%s' for the service '%s'", sb.Name, s.Name)
+				log.Infof("### Deleted serviceBinding '%s' for the service '%s'", sb.Name, s.Name)
 			}
 		}
 
@@ -86,7 +86,7 @@ func deleteService(component *v1alpha1.Component, c client.Client, namespace str
 			if err != nil {
 				return err
 			}
-			log.Infof("#### Deleted serviceInstance '%s' for the service '%s'", si.Name, s.Name)
+			log.Infof("### Deleted serviceInstance '%s' for the service '%s'", si.Name, s.Name)
 		}
 	}
 	return nil

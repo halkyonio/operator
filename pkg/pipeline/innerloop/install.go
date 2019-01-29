@@ -47,6 +47,7 @@ func (installStep) Name() string {
 }
 
 func (installStep) CanHandle(component *v1alpha1.Component) bool {
+	// log.Infof("## Status to be checked : %s", component.Status.Phase)
 	return component.Status.Phase == ""
 }
 
@@ -91,7 +92,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 				return err
 			}
 
-			log.Infof("#### Created 'supervisord and '%s' imagestreams", image[imageKey])
+			log.Infof("### Created 'supervisord and '%s' imagestreams", image[imageKey])
 		}
 
 		tmpl, ok = util.Templates["innerloop/deploymentconfig"]
@@ -108,7 +109,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			if err != nil {
 				return err
 			}
-			log.Infof("#### Created dev's deployment config containing as initContainer : supervisord")
+			log.Infof("### Created dev's deployment config containing as initContainer : supervisord")
 		}
 
 		tmpl, ok = util.Templates["innerloop/route"]
@@ -118,7 +119,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 				if err != nil {
 					return err
 				}
-				log.Infof("#### Exposed service's port '%d' as cluster's route", component.Spec.Port)
+				log.Infof("### Exposed service's port '%d' as cluster's route", component.Spec.Port)
 			}
 		}
 	} else {
@@ -137,7 +138,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			if err != nil {
 				return err
 			}
-			log.Infof("#### Created dev's deployment containing as initContainer : supervisord")
+			log.Infof("### Created dev's deployment containing as initContainer : supervisord")
 		}
 
 		tmpl, ok = util.Templates["innerloop/ingress"]
@@ -147,7 +148,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 				if err != nil {
 					return err
 				}
-				log.Infof("#### Exposed service's port '%d' as cluster's ingress route", component.Spec.Port)
+				log.Infof("### Exposed service's port '%d' as cluster's ingress route", component.Spec.Port)
 			}
 		}
 
@@ -162,7 +163,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		if err != nil {
 			return err
 		}
-		log.Infof("#### Created '%s' persistent volume storage; capacity: '%s'; mode '%s'", component.Spec.Storage.Name, component.Spec.Storage.Capacity, component.Spec.Storage.Mode)
+		log.Infof("### Created '%s' persistent volume storage; capacity: '%s'; mode '%s'", component.Spec.Storage.Name, component.Spec.Storage.Capacity, component.Spec.Storage.Mode)
 	}
 
 	tmpl, ok = util.Templates["innerloop/service"]
@@ -174,18 +175,21 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		if err != nil {
 			return err
 		}
-		log.Infof("#### Created service's port '%d'", component.Spec.Port)
+		log.Infof("### Created service's port '%d'", component.Spec.Port)
 
 	}
 
-	log.Infof("#### Created %s CRD's component ", component.Name)
+	log.Infof("### Created %s CRD's component ", component.Name)
 	component.Status.Phase = v1alpha1.PhaseDeploying
-	// err = c.Update(context.TODO(), component)
-	err = c.Status().Update(context.TODO(), component)
+	err = c.Update(context.TODO(), component)
+	// err = c.Status().Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
+		log.Info("## Component Innerloop - status update failed")
 		return err
 	}
-	log.Info("### Pipeline 'innerloop' ended ###")
+	log.Info("## Pipeline 'innerloop' ended ##")
+	log.Infof("## Status updated : %s ##",component.Status.Phase)
+	log.Info("------------------------------------------------------")
 	return nil
 }
 
