@@ -102,6 +102,26 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
   oc apply -f examples/demo/component-link.yml
   ```  
   
+### Switch fromm inner to outer
+
+- Decorate the Component with the following values in order to specify the git info
+
+  ```bash
+   annotations:
+     app.openshift.io/git-uri: https://github.com/snowdrop/component-operator-demo.git
+     app.openshift.io/git-ref: master
+     app.openshift.io/git-dir: fruit-backend-sb
+     app.openshift.io/artifact-copy-args: "*.jar"
+  ``` 
+  
+  **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.`
+  
+- Patch the component when it has been deployed to switch fromm `inner` to `outer`
+  
+  ```bash
+   oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
+  ```   
+  
 ### How to install the operator on the cluster
 
   ```bash
