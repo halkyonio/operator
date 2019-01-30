@@ -98,8 +98,8 @@ func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
 	return b
 }
 
-func ParseTemplateToRuntimeObject(template template.Template, component *v1alpha1.Component) (runtime.Object, error) {
-		b := Parse(template, component)
+func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha1.Component) (runtime.Object, error) {
+		b := Parse(tmpl, component)
 		r, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
 		if err != nil {
 			return nil, err
