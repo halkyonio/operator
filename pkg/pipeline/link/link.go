@@ -19,19 +19,17 @@ package link
 
 import (
 	appsv1 "github.com/openshift/api/apps/v1"
-	v1 "github.com/openshift/api/apps/v1"
 	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	"github.com/snowdrop/component-operator/pkg/util/openshift"
 	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
-	appv1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -74,7 +72,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
 			err := wait.Poll(retryInterval, time.Duration(2)*retryInterval, func() (done bool, err error) {
 				if (isOpenshift) {
-					found, err := GetDeploymentConfig(namespace, componentName, c)
+					found, err := openshift.GetDeploymentConfig(namespace, componentName, c)
 					if err != nil {
 						log.Info("### DeploymentConfig not found")
 						return false, err
@@ -121,7 +119,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 					return true, nil
 				} else {
 					// K8s platform. We will fetch a deployment
-					d, err := GetDeployment(namespace, componentName, c)
+					d, err := kubernetes.GetDeployment(namespace, componentName, c)
 					if err != nil {
 						return false, err
 					}
@@ -229,20 +227,4 @@ func addKeyValueAsEnvVar(key, value string) corev1.EnvVar {
 		Name:  key,
 		Value: value,
 	}
-}
-
-func GetDeploymentConfig(namespace string, name string, c client.Client) (*v1.DeploymentConfig, error) {
-	dc := &v1.DeploymentConfig{}
-	if err := c.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, dc); err != nil {
-		return nil, err
-	}
-	return dc, nil
-}
-
-func GetDeployment(namespace string, name string, c client.Client) (*appv1.Deployment, error) {
-	d := &appv1.Deployment{}
-	if err := c.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, d); err != nil {
-		return nil, err
-	}
-	return d, nil
 }
