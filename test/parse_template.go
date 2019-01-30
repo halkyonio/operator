@@ -14,6 +14,8 @@ metadata:
   labels:
     app: {{.Spec.Name}}{{ range $key, $value := .Labels }}
     {{ $key }}: {{ $value }}{{ end }}
+  annotations: {{ range $key, $value := .Annotations }}
+    {{ $key }}: {{ $value }}{{ end }}
   name: {{.Spec.Name}}
 spec:
   replicas: 1
@@ -29,6 +31,8 @@ spec:
         deploymentconfig: {{.Name}}
       name: {{.Name}}
     spec:
+      imagestream:
+        name: {{ index .Annotations "app.openshift.io/git-uri" }}
       containers:
       - args:
         - -c
@@ -97,6 +101,7 @@ func main() {
 		},
 	}
 	EnrichComponentWithLabels(component)
+	EnrichComponentWithAnnotations(component)
 
 	t := template.New("t")
 	t, err := t.Parse(k8sTemplate)
@@ -116,4 +121,12 @@ func EnrichComponentWithLabels(component *v1alpha1.Component) {
 	labels[v1alpha1.NameLabelKey] = component.Spec.Name
 	labels[v1alpha1.ManagedByLabelKey] = "component-operator"
 	component.Labels = labels
+}
+
+func EnrichComponentWithAnnotations(component *v1alpha1.Component) {
+	annotations := map[string]string{}
+	annotations["app.openshift.io/git-uri"] = "https://github.com/snowdrop/component-operator-demo.git"
+	annotations["app.openshift.io/git-ref"] = "master"
+	annotations["app.openshift.io/git-dir"] = "fruit-backend-sb"
+	component.Annotations = annotations
 }
