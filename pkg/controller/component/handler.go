@@ -84,6 +84,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		},
 		outerLoopSteps: []pipeline.Step{
 			outerloop.NewInstallStep(),
+			outerloop.NewCloneDeploymentStep(),
 		},
 		serviceCatalogSteps: []pipeline.Step{
 			servicecatalog.NewServiceInstanceStep(),
