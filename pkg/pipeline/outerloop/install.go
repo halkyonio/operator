@@ -66,7 +66,16 @@ func installOuterLoop(component *v1alpha1.Component, c client.Client, namespace 
 	}
 
 	if isOpenshift {
-		tmpl, ok := util.Templates["outerloop/buildconfig"]
+		tmpl, ok := util.Templates["outerloop/imagestream"]
+		if ok {
+			err := createResource(tmpl, component, c, &scheme)
+			if err != nil {
+				return err
+			}
+			log.Infof("### Created Imagestream used as target image to run the application")
+		}
+
+		tmpl, ok = util.Templates["outerloop/buildconfig"]
 		if ok {
 			err := createResource(tmpl, component, c, &scheme)
 			if err != nil {
