@@ -1,13 +1,21 @@
 package outerloop
 
 import (
+	"bytes"
+	"context"
+	"fmt"
+	deploymentconfig "github.com/openshift/api/apps/v1"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	"github.com/snowdrop/component-operator/pkg/util/openshift"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
+	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"text/template"
 )
 
 func NewCloneDeploymentStep() pipeline.Step {
@@ -72,21 +80,33 @@ func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespa
 
 		tmpl, ok := util.Templates["outerloop/deploymentconfig"]
 		if ok {
-/*			clone := &v1alpha1.Component{}
-			clone.Name = component.Name + "-build"
-			clone.Annotations = map[string]string{
-				"app.openshift.io/runtime-image": component.Annotations["app.openshift.io/runtime-image"],
-			}
-			clone.Labels = component.Labels
-			clone.Spec.Envs = component.Spec.Envs
-			clone.Spec.Port = component.Spec.Port
-			clone.Namespace = component.Namespace*/
-			component.Name = component.Name + "-build"
-			component.Spec.Envs = append(component.Spec.Envs,v1alpha1.Env{Name: "JAVA_APP_DIR", Value: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"})
+			originalcomponentName := component.Name
 
-			_, err := util.ParseTemplateToRuntimeObject(tmpl,component)
-			err = kubernetes.CreateResource(tmpl, component, c, &scheme)
+			// Populate the DC using template
+			component.Name = component.Name + "-build"
+			r, err := ParseTemplateToRuntimeObject(tmpl,component)
+			obj, err := kubernetes.RuntimeObjectFromUnstructured(r)
 			if err != nil {
+				return err
+			}
+
+			// Fetch DC
+			dc := obj.(*deploymentconfig.DeploymentConfig)
+			found, err := openshift.GetDeploymentConfig(namespace, originalcomponentName, c)
+			if err != nil {
+				log.Info("### DeploymentConfig not found")
+				return err
+			}
+			containerFound := &found.Spec.Template.Spec.Containers[0]
+			container := &dc.Spec.Template.Spec.Containers[0]
+			container.Env = containerFound.Env
+			container.EnvFrom = containerFound.EnvFrom
+			container.Env = UpdateEnv(container.Env)
+			dc.Namespace = found.Namespace
+
+			err = c.Create(context.TODO(),dc)
+			if err != nil {
+				log.Info("### DeploymentConfig build creation failed")
 				return err
 			}
 			log.Infof("### Created Build Deployment Config.")
@@ -95,4 +115,38 @@ func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespa
 	log.Info("## Pipeline 'outerloop' ended ##")
 	log.Info("------------------------------------------------------")
 	return nil
+}
+
+func UpdateEnv(envs []v1.EnvVar) []v1.EnvVar {
+	newEnvs := []v1.EnvVar{}
+	for _, s := range envs {
+		if s.Name == "JAVA_APP_JAR" {
+			newEnvs = append(newEnvs, v1.EnvVar{Name: s.Name, Value: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"})
+		} else {
+			newEnvs = append(newEnvs, s)
+		}
+	}
+	return newEnvs
+}
+
+func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha1.Component) (*unstructured.Unstructured, error) {
+	b := Parse(tmpl, component)
+	r, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+
+// Parse the file's template using the Application struct
+func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
+	var b bytes.Buffer
+	err := t.Execute(&b, obj)
+	//fmt.Println(&b, obj)
+	if err != nil {
+		fmt.Println("There was an error:", err.Error())
+	}
+	log.Debug("Generated :", b.String())
+	return b
 }

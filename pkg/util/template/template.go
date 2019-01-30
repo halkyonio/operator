@@ -23,8 +23,8 @@ import (
 	"github.com/shurcooL/httpfs/vfsutil"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
-	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
-	"k8s.io/apimachinery/pkg/runtime"
+	// "github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	// "k8s.io/apimachinery/pkg/runtime"
 	"os"
 	"strings"
 	"text/template"
@@ -98,14 +98,14 @@ func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
 	return b
 }
 
-func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha1.Component) (runtime.Object, error) {
+/*func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha1.Component) (runtime.Object, error) {
 		b := Parse(tmpl, component)
 		r, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
 		if err != nil {
 			return nil, err
 		}
 		return r, nil
-}
+}*/
 
 //
 func GetTemplateFullName(artifact string) string {
