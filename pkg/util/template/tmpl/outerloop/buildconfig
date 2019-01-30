@@ -25,9 +25,9 @@ spec:
       - name: MAVEN_ARGS_APPEND
         value: "-pl {{ index .ObjectMeta.Annotations "app.openshift.io/git-dir" }}"
       - name: ARTIFACT_DIR
-        value: "./target"
+        value: "{{ index .ObjectMeta.Annotations "app.openshift.io/git-dir" }}/target"
       - name: ARTIFACT_COPY_ARGS
-        value: "*-exec.jar"
+        value: "{{ index .ObjectMeta.Annotations "app.openshift.io/artifact-copy-args" }}"
     type: Source
   triggers:
   - github:
