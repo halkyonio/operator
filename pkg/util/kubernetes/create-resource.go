@@ -33,10 +33,10 @@ func CreateResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	return nil
 }
 
-func newResourceFromTemplate(template template.Template, component *v1alpha1.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {
+func newResourceFromTemplate(tmpl template.Template, component *v1alpha1.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {
 	var result = []runtime.Object{}
 
-	var b = util.Parse(template, component)
+	var b = util.Parse(tmpl, component)
 	r, err := PopulateKubernetesObjectFromYaml(b.String())
 	if err != nil {
 		return nil, err

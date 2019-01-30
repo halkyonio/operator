@@ -88,7 +88,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 
 			component.Spec.Images = append(component.Spec.Images, CreateTypeImage(true, component.Spec.RuntimeName, "latest", image[imageKey], false))
 
-			err := createResource(tmpl, component, c, &scheme)
+			err := CreateResource(tmpl, component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -106,7 +106,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			// Enrich Env Vars with Default values
 			populateEnvVar(component)
 
-			err := createResource(tmpl, component, c, &scheme)
+			err := CreateResource(tmpl, component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -116,7 +116,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		tmpl, ok = util.Templates["innerloop/route"]
 		if ok {
 			if component.Spec.ExposeService {
-				err := createResource(tmpl, component, c, &scheme)
+				err := CreateResource(tmpl, component, c, &scheme)
 				if err != nil {
 					return err
 				}
@@ -135,7 +135,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			// Enrich Env Vars with Default values
 			populateEnvVar(component)
 
-			err := createResource(tmpl, component, c, &scheme)
+			err := CreateResource(tmpl, component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -145,7 +145,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		tmpl, ok = util.Templates["innerloop/ingress"]
 		if ok {
 			if component.Spec.ExposeService {
-				err := createResource(tmpl, component, c, &scheme)
+				err := CreateResource(tmpl, component, c, &scheme)
 				if err != nil {
 					return err
 				}
@@ -160,7 +160,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	if ok {
 		component.Spec.Storage.Capacity = "1Gi"
 		component.Spec.Storage.Mode = "ReadWriteOnce"
-		err := createResource(tmpl, component, c, &scheme)
+		err := CreateResource(tmpl, component, c, &scheme)
 		if err != nil {
 			return err
 		}
@@ -172,7 +172,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		if component.Spec.Port == 0 {
 			component.Spec.Port = 8080 // Add a default port if empty
 		}
-		err := createResource(tmpl, component, c, &scheme)
+		err := CreateResource(tmpl, component, c, &scheme)
 		if err != nil {
 			return err
 		}
@@ -194,7 +194,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	return nil
 }
 
-func createResource(tmpl template.Template, component *v1alpha1.Component, c client.Client, scheme *runtime.Scheme) error {
+func CreateResource(tmpl template.Template, component *v1alpha1.Component, c client.Client, scheme *runtime.Scheme) error {
 	res, err := newResourceFromTemplate(tmpl, component, scheme)
 	if err != nil {
 		return err
