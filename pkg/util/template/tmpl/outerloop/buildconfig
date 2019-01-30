@@ -12,8 +12,8 @@ spec:
       name: {{.Name}}:latest
   source:
     git:
-      uri: ${SOURCE_REPOSITORY_URL}
-      ref: ${SOURCE_REPOSITORY_REF}
+      uri: {{ index .ObjectMeta.Annotations "app.openshift.io/git-uri" }}
+      ref: {{ index .ObjectMeta.Annotations "app.openshift.io/git-ref" }}
     type: Git
   strategy:
     sourceStrategy:
@@ -23,7 +23,7 @@ spec:
       incremental: true
       env:
       - name: MAVEN_ARGS_APPEND
-        value: "-pl ."
+        value: "-pl {{ index .ObjectMeta.Annotations "app.openshift.io/git-dir" }}"
       - name: ARTIFACT_DIR
         value: "./target"
       - name: ARTIFACT_COPY_ARGS
