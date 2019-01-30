@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"text/template"
 )
 
@@ -103,6 +104,7 @@ func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespa
 			container.EnvFrom = containerFound.EnvFrom
 			container.Env = UpdateEnv(container.Env)
 			dc.Namespace = found.Namespace
+			controllerutil.SetControllerReference(component, dc, &scheme)
 
 			err = c.Create(context.TODO(),dc)
 			if err != nil {
