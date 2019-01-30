@@ -112,7 +112,7 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
      app.openshift.io/git-ref: master
      app.openshift.io/git-dir: fruit-backend-sb
      app.openshift.io/artifact-copy-args: "*.jar"
-     app.openshift.io/runtime-image: "fruit-backend-sb:latest"
+     app.openshift.io/runtime-image: "fruit-backend-sb"
   ``` 
   
   **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.`
@@ -120,7 +120,7 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
 - Patch the component when it has been deployed to switch fromm `inner` to `outer`
   
   ```bash
-   oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
+  oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
   ```   
   
 ### How to install the operator on the cluster
