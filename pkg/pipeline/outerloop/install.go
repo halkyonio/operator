@@ -44,7 +44,7 @@ func NewInstallStep() pipeline.Step {
 type installStep struct{}
 
 func (installStep) Name() string {
-	return "deploy"
+	return "deploy buildconfig"
 }
 
 func (installStep) CanHandle(component *v1alpha1.Component) bool {
