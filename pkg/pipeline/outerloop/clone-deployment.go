@@ -102,7 +102,7 @@ func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespa
 			container := &dc.Spec.Template.Spec.Containers[0]
 			container.Env = containerFound.Env
 			container.EnvFrom = containerFound.EnvFrom
-			container.Env = UpdateEnv(container.Env)
+			container.Env = UpdateEnv(container.Env, component.Annotations["app.openshift.io/java-app-jar"])
 			dc.Namespace = found.Namespace
 			controllerutil.SetControllerReference(component, dc, &scheme)
 
@@ -119,11 +119,11 @@ func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespa
 	return nil
 }
 
-func UpdateEnv(envs []v1.EnvVar) []v1.EnvVar {
+func UpdateEnv(envs []v1.EnvVar, jarName string) []v1.EnvVar {
 	newEnvs := []v1.EnvVar{}
 	for _, s := range envs {
 		if s.Name == "JAVA_APP_JAR" {
-			newEnvs = append(newEnvs, v1.EnvVar{Name: s.Name, Value: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"})
+			newEnvs = append(newEnvs, v1.EnvVar{Name: s.Name, Value: jarName})
 		} else {
 			newEnvs = append(newEnvs, s)
 		}
