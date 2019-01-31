@@ -19,6 +19,7 @@ package component
 
 import (
 	"context"
+	"github.com/snowdrop/component-operator/pkg/pipeline/generic"
 	"github.com/snowdrop/component-operator/pkg/pipeline/outerloop"
 	"strconv"
 
@@ -85,6 +86,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		outerLoopSteps: []pipeline.Step{
 			outerloop.NewInstallStep(),
 			outerloop.NewCloneDeploymentStep(),
+			generic.NewUpdateServiceSelectorStep(),
 		},
 		serviceCatalogSteps: []pipeline.Step{
 			servicecatalog.NewServiceInstanceStep(),

@@ -47,38 +47,6 @@ func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespa
 	}
 
 	if isOpenshift {
-
-	/*
-	    componentName := component.Name
-        found, err := openshift.GetDeploymentConfig(namespace, componentName, c)
-		if err != nil {
-			log.Info("### DeploymentConfig %s not found",componentName)
-			return err
-		}
-
-		clone := &v1.DeploymentConfig{}
-		clone.ObjectMeta = found.ObjectMeta
-		clone.ResourceVersion = "" // Remove Resource Version
-		clone.CreationTimestamp = metav1.Time{} // Remove Creation time
-		clone.Generation = int64(0)
-
-		clone.Name = component.Name + "-build"
-		clone.Spec = found.Spec
-		clone.Spec.Selector = map[string]string{
-			"deploymentconfig": component.Name + "-build",
-		}
-		clone.Spec.Template.Name = component.Name + "-build"
-		clone.Spec.Template.Spec.InitContainers = []corev1.Container{} // Remove initContainers
-		container := clone.Spec.Template.Spec.Containers[0]
-		container.Args = []string{} // Remove args of the container
-		container.Command = []string{} // Remove command of the container
-		container.VolumeMounts = []corev1.VolumeMount{} // Remove volume to be mounted
-		container.Image = component.Annotations["app.openshift.io/runtime-image"]// Use the runtime/build image
-		container.Name = component.Name + "-build"
-		clone.Spec.Template.Spec.Containers[0] = container
-
-		clone.Spec.Template.Spec.Volumes = []corev1.Volume{} // Remove volume*/
-
 		tmpl, ok := util.Templates["outerloop/deploymentconfig"]
 		if ok {
 			originalcomponentName := component.Name

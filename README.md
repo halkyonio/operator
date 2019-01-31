@@ -113,6 +113,8 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
      app.openshift.io/git-dir: fruit-backend-sb
      app.openshift.io/artifact-copy-args: "*.jar"
      app.openshift.io/runtime-image: "fruit-backend-sb"
+     app.openshift.io/component-name: "fruit-backend-sb"
+     app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
   ``` 
   
   **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.`
