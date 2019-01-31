@@ -9,11 +9,6 @@ import (
 	"github.com/snowdrop/component-operator/pkg/controller"
 	k8sutil "github.com/snowdrop/component-operator/pkg/util/kubernetes"
 
-	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
-	deploymentconfig "github.com/openshift/api/apps/v1"
-	image "github.com/openshift/api/image/v1"
-	route "github.com/openshift/api/route/v1"
-
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
@@ -56,20 +51,6 @@ func main() {
 
 	// Setup Scheme for all resources
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Fatal(err)
-	}
-
-	// 3rd party Resources (ServiceCatalog, DeploymentConfig, Route, Image)
-	if err := servicecatalog.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Fatal(err)
-	}
-	if err := deploymentconfig.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Fatal(err)
-	}
-	if err := image.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Fatal(err)
-	}
-	if err := route.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Fatal(err)
 	}
 
