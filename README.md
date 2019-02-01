@@ -104,7 +104,8 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
   
 ### Switch fromm inner to outer
 
-- Decorate the Component with the following values in order to specify the git info
+- Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
+  the dev loop to the publish loop
 
   ```bash
    annotations:
@@ -117,7 +118,7 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
      app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
   ``` 
   
-  **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.`
+  **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
   
 - Patch the component when it has been deployed to switch fromm `inner` to `outer`
   
