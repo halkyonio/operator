@@ -52,14 +52,14 @@ var (
 	reconcileComponent = &ReconcileComponent{}
 )
 
-// Add creates a new AppService Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+	return Create(mgr, NewReconciler(mgr))
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
+func Create(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New("component-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -76,7 +76,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 	rc := &ReconcileComponent{}
 	rc.client = mgr.GetClient()
 	rc.config = mgr.GetConfig()
