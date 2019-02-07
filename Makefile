@@ -56,13 +56,19 @@ format:
 lint:
 	golint $(PKGS)
 
+# Tests to be executed within k8s cluster
 .PHONY: test-e2e
 test-e2e:
 	go test -v $(REPO_PATH)/e2e -ginkgo.v
 
+# Tests using operator deployed in a cluster
 .PHONY: unit-test
 unit-test:
 	go test ./test/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crd.yaml
+
+.PHONY: test
+test:
+	go test ./pkg/...
 
 .PHONY: prepare-release
 prepare-release: cross
