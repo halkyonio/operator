@@ -21,7 +21,6 @@ import (
 	"context"
 	"github.com/snowdrop/component-operator/pkg/pipeline/generic"
 	"github.com/snowdrop/component-operator/pkg/pipeline/outerloop"
-	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"k8s.io/client-go/rest"
 	"strconv"
 
@@ -46,11 +45,11 @@ import (
 )
 
 var (
-	_                   reconcile.Reconciler = &ReconcileComponent{}
-	svcFinalizerName                         = "service.component.k8s.io"
-	ComponentOperator   ReconcileComponent
-    // Create a new instance of the logger. You can have any number of instances.
-    log                                      = logrus.New()
+	_                reconcile.Reconciler = &ReconcileComponent{}
+	svcFinalizerName                      = "service.component.k8s.io"
+	// Create a new instance of the logger. You can have any number of instances.
+	log       = logrus.New()
+	reconcileComponent = &ReconcileComponent{}
 )
 
 // Add creates a new AppService Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -78,29 +77,30 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileComponent{
-		client: mgr.GetClient(),
-		scheme: mgr.GetScheme(),
-		innerLoopSteps: []pipeline.Step{
-			innerloop.NewInstallStep(),
-		},
-		outerLoopSteps: []pipeline.Step{
-			outerloop.NewInstallStep(),
-			outerloop.NewCloneDeploymentStep(),
-			generic.NewUpdateServiceSelectorStep(),
-		},
-		serviceCatalogSteps: []pipeline.Step{
-			servicecatalog.NewServiceInstanceStep(),
-		},
-		linkSteps: []pipeline.Step{
-			link.NewLinkStep(),
-		},
+	rc := &ReconcileComponent{}
+	rc.client = mgr.GetClient()
+	rc.config = mgr.GetConfig()
+	rc.scheme = mgr.GetScheme()
+	rc.innerLoopSteps = []pipeline.Step{
+		innerloop.NewInstallStep(),
 	}
+	rc.outerLoopSteps = []pipeline.Step{
+		outerloop.NewInstallStep(),
+		outerloop.NewCloneDeploymentStep(),
+		generic.NewUpdateServiceSelectorStep(),
+	}
+	rc.serviceCatalogSteps = []pipeline.Step{
+		servicecatalog.NewServiceInstanceStep(),
+	}
+	rc.linkSteps = []pipeline.Step{
+		link.NewLinkStep(),
+	}
+	reconcileComponent = rc
+	return rc
 }
-
 type ReconcileComponent struct {
-	OpenshiftPlatform	bool
 	client              client.Client
+	config              *rest.Config
 	scheme              *runtime.Scheme
 	innerLoopSteps      []pipeline.Step
 	outerLoopSteps      []pipeline.Step
@@ -154,7 +154,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 				removeServiceInstanceStep := servicecatalog.RemoveServiceInstanceStep()
 				log.Infof("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
 				//log.Infof("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
-				if err := removeServiceInstanceStep.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+				if err := removeServiceInstanceStep.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
 					log.Errorf("Removing Service Instance, binding failed %s", err)
 				}
 			}
@@ -182,7 +182,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			for _, a := range r.innerLoopSteps {
 				if a.CanHandle(component) {
 					log.Infof("## Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
-					if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
 						log.Error("Innerloop creation failed", err)
 						return reconcile.Result{}, err
 					}
@@ -195,7 +195,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			for _, a := range r.serviceCatalogSteps {
 				if a.CanHandle(component) {
 					log.Infof("## Invoking pipeline 'service catalog', action '%s' on %s", a.Name(), component.Name)
-					if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
 						log.Error("Service instance, binding creation failed", err)
 						return reconcile.Result{}, err
 					}
@@ -208,7 +208,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			for _, a := range r.linkSteps {
 				if a.CanHandle(component) {
 					log.Infof("## Invoking pipeline 'link', action '%s' on %s", a.Name(), component.Name)
-					if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
 						log.Error("Linking components failed", err)
 						return reconcile.Result{}, err
 					}
@@ -222,7 +222,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			for _, a := range r.outerLoopSteps {
 				if a.CanHandle(component) {
 					log.Infof("## Invoking pipeline 'outerloop', action '%s' on %s", a.Name(), component.Name)
-					if err := a.Handle(component, &r.client, request.Namespace, r.scheme); err != nil {
+					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
 						log.Error("Outerloop creation failed", err)
 						return reconcile.Result{}, err
 					}

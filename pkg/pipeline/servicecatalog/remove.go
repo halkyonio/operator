@@ -25,6 +25,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -44,14 +45,14 @@ func (removeServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
 	return component.Status.Phase == "CreatingService"
 }
 
-func (removeServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return deleteService(component, *client, namespace, scheme)
+func (removeServiceInstanceStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return deleteService(*component, *config, *client, namespace, scheme)
 }
 
-func deleteService(component *v1alpha1.Component, c client.Client, namespace string, scheme *runtime.Scheme) error {
+func deleteService(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme *runtime.Scheme) error {
 	for _, s := range component.Spec.Services {
 		// Let's retrieve the ServiceBindings to delete them first
-		list, err := listServiceBindings(component, c)
+		list, err := listServiceBindings(&component, c)
 		if err != nil {
 			return err
 		}

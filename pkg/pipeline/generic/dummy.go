@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -47,11 +48,11 @@ func (serviceStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (serviceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return installService(component, *client, namespace, *scheme)
+func (serviceStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return installService(*component, *config, *client, namespace, *scheme)
 }
 
-func installService(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
+func installService(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	// TODO : Refactor to create a real service
 	serviceName := "toto"
 	service := &corev1.Service{

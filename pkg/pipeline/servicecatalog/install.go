@@ -30,6 +30,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
@@ -57,11 +58,11 @@ func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
 	return component.Status.Phase == "" || component.Status.Phase == v1alpha1.PhaseDeploying
 }
 
-func (newServiceInstanceStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return createService(component, *client, namespace, *scheme)
+func (newServiceInstanceStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return createService(*component, *config, *client, namespace, *scheme)
 }
 
-func createService(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
+func createService(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
 	for i, s := range component.Spec.Services {
@@ -73,7 +74,7 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 		// Create the ServiceInstance and ServiceBinding using the template
 		tmpl, ok := util.Templates["servicecatalog/serviceinstance"]
 		if ok {
-			err := createResource(tmpl, component, c)
+			err := createResource(tmpl, &component, c)
 			if err != nil {
 				log.Infof("## Service instance creation failed !")
 				return err
@@ -81,7 +82,7 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 		}
 		tmpl, ok = util.Templates["servicecatalog/servicebinding"]
 		if ok {
-			err := createResource(tmpl, component, c)
+			err := createResource(tmpl, &component, c)
 			if err != nil {
 				log.Infof("## Service Binding creation failed !")
 				return err
@@ -97,7 +98,7 @@ func createService(component *v1alpha1.Component, c client.Client, namespace str
 		component.ObjectMeta.Finalizers = append(component.ObjectMeta.Finalizers, svcFinalizerName)
 	}
 
-	err := c.Update(context.TODO(), component)
+	err := c.Update(context.TODO(), &component)
 	if err != nil && k8serrors.IsConflict(err) {
 		log.Infof("## Component Service - status update failed")
 		return err
