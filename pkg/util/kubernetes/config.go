@@ -19,14 +19,10 @@ package kubernetes
 
 import (
 	"k8s.io/client-go/discovery"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"k8s.io/client-go/rest"
 )
 
-func DetectOpenShift() (bool,error) {
-	kubeconfig, err := config.GetConfig()
-	if err != nil {
-		return false, err
-	}
+func DetectOpenShift(kubeconfig *rest.Config) (bool,error) {
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(kubeconfig)
 	if err != nil {
 		return false, err

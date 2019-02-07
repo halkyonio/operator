@@ -20,6 +20,7 @@ package outerloop
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/snowdrop/component-operator/pkg/pipeline"
@@ -45,15 +46,15 @@ func (installStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (installStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return installOuterLoop(component, *client, namespace, *scheme)
+func (installStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return installOuterLoop(*component, *config, *client, namespace, *scheme)
 }
 
-func installOuterLoop(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
+func installOuterLoop(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	log.Info("Install BuildConfig ...")
 	component.ObjectMeta.Namespace = namespace
 
-	isOpenshift, err := kubernetes.DetectOpenShift()
+	isOpenshift, err := kubernetes.DetectOpenShift(&config)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func installOuterLoop(component *v1alpha1.Component, c client.Client, namespace 
 	if isOpenshift {
 		tmpl, ok := util.Templates["outerloop/imagestream"]
 		if ok {
-			err := kubernetes.CreateResource(tmpl, component, c, &scheme)
+			err := kubernetes.CreateResource(tmpl, &component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -70,7 +71,7 @@ func installOuterLoop(component *v1alpha1.Component, c client.Client, namespace 
 
 		tmpl, ok = util.Templates["outerloop/buildconfig"]
 		if ok {
-			err := kubernetes.CreateResource(tmpl, component, c, &scheme)
+			err := kubernetes.CreateResource(tmpl, &component, c, &scheme)
 			if err != nil {
 				return err
 			}

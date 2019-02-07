@@ -14,6 +14,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"text/template"
@@ -34,14 +35,14 @@ func (cloneDeploymentStep) CanHandle(component *v1alpha1.Component) bool {
 	return true
 }
 
-func (cloneDeploymentStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return cloneDeploymentLoop(component, *client, namespace, *scheme)
+func (cloneDeploymentStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return cloneDeploymentLoop(*component, *config, *client, namespace, *scheme)
 }
 
-func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
+func cloneDeploymentLoop(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
-	isOpenshift, err := kubernetes.DetectOpenShift()
+	isOpenshift, err := kubernetes.DetectOpenShift(&config)
 	if err != nil {
 		return err
 	}
@@ -53,7 +54,7 @@ func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespa
 
 			// Populate the DC using template
 			component.Name = component.Name + "-build"
-			r, err := ParseTemplateToRuntimeObject(tmpl,component)
+			r, err := ParseTemplateToRuntimeObject(tmpl,&component)
 			obj, err := kubernetes.RuntimeObjectFromUnstructured(r)
 			if err != nil {
 				return err
@@ -72,7 +73,7 @@ func cloneDeploymentLoop(component *v1alpha1.Component, c client.Client, namespa
 			container.EnvFrom = containerFound.EnvFrom
 			container.Env = UpdateEnv(container.Env, component.Annotations["app.openshift.io/java-app-jar"])
 			dc.Namespace = found.Namespace
-			controllerutil.SetControllerReference(component, dc, &scheme)
+			controllerutil.SetControllerReference(&component, dc, &scheme)
 
 			err = c.Create(context.TODO(),dc)
 			if err != nil {

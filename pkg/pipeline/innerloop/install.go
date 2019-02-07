@@ -22,6 +22,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -52,20 +53,20 @@ func (installStep) CanHandle(component *v1alpha1.Component) bool {
 	return component.Status.Phase == ""
 }
 
-func (installStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return installInnerLoop(component, *client, namespace, *scheme)
+func (installStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return installInnerLoop(*component, *config, *client, namespace, *scheme)
 }
 
-func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
+func installInnerLoop(component v1alpha1.Component, cfg rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 	// Append dev runtime's image (java, nodejs, ...)
 	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
 	component.Spec.Storage.Name = "m2-data-" + component.Name
 
 	// Enrich Component with k8s recommend Labels
-	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(component, "Backend")
+	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(&component, "Backend")
 
-	isOpenshift, err := kubernetes.DetectOpenShift()
+	isOpenshift, err := kubernetes.DetectOpenShift(&cfg)
 	if err != nil {
 		return err
 	}
@@ -88,7 +89,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 
 			component.Spec.Images = append(component.Spec.Images, CreateTypeImage(true, component.Spec.RuntimeName, "latest", image[imageKey], false))
 
-			err := CreateResource(tmpl, component, c, &scheme)
+			err := CreateResource(tmpl, &component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -104,9 +105,9 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			component.Spec.SupervisordName = "copy-supervisord"
 
 			// Enrich Env Vars with Default values
-			populateEnvVar(component)
+			populateEnvVar(&component)
 
-			err := CreateResource(tmpl, component, c, &scheme)
+			err := CreateResource(tmpl, &component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -116,7 +117,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		tmpl, ok = util.Templates["innerloop/route"]
 		if ok {
 			if component.Spec.ExposeService {
-				err := CreateResource(tmpl, component, c, &scheme)
+				err := CreateResource(tmpl, &component, c, &scheme)
 				if err != nil {
 					return err
 				}
@@ -133,9 +134,9 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 			component.Spec.SupervisordName = "copy-supervisord"
 
 			// Enrich Env Vars with Default values
-			populateEnvVar(component)
+			populateEnvVar(&component)
 
-			err := CreateResource(tmpl, component, c, &scheme)
+			err := CreateResource(tmpl, &component, c, &scheme)
 			if err != nil {
 				return err
 			}
@@ -145,7 +146,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		tmpl, ok = util.Templates["innerloop/ingress"]
 		if ok {
 			if component.Spec.ExposeService {
-				err := CreateResource(tmpl, component, c, &scheme)
+				err := CreateResource(tmpl, &component, c, &scheme)
 				if err != nil {
 					return err
 				}
@@ -160,7 +161,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 	if ok {
 		component.Spec.Storage.Capacity = "1Gi"
 		component.Spec.Storage.Mode = "ReadWriteOnce"
-		err := CreateResource(tmpl, component, c, &scheme)
+		err := CreateResource(tmpl, &component, c, &scheme)
 		if err != nil {
 			return err
 		}
@@ -172,7 +173,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 		if component.Spec.Port == 0 {
 			component.Spec.Port = 8080 // Add a default port if empty
 		}
-		err := CreateResource(tmpl, component, c, &scheme)
+		err := CreateResource(tmpl, &component, c, &scheme)
 		if err != nil {
 			return err
 		}
@@ -182,7 +183,7 @@ func installInnerLoop(component *v1alpha1.Component, c client.Client, namespace 
 
 	log.Infof("### Created %s CRD's component ", component.Name)
 	component.Status.Phase = v1alpha1.PhaseDeploying
-	err = c.Update(context.TODO(), component)
+	err = c.Update(context.TODO(), &component)
 	// err = c.Status().Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
 		log.Info("## Component Innerloop - status update failed")

@@ -31,6 +31,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"time"
@@ -53,15 +54,15 @@ func (linkStep) CanHandle(component *v1alpha1.Component) bool {
 	 return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
 }
 
-func (linkStep) Handle(component *v1alpha1.Component, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return createLink(component, *client, namespace, *scheme)
+func (linkStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return createLink(*component, *config, *client, namespace, *scheme)
 }
 
-func createLink(component *v1alpha1.Component, c client.Client, namespace string, scheme runtime.Scheme) error {
+func createLink(component v1alpha1.Component, cfg rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	retryInterval, _ := time.ParseDuration("10s")
 	component.ObjectMeta.Namespace = namespace
 
-	isOpenshift, err := kubernetes.DetectOpenShift()
+	isOpenshift, err := kubernetes.DetectOpenShift(&cfg)
 	if err != nil {
 		return err
 	}
@@ -167,7 +168,7 @@ func createLink(component *v1alpha1.Component, c client.Client, namespace string
 
 	component.Status.Phase = v1alpha1.PhaseLinking
 	// err = c.Status().Update(context.TODO(), found)
-	err = c.Update(context.TODO(),component)
+	err = c.Update(context.TODO(),&component)
 	if err != nil && k8serrors.IsNotFound(err) {
 		log.Info("## Component link - status update failed")
 		return err
