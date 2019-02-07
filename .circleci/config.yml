@@ -20,6 +20,7 @@ jobs:
   # - Install the missing packages
   # - Generate the Assets (template such crud, rest, custom, ...)
   # - Build the go operator
+  # - Execute local tests using kubebuilder envtests which runs locally a Kube API and etcd servers
   build:
     # executor: go-executor
     docker:
@@ -34,8 +35,11 @@ jobs:
           go get github.com/shurcooL/vfsgen
           go get github.com/mitchellh/gox
           go get golang.org/x/lint/golint
+          curl -L https://raw.githubusercontent.com/kubernetes-sigs/kubebuilder/master/scripts/install.sh | sh -
+          export PATH=$PATH:/usr/local/kubebuilder/bin
           make assets
           make build
+          make test
           make cross
 
   # Steps
