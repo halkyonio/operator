@@ -124,28 +124,29 @@ func createService(component v1alpha1.Component, config rest.Config, c client.Cl
 		}
 
 		log.Infof("### Created %s CRD's service component", component.Name)
-		component.Status.Phase = v1alpha1.PhaseServiceCreation
-		svcFinalizerName := "service.component.k8s.io"
-		if !ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
-			component.ObjectMeta.Finalizers = append(component.ObjectMeta.Finalizers, svcFinalizerName)
-		}
 	}
 
-	// Fetch the latest Component created (as it could have been modified by another step of the pipeline
-	// TODO : ADD spec clone
+	// Fetch the latest Component created (as it could have been modified by another step of the pipeline)
 	newComponent := &v1alpha1.Component{}
 	err = c.Get(context.TODO(), types.NamespacedName{Name: component.Name, Namespace: component.Namespace}, newComponent)
 	if err != nil {
 		return err
 	}
-	newComponent.Status = component.Status
+	// Update status
+	newComponent.Status.Phase = v1alpha1.PhaseServiceCreation
+	// Add Finalizer to allow the serviceinstance/binding to be deleted when the component will be deleted
+	svcFinalizerName := "service.component.k8s.io"
+	if !ContainsString(newComponent.ObjectMeta.Finalizers, svcFinalizerName) {
+		newComponent.ObjectMeta.Finalizers = append(newComponent.ObjectMeta.Finalizers, svcFinalizerName)
+	}
 	err = c.Update(context.TODO(), newComponent)
 	if err != nil && k8serrors.IsConflict(err) {
 		log.Infof("## Component Service - status update failed")
 		return err
 	}
 	log.Info("## Pipeline 'service catalog' ended ##")
-	log.Infof("## Status updated : %s ##",component.Status.Phase)
+	log.Infof("## Status updated : %s ##",newComponent.Status.Phase)
+	log.Infof("## Status RevNumber : %s ##",newComponent.Status.RevNumber)
 	log.Info("------------------------------------------------------")
 	return nil
 }
