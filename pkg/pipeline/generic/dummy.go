@@ -18,11 +18,11 @@ limitations under the License.
 package generic
 
 import (
-	"context"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
+	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

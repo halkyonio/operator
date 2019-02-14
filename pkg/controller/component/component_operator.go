@@ -18,9 +18,9 @@ limitations under the License.
 package component
 
 import (
-	"context"
 	"github.com/snowdrop/component-operator/pkg/pipeline/generic"
 	"github.com/snowdrop/component-operator/pkg/pipeline/outerloop"
+	"golang.org/x/net/context"
 	"k8s.io/client-go/rest"
 	"strconv"
 

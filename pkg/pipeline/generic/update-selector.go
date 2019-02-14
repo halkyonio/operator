@@ -1,10 +1,10 @@
 package generic
 
 import (
-	"context"
-	log "github.com/sirupsen/logrus"
+ 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
+	"golang.org/x/net/context"
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 
