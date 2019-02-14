@@ -18,7 +18,7 @@ limitations under the License.
 package servicecatalog
 
 import (
-	"context"
+	"golang.org/x/net/context"
 	"encoding/json"
 	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	log "github.com/sirupsen/logrus"
@@ -30,6 +30,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
@@ -65,40 +66,80 @@ func (newServiceInstanceStep) Handle(component *v1alpha1.Component, config *rest
 func createService(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
-	for i, s := range component.Spec.Services {
-		// Convert the parameters into a JSon string
-		mapParams := ParametersAsMap(s.Parameters)
-		rawJSON := string(BuildParameters(mapParams).Raw)
-		component.Spec.Services[i].ParametersJSon = rawJSON
+	IsServiceInstalled := false
 
-		// Create the ServiceInstance and ServiceBinding using the template
-		tmpl, ok := util.Templates["servicecatalog/serviceinstance"]
-		if ok {
-			err := createResource(tmpl, &component, c)
-			if err != nil {
-				log.Infof("## Service instance creation failed !")
-				return err
-			}
-		}
-		tmpl, ok = util.Templates["servicecatalog/servicebinding"]
-		if ok {
-			err := createResource(tmpl, &component, c)
-			if err != nil {
-				log.Infof("## Service Binding creation failed !")
-				return err
-			}
-		}
-		log.Infof("### Created service instance's '%s' for the service/class '%s' and plan '%s'", s.Name, s.Class, s.Plan)
+	// IF the ServiceInstance/ServiceBinding already exists, then we try only to change the status
+	// Let's retrieve the ServiceBindings to delete them first
+	list, err := listServiceBindings(&component, c)
+	if err != nil {
+		return err
 	}
 
-	log.Infof("### Created %s CRD's service component", component.Name)
-	component.Status.Phase = v1alpha1.PhaseServiceCreation
-	svcFinalizerName := "service.component.k8s.io"
-	if !ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
-		component.ObjectMeta.Finalizers = append(component.ObjectMeta.Finalizers, svcFinalizerName)
+	// If the ServiceBinding List is not empty, then we have a binding with a Secret and ServiceInstance
+	if len(list.Items) > 0 {
+		// Retrieve ServiceInstances
+		serviceInstanceList := new(servicecatalog.ServiceInstanceList)
+		serviceInstanceList.TypeMeta = metav1.TypeMeta{
+			Kind:       "ServiceInstance",
+			APIVersion: "servicecatalog.k8s.io/v1beta1",
+		}
+		listOps := &client.ListOptions{
+			Namespace: component.ObjectMeta.Namespace,
+		}
+		err = c.List(context.TODO(), listOps, serviceInstanceList)
+		if err != nil {
+			return err
+		}
+
+		if len(serviceInstanceList.Items) > 0 {
+			IsServiceInstalled = true
+		}
 	}
 
-	err := c.Update(context.TODO(), &component)
+	if IsServiceInstalled != true {
+		for i, s := range component.Spec.Services {
+			// Convert the parameters into a JSon string
+			mapParams := ParametersAsMap(s.Parameters)
+			rawJSON := string(BuildParameters(mapParams).Raw)
+			component.Spec.Services[i].ParametersJSon = rawJSON
+
+			// Create the ServiceInstance and ServiceBinding using the template
+			tmpl, ok := util.Templates["servicecatalog/serviceinstance"]
+			if ok {
+				err := createResource(tmpl, &component, c)
+				if err != nil {
+					log.Infof("## Service instance creation failed !")
+					return err
+				}
+			}
+			tmpl, ok = util.Templates["servicecatalog/servicebinding"]
+			if ok {
+				err := createResource(tmpl, &component, c)
+				if err != nil {
+					log.Infof("## Service Binding creation failed !")
+					return err
+				}
+			}
+			log.Infof("### Created service instance's '%s' for the service/class '%s' and plan '%s'", s.Name, s.Class, s.Plan)
+		}
+
+		log.Infof("### Created %s CRD's service component", component.Name)
+		component.Status.Phase = v1alpha1.PhaseServiceCreation
+		svcFinalizerName := "service.component.k8s.io"
+		if !ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
+			component.ObjectMeta.Finalizers = append(component.ObjectMeta.Finalizers, svcFinalizerName)
+		}
+	}
+
+	// Fetch the latest Component created (as it could have been modified by another step of the pipeline
+	// TODO : ADD spec clone
+	newComponent := &v1alpha1.Component{}
+	err = c.Get(context.TODO(), types.NamespacedName{Name: component.Name, Namespace: component.Namespace}, newComponent)
+	if err != nil {
+		return err
+	}
+	newComponent.Status = component.Status
+	err = c.Update(context.TODO(), newComponent)
 	if err != nil && k8serrors.IsConflict(err) {
 		log.Infof("## Component Service - status update failed")
 		return err
