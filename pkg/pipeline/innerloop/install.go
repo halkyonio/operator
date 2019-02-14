@@ -191,6 +191,7 @@ func installInnerLoop(component v1alpha1.Component, cfg rest.Config, c client.Cl
 	}
 	log.Info("## Pipeline 'innerloop' ended ##")
 	log.Infof("## Status updated : %s ##",component.Status.Phase)
+	log.Infof("## Status RevNumber : %s ##",component.Status.RevNumber)
 	log.Info("------------------------------------------------------")
 	return nil
 }

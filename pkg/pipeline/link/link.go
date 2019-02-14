@@ -175,6 +175,7 @@ func createLink(component v1alpha1.Component, cfg rest.Config, c client.Client, 
 	}
 	log.Info("## Pipeline 'link' ended ##")
 	log.Infof("## Status updated : %s ##",component.Status.Phase)
+	log.Infof("## Status RevNumber : %s ##",component.Status.RevNumber)
 	log.Info("------------------------------------------------------")
 	return nil
 }
