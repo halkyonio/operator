@@ -100,7 +100,7 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
   oc apply -f examples/demo/component-link.yml
   ```  
   
-### Switch fromm inner to outer
+### Switch from inner to outer
 
 - Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
   the dev loop to the publish loop
