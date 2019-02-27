@@ -20,20 +20,19 @@
 - Start the Operator locally
   ```bash
   $ oc new-project my-spring-app
-  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/component-operator/main.go
+  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/manager/main.go
   
 - In a separate terminal a component's yaml file with a project `/path/to/project`
-  ```bash
-  $ echo component.yml << EOF
-  apiVersion: component.k8s.io/v1alpha1
-  kind: Component
-  metadata:
-    name: my-spring-boot
-  spec:
-    deploymentMode: innerloop
-    EOF
-  $ oc apply -f component.yml 
-  ```  
+```bash
+echo "
+apiVersion: component.k8s.io/v1alpha1
+kind: Component
+metadata:
+  name: my-spring-boot
+spec:
+  runtime: spring-boot
+  deploymentMode: innerloop" | oc create -f -
+```
 
 - Check if the operation has configured the `innerloop` with the following resources
   ```bash
