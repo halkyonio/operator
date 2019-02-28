@@ -15,6 +15,8 @@ GOFILES      := $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 VFSGENDEV   := $(GOPATH)/bin/vfsgendev
 PREFIX      ?= $(shell pwd)
 
+default: build
+
 .PHONY: clean
 clean:
 	@echo "> Remove build dir"
