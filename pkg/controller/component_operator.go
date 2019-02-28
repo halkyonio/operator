@@ -44,10 +44,9 @@ import (
 	. "github.com/snowdrop/component-operator/pkg/util/helper"
 )
 
-var (
+const (
 	svcFinalizerName = "service.component.k8s.io"
-	// Create a new instance of the logger. You can have any number of instances.
-	log = logrus.New()
+	controllerName   = "component-controller"
 )
 
 // New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -59,7 +58,7 @@ func New(mgr manager.Manager) error {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func create(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("component-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
@@ -107,6 +106,7 @@ type ReconcileComponent struct {
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	log := logrus.New()
 
 	operation := ""
 
