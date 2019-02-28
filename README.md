@@ -53,30 +53,26 @@ Table of Contents
   ```bash
   oc get all,pvc,component
   NAME                         READY     STATUS    RESTARTS   AGE
-  pod/my-spring-boot-1-hrzcv   1/1       Running   0          11s
+  pod/my-spring-boot-1-nrszv   1/1       Running   0          41s
   
   NAME                                     DESIRED   CURRENT   READY     AGE
-  replicationcontroller/my-spring-boot-1   1         1         1         12s
+  replicationcontroller/my-spring-boot-1   1         1         1         44s
   
-  NAME                         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
-  service/component-operator   ClusterIP   172.30.54.114    <none>        60000/TCP   3m
-  service/my-spring-boot       ClusterIP   172.30.189.247   <none>        8080/TCP    15s
+  NAME                     TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+  service/my-spring-boot   ClusterIP   172.30.73.5   <none>        8080/TCP   45s
   
   NAME                                                REVISION   DESIRED   CURRENT   TRIGGERED BY
-  deploymentconfig.apps.openshift.io/my-spring-boot   1          1         1         image(copy-supervisord:latest),image(dev-runtime:latest)
+  deploymentconfig.apps.openshift.io/my-spring-boot   1          1         1         image(copy-supervisord:latest),image(dev-runtime-spring-boot:latest)
   
-  NAME                                              DOCKER REPO                                      TAGS      UPDATED
-  imagestream.image.openshift.io/copy-supervisord   172.30.1.1:5000/my-spring-app/copy-supervisord   latest    13 seconds ago
-  imagestream.image.openshift.io/dev-runtime            172.30.1.1:5000/my-spring-app/dev-runtime            latest    12 seconds ago
+  NAME                                                     DOCKER REPO                                                     TAGS      UPDATED
+  imagestream.image.openshift.io/copy-supervisord          docker-registry.default.svc:5000/demo/copy-supervisord          latest    45 seconds ago
+  imagestream.image.openshift.io/dev-runtime-spring-boot   docker-registry.default.svc:5000/demo/dev-runtime-spring-boot   latest    45 seconds ago
   
-  NAME                                      HOST/PORT                                           PATH      SERVICES         PORT      TERMINATION   WILDCARD
-  route.route.openshift.io/my-spring-boot   my-spring-boot-my-spring-app.192.168.99.50.nip.io             my-spring-boot   <all>                   None
+  NAME                                        RUNTIME       VERSION   SERVICE   TYPE      CONSUMED BY   AGE
+  component.component.k8s.io/my-spring-boot   spring-boot                                               46s
   
-  NAME                            STATUS    VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-  persistentvolumeclaim/m2-data   Bound     pv0065    100Gi      RWO,ROX,RWX                   15s
-  
-  NAME                                        AGE
-  component.component.k8s.io/my-spring-boot   15s
+  NAME                                           STATUS    VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+  persistentvolumeclaim/m2-data-my-spring-boot   Bound     pv005     1Gi        RWO                           46s
   ```
 
 - To cleanup the project installed (component)
