@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	compv1alpha "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/onsi/gomega"
+	compv1alpha "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -27,10 +27,10 @@ func TestInnerLoop(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	instance := &compv1alpha.Component{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "foo",
+			Name:      "foo",
 			Namespace: "default"},
-		Spec:compv1alpha.ComponentSpec{
-			Runtime: "spring-boot",
+		Spec: compv1alpha.ComponentSpec{
+			Runtime:        "spring-boot",
 			DeploymentMode: "innerloop",
 		},
 	}
@@ -42,7 +42,7 @@ func TestInnerLoop(t *testing.T) {
 	c = mgr.GetClient()
 
 	recFn, requests := SetupTestReconcile(NewReconciler(mgr))
-	g.Expect(Create(mgr, recFn)).NotTo(gomega.HaveOccurred())
+	g.Expect(create(mgr, recFn)).NotTo(gomega.HaveOccurred())
 
 	stopMgr, mgrStopped := StartTestManager(mgr, g)
 
@@ -67,17 +67,17 @@ func TestInnerLoop(t *testing.T) {
 	g.Eventually(func() error { return c.Get(context.TODO(), depKey, deploy) }, timeout).
 		Should(gomega.Succeed())
 
-   /*
-   listOps := client.ListOptions{
-		Namespace:     "default",
-	}
-	deployments := new(appsv1.DeploymentList)
-	deployments.TypeMeta = metav1.TypeMeta{
-		Kind:       "Deployment",
-		APIVersion: "apps/v1",
-	}
-	c.List(context.TODO(),&listOps, deployments)
-    */
+		/*
+		   listOps := client.ListOptions{
+				Namespace:     "default",
+			}
+			deployments := new(appsv1.DeploymentList)
+			deployments.TypeMeta = metav1.TypeMeta{
+				Kind:       "Deployment",
+				APIVersion: "apps/v1",
+			}
+			c.List(context.TODO(),&listOps, deployments)
+		*/
 
 	// Delete the Deployment and expect Reconcile to be called for Deployment deletion
 	g.Expect(c.Delete(context.TODO(), deploy)).NotTo(gomega.HaveOccurred())
@@ -90,4 +90,3 @@ func TestInnerLoop(t *testing.T) {
 		Should(gomega.MatchError("deployments.apps \"foo\" not found"))
 
 }
-

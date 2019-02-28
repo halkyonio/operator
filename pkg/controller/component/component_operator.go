@@ -48,18 +48,18 @@ var (
 	_                reconcile.Reconciler = &ReconcileComponent{}
 	svcFinalizerName                      = "service.component.k8s.io"
 	// Create a new instance of the logger. You can have any number of instances.
-	log       = logrus.New()
+	log                = logrus.New()
 	reconcileComponent = &ReconcileComponent{}
 )
 
-// Add creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
+// New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return Create(mgr, NewReconciler(mgr))
+func New(mgr manager.Manager) error {
+	return create(mgr, NewReconciler(mgr))
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
-func Create(mgr manager.Manager, r reconcile.Reconciler) error {
+func create(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New("component-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -98,6 +98,7 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 	reconcileComponent = rc
 	return rc
 }
+
 type ReconcileComponent struct {
 	client              client.Client
 	config              *rest.Config
