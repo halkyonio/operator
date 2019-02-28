@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	//"k8s.io/apimachinery/pkg/runtime"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -58,6 +59,9 @@ type ComponentSpec struct {
 	Features []Feature `json:"features,omitempty" `
 	//
 	Links []Link `json:"links,omitempty"`
+
+	// Object
+	Object interface{}
 }
 
 // ComponentStatus defines the observed state of Component
