@@ -6,7 +6,7 @@ Table of Contents
 =================
 
   * [For the users](#for-the-users)
-    * [How to play with operator locally](#how-to-play-with-operator-locally)
+    * [How to play with the Component operator locally](#how-to-play-with-the-component-operator-locally)
     * [A more complex scenario](#a-more-complex-scenario)
     * [Switch fromm inner to outer mode](#switch-fromm-inner-to-outer)
     * [How to install the operator on an cluster](#how-to-install-the-operator-on-the-cluster)
@@ -17,7 +17,7 @@ Table of Contents
 
 ## For the users
 
-### How to play with operator locally
+### How to play with the Component operator locally
 
 - Log on to an OpenShift cluster >=3.10 with cluster-admin rights
 - Create a namespace `component-operator`
