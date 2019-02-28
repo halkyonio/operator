@@ -45,11 +45,9 @@ import (
 )
 
 var (
-	_                reconcile.Reconciler = &ReconcileComponent{}
-	svcFinalizerName                      = "service.component.k8s.io"
+	svcFinalizerName = "service.component.k8s.io"
 	// Create a new instance of the logger. You can have any number of instances.
-	log                = logrus.New()
-	reconcileComponent = &ReconcileComponent{}
+	log = logrus.New()
 )
 
 // New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -95,7 +93,6 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 	rc.linkSteps = []pipeline.Step{
 		link.NewLinkStep(),
 	}
-	reconcileComponent = rc
 	return rc
 }
 
