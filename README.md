@@ -38,16 +38,16 @@ Table of Contents
   $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/manager/main.go
   
 - In a separate terminal create a component's yaml file with the following information
-```bash
-echo "
-apiVersion: component.k8s.io/v1alpha1
-kind: Component
-metadata:
-  name: my-spring-boot
-spec:
-  runtime: spring-boot
-  deploymentMode: innerloop" | oc apply -f -
-```
+  ```bash
+  echo "
+  apiVersion: component.k8s.io/v1alpha1
+  kind: Component
+  metadata:
+    name: my-spring-boot
+  spec:
+    runtime: spring-boot
+    deploymentMode: innerloop" | oc apply -f -
+  ```
 
 - Check if the `operator` has created the following kubernetes resources, part of the `innerloop` deployment mode
   ```bash
