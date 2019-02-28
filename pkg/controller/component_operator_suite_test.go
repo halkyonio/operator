@@ -1,4 +1,4 @@
-package component
+package controller
 
 import (
 	stdlog "log"
@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	apis "github.com/snowdrop/component-operator/pkg/apis"
 	"github.com/onsi/gomega"
+	"github.com/snowdrop/component-operator/pkg/apis"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"

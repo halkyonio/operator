@@ -1,4 +1,4 @@
-package component
+package controller
 
 import (
 	"testing"
@@ -68,15 +68,15 @@ func TestInnerLoop(t *testing.T) {
 		Should(gomega.Succeed())
 
 		/*
-		   listOps := client.ListOptions{
-				Namespace:     "default",
-			}
-			deployments := new(appsv1.DeploymentList)
-			deployments.TypeMeta = metav1.TypeMeta{
-				Kind:       "Deployment",
-				APIVersion: "apps/v1",
-			}
-			c.List(context.TODO(),&listOps, deployments)
+			   listOps := client.ListOptions{
+					Namespace:     "default",
+				}
+				deployments := new(appsv1.DeploymentList)
+				deployments.TypeMeta = metav1.TypeMeta{
+					Kind:       "Deployment",
+					APIVersion: "apps/v1",
+				}
+				c.List(context.TODO(),&listOps, deployments)
 		*/
 
 	// Delete the Deployment and expect Reconcile to be called for Deployment deletion

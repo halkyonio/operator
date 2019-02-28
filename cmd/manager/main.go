@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/snowdrop/component-operator/pkg/apis"
-	"github.com/snowdrop/component-operator/pkg/controller/component"
+	"github.com/snowdrop/component-operator/pkg/controller"
 	k8sutil "github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"log"
 	"runtime"
@@ -48,7 +48,7 @@ func main() {
 	}
 
 	// Create component controller and add it to the manager
-	if err := component.New(mgr); err != nil {
+	if err := controller.New(mgr); err != nil {
 		log.Fatal(err)
 	}
 
