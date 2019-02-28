@@ -82,8 +82,8 @@ Table of Contents
   
 ### A more complex scenario   
 
-In order to play with a more complex scenario where we would like to install 2 components: `frontend`, `backend` and database's service from the Ansible Broker's catalog
-like also the `links` needed to update the `DeploymentConfig`, then you should execute the following command at the root of the github project within a terminal
+In order to play with a more complex scenario where we would like to install 2 components: `frontend`, `backend` and a database's service from the Ansible Broker's catalog
+like also the `links` needed to update the `DeploymentConfig`, then you should execute the following commands at the root of the github project within a terminal
 
   ```bash
   oc apply -f examples/demo/component-client.yml
