@@ -25,19 +25,19 @@ Table of Contents
   $ oc new-project component-operator
   ```
 
-- Deploy the resources : service account, rbac amd crd definition
+- Deploy the resources : service account, rbac and crd definition
   ```bash
   $ oc create -f deploy/sa.yaml
   $ oc create -f deploy/rbac.yaml
   $ oc create -f deploy/crd.yaml
   ```
 
-- Start the Operator locally
+- Start the Operator locally using the `Main` go file
   ```bash
   $ oc new-project my-spring-app
   $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/manager/main.go
   
-- In a separate terminal a component's yaml file with a project `/path/to/project`
+- In a separate terminal create a component's yaml file with the following information
 ```bash
 echo "
 apiVersion: component.k8s.io/v1alpha1
@@ -49,7 +49,7 @@ spec:
   deploymentMode: innerloop" | oc apply -f -
 ```
 
-- Check if the operation has configured the `innerloop` with the following resources
+- Check if the `operator` has created the following kubernetes resources, part of the `innerloop` deployment mode
   ```bash
   oc get all,pvc,component
   NAME                         READY     STATUS    RESTARTS   AGE
