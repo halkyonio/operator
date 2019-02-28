@@ -20,20 +20,19 @@
 - Start the Operator locally
   ```bash
   $ oc new-project my-spring-app
-  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/component-operator/main.go
+  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/manager/main.go
   
 - In a separate terminal a component's yaml file with a project `/path/to/project`
-  ```bash
-  $ echo component.yml << EOF
-  apiVersion: component.k8s.io/v1alpha1
-  kind: Component
-  metadata:
-    name: my-spring-boot
-  spec:
-    deploymentMode: innerloop
-    EOF
-  $ oc apply -f component.yml 
-  ```  
+```bash
+echo "
+apiVersion: component.k8s.io/v1alpha1
+kind: Component
+metadata:
+  name: my-spring-boot
+spec:
+  runtime: spring-boot
+  deploymentMode: innerloop" | oc apply -f -
+```
 
 - Check if the operation has configured the `innerloop` with the following resources
   ```bash
@@ -101,7 +100,7 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
   oc apply -f examples/demo/component-link.yml
   ```  
   
-### Switch fromm inner to outer
+### Switch from inner to outer
 
 - Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
   the dev loop to the publish loop
