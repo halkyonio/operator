@@ -2,6 +2,16 @@
 
 [![CircleCI](https://circleci.com/gh/snowdrop/component-operator/tree/master.svg?style=shield)](https://circleci.com/gh/snowdrop/component-operator/tree/master)
 
+Table of Contents
+=================
+
+  * [How to play with operator locally](#how-to-play-with-operator-locally)
+  * [A more complex scenario](#a-more-complex-scenario)
+  * [Switch fromm inner to outer mode](#switch-fromm-inner-to-outer)
+  * [How to install the operator on an cluster](#how-to-install-the-operator-on-the-cluster)
+  * [Cleanup the operator](#cleanup)
+  * [How To create the operator, crd](#how-to-create-the-operator-crd)
+
 ### How to play with operator locally
 
 - Log on to an OpenShift cluster >=3.10 with cluster-admin rights
