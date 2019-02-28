@@ -86,8 +86,8 @@ spec:
   
 ### A more complex scenario   
 
-This project provides a more complex scenario where we will deploy 2 components: frontend, backend, a service from a catalog
-like also the `links` needed to update the DeploymentConfig in order to get the service's parameters or endpoint address
+In order to play with a more complex scenario where we would like to install 2 components: `frontend`, `backend` and database's service from the Ansible Broker's catalog
+like also the `links` needed to update the `DeploymentConfig`, then you should execute the following command at the root of the github project within a terminal
 
   ```bash
   oc apply -f examples/demo/component-client.yml
@@ -99,8 +99,14 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
   
 ### Switch from inner to outer
 
-- Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
-  the dev loop to the publish loop
+The existing operator supports to switch from the `inner` or development mode (where code must be pushed to the development's pod) to the `outer` mode (responsible to perform a `s2i` build 
+deployment using a SCM project). In this case, a container image will be created from the project compiled and next a new deploymentConfig will be created in order to launch the 
+runtime.
+
+In order to switch, execute the following operations: 
+
+- Decorate the `Component CRD yaml` file with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
+  the dev loop to the outer loop
 
   ```bash
    annotations:
@@ -115,19 +121,24 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
   
   **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
   
-- Patch the component when it has been deployed to switch fromm `inner` to `outer`
+- Patch the component when it has been deployed to switch from the `inner` to the `outer` deployment mode
   
   ```bash
   oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
   ```   
   
-### How to install the operator on the cluster
+### How to install the operator on a cluster
+
+In the previous section, the operator was launched locally using a `go SDK`. If you would like to install it as a `container` on an OpenShift cluster, then it is required to build 
+the container image using the `operator-sdk` tool [1], to push the image and next to install the operator using a `Deployment` kubernetes resource as defined hereafter
 
   ```bash
   operator-sdk build quay.io/snowdrop/component-operator
   docker push quay.io/snowdrop/component-operator
   oc create -f deploy/operator.yaml
-  ```  
+  ``` 
+  
+[1] https://github.com/operator-framework/operator-sdk   
 
 ### Cleanup
 
