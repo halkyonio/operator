@@ -45,8 +45,11 @@ import (
 )
 
 const (
-	svcFinalizerName = "service.component.k8s.io"
-	controllerName   = "component-controller"
+	svcFinalizerName  = "service.component.k8s.io"
+	controllerName    = "component-controller"
+	deletionOperation = "DELETION"
+	creationOperation = "CREATION"
+	updateOperation   = "UPDATE"
 )
 
 // New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -144,7 +147,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		// The object is being deleted
 		if ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
 			// Component has been deleted like also its dependencies
-			operation = "DELETION"
+			operation = deletionOperation
 
 			// our finalizer is present, so lets handle our external dependency
 			// Check if the component is a Service and then delete the ServiceInstance, ServiceBinding
@@ -173,7 +176,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	if component.Status.RevNumber == component.ObjectMeta.ResourceVersion {
 
 		// Component Custom Resource instance has been created
-		operation = "CREATION"
+		operation = creationOperation
 
 		// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
 		if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
@@ -214,7 +217,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			}
 		}
 	} else {
-		operation = "UPDATE"
+		operation = updateOperation
 
 		if component.Spec.DeploymentMode == "outerloop" {
 			for _, a := range r.outerLoopSteps {
