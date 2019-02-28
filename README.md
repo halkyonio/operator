@@ -5,12 +5,17 @@
 Table of Contents
 =================
 
-  * [How to play with operator locally](#how-to-play-with-operator-locally)
-  * [A more complex scenario](#a-more-complex-scenario)
-  * [Switch fromm inner to outer mode](#switch-fromm-inner-to-outer)
-  * [How to install the operator on an cluster](#how-to-install-the-operator-on-the-cluster)
-  * [Cleanup the operator](#cleanup)
-  * [How To create the operator, crd](#how-to-create-the-operator-crd)
+  * [For the users](#for-the-users)
+    * [How to play with operator locally](#how-to-play-with-operator-locally)
+    * [A more complex scenario](#a-more-complex-scenario)
+    * [Switch fromm inner to outer mode](#switch-fromm-inner-to-outer)
+    * [How to install the operator on an cluster](#how-to-install-the-operator-on-the-cluster)
+    * [Cleanup the operator](#cleanup)
+  * [For the developers only](#for-the-developers-only)
+      * [How To create the operator, crd](#how-to-create-the-operator-crd)
+  
+
+## For the users
 
 ### How to play with operator locally
 
@@ -133,6 +138,8 @@ like also the `links` needed to update the DeploymentConfig in order to get the 
   oc delete -f deploy/rbac.yaml
   oc delete -f deploy/sa.yaml
   ```   
+  
+## For the developers only
   
 ### How To create the operator, crd
 
