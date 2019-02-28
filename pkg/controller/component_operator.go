@@ -77,25 +77,25 @@ func create(mgr manager.Manager, r reconcile.Reconciler) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
-	rc := &ReconcileComponent{}
-	rc.client = mgr.GetClient()
-	rc.config = mgr.GetConfig()
-	rc.scheme = mgr.GetScheme()
-	rc.innerLoopSteps = []pipeline.Step{
-		innerloop.NewInstallStep(),
+	return &ReconcileComponent{
+		client: mgr.GetClient(),
+		config: mgr.GetConfig(),
+		scheme: mgr.GetScheme(),
+		innerLoopSteps: []pipeline.Step{
+			innerloop.NewInstallStep(),
+		},
+		outerLoopSteps: []pipeline.Step{
+			outerloop.NewInstallStep(),
+			outerloop.NewCloneDeploymentStep(),
+			generic.NewUpdateServiceSelectorStep(),
+		},
+		serviceCatalogSteps: []pipeline.Step{
+			servicecatalog.NewServiceInstanceStep(),
+		},
+		linkSteps: []pipeline.Step{
+			link.NewLinkStep(),
+		},
 	}
-	rc.outerLoopSteps = []pipeline.Step{
-		outerloop.NewInstallStep(),
-		outerloop.NewCloneDeploymentStep(),
-		generic.NewUpdateServiceSelectorStep(),
-	}
-	rc.serviceCatalogSteps = []pipeline.Step{
-		servicecatalog.NewServiceInstanceStep(),
-	}
-	rc.linkSteps = []pipeline.Step{
-		link.NewLinkStep(),
-	}
-	return rc
 }
 
 type ReconcileComponent struct {
