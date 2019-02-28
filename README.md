@@ -81,7 +81,7 @@ spec:
   $ oc delete components,route,svc,is,pvc,dc --all=true && 
   ```
   
-** REMARK ** : You can also use the go client to create and publish a component CRD using the API
+**REMARK** : You can also use the go client to create and publish a component CRD using the API
 
   ```bash
   $ go run cmd/sd/sd.go create my-spring-boot
