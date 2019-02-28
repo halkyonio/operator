@@ -31,7 +31,7 @@ metadata:
   name: my-spring-boot
 spec:
   runtime: spring-boot
-  deploymentMode: innerloop" | oc create -f -
+  deploymentMode: innerloop" | oc apply -f -
 ```
 
 - Check if the operation has configured the `innerloop` with the following resources
