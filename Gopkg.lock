@@ -675,7 +675,6 @@
     "pkg/recorder",
     "pkg/runtime/inject",
     "pkg/runtime/log",
-    "pkg/runtime/scheme",
     "pkg/runtime/signals",
     "pkg/source",
     "pkg/source/internal",
@@ -700,6 +699,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9130fef1dbd7e743725fc0c6f223533316f5e8f9df3f1d611f6b3e79af567641"
+  inputs-digest = "4fb4524f10413b80adf373d23cbb7b08aa45412cfc11f5016067ed4456f03a0d"
   solver-name = "gps-cdcl"
   solver-version = 1
