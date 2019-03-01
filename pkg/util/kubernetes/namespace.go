@@ -32,8 +32,8 @@ func SetNamespace(resource interface{}, component *v1alpha1.Component) {
 func SetOwnerReferences(obj metav1.Object, component *v1alpha1.Component) {
 	obj.SetOwnerReferences([]metav1.OwnerReference{
 		*metav1.NewControllerRef(component, schema.GroupVersionKind{
-			Group:   v1alpha1.SchemeGroupVersion.Group,
-			Version: v1alpha1.SchemeGroupVersion.Version,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    component.Kind,
 		}),
 	})

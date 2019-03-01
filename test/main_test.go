@@ -8,8 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	f "github.com/operator-framework/operator-sdk/pkg/test"
-	"github.com/snowdrop/component-operator/pkg/apis"
-	v1alpha1 "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -34,7 +33,7 @@ func TestTypeMetaComponent(t *testing.T) {
 			APIVersion: "component.component.k8s.io/v1alpha1",
 		},
 	}
-	err := f.AddToFrameworkScheme(apis.AddToScheme, component)
+	err := f.AddToFrameworkScheme(v1alpha1.Install, component)
 	if err != nil {
 		t.Fatalf("failed to add custom resource scheme to framework: %v", err)
 	}
@@ -67,7 +66,7 @@ func componentTest(t *testing.T, f *f.Framework, ctx *f.TestCtx) error {
 		return err
 	}
 
-	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "example-component", Namespace: namespace},component)
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "example-component", Namespace: namespace}, component)
 	if err != nil {
 		return err
 	}
