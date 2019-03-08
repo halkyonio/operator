@@ -1,13 +1,13 @@
-package component
+package controller
 
 import (
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	stdlog "log"
 	"os"
 	"path/filepath"
 	"sync"
 	"testing"
 
-	apis "github.com/snowdrop/component-operator/pkg/apis"
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	t := &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "..", "..", "config", "crds")},
 	}
-	apis.AddToScheme(scheme.Scheme)
+	v1alpha1.Install(scheme.Scheme)
 
 	var err error
 	if cfg, err = t.Start(); err != nil {

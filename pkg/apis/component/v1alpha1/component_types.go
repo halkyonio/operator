@@ -62,7 +62,7 @@ type ComponentSpec struct {
 
 // ComponentStatus defines the observed state of Component
 type ComponentStatus struct {
-	Phase Phase `json:"phase,omitempty"`
+	Phase     Phase `json:"phase,omitempty"`
 	RevNumber string
 }
 
@@ -135,16 +135,15 @@ const (
 	// PhaseError --
 	PhaseError Phase = "Error"
 
-
 	// See https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/
-	NameLabelKey      = "app.kubernetes.io/name"
-	VersionLabelKey   = "app.kubernetes.io/version"
-	InstanceLabelKey  = "app.kubernetes.io/instance"
-	PartOfLabelKey    = "app.kubernetes.io/part-of"
-	ComponentLabelKey = "app.kubernetes.io/component"
-	ManagedByLabelKey = "app.kubernetes.io/managed-by"
-    RuntimeLabelKey   = "app.openshift.io/runtime"
-    RuntimeVersionLabelKey = "app.openshift.io/version"
+	NameLabelKey           = "app.kubernetes.io/name"
+	VersionLabelKey        = "app.kubernetes.io/version"
+	InstanceLabelKey       = "app.kubernetes.io/instance"
+	PartOfLabelKey         = "app.kubernetes.io/part-of"
+	ComponentLabelKey      = "app.kubernetes.io/component"
+	ManagedByLabelKey      = "app.kubernetes.io/managed-by"
+	RuntimeLabelKey        = "app.openshift.io/runtime"
+	RuntimeVersionLabelKey = "app.openshift.io/version"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -166,8 +165,4 @@ type ComponentList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Component `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&Component{}, &ComponentList{})
 }

@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package component
+package controller
 
 import (
 	"github.com/snowdrop/component-operator/pkg/pipeline/generic"
@@ -44,24 +44,24 @@ import (
 	. "github.com/snowdrop/component-operator/pkg/util/helper"
 )
 
-var (
-	_                reconcile.Reconciler = &ReconcileComponent{}
-	svcFinalizerName                      = "service.component.k8s.io"
-	// Create a new instance of the logger. You can have any number of instances.
-	log       = logrus.New()
-	reconcileComponent = &ReconcileComponent{}
+const (
+	svcFinalizerName  = "service.component.k8s.io"
+	controllerName    = "component-controller"
+	deletionOperation = "DELETION"
+	creationOperation = "CREATION"
+	updateOperation   = "UPDATE"
 )
 
-// Add creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
+// New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return Create(mgr, NewReconciler(mgr))
+func New(mgr manager.Manager) error {
+	return create(mgr, NewReconciler(mgr))
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
-func Create(mgr manager.Manager, r reconcile.Reconciler) error {
+func create(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("component-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
@@ -77,27 +77,27 @@ func Create(mgr manager.Manager, r reconcile.Reconciler) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
-	rc := &ReconcileComponent{}
-	rc.client = mgr.GetClient()
-	rc.config = mgr.GetConfig()
-	rc.scheme = mgr.GetScheme()
-	rc.innerLoopSteps = []pipeline.Step{
-		innerloop.NewInstallStep(),
+	return &ReconcileComponent{
+		client: mgr.GetClient(),
+		config: mgr.GetConfig(),
+		scheme: mgr.GetScheme(),
+		innerLoopSteps: []pipeline.Step{
+			innerloop.NewInstallStep(),
+		},
+		outerLoopSteps: []pipeline.Step{
+			outerloop.NewInstallStep(),
+			outerloop.NewCloneDeploymentStep(),
+			generic.NewUpdateServiceSelectorStep(),
+		},
+		serviceCatalogSteps: []pipeline.Step{
+			servicecatalog.NewServiceInstanceStep(),
+		},
+		linkSteps: []pipeline.Step{
+			link.NewLinkStep(),
+		},
 	}
-	rc.outerLoopSteps = []pipeline.Step{
-		outerloop.NewInstallStep(),
-		outerloop.NewCloneDeploymentStep(),
-		generic.NewUpdateServiceSelectorStep(),
-	}
-	rc.serviceCatalogSteps = []pipeline.Step{
-		servicecatalog.NewServiceInstanceStep(),
-	}
-	rc.linkSteps = []pipeline.Step{
-		link.NewLinkStep(),
-	}
-	reconcileComponent = rc
-	return rc
 }
+
 type ReconcileComponent struct {
 	client              client.Client
 	config              *rest.Config
@@ -109,6 +109,7 @@ type ReconcileComponent struct {
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	log := logrus.New()
 
 	operation := ""
 
@@ -146,7 +147,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		// The object is being deleted
 		if ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
 			// Component has been deleted like also its dependencies
-			operation = "DELETION"
+			operation = deletionOperation
 
 			// our finalizer is present, so lets handle our external dependency
 			// Check if the component is a Service and then delete the ServiceInstance, ServiceBinding
@@ -175,7 +176,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	if component.Status.RevNumber == component.ObjectMeta.ResourceVersion {
 
 		// Component Custom Resource instance has been created
-		operation = "CREATION"
+		operation = creationOperation
 
 		// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
 		if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
@@ -216,7 +217,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			}
 		}
 	} else {
-		operation = "UPDATE"
+		operation = updateOperation
 
 		if component.Spec.DeploymentMode == "outerloop" {
 			for _, a := range r.outerLoopSteps {

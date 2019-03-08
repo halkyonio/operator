@@ -1,10 +1,10 @@
-package component
+package controller
 
 import (
 	"testing"
 
-	compv1alpha "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/onsi/gomega"
+	compv1alpha "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"golang.org/x/net/context"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,14 +13,13 @@ import (
 
 var instance = compv1alpha.Component{
 	ObjectMeta: metav1.ObjectMeta{
-		Name: "foo",
+		Name:      "foo",
 		Namespace: "default"},
-	Spec:compv1alpha.ComponentSpec{
-		Runtime: "spring-boot",
+	Spec: compv1alpha.ComponentSpec{
+		Runtime:        "spring-boot",
 		DeploymentMode: "innerloop",
 	},
 }
-
 
 func TestComponentInstance(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
@@ -32,7 +31,7 @@ func TestComponentInstance(t *testing.T) {
 	c = mgr.GetClient()
 
 	recFn, _ := SetupTestReconcile(NewReconciler(mgr))
-	g.Expect(Create(mgr, recFn)).NotTo(gomega.HaveOccurred())
+	g.Expect(create(mgr, recFn)).NotTo(gomega.HaveOccurred())
 
 	stopMgr, mgrStopped := StartTestManager(mgr, g)
 
@@ -52,4 +51,3 @@ func TestComponentInstance(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	defer c.Delete(context.TODO(), &instance)
 }
-

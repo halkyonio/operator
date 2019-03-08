@@ -2,12 +2,11 @@ package main
 
 import (
 	"flag"
-	"log"
-	"runtime"
-
-	"github.com/snowdrop/component-operator/pkg/apis"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	k8sutil "github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	"log"
+	"runtime"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -35,32 +34,24 @@ func main() {
 		log.Fatalf("failed to get watch namespace: %v", err)
 	}
 
-	// Get a config to talk to the apiserver
-	cfg, err := config.GetConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Create a new Cmd to provide shared dependencies and start components
-	mgr, err := manager.New(cfg, manager.Options{Namespace: namespace})
+	mgr, err := manager.New(config.GetConfigOrDie(), manager.Options{Namespace: namespace})
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Print("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
+	log.Print("Registering Components")
+	if err := v1alpha1.Install(mgr.GetScheme()); err != nil {
 		log.Fatal(err)
 	}
 
-	// Setup all Controllers
-	if err := controller.AddToManager(mgr); err != nil {
+	// Create component controller and add it to the manager
+	if err := controller.New(mgr); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Print("Starting the Cmd.")
-
-	// Start the Cmd
+	// Start the manager
+	log.Print("Start the manager")
 	log.Fatal(mgr.Start(signals.SetupSignalHandler()))
 }

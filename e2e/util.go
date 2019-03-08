@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pkg/errors"
-	v1alpha1 "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	"io"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,11 +18,11 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"strings"
 	log "github.com/sirupsen/logrus"
+	cgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	cgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"strings"
 )
 
 var (
@@ -33,9 +33,8 @@ func init() {
 	// Register the core k8s types
 	cgoscheme.AddToScheme(scheme)
 	// Register custom resource type
-	v1alpha1.SchemeBuilder.AddToScheme(scheme)
+	v1alpha1.Install(scheme)
 }
-
 
 func runCmd(cmdS string) string {
 	cmd := exec.Command("/bin/sh", "-c", cmdS)
@@ -51,6 +50,7 @@ func runCmd(cmdS string) string {
 }
 
 func crudClient() client.Client {
+	scheme := runtime.NewScheme()
 	kubeconfig, err := config.GetConfig()
 	if err != nil {
 		panic(err)
@@ -65,16 +65,16 @@ func crudClient() client.Client {
 func springBootComponent(name, ns string) *v1alpha1.Component {
 	return &v1alpha1.Component{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.SchemeGroupVersion.String(),
-			Kind: v1alpha1.ComponentKind,
+			APIVersion: v1alpha1.GroupVersion.String(),
+			Kind:       v1alpha1.ComponentKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
-		  	Name: name,
-		  	Namespace: ns,
+			Name:      name,
+			Namespace: ns,
 		},
 		Spec: v1alpha1.ComponentSpec{
 			DeploymentMode: "innerloop",
-			Runtime: "spring-boot",
+			Runtime:        "spring-boot",
 		},
 	}
 }
@@ -85,7 +85,7 @@ func generateSpringBootJavaProject(outDir, template, artifactid string) {
 	client := http.Client{}
 	form := url.Values{}
 	form.Add("artifactid", artifactid)
-	form.Add("module",template)
+	form.Add("module", template)
 	form.Add("packagename", "org.acme")
 	parameters := form.Encode()
 	if parameters != "" {
