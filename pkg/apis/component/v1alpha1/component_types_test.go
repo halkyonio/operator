@@ -2,55 +2,83 @@ package v1alpha1
 
 import (
 	"fmt"
-	"github.com/onsi/gomega"
-	"reflect"
-	"testing"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/ghodss/yaml"
 	corev1 "k8s.io/api/core/v1"
+	"testing"
 )
 
-type Scheme struct {
-	Types map[string]reflect.Type
+// Spec
+type Spec struct {
+  App        string      `json:"app"`
+  InfoItems  []InfoItem  `json:"infoitems"`
 }
 
-func NewScheme() *Scheme {
-	return &Scheme{
-		Types: map[string]reflect.Type{},
-	}
-}
+// InfoItemType is a string that describes the value of InfoItem
+type InfoItemType string
 
-type Foo struct {
-	Name   string
-	Ref    *corev1.ObjectReference
+// InfoItemSource represents a source for the value of an InfoItem.
+type InfoItemSource struct {}
+
+// InfoItem is a human readable key,value pair containing important information about how to access the Application.
+type InfoItem struct {
+	// Name is a human readable title for this piece of information.
+	Name string `json:"name,omitempty"`
+
+	// Type of the value for this InfoItem.
+	Type InfoItemType `json:"type,omitempty"`
+
+	// Value is human readable content.
+	Value string `json:"value,omitempty"`
+
+	// ValueFrom defines a reference to derive the value from another source.
+	ValueFrom *InfoItemSource `json:"valueFrom,omitempty"`
+
 	Object interface{}
 }
 
-func TestComponentObject(t *testing.T) {
-	s := NewScheme()
-	component := Foo{
-		Name: "Hello",
+var data = `
+app: my-app
+infoitems:
+- Name: Spring Boot v1
+  Type: EnvVar
+  Object: 
+    - key: JAVA_HOME
+      value: /usr/local/bin/java
+    - key: JAVA_DIR
+      value: /usr/local/my-app
+`
+
+func TestUnMarshalling(t *testing.T) {
+	spec := Spec{}
+	err := yaml.Unmarshal([]byte(data), &spec)
+	if err != nil {
+		fmt.Print(err.Error())
 	}
 
-	env, tp := s.CreateEnvVar()
-	component.Object = env
-	s.Types[tp.String()] = tp
-
-	//envVar := &corev1.EnvVar{}
-	for idx, _ := range s.Types {
-		if s.Types[idx].String() == "**v1.EnvVar" {
-			envVar := component.Object.(*corev1.EnvVar)
-			g := gomega.NewGomegaWithT(t)
-			g.Expect(envVar.Name).To(gomega.Equal("Foo"))
-			g.Expect(envVar.Value).To(gomega.Equal("Bar"))
-		}
+	for _, info := range spec.InfoItems {
+		spew.Dump(CreateEnvVar(info.Type, info.Object))
 	}
-
 }
 
-func (s *Scheme) CreateEnvVar() (interface{}, reflect.Type) {
-	env := &corev1.EnvVar{
-		Name:  "Foo",
-		Value: "Bar",
+func CreateEnvVar(Type InfoItemType, obj interface{}) *[]corev1.EnvVar {
+	envVars := []corev1.EnvVar{}
+
+	r := obj.([]interface{})
+	for _, i := range r {
+		m := i.(map[string]interface{})
+		n := m["key"].(string)
+		v := m["value"].(string)
+
+		if Type == "EnvVar" {
+			env := corev1.EnvVar{
+				Name:  n,
+				Value: v,
+			}
+			envVars = append(envVars, env)
+			return &envVars
+		}
 	}
-	return env, reflect.TypeOf(&env)
+	return nil
 }

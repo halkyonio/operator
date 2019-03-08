@@ -21,13 +21,43 @@ spec:
     openAPIV3Schema:
       properties:
         spec:
+          required:
+            - app
+            - runtime
+            - buildtype
           properties:
+            app:
+              type: string
+            buildtype:
+              type: string
             runtime:
               type: string
               enum:
                 - spring-boot
                 - vert.x
                 - thorntail
+            infoitems:
+              items:
+                required:
+                  - name
+                  - value
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: string
+                  object:
+                    items:
+                      required:
+                        - kind
+                        - key
+                      properties:
+                        kind:
+                          type: string
+                        key:
+                          type: string
+                        value:
+                          type: string
   additionalPrinterColumns:
   - name: Runtime
     type: string

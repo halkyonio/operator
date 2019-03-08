@@ -2,3 +2,13 @@ apiVersion: "component.k8s.io/v1alpha1"
 kind: "Component"
 metadata:
   name: "example"
+spec:
+  app: "my-spring-boot"
+  runtime: "spring-boot"
+  infoitems:
+    - name: hello
+      value: world
+      object:
+        - kind: envvar
+          key1: JAVA_HOME
+          value: /usr/local/bin
