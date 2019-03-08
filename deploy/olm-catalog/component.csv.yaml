@@ -1,12 +1,14 @@
-# TODO
-# WARNING:operatorcourier.validate:csv metadata.annotations not defined.
-# WARNING:operatorcourier.validate:csv spec.icon not defined
-# ERROR:operatorcourier.validate:csv spec.installModes not defined
-# ERROR:operatorcourier.api:Bundle failed validation.
-#
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
+  annotations:
+    capabilities: Full Lifecycle
+    description: Developer Operator aiming to generate/install k8s resources of a microservice (aka component)
+    categories: "Developer Tools"
+    containerImage: quay.io/snowdrop/component-operator:master
+    createdAt: 2019-03-07
+    support: Charles Moulliard
+    certified: "false"
   name: component-operator.v0.1.0
   namespace: placeholder
 spec:
@@ -84,6 +86,16 @@ spec:
           - '*'
         serviceAccountName: component-operator
     strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
   maturity: alpha
-  provider: {}
+  provider:
+    name: Snowdrop Team
   version: 0.1.0
