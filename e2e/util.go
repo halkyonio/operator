@@ -87,6 +87,7 @@ func generateSpringBootJavaProject(outDir, template, artifactid string) {
 	form.Add("artifactid", artifactid)
 	form.Add("module", template)
 	form.Add("packagename", "org.acme")
+	form.Add("springbootversion", "2.1.2.RELEASE")
 	parameters := form.Encode()
 	if parameters != "" {
 		parameters = "?" + parameters
