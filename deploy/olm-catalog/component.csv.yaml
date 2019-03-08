@@ -1,7 +1,12 @@
+# TODO
+# WARNING:operatorcourier.validate:csv metadata.annotations not defined.
+# WARNING:operatorcourier.validate:csv spec.icon not defined
+# ERROR:operatorcourier.validate:csv spec.installModes not defined
+# ERROR:operatorcourier.api:Bundle failed validation.
+#
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  creationTimestamp: null
   name: component-operator.v0.1.0
   namespace: placeholder
 spec:
