@@ -19,22 +19,11 @@ import (
 	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
-	cgoscheme "k8s.io/client-go/kubernetes/scheme"
+	k8sscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"strings"
 )
-
-var (
-	scheme = runtime.NewScheme()
-)
-
-func init() {
-	// Register the core k8s types
-	cgoscheme.AddToScheme(scheme)
-	// Register custom resource type
-	v1alpha1.Install(scheme)
-}
 
 func runCmd(cmdS string) string {
 	cmd := exec.Command("/bin/sh", "-c", cmdS)
@@ -51,6 +40,11 @@ func runCmd(cmdS string) string {
 
 func crudClient() client.Client {
 	scheme := runtime.NewScheme()
+	// Register the core k8s types
+	k8sscheme.AddToScheme(scheme)
+	// Register custom resource type
+	v1alpha1.Install(scheme)
+
 	kubeconfig, err := config.GetConfig()
 	if err != nil {
 		panic(err)
