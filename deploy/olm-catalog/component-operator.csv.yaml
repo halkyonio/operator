@@ -1,0 +1,84 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  creationTimestamp: null
+  name: component-operator.v0.1.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: Component
+      name: components.component.k8s.io
+      version: v1alpha1
+  description: Placeholder description
+  displayName: Component Operator
+  install:
+    spec:
+      deployments:
+      - name: component-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: component-operator
+          strategy: {}
+          template:
+            metadata:
+              creationTimestamp: null
+              labels:
+                name: component-operator
+            spec:
+              containers:
+              - command:
+                - component-operator
+                env:
+                - name: WATCH_NAMESPACE
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: component-operator
+                image: quay.io/snowdrop/component-operator:master
+                imagePullPolicy: Always
+                name: component-operator
+                ports:
+                - containerPort: 60000
+                  name: metrics
+                resources: {}
+              serviceAccountName: component-operator
+      permissions:
+      - rules:
+        - apiGroups:
+          - component.k8s.io
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - '*'
+        serviceAccountName: component-operator
+    strategy: deployment
+  maturity: alpha
+  provider: {}
+  version: 0.1.0

@@ -66,7 +66,7 @@ test-e2e:
 # Tests using operator deployed in a cluster
 .PHONY: unit-test
 unit-test:
-	go test ./test/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crd.yaml
+	go test ./test/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crds/crd.yaml
 
 .PHONY: test
 test:

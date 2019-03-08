@@ -29,7 +29,7 @@ Table of Contents
   ```bash
   $ oc create -f deploy/sa.yaml
   $ oc create -f deploy/rbac.yaml
-  $ oc create -f deploy/crd.yaml
+  $ oc create -f deploy/crds/crd.yaml
   ```
 
 - Start the Operator locally using the `Main` go file
@@ -140,7 +140,7 @@ the container image using the `operator-sdk` tool [1], to push the image and nex
 
   ```bash
   oc delete -f deploy/cr.yaml
-  oc delete -f deploy/crd.yaml
+  oc delete -f deploy/crds/crd.yaml
   oc delete -f deploy/operator.yaml
   oc delete -f deploy/rbac.yaml
   oc delete -f deploy/sa.yaml
@@ -181,7 +181,7 @@ Instructions followed to create the Component's CRD, operator using the `operato
   oc new-project component-operator
   oc create -f deploy/sa.yaml
   oc create -f deploy/cluster-rbac.yaml
-  oc create -f deploy/crd.yaml
+  oc create -f deploy/crds/crd.yaml
   oc create -f deploy/operator.yaml
   ```
 
@@ -200,7 +200,7 @@ Instructions followed to create the Component's CRD, operator using the `operato
 - Cleanup
   ```bash
   oc delete -f deploy/cr.yaml
-  oc delete -f deploy/crd.yaml
+  oc delete -f deploy/crds/crd.yaml
   oc delete -f deploy/operator.yaml
   oc delete -f deploy/cluster-rbac.yaml
   oc delete -f deploy/sa.yaml
