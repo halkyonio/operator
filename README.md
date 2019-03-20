@@ -222,7 +222,7 @@ Instructions followed to create the Component's CRD, operator using the `operato
 
 ### How to install the Operator using OLM
 
-## Step 1 - Set up test cluster inc. OLM - for the short term - OpenShift 4 console on minishift:
+#### Step 1 - Set up th new console
 
 Git clone the New Console
 ```
@@ -250,14 +250,14 @@ As `system:admin` user, install the Operator Lifecycle Manager (OLM)
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml 
 ```
 
-## Step 2 - Clone/build the Operator
+#### Step 2 - Clone/build the Operator
 ```
 git clone git@github.com:redhat-developer/devopsconsole-operator.git
 cd devopsconsole-operator
 make build 
 ```
 
-## Step 3 - Push the operator image to quay
+#### Step 3 - Push the operator image to quay
 
 ```
 eval $(minishift docker-env)
@@ -266,12 +266,12 @@ docker push quay.io/{username}/devopsconsole-operator
 Remember to set the operator's repository visibility to public at quay.io
 ```
 
-## Step 4 - Generate the OLM catalog files
+#### Step 4 - Generate the OLM catalog files
 ```
 operator-sdk olm-catalog gen-csv --csv-version 0.1.0 --update-crds
 ```
 
-## Step 5 - Clone/build the Operator Registry
+#### Step 5 - Clone/build the Operator Registry
 ```
 git clone git@github.com:sbose78/community-operators.git
 cd community-operators
@@ -289,7 +289,7 @@ Remember to set the operator registry visibility to public at quay.io
 ```
 
 
-## Step 6 - Create Catalog Source Resource
+#### Step 6 - Create Catalog Source Resource
 
 Navigate to Administration->CRDs->CatalogSources and create a new CatalogSource by importing YAML:
 
@@ -342,7 +342,7 @@ spec:
   channel: alpha
 ```
 
-## Step 7 - Verify that the Operator is present
+#### Step 7 - Verify that the Operator is present
 
 ```
 NAME                                                                     CREATED AT
