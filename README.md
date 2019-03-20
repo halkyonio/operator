@@ -219,3 +219,144 @@ Instructions followed to create the Component's CRD, operator using the `operato
   
   oc delete components,route,svc,is,pvc,dc --all=true
   ```  
+
+### How to install the Operator using OLM
+
+## Step 1 - Set up test cluster inc. OLM - for the short term - OpenShift 4 console on minishift:
+
+Git clone the New Console
+```
+git clone https://github.com/talamer/console.git && cd console
+```
+
+Follow the instructions here https://github.com/talamer/console#openshift-without-oauth to start the console
+
+```
+oc login -u system:admin
+oc adm policy add-cluster-role-to-user cluster-admin admin
+oc login -u admin
+source ./contrib/oc-environment.sh
+./bin/bridge
+```
+
+Install the Operator Lifecycle Manager
+```
+kubectl create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml
+Verify Operator Manager console is visible at localhost:9000
+```
+
+As `system:admin` user, install the Operator Lifecycle Manager (OLM)
+```
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml 
+```
+
+## Step 2 - Clone/build the Operator
+```
+git clone git@github.com:redhat-developer/devopsconsole-operator.git
+cd devopsconsole-operator
+make build 
+```
+
+## Step 3 - Push the operator image to quay
+
+```
+eval $(minishift docker-env)
+operator-sdk build quay.io/{username}/devopsconsole-operator
+docker push quay.io/{username}/devopsconsole-operator
+Remember to set the operator's repository visibility to public at quay.io
+```
+
+## Step 4 - Generate the OLM catalog files
+```
+operator-sdk olm-catalog gen-csv --csv-version 0.1.0 --update-crds
+```
+
+## Step 5 - Clone/build the Operator Registry
+```
+git clone git@github.com:sbose78/community-operators.git
+cd community-operators
+cp -pR rhd-operators ../devopsconsole-operator
+cd ../devopsconsole-operator
+
+wget https://raw.githubusercontent.com/sbose78/community-operators/master/rhd.Dockerfile
+cp Dockerfile.builder Dockerfile.builder_OPERATOR
+cp rdh.Dockerfile Dockerfile.builder
+operator-sdk build quay.io/{username}/operator-registry
+cp Dockerfile.builder_OPERATOR Dockerfile.builder
+
+docker push quay.io/{username}/operator-registry
+Remember to set the operator registry visibility to public at quay.io
+```
+
+
+## Step 6 - Create Catalog Source Resource
+
+Navigate to Administration->CRDs->CatalogSources and create a new CatalogSource by importing YAML:
+
+Insert this text:
+```
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  creationTimestamp: '2019-03-18T13:34:06Z'
+  generation: 1
+  name: rhd-operatorhub-catalog
+  namespace: olm
+  resourceVersion: '152627'
+  selfLink: >-
+    /apis/operators.coreos.com/v1alpha1/namespaces/olm/catalogsources/rhd-operatorhub-catalog
+  uid: 80950cfc-4982-11e9-a02b-5254003ac934
+spec:
+  displayName: Community Operators
+  image: 'quay.io/{username}/operator-registry:new'
+  publisher: RHD Operator Hub
+  sourceType: grpc
+status:
+  lastSync: '2019-03-18T13:43:31Z'
+  registryService:
+    createdAt: '2019-03-18T13:43:31Z'
+    port: '50051'
+    protocol: grpc
+    serviceName: rhd-operatorhub-catalog
+    serviceNamespace: olm
+```
+
+The operator should now be present in the list of available operators:
+And the console registry pod should be running:
+And the DevConsole operator should be visible
+
+Then, create a subscription. Navigate to Operator Management->Operator Subscriptions->Create Subscription
+
+Insert this text as YAML:
+```
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  generateName: devopsconsole-
+  namespace: operators
+spec:
+  source: rhd-operatorhub-catalog
+  sourceNamespace: olm
+  name: devopsconsole
+  startingCSV: devopsconsole.v0.1.0
+  channel: alpha
+```
+
+## Step 7 - Verify that the Operator is present
+
+```
+NAME                                                                     CREATED AT
+catalogsources.operators.coreos.com                                      2019-03-15T17:56:00Z
+clusterserviceversions.operators.coreos.com                              2019-03-15T17:55:59Z
+gitsources.devopsconsole.openshift.io                                    2019-03-18T15:03:54Z
+installplans.operators.coreos.com                                        2019-03-15T17:56:00Z
+openshiftwebconsoleconfigs.webconsole.operator.openshift.io              2019-03-15T17:50:15Z
+operatorgroups.operators.coreos.com                                      2019-03-15T17:56:00Z
+servicecertsigneroperatorconfigs.servicecertsigner.config.openshift.io   2019-03-15T17:47:44Z
+subscriptions.operators.coreos.com                                       2019-03-15T17:56:00Z
+
+oc get clusterserviceversions
+NAME                       DISPLAY                    VERSION     REPLACES   PHASE
+devopsconsole.v0.1.0       OpenShift DevOps Console   0.1.0                  Succeeded
+packageserver.v4.0.0-olm   Package Server             4.0.0-olm              Succeeded
+```
