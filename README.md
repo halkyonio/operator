@@ -262,11 +262,22 @@ Deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of
 Next, subscribe to the `operator` by clicking on the button `install` of the `Component operatror` that you can select from the screen
 `operatorhub`.
 
+![select operator](img/select-operator-hub.png)
+![install operator](img/install-operator.png)
+![subscribe operator](img/create-subscription.png)
+
+
 Wait a few moment and check if the pod of the operator has been created under the `openshift-operators` namespace.
 
     oc get -n openshift-operators pods
     NAME                                  READY     STATUS    RESTARTS   AGE
     component-operator-85fcbdf6fc-r4fmf   1/1       Running   0          9m
+    
+To clean-up , execute the following commands
+
+    oc delete -n openshift-operators subscriptions/component
+    oc delete -n openshift-marketplace operatorsource/component-operator
+    oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
 
 ### How to install the Operator using OLM on OCP3
 
