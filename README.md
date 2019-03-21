@@ -13,7 +13,7 @@ Table of Contents
     * [Cleanup the operator](#cleanup)
   * [For the developers only](#for-the-developers-only)
       * [How To create the operator, crd](#how-to-create-the-operator-crd)
-      * [How to install the Operator on OCP4](#how-to-install-the-operator-on-ocp4)
+      * [How to deploy the Component Operator on OCP4 using the OperatorHub](#how-to-deploy-the-component-operator-on-ocp4-using-the-operatorhub)
          * [Package and install the Operator on Quay.io as Application](#package-and-install-the-operator-on-quayio-as-application)
          * [Deploy on OCP4](#deploy-on-ocp4)
 
@@ -222,9 +222,9 @@ Instructions followed to create the Component's CRD, operator using the `operato
   oc delete components,route,svc,is,pvc,dc --all=true
   ```  
 
-### How to install the Operator on OCP4
+### How to deploy the Component Operator on OCP4 using the OperatorHub
 
-#### Package and install the Operator on Quay.io as Application
+#### Package and install the Operator on Quay.io as an Application
 
 Install the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`.
 
