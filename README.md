@@ -264,7 +264,7 @@ Next, subscribe to the `operator` by clicking on the button `install` of the `Co
     NAME                                  READY     STATUS    RESTARTS   AGE
     component-operator-85fcbdf6fc-r4fmf   1/1       Running   0          9m
 
-### How to install the Operator using an OLM
+### How to install the Operator using OLM on OCP3
 
 TODO: To be reviewed as the installation was failing !!
 
