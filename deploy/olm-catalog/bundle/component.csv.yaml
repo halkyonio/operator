@@ -9,7 +9,7 @@ metadata:
     createdAt: 2019-03-07
     support: Charles Moulliard
     certified: "false"
-  name: component-operator.v0.1.0
+  name: component-operator.v0.2.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -101,4 +101,4 @@ spec:
   maturity: alpha
   provider:
     name: Snowdrop Team
-  version: 0.1.0
+  version: 0.2.0
