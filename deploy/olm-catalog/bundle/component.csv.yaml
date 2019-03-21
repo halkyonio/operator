@@ -9,17 +9,19 @@ metadata:
     createdAt: 2019-03-07
     support: Charles Moulliard
     certified: "false"
-  name: component-operator.v0.2.0
+  name: component-operator.v0.3.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
+  description: Component Operator to install application, service
+  displayName: Component Operator
   customresourcedefinitions:
     owned:
     - kind: Component
       name: components.component.k8s.io
       version: v1alpha1
-  description: Placeholder description
-  displayName: Component Operator
+      description: Component CRD
+      displayName: Component CRD to compose applications on k8s, openshift
   install:
     spec:
       deployments:
@@ -101,4 +103,4 @@ spec:
   maturity: alpha
   provider:
     name: Snowdrop Team
-  version: 0.2.0
+  version: 0.3.0
