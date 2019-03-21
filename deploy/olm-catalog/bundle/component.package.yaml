@@ -1,4 +1,4 @@
 packageName: component
 channels:
   - name: alpha
-    currentCSV: component-operator.v0.1.0
+    currentCSV: component-operator.v0.2.0
