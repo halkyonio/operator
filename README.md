@@ -226,24 +226,25 @@ Instructions followed to create the Component's CRD, operator using the `operato
 
 #### Package and install the Operator on Quay.io as Application
 
-Install the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`
+Install the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`.
 
     pip3 install operator-courier
     
-Verify your operator's bundle using the tool
+Verify your operator's bundle using the tool.
 
     export BUNDLE_DIR="deploy/olm-catalog/bundle"
     operator-courier verify $BUNDLE_DIR
     WARNING:operatorcourier.validate:csv spec.icon not defined    
 
-Next, get from `quay.io` an Authentication token using your quay's username OR robot username/pwd to access your namespace
-Next, execute the following curl request to get a token response (e.g `basic Y2gwMDdtK...A="`)
+Next, get from `quay.io` an Authentication token using your quay's username OR robot username/pwd to access your namespace.
+
+Next, execute the following `curl` request to get a token (e.g `basic Y2gwMDdtK...A="`).
 
     export QUAY_USER="QUAY USER"
     export QUAY_PWD="QUAY PASSWORD"    
     export AUTH_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d '{"user":{"username":"'"$QUAY_USER"'","password":"'"$QUAY_PWD"'"}}' https://quay.io/cnr/api/v1/users/login | jq -r '.token')
     
-Push finally the application
+Push finally the bundle on quay as an `application`.
 
     export QUAY_ORG="quay_organization (e.g ch007m)"
     export REPOSITORY="component-operator"
@@ -252,13 +253,16 @@ Push finally the application
     
 #### Deploy on OCP4
 
-Log on to an ocp4 cluster as a cluster-admin role user
-Deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of the operator
+Log on to an ocp4 cluster as a cluster-admin role user.
+
+Deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of the operator.
 
     oc apply -f deploy/olm-catalog/operator.source.yaml -n openshift-marketplace  
 
 Next, subscribe to the `operator` by clicking on the button `install` of the `Component operatror` that you can select from the screen
-`operatorhub`. Wait a few moment and check if the pod of the operator has been created under the `openshift-operators` namespace.
+`operatorhub`.
+
+Wait a few moment and check if the pod of the operator has been created under the `openshift-operators` namespace.
 
     oc get -n openshift-operators pods
     NAME                                  READY     STATUS    RESTARTS   AGE
