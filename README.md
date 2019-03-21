@@ -220,56 +220,100 @@ Instructions followed to create the Component's CRD, operator using the `operato
   oc delete components,route,svc,is,pvc,dc --all=true
   ```  
 
-### How to install the Operator using OLM
+### How to install the Operator on OCP4
 
-#### Step 1 - Set up th new console
+#### Package and install the Operator on Quay.io as Application
 
-Git clone the New Console
+Install the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`
+
+    pip3 install operator-courier
+    
+Verify your operator's bundle using the tool
+
+    export BUNDLE_DIR="deploy/olm-catalog/bundle"
+    operator-courier verify $BUNDLE_DIR
+    WARNING:operatorcourier.validate:csv spec.icon not defined    
+
+Next, get from `quay.io` an Authentication token using your quay's username OR robot username/pwd to access your namespace
+Edit the file `deploy/olm-catalog/quay_login.json` and add your username/pwd.
+Next, execute the following curl request to get a `basic Y2gwMDdtK...A="` response
+
+    export AUTH_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d @deploy/olm-catalog/quay_login.json https://quay.io/cnr/api/v1/users/login | jq -r '.token')
+    
+Push finally the application
+
+    export QUAY_ORG="quay_organization (e.g ch007m)"
+    export REPOSITORY="component-operator"
+    export RELEASE="0.1.0"
+    operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
+    
+#### Deploy on OCP4
+
+Log on to an ocp4 cluster as a cluster-admin role user
+Deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of the operator
+
+    oc apply -f deploy/olm-catalog/operator.source.yaml -n openshift-marketplace  
+
+Next, subscribe to the olm operator 
+
+### How to install the Operator using an OLM
+
+TODO: To be reviewed as the installation was failing !!
+
+#### Step 1 - Install the new OpenShift console
+
+- Launch an ocp/okd 3.11 cluster locally
+- Log on as `cluster-admin` role user
+- Git clone the new console and build it
 ```
 git clone https://github.com/talamer/console.git && cd console
+./build.sh
 ```
 
-Follow the instructions here https://github.com/talamer/console#openshift-without-oauth to start the console
+- Launch the proxy console locally
 
 ```
-oc login -u system:admin
-oc adm policy add-cluster-role-to-user cluster-admin admin
-oc login -u admin
 source ./contrib/oc-environment.sh
 ./bin/bridge
 ```
 
-Install the Operator Lifecycle Manager
-```
-kubectl create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml
-Verify Operator Manager console is visible at localhost:9000
-```
+- Install the Operator Lifecycle Manager
 
-As `system:admin` user, install the Operator Lifecycle Manager (OLM)
+- As `cluster-admin` role user, install the Operator Lifecycle Manager (OLM) using this command:
 ```
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml 
 ```
 
 #### Step 2 - Clone/build the Operator
+
+- Check that you have a docker daemon running locally and export the DOCKER_HOST
 ```
-git clone git@github.com:redhat-developer/devopsconsole-operator.git
-cd devopsconsole-operator
+git clone git@github.com:redhat-developer/devopsconsole-operator.git $GOPATH/src/github.com/redhat-developer/devopsconsole-operator
+cd $GOPATH/src/github.com/redhat-developer/devopsconsole-operator
 make build 
 ```
 
 #### Step 3 - Push the operator image to quay
 
+- Login to the docker quay hub using your Quay user / pwd
 ```
-eval $(minishift docker-env)
-operator-sdk build quay.io/{username}/devopsconsole-operator
-docker push quay.io/{username}/devopsconsole-operator
-Remember to set the operator's repository visibility to public at quay.io
+docker login -u="USER" -p="PWD" quay.io
 ```
+
+- Build the docker image and export it
+```
+export QUAY_USER="ch007m"
+operator-sdk build quay.io/$QUAY_USER/devopsconsole-operator
+docker push quay.io/$QUAY_USER/devopsconsole-operator
+```
+**WARNING** Remember to set the operator's repository visibility to public at quay.io
 
 #### Step 4 - Generate the OLM catalog files
 ```
-operator-sdk olm-catalog gen-csv --csv-version 0.1.0 --update-crds
+operator-sdk olm-catalog gen-csv --csv-version 0.1.0
 ```
+
+**WARNING**. Rename or copy the file `deploy/cluster_role.yaml to `role.yaml`
 
 #### Step 5 - Clone/build the Operator Registry
 ```
@@ -280,14 +324,13 @@ cd ../devopsconsole-operator
 
 wget https://raw.githubusercontent.com/sbose78/community-operators/master/rhd.Dockerfile
 cp Dockerfile.builder Dockerfile.builder_OPERATOR
-cp rdh.Dockerfile Dockerfile.builder
-operator-sdk build quay.io/{username}/operator-registry
+cp rhd.Dockerfile Dockerfile.builder
+operator-sdk build quay.io/$QUAY_USER/operator-registry
 cp Dockerfile.builder_OPERATOR Dockerfile.builder
 
-docker push quay.io/{username}/operator-registry
+docker push quay.io/$QUAY_USER/operator-registry
 Remember to set the operator registry visibility to public at quay.io
 ```
-
 
 #### Step 6 - Create Catalog Source Resource
 
