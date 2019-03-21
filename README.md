@@ -256,6 +256,8 @@ Deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of
 
 Next, subscribe to the olm operator 
 
+TODO: Copmponent-operator pod is created under `openshift-marketplace` but the log of the operator does not seem to correspond to our operator !!
+
 ### How to install the Operator using an OLM
 
 TODO: To be reviewed as the installation was failing !!
