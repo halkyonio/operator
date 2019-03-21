@@ -257,9 +257,12 @@ Deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of
 
     oc apply -f deploy/olm-catalog/operator.source.yaml -n openshift-marketplace  
 
-Next, subscribe to the olm operator 
+Next, subscribe to the `operator` by clicking on the button `install` of the `Component operatror` that you can select from the screen
+`operatorhub`. Wait a few moment and check if the pod of the operator has been created under the `openshift-operators` namespace.
 
-TODO: `Component-operator` pod is created under `openshift-marketplace` but the log of the operator does not seem to correspond to our operator !!
+    oc get -n openshift-operators pods
+    NAME                                  READY     STATUS    RESTARTS   AGE
+    component-operator-85fcbdf6fc-r4fmf   1/1       Running   0          9m
 
 ### How to install the Operator using an OLM
 
