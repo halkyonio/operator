@@ -237,10 +237,11 @@ Verify your operator's bundle using the tool
     WARNING:operatorcourier.validate:csv spec.icon not defined    
 
 Next, get from `quay.io` an Authentication token using your quay's username OR robot username/pwd to access your namespace
-Edit the file `deploy/olm-catalog/quay_login.json` and add your username/pwd.
-Next, execute the following curl request to get a `basic Y2gwMDdtK...A="` response
+Next, execute the following curl request to get a token response (e.g `basic Y2gwMDdtK...A="`)
 
-    export AUTH_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d @deploy/olm-catalog/quay_login.json https://quay.io/cnr/api/v1/users/login | jq -r '.token')
+    export QUAY_USER="QUAY USER"
+    export QUAY_PWD="QUAY PASSWORD"    
+    export AUTH_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d '{"user":{"username":"'"$QUAY_USER"'","password":"'"$QUAY_PWD"'"}}' https://quay.io/cnr/api/v1/users/login | jq -r '.token')
     
 Push finally the application
 
