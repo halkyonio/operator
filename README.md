@@ -266,7 +266,6 @@ Next, subscribe to the `operator` by clicking on the button `install` of the `Co
 ![install operator](img/install-operator.png)
 ![subscribe operator](img/create-subscription.png)
 
-
 Wait a few moment and check if the pod of the operator has been created under the `openshift-operators` namespace.
 
     oc get -n openshift-operators pods
@@ -277,7 +276,10 @@ To clean-up , execute the following commands
 
     oc delete -n openshift-operators subscriptions/component
     oc delete -n openshift-marketplace operatorsource/component-operator
+    oc delete crd/components.component.k8s.io
+    oc delete -n openshift-operators ClusterServiceVersion/component-operator.v0.4.0
     oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
+    oc delete -n openshift-operators deployment/component-operator
 
 ### How to install the Operator using OLM on OCP3
 

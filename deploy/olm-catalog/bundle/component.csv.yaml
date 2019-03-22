@@ -9,7 +9,7 @@ metadata:
     createdAt: 2019-03-07
     support: Charles Moulliard
     certified: "false"
-  name: component-operator.v0.3.0
+  name: component-operator.v0.5.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -60,35 +60,84 @@ spec:
                   name: metrics
                 resources: {}
               serviceAccountName: component-operator
-      permissions:
+      clusterPermissions:
       - rules:
-        - apiGroups:
-          - component.k8s.io
-          resources:
-          - '*'
-          verbs:
-          - '*'
-        - apiGroups:
-          - ""
-          resources:
-          - pods
-          - services
-          - endpoints
-          - persistentvolumeclaims
-          - events
-          - configmaps
-          - secrets
-          verbs:
-          - '*'
-        - apiGroups:
-          - apps
-          resources:
-          - deployments
-          - daemonsets
-          - replicasets
-          - statefulsets
-          verbs:
-          - '*'
+          - apiGroups:
+              - component.k8s.io
+            resources:
+              - "*"
+            verbs:
+              - "*"
+          - apiGroups:
+              - ""
+            resources:
+              - pods
+              - services
+              - endpoints
+              - persistentvolumeclaims
+              - events
+              - configmaps
+              - secrets
+            verbs:
+              - "*"
+          - apiGroups:
+              - ""
+            resources:
+              - namespaces
+            verbs:
+              - get
+          - apiGroups:
+              - apps
+            resources:
+              - deployments
+              - daemonsets
+              - replicasets
+              - statefulsets
+            verbs:
+              - "*"
+          - apiGroups:
+              - apps.openshift.io
+            resources:
+              - deploymentconfigs
+            verbs:
+              - "*"
+          - apiGroups:
+              - apps.openshift.io
+            resources:
+              - deploymentconfigs/instantiate
+            verbs:
+              - "create"
+          - apiGroups:
+              - route.openshift.io
+            resources:
+              - routes
+            verbs:
+              - "*"
+          - apiGroups:
+              - image.openshift.io
+            resources:
+              - imagestreams
+            verbs:
+              - "*"
+          - apiGroups:
+              - servicecatalog.k8s.io
+            resources:
+              - serviceinstances
+              - servicebindings
+            verbs:
+              - "*"
+          - apiGroups:
+              - automationbroker.io
+            resources:
+              - "access"
+            verbs:
+              - "create"
+          - apiGroups:
+              - policy
+            resources:
+              - poddisruptionbudgets
+            verbs:
+              - "*"
         serviceAccountName: component-operator
     strategy: deployment
   installModes:
@@ -103,4 +152,4 @@ spec:
   maturity: alpha
   provider:
     name: Snowdrop Team
-  version: 0.3.0
+  version: 0.5.0
