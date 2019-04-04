@@ -356,8 +356,7 @@ component-operator   appregistry   https://quay.io/cnr   ch007m     Component Op
 
 Create a CatalogSourceConfig and a Subscription to install the `Component operator` within the `operators` namespace
 ```bash
-oc create -f deploy/olm-catalog/component-csc.yaml -n marketplace
-oc create -f deploy/olm-catalog/component-subscription.yaml
+oc create -f deploy/olm-catalog/component-subscription.yaml -n operators
 ```
 
 Verify if the Component Operator is up and running 
@@ -376,11 +375,11 @@ oc logs -n operators pod/component-operator-59cf6cf54-xk8mx
 ```bash
 echo "Install olm"
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_00-namespace.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_01-olm-operator.serviceaccount.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_02-clusterserviceversion.crd.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_03-installplan.crd.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_04-subscription.crd.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_05-catalogsource.crd.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_01-clusterserviceversion.crd.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_02-installplan.crd.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_03-subscription.crd.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_04-catalogsource.crd.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_05-olm-operator.serviceaccount.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_06-olm-operator.deployment.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_07-catalog-operator.deployment.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_08-aggregated.clusterrole.yaml
@@ -399,12 +398,22 @@ oc create -f https://raw.githubusercontent.com/operator-framework/operator-marke
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/service_account.yaml
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/crds/operators_v1_operatorsource_crd.yaml
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/crds/operators_v1_catalogsourceconfig_crd.yaml
-
 oc create -f deploy/olm-catalog/upstream-operators-operator-source.yaml -n openshift-marketplace
+
+oc create -f deploy/olm-catalog/marketplace/01_namespace.yaml
+oc create -f deploy/olm-catalog/marketplace/02_catalogsourceconfig.crd.yaml
+oc create -f deploy/olm-catalog/marketplace/03_operatorsource.crd.yaml
+oc create -f deploy/olm-catalog/marketplace/04_service_account.yaml
+oc create -f deploy/olm-catalog/marketplace/05_role.yaml
+oc create -f deploy/olm-catalog/marketplace/06_role_binding.yaml
+oc create -f deploy/olm-catalog/marketplace/07_redhat_operatorsource.cr.yaml
+oc create -f deploy/olm-catalog/marketplace/08_certified_operatorsource.cr.yaml
+oc create -f deploy/olm-catalog/marketplace/09_community_operatorsource.cr.yaml
+oc create -f deploy/olm-catalog/marketplace/10_operator.yaml
+
 oc create -f deploy/olm-catalog/component-operator-source.yaml -n openshift-marketplace
 
-oc create -f deploy/olm-catalog/component-csc.yaml -n openshift-marketplace
-oc create -f deploy/olm-catalog/component-subscription.yaml
+oc create -f deploy/olm-catalog/component-subscription-ocp4.yaml -n openshift-operators
 
 oc get opsrc upstream-community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n openshift-marketplace
 oc get opsrc component-operator -n openshift-marketplace

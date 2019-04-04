@@ -1,9 +1,13 @@
 apiVersion: operators.coreos.com/v1
 kind: CatalogSourceConfig
 metadata:
+  labels:
+    opsrc-datastore: "true"
+    opsrc-owner-name: component-operator
+    opsrc-owner-namespace: openshift-marketplace
   name: component-operator
 spec:
-  targetNamespace: operators
+  csDisplayName: Component Operator
+  csPublisher: Snowdrop
   packages: component
-  csDisplayName: "Component Operator"
-  csPublisher: "Snowdrop"
+  targetNamespace: openshift-marketplace

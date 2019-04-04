@@ -2,7 +2,6 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: component
-  namespace: operators
 spec:
   channel: alpha
   name: component
