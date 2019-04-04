@@ -257,7 +257,7 @@ Log on to an ocp4 cluster as a cluster-admin role user.
 
 Deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of the operator.
 
-    oc apply -f deploy/olm-catalog/operator.source.yaml -n openshift-marketplace  
+    oc apply -f deploy/olm-catalog/operator-source-redhat.yaml -n openshift-marketplace  
 
 Next, subscribe to the `operator` by clicking on the button `install` of the `Component operatror` that you can select from the screen
 `operatorhub`.
@@ -303,7 +303,7 @@ source ./contrib/oc-environment.sh
 #### Step 2 - Install the OLM and Marketplace 
 
 From another terminal, install the *Operator Lifecycle Manager* using this command:
-```
+```bash
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml 
 ```
 
