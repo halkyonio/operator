@@ -281,150 +281,54 @@ To clean-up , execute the following commands
     oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
     oc delete -n openshift-operators deployment/component-operator
 
-### How to install the Operator using OLM on OCP3
-
-TODO: To be reviewed as the installation was failing !!
+### How to install the Operator using OLM, Marketplace on ocp/okd 3.x
 
 #### Step 1 - Install the new OpenShift console
 
 - Launch an ocp/okd 3.11 cluster locally
-- Log on as `cluster-admin` role user
-- Git clone the new console and build it
+- Log on with a user having the `cluster-admin` role
+- Git clone the new Openshift console (created for ocp4) and build it
 ```
 git clone https://github.com/talamer/console.git && cd console
 ./build.sh
 ```
 
-- Launch the proxy console locally
+- Launch the proxy console locally 
 
 ```
 source ./contrib/oc-environment.sh
 ./bin/bridge
 ```
 
-- Install the Operator Lifecycle Manager
+#### Step 2 - Install the OLM and Marketplace 
 
-- As `cluster-admin` role user, install the Operator Lifecycle Manager (OLM) using this command:
+From another terminal, install the *Operator Lifecycle Manager* using this command:
 ```
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml 
 ```
 
-#### Step 2 - Clone/build the Operator
+When installed, deploy the marketplace and the `community` and `upstream` operators
+```bash
+echo "Install marketplace"
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/01_namespace.yaml
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/02_catalogsourceconfig.crd.yaml
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/03_operatorsource.crd.yaml
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/04_service_account.yaml
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/05_role.yaml
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/06_role_binding.yaml
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/07_operator.yaml
 
-- Check that you have a docker daemon running locally and export the DOCKER_HOST
-```
-git clone git@github.com:redhat-developer/devopsconsole-operator.git $GOPATH/src/github.com/redhat-developer/devopsconsole-operator
-cd $GOPATH/src/github.com/redhat-developer/devopsconsole-operator
-make build 
-```
-
-#### Step 3 - Push the operator image to quay
-
-- Login to the docker quay hub using your Quay user / pwd
-```
-docker login -u="USER" -p="PWD" quay.io
-```
-
-- Build the docker image and export it
-```
-export QUAY_USER="ch007m"
-operator-sdk build quay.io/$QUAY_USER/devopsconsole-operator
-docker push quay.io/$QUAY_USER/devopsconsole-operator
-```
-**WARNING** Remember to set the operator's repository visibility to public at quay.io
-
-#### Step 4 - Generate the OLM catalog files
-```
-operator-sdk olm-catalog gen-csv --csv-version 0.1.0
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/upstream.operatorsource.cr.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/community.operatorsource.cr.yaml
 ```
 
-**WARNING**. Rename or copy the file `deploy/cluster_role.yaml to `role.yaml`
+After a few moment, check if the `OperatorSource` have been deployed sucessfully
+```bash
+oc get opsrc upstream-community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n marketplace
+NAME                           PACKAGES
+upstream-community-operators   jaeger,prometheus,aws-service,etcd,mongodb-enterprise,redis-enterprise,federation,planetscale,strimzi-kafka-operator,cockroachdb,microcks,vault,percona,couchbase-enterprise,postgresql,oneagent
 
-#### Step 5 - Clone/build the Operator Registry
-```
-git clone git@github.com:sbose78/community-operators.git
-cd community-operators
-cp -pR rhd-operators ../devopsconsole-operator
-cd ../devopsconsole-operator
-
-wget https://raw.githubusercontent.com/sbose78/community-operators/master/rhd.Dockerfile
-cp Dockerfile.builder Dockerfile.builder_OPERATOR
-cp rhd.Dockerfile Dockerfile.builder
-operator-sdk build quay.io/$QUAY_USER/operator-registry
-cp Dockerfile.builder_OPERATOR Dockerfile.builder
-
-docker push quay.io/$QUAY_USER/operator-registry
-Remember to set the operator registry visibility to public at quay.io
-```
-
-#### Step 6 - Create Catalog Source Resource
-
-Navigate to Administration->CRDs->CatalogSources and create a new CatalogSource by importing YAML:
-
-Insert this text:
-```
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  creationTimestamp: '2019-03-18T13:34:06Z'
-  generation: 1
-  name: rhd-operatorhub-catalog
-  namespace: olm
-  resourceVersion: '152627'
-  selfLink: >-
-    /apis/operators.coreos.com/v1alpha1/namespaces/olm/catalogsources/rhd-operatorhub-catalog
-  uid: 80950cfc-4982-11e9-a02b-5254003ac934
-spec:
-  displayName: Community Operators
-  image: 'quay.io/{username}/operator-registry:new'
-  publisher: RHD Operator Hub
-  sourceType: grpc
-status:
-  lastSync: '2019-03-18T13:43:31Z'
-  registryService:
-    createdAt: '2019-03-18T13:43:31Z'
-    port: '50051'
-    protocol: grpc
-    serviceName: rhd-operatorhub-catalog
-    serviceNamespace: olm
-```
-
-The operator should now be present in the list of available operators:
-And the console registry pod should be running:
-And the DevConsole operator should be visible
-
-Then, create a subscription. Navigate to Operator Management->Operator Subscriptions->Create Subscription
-
-Insert this text as YAML:
-```
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  generateName: devopsconsole-
-  namespace: operators
-spec:
-  source: rhd-operatorhub-catalog
-  sourceNamespace: olm
-  name: devopsconsole
-  startingCSV: devopsconsole.v0.1.0
-  channel: alpha
-```
-
-#### Step 7 - Verify that the Operator is present
-
-```
-NAME                                                                     CREATED AT
-catalogsources.operators.coreos.com                                      2019-03-15T17:56:00Z
-clusterserviceversions.operators.coreos.com                              2019-03-15T17:55:59Z
-gitsources.devopsconsole.openshift.io                                    2019-03-18T15:03:54Z
-installplans.operators.coreos.com                                        2019-03-15T17:56:00Z
-openshiftwebconsoleconfigs.webconsole.operator.openshift.io              2019-03-15T17:50:15Z
-operatorgroups.operators.coreos.com                                      2019-03-15T17:56:00Z
-servicecertsigneroperatorconfigs.servicecertsigner.config.openshift.io   2019-03-15T17:47:44Z
-subscriptions.operators.coreos.com                                       2019-03-15T17:56:00Z
-
-oc get clusterserviceversions
-NAME                       DISPLAY                    VERSION     REPLACES   PHASE
-devopsconsole.v0.1.0       OpenShift DevOps Console   0.1.0                  Succeeded
-packageserver.v4.0.0-olm   Package Server             4.0.0-olm              Succeeded
+oc get opsrc community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n marketplace
+NAME                  PACKAGES
+community-operators   prometheus,jaeger,kiecloud-operator,elasticsearch-operator,node-network-operator,microcks,metering,descheduler,cluster-logging,planetscale,cockroachdb,etcd,camel-k,oneagent,templateservicebroker,federation,node-problem-detector,automationbroker,percona,postgresql,strimzi-kafka-operator
 ```
