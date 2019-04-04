@@ -399,24 +399,15 @@ oc create -f https://raw.githubusercontent.com/operator-framework/operator-marke
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/service_account.yaml
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/crds/operators_v1_operatorsource_crd.yaml
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/crds/operators_v1_catalogsourceconfig_crd.yaml
-oc create -f deploy/olm-catalog/upstream-operators-operator-source.yaml -n openshift-marketplace
 
-oc create -f deploy/olm-catalog/marketplace/marketplace.ns.yaml
-oc create -f deploy/olm-catalog/marketplace/operators_v1_catalogsourceconfig_crd.yaml
-oc create -f deploy/olm-catalog/marketplace/operators_v1_operatorsource_crd.yaml
-oc create -f deploy/olm-catalog/marketplace/role.yaml
-oc create -f deploy/olm-catalog/marketplace/role_binding.yaml
-oc create -f deploy/olm-catalog/marketplace/service_account.yaml
-oc create -f deploy/olm-catalog/marketplace/operator.yaml
 oc create -f deploy/olm-catalog/upstream-operators-operator-source.yaml -n openshift-marketplace
-
 oc create -f deploy/olm-catalog/component-operator-source.yaml -n openshift-marketplace
-
-oc get opsrc upstream-community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n openshift-marketplace
-oc get opsrc component-operator -n openshift-marketplace
 
 oc create -f deploy/olm-catalog/component-csc.yaml -n openshift-marketplace
 oc create -f deploy/olm-catalog/component-subscription.yaml
+
+oc get opsrc upstream-community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n openshift-marketplace
+oc get opsrc component-operator -n openshift-marketplace
 ```
 
 #### Cleanup
