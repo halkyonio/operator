@@ -2,7 +2,6 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorSource
 metadata:
   name: component-operator
-  namespace: marketplace
 spec:
   type: appregistry
   endpoint: https://quay.io/cnr

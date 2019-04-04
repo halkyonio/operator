@@ -2,7 +2,6 @@ apiVersion: operators.coreos.com/v1
 kind: CatalogSourceConfig
 metadata:
   name: component-operator
-  namespace: marketplace
 spec:
   targetNamespace: operators
   packages: component
