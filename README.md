@@ -287,9 +287,9 @@ To clean-up , execute the following commands
 
 - Launch an ocp/okd 3.11 cluster locally
 - Log on with a user having the `cluster-admin` role
-- Git clone the new Openshift console (created for ocp4) and build it
+- Git clone the new OpenShift console (created for ocp4) and build it
 ```
-git clone https://github.com/talamer/console.git && cd console
+git clone https://github.com/openshift/console.git && cd console
 ./build.sh
 ```
 
@@ -304,10 +304,27 @@ source ./contrib/oc-environment.sh
 
 From another terminal, install the *Operator Lifecycle Manager* using this command:
 ```bash
-oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml 
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_00-namespace.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_00-namespace.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_01-olm-operator.serviceaccount.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_02-clusterserviceversion.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_03-installplan.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_04-subscription.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_05-catalogsource.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_06-olm-operator.deployment.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_07-catalog-operator.deployment.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_08-aggregated.clusterrole.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_09-operatorgroup.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_10-olm-operators.configmap.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_11-olm-operators.catalogsource.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_12-operatorgroup-default.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_13-packageserver.subscription.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_17-upstream-operators.catalogsource.yaml
 ```
 
-When installed, deploy the marketplace and the `community` and `upstream` operators
+**Remark** the following command fails `oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml` !
+
+When installed, deploy the marketplace and the `upstream` operators
 ```bash
 echo "Install marketplace"
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/01_namespace.yaml
@@ -318,17 +335,55 @@ oc create -f https://raw.githubusercontent.com/operator-framework/operator-marke
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/06_role_binding.yaml
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/07_operator.yaml
 
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/upstream.operatorsource.cr.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/community.operatorsource.cr.yaml
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/upstream.operatorsource.cr.yaml
 ```
 
-After a few moment, check if the `OperatorSource` have been deployed sucessfully
+Install our `Component Operator` now
+```bash
+oc apply -f deploy/olm-catalog/operator-source.yaml -n marketplace 
+```
+
+After a few moment, check if the `OperatorSource` have been deployed successfully
 ```bash
 oc get opsrc upstream-community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n marketplace
 NAME                           PACKAGES
 upstream-community-operators   jaeger,prometheus,aws-service,etcd,mongodb-enterprise,redis-enterprise,federation,planetscale,strimzi-kafka-operator,cockroachdb,microcks,vault,percona,couchbase-enterprise,postgresql,oneagent
 
-oc get opsrc community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n marketplace
-NAME                  PACKAGES
-community-operators   prometheus,jaeger,kiecloud-operator,elasticsearch-operator,node-network-operator,microcks,metering,descheduler,cluster-logging,planetscale,cockroachdb,etcd,camel-k,oneagent,templateservicebroker,federation,node-problem-detector,automationbroker,percona,postgresql,strimzi-kafka-operator
+oc get opsrc component-operator -n marketplace
+NAME                 TYPE          ENDPOINT              REGISTRY   DISPLAYNAME          PUBLISHER   STATUS      MESSAGE                                       AGE
+component-operator   appregistry   https://quay.io/cnr   ch007m     Component Operator   Snowdrop    Succeeded   The object has been successfully reconciled   35s
+```
+
+Create a CatalogSourceConfig and a Subscription to install the `Component operator` within the `operators` namespace
+```bash
+oc create -f deploy/olm-catalog/component-csc.yaml
+oc create -f deploy/olm-catalog/component-subscription.yaml
+```
+
+Verify if the Component Operator is up and running 
+```bash
+ oc logs -n operators pod/component-operator-59cf6cf54-xk8mx
+2019/04/04 16:26:58 Go Version: go1.11.6
+2019/04/04 16:26:58 Go OS/Arch: linux/amd64
+2019/04/04 16:26:58 component-operator version: unset
+2019/04/04 16:26:58 component-operator git commit: b695ee1
+2019/04/04 16:26:58 Registering Components
+2019/04/04 16:26:58 Start the manager
+```
+
+#### Cleanup
+
+```bash
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/02_catalogsourceconfig.crd.yaml
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/03_operatorsource.crd.yaml
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/04_service_account.yaml
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/05_role.yaml
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/06_role_binding.yaml
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/07_operator.yaml
+
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/upstream.operatorsource.cr.yaml
+
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/01_namespace.yaml
+
+oc delete -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml 
 ```
