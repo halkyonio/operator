@@ -391,6 +391,7 @@ oc apply -f deploy/olm-catalog/olm/0000_50_olm_10-olm-operators.configmap.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_11-olm-operators.catalogsource.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_12-operatorgroup-default.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_13-packageserver.subscription.yaml
+```
 
 ![olm](img/install-olm.png)
 
