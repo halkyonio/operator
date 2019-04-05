@@ -281,11 +281,11 @@ To clean-up , execute the following commands
     oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
     oc delete -n openshift-operators deployment/component-operator
 
-### How to install the Operator using OLM, Marketplace on ocp/okd 3.x
+### How to install the Operator using OLM, Marketplace on okd 3.x
 
 #### Step 1 - Install the new OpenShift console
 
-- Launch an ocp/okd 3.11 cluster locally
+- Launch an okd 3.11 cluster locally
 - Log on with a user having the `cluster-admin` role
 - Git clone the new OpenShift console (created for ocp4) and build it
 ```
@@ -394,7 +394,10 @@ oc logs -n operators pod/component-operator-59cf6cf54-xk8mx
 2019/04/04 16:26:58 Start the manager
 ```
 
-#### Deploy on okd 3.11 using OpenShift resources
+#### Deploy on okd 3.11 using the OCP resources
+
+**Remark** : The OCP yaml resources are used to install olm, marketplace on ocp under `openshift-marketplace` and `openshift-operators` namespaces. They correspond or should correspond to what is deployed
+on OCP4 - AWS.
 
 Create an `oc cluster up` 3.11  and add `cluster-admin` role to the `admin` user
 
