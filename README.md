@@ -235,8 +235,7 @@ Install the [tool](https://github.com/operator-framework/operator-courier) `oper
 Verify your operator's bundle using the tool.
 
     export BUNDLE_DIR="deploy/olm-catalog/bundle"
-    operator-courier verify $BUNDLE_DIR
-    WARNING:operatorcourier.validate:csv spec.icon not defined    
+    operator-courier verify $BUNDLE_DIR  
 
 Next, get from `quay.io` an Authentication token using your quay's username OR robot username/pwd to access your namespace.
 
@@ -250,7 +249,7 @@ Push finally the bundle on quay as an `application`.
 
     export QUAY_ORG="quay_organization (e.g ch007m)"
     export REPOSITORY="component"
-    export RELEASE="0.5.0"
+    export RELEASE="0.6.0"
     operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
 
 ### How to deploy the Component Operator on OCP4
@@ -279,7 +278,7 @@ To clean-up , execute the following commands
     oc delete -n openshift-operators subscriptions/component
     oc delete -n openshift-marketplace operatorsource/component-operator
     oc delete crd/components.component.k8s.io
-    oc delete -n openshift-operators ClusterServiceVersion/component-operator.v0.5.0
+    oc delete -n openshift-operators ClusterServiceVersion/component-operator.v0.6.0
     oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
     oc delete -n openshift-operators deployment/component-operator
 

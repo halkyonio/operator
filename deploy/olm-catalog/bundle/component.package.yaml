@@ -1,5 +1,5 @@
 packageName: component
 channels:
 - name: alpha
-  currentCSV: component-operator.v0.5.0
+  currentCSV: component-operator.v0.6.0
 defaultChannel: "alpha"
