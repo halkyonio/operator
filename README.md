@@ -426,6 +426,8 @@ Create a subscription for the component operator
 oc create -f deploy/olm-catalog/component-subscription-ocp4.yaml -n openshift-operators
 ```
 
+Check if the `OperatorSources` are well installed
+```bash
 oc get opsrc --all-namespaces 
 NAMESPACE               NAME                  TYPE          ENDPOINT              REGISTRY              DISPLAYNAME           PUBLISHER   STATUS      MESSAGE                                       AGE
 openshift-marketplace   certified-operators   appregistry   https://quay.io/cnr   certified-operators   Certified Operators   Red Hat     Succeeded   The object has been successfully reconciled   5m
