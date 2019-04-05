@@ -4,13 +4,13 @@ apiVersion: operators.coreos.com/v1alpha2
 kind: OperatorGroup
 metadata:
   name: global-operators
-  namespace: operators
+  namespace: openshift-operators
 ---
 apiVersion: operators.coreos.com/v1alpha2
 kind: OperatorGroup
 metadata:
   name: olm-operators
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
 spec:
   targetNamespaces:
-    - olm
+    - openshift-operator-lifecycle-manager

@@ -4,7 +4,7 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: olm-operators
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
 
 data:
   customResourceDefinitions: |-
@@ -14,7 +14,7 @@ data:
       kind: ClusterServiceVersion
       metadata:
         name: packageserver.v0.8.1
-        namespace: olm
+        namespace: openshift-operator-lifecycle-manager
       spec:
         displayName: Package Server
         description: Represents an Operator package that is available from a given CatalogSource which will resolve to a ClusterServiceVersion.
@@ -92,7 +92,7 @@ data:
                       - --secure-port
                       - "5443"
                       - --global-namespace
-                      - olm
+                      - openshift-operator-lifecycle-manager
                       image: quay.io/operator-framework/olm@sha256:4b7dec341fc754fdd2c8784ca7d81747ebbb2b87866b9e61ebbebc8c5614cfdc
                       imagePullPolicy: Always
                       ports:

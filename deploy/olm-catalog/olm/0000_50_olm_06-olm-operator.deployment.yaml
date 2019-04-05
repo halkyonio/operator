@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: olm-operator
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
   labels:
     app: olm-operator
 spec:
@@ -26,7 +26,7 @@ spec:
           - /bin/olm
           args:
           - -writeStatusName
-          - ""
+          - operator-lifecycle-manager
           image: quay.io/operator-framework/olm@sha256:4b7dec341fc754fdd2c8784ca7d81747ebbb2b87866b9e61ebbebc8c5614cfdc
           imagePullPolicy: IfNotPresent
           ports:
