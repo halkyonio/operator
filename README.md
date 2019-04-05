@@ -370,16 +370,19 @@ oc logs -n operators pod/component-operator-59cf6cf54-xk8mx
 2019/04/04 16:26:58 Start the manager
 ```
 
-#### TODO - USING OPENSHIFT MARKETPLACE
+#### Deploy on okd 3.11 using Openshift resources
+
+Create an `oc cluster up` 3.11  and add `cluster-admin` role to the `admin` user
+
+Install olm using the resources of the olm project created under the folder deploy/okd/manifests/latest
 
 ```bash
-echo "Install olm"
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_00-namespace.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_01-clusterserviceversion.crd.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_02-installplan.crd.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_03-subscription.crd.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_04-catalogsource.crd.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_05-olm-operator.serviceaccount.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_01-olm-operator.serviceaccount.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_02-clusterserviceversion.crd.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_03-installplan.crd.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_04-subscription.crd.yaml
+oc apply -f deploy/olm-catalog/olm/0000_50_olm_05-catalogsource.crd.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_06-olm-operator.deployment.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_07-catalog-operator.deployment.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_08-aggregated.clusterrole.yaml
@@ -388,18 +391,13 @@ oc apply -f deploy/olm-catalog/olm/0000_50_olm_10-olm-operators.configmap.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_11-olm-operators.catalogsource.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_12-operatorgroup-default.yaml
 oc apply -f deploy/olm-catalog/olm/0000_50_olm_13-packageserver.subscription.yaml
-oc apply -f deploy/olm-catalog/olm/0000_50_olm_17-upstream-operators.catalogsource.yaml
 
-echo "Install Openshift-marketplace"
-oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/marketplace.ns.yaml
-oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/operator.yaml
-oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/role.yaml
-oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/role_binding.yaml
-oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/service_account.yaml
-oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/crds/operators_v1_operatorsource_crd.yaml
-oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/crds/operators_v1_catalogsourceconfig_crd.yaml
-oc create -f deploy/olm-catalog/upstream-operators-operator-source.yaml -n openshift-marketplace
+![olm](img/install-olm.png)
 
+Install Openshift Marketplace using the resources of the `Marketplace` project located under the folder manifests without the resources `11_clusteroperator.yaml`, `image-references` 
+and where the `node_selector` has been removed from the `10_operator.yaml` file 
+
+```bash
 oc create -f deploy/olm-catalog/marketplace/01_namespace.yaml
 oc create -f deploy/olm-catalog/marketplace/02_catalogsourceconfig.crd.yaml
 oc create -f deploy/olm-catalog/marketplace/03_operatorsource.crd.yaml
@@ -410,13 +408,29 @@ oc create -f deploy/olm-catalog/marketplace/07_redhat_operatorsource.cr.yaml
 oc create -f deploy/olm-catalog/marketplace/08_certified_operatorsource.cr.yaml
 oc create -f deploy/olm-catalog/marketplace/09_community_operatorsource.cr.yaml
 oc create -f deploy/olm-catalog/marketplace/10_operator.yaml
+```
+![marketplace](img/install-marketplace.png)
 
+Check if the operators appear under the `Operatorhub` screen
+
+![marketplace](img/operatorhub.png)
+
+Install the component operator bundle
+```bash
 oc create -f deploy/olm-catalog/component-operator-source.yaml -n openshift-marketplace
+```
 
+Create a subscription for the component operator
+```bash
 oc create -f deploy/olm-catalog/component-subscription-ocp4.yaml -n openshift-operators
+```
 
-oc get opsrc upstream-community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n openshift-marketplace
-oc get opsrc component-operator -n openshift-marketplace
+oc get opsrc --all-namespaces 
+NAMESPACE               NAME                  TYPE          ENDPOINT              REGISTRY              DISPLAYNAME           PUBLISHER   STATUS      MESSAGE                                       AGE
+openshift-marketplace   certified-operators   appregistry   https://quay.io/cnr   certified-operators   Certified Operators   Red Hat     Succeeded   The object has been successfully reconciled   5m
+openshift-marketplace   community-operators   appregistry   https://quay.io/cnr   community-operators   Community Operators   Red Hat     Succeeded   The object has been successfully reconciled   5m
+openshift-marketplace   component-operator    appregistry   https://quay.io/cnr   ch007m                Component Operator    Snowdrop    Succeeded   The object has been successfully reconciled   1m
+openshift-marketplace   redhat-operators      appregistry   https://quay.io/cnr   redhat-operators      Red Hat Operators     Red Hat     Succeeded   The object has been successfully reconciled   5m
 ```
 
 #### Cleanup
