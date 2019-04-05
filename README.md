@@ -16,7 +16,12 @@ Table of Contents
       * [How to deploy the Component Operator on OCP4 using the OperatorHub](#how-to-deploy-the-component-operator-on-ocp4-using-the-operatorhub)
          * [Package and install the Operator on Quay.io as Application](#package-and-install-the-operator-on-quayio-as-application)
          * [Deploy on OCP4](#deploy-on-ocp4)
-
+      * [How to install the Operator using OLM, Marketplace on okd 3.x](#how-to-install-the-operator-using-olm-marketplace-on-okd-3x)
+         * [Step 1 - Install the new OpenShift console](#step-1---install-the-new-openshift-console)
+         * [Step 2 - Install the OLM and Marketplace](#step-2---install-the-olm-and-marketplace)
+         * [Step 3 - Install our Component Operator Source](#step-3---install-our-component-operator-source)
+         * [Step 4 - Deploy the Component Operator using a Subscription](#step-4---deploy-the-component-operator-using-a-subscription)
+   
 ## For the users
 
 ### How to play with the Component operator locally
@@ -341,6 +346,8 @@ Add the `upstream/community` operator source to fetch the data from the `quay/cn
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/upstream.operatorsource.cr.yaml -n marketplace
 ```
 
+#### Step 3 - Install our Component Operator Source
+
 Install our `Component Operator` source too from `quay`
 ```bash
 oc create -f deploy/olm-catalog/component-operator-source.yaml -n marketplace
@@ -377,6 +384,8 @@ storageos                5m
 strimzi-kafka-operator   5m
 vault                    5m
 ```
+
+#### Step 4 - Deploy the Component Operator using a Subscription
 
 Create a `CatalogSourceConfig` and `Subscription` to the `Component Operator` in order to install the `operator` within the `operators` namespace
 ```bash
