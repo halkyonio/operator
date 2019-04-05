@@ -13,10 +13,9 @@ Table of Contents
     * [Cleanup the operator](#cleanup)
   * [For the developers only](#for-the-developers-only)
       * [How To create the operator, crd](#how-to-create-the-operator-crd)
-      * [How to deploy the Component Operator on OCP4 using the OperatorHub](#how-to-deploy-the-component-operator-on-ocp4-using-the-operatorhub)
-         * [Package and install the Operator on Quay.io as Application](#package-and-install-the-operator-on-quayio-as-application)
-         * [Deploy on OCP4](#deploy-on-ocp4)
-      * [How to install the Operator using OLM, Marketplace on okd 3.x](#how-to-install-the-operator-using-olm-marketplace-on-okd-3x)
+      * [How to package and install the Operator on Quay.io as an Application](#how-to-package-and-install-the-operator-on-quayio-as-an-application)
+      * [How to deploy the Component Operator on OCP4](#how-to-deploy-the-component-operator-on-ocp4)
+      * [How to deploy the Component Operator on okd 3.x](#how-to-install-the-operator-using-olm-marketplace-on-okd-3x)
          * [Step 1 - Install the new OpenShift console](#step-1---install-the-new-openshift-console)
          * [Step 2 - Install the OLM and Marketplace](#step-2---install-the-olm-and-marketplace)
          * [Step 3 - Install our Component Operator Source](#step-3---install-our-component-operator-source)
@@ -227,9 +226,7 @@ Instructions followed to create the Component's CRD, operator using the `operato
   oc delete components,route,svc,is,pvc,dc --all=true
   ```  
 
-### How to deploy the Component Operator on OCP4 using the OperatorHub
-
-#### Package and install the Operator on Quay.io as an Application
+### How to package and install the Operator on Quay.io as an Application
 
 Install the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`.
 
@@ -255,8 +252,8 @@ Push finally the bundle on quay as an `application`.
     export REPOSITORY="component"
     export RELEASE="0.5.0"
     operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
-    
-#### Deploy on OCP4
+
+### How to deploy the Component Operator on OCP4
 
 Log on to an ocp4 cluster as a cluster-admin role user.
 
