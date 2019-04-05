@@ -2,11 +2,12 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: component
-  namespace: operators
 spec:
   channel: alpha
   name: component
-  source: component-operator
+  # See doc - https://github.com/operator-framework/operator-marketplace#installing-an-operator-using-marketplace concerning
+  # installed-upstream-community-operators
+  source: installed-upstream-community-operators
   # When we deploy the upstream resources, then the olm and marketplace are installed respectively within the olm and marketplace namespaces and
   # the operators will be created under the following namespace
   sourceNamespace: operators

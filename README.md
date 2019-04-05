@@ -378,10 +378,13 @@ strimzi-kafka-operator   5m
 vault                    5m
 ```
 
-Create a `Subscription` to the `Component Operator` in order to install the `operator` within the `operators` namespace
+Create a `CatalogSourceConfig` and `Subscription` to the `Component Operator` in order to install the `operator` within the `operators` namespace
 ```bash
+oc create -f deploy/olm-catalog/component-catalog-source-config.yaml -n marketplace
 oc create -f deploy/olm-catalog/component-subscription.yaml -n operators
 ```
+
+**Warning**: Doc of the Operator marketplace is not clear about the purpose to create a `CatalogSourceConfig` where the name is `name: installed-upstream-community-operators`
 
 Verify if the Component Operator is up and running 
 ```bash
