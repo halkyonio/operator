@@ -426,7 +426,7 @@ Create a subscription for the component operator
 oc create -f deploy/olm-catalog/component-subscription-ocp4.yaml -n openshift-operators
 ```
 
-Check if the `OperatorSources` are well installed
+Check if the `OperatorSources` are well installed like the `packagemanifests`
 ```bash
 oc get opsrc --all-namespaces 
 NAMESPACE               NAME                  TYPE          ENDPOINT              REGISTRY              DISPLAYNAME           PUBLISHER   STATUS      MESSAGE                                       AGE
@@ -434,6 +434,39 @@ openshift-marketplace   certified-operators   appregistry   https://quay.io/cnr 
 openshift-marketplace   community-operators   appregistry   https://quay.io/cnr   community-operators   Community Operators   Red Hat     Succeeded   The object has been successfully reconciled   5m
 openshift-marketplace   component-operator    appregistry   https://quay.io/cnr   ch007m                Component Operator    Snowdrop    Succeeded   The object has been successfully reconciled   1m
 openshift-marketplace   redhat-operators      appregistry   https://quay.io/cnr   redhat-operators      Red Hat Operators     Red Hat     Succeeded   The object has been successfully reconciled   5m
+```
+
+and
+
+```bash
+oc get packagemanifests --all-namespaces
+NAMESPACE   NAME                     AGE
+            component                40m
+            packageserver            1h
+            amq-streams              57m
+            couchbase-enterprise     57m
+            mongodb-enterprise       57m
+            automationbroker         57m
+            camel-k                  57m
+            cluster-logging          57m
+            cockroachdb              57m
+            descheduler              57m
+            elasticsearch-operator   57m
+            etcd                     57m
+            federation               57m
+            jaeger                   57m
+            kiecloud-operator        57m
+            metering                 57m
+            microcks                 57m
+            node-network-operator    57m
+            node-problem-detector    57m
+            oneagent                 57m
+            percona                  57m
+            planetscale              57m
+            postgresql               57m
+            prometheus               57m
+            strimzi-kafka-operator   57m
+            templateservicebroker    57m
 ```
 
 #### Cleanup

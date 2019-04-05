@@ -1,9 +1,14 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
+  labels:
+    csc-owner-name: component-operator
+    csc-owner-namespace: openshift-marketplace
   name: component
 spec:
   channel: alpha
+  installPlanApproval: Automatic
   name: component
   source: component-operator
-  sourceNamespace: operators
+  sourceNamespace: openshift-operators
+  startingCSV: component-operator.v0.5.0
