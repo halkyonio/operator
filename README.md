@@ -21,6 +21,22 @@ Table of Contents
          * [Step 3 - Install our Component Operator Source](#step-3---install-our-component-operator-source)
          * [Step 4 - Deploy the Component Operator using a Subscription](#step-4---deploy-the-component-operator-using-a-subscription)
    
+## Introduction
+
+The purpose of this project is to develop a Kubernetes `Custom Resource Definition` called `Component CRD` able to install a Microservices Application such as `Spring Boot` on Kubernetes / OpenShift or to deploy a 
+Service available from a Service Broker Catalog.
+
+The CRD contains `METADATA` information about the framework/language to be used to install the Pod - Linux container on the cloud platform, the strategy to be used to install the project (Development mode or CI/CD build)
+like also to configure the microservice and toi pass `env var, secret, ...`
+
+The deployment or installation of an application in a namespace will consist in to create a `Component` yaml resource file defined according to the 
+[Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha1/component_types.go#L11).
+
+When they will be created, then the `Component operator` which is a Kubernetes [controller](https://goo.gl/D8iE2K) will execute different operations to create : 
+- For the `component-runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push the `uber jar` file compiled locally, 
+- A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
+- `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
+
 ## For the users
 
 ### How to play with the Component operator locally
