@@ -394,7 +394,7 @@ oc logs -n operators pod/component-operator-59cf6cf54-xk8mx
 2019/04/04 16:26:58 Start the manager
 ```
 
-#### Deploy on okd 3.11 using the OCP resources
+### How to install okd 3.11 using the OCP resources
 
 **Remark** : The OCP yaml resources are used to install olm, marketplace on ocp under `openshift-marketplace` and `openshift-operators` namespaces. They correspond or should correspond to what is deployed
 on OCP4 - AWS.
@@ -496,7 +496,9 @@ NAMESPACE   NAME                     AGE
             templateservicebroker    57m
 ```
 
-#### Cleanup
+### Cleanup
+
+To be reviewed !!
 
 ```bash
 oc delete -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/02_catalogsourceconfig.crd.yaml
