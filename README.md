@@ -305,7 +305,6 @@ source ./contrib/oc-environment.sh
 From another terminal, install the *Operator Lifecycle Manager* using this command:
 ```bash
 oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_00-namespace.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_00-namespace.yaml
 oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_01-olm-operator.serviceaccount.yaml
 oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_02-clusterserviceversion.crd.yaml
 oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_03-installplan.crd.yaml
@@ -325,7 +324,7 @@ oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecy
 **Remark** the following command fails `oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml` as some resources can't be installed
 . This is the reason why all the resources are installed individually.
 
-When installed, deploy the marketplace resources responsible to manage the different operators under an `Operatorhub`.
+When installed, deploy the marketplace resources responsible to manage the different operators under the `Operatorhub`.
 ```bash
 echo "Install marketplace"
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/01_namespace.yaml
@@ -335,15 +334,19 @@ oc create -f https://raw.githubusercontent.com/operator-framework/operator-marke
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/05_role.yaml
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/06_role_binding.yaml
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/07_operator.yaml
+```
+
+Add the `upstream/community` operator source to fetch the data from the `quay/cnr` repo
+```bash
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/upstream.operatorsource.cr.yaml -n marketplace
 ```
 
-Install our `Component Operator` now
+Install our `Component Operator` source too from `quay`
 ```bash
 oc create -f deploy/olm-catalog/component-operator-source.yaml -n marketplace
 ```
 
-After a few moment, check if the `OperatorSource` have been deployed successfully
+After a few moment, check if the `OperatorSource` have been deployed successfully and that we collected their `package manifests`
 ```bash
 oc get opsrc upstream-community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n marketplace
 NAME                           PACKAGES
@@ -352,9 +355,30 @@ upstream-community-operators   jaeger,prometheus,aws-service,etcd,mongodb-enterp
 oc get opsrc component-operator -n marketplace
 NAME                 TYPE          ENDPOINT              REGISTRY   DISPLAYNAME          PUBLISHER   STATUS      MESSAGE                                       AGE
 component-operator   appregistry   https://quay.io/cnr   ch007m     Component Operator   Snowdrop    Succeeded   The object has been successfully reconciled   35s
+
+oc get packagemanifests
+NAME                     AGE
+packageserver            5m
+aws-service              5m
+cockroachdb              5m
+couchbase-enterprise     5m
+etcd                     5m
+federation               5m
+jaeger                   5m
+microcks                 5m
+mongodb-enterprise       5m
+oneagent                 5m
+percona                  5m
+planetscale              5m
+postgresql               5m
+prometheus               5m
+redis-enterprise         5m
+storageos                5m
+strimzi-kafka-operator   5m
+vault                    5m
 ```
 
-Create a CatalogSourceConfig and a Subscription to install the `Component operator` within the `operators` namespace
+Create a `Subscription` to the `Component Operator` in order to install the `operator` within the `operators` namespace
 ```bash
 oc create -f deploy/olm-catalog/component-subscription.yaml -n operators
 ```
@@ -370,7 +394,7 @@ oc logs -n operators pod/component-operator-59cf6cf54-xk8mx
 2019/04/04 16:26:58 Start the manager
 ```
 
-#### Deploy on okd 3.11 using Openshift resources
+#### Deploy on okd 3.11 using OpenShift resources
 
 Create an `oc cluster up` 3.11  and add `cluster-admin` role to the `admin` user
 
