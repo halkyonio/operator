@@ -10,7 +10,7 @@ metadata:
     support: Snowdrop
     certified: "false"
     repository: https://github.com/snowdrop/component-operator
-  name: component-operator.v0.8.0
+  name: component-operator.v0.9.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -57,9 +57,12 @@ spec:
           name: fruit-database
         spec:
           services:
-            - name: postgresql-db   # Name of the instance to be created within the namespace
-              class: dh-postgresql-apb # Class or name of the service selected from the catalog
-              plan: dev                # Plan selected : dev, ....
+            - # Name of the instance to be created within the namespace
+              name: postgresql-db
+              # Class or name of the service selected from the catalog
+              class: dh-postgresql-apb
+              # Plan selected : dev, ....
+              plan: dev
               parameters:
               - name: postgresql_user
                 value: "luke"
@@ -72,7 +75,7 @@ spec:
 
   displayName: Component Operator
   keywords: ['component','microservices','composition']
-  version: 0.8.0
+  version: 0.9.0
   maturity: alpha
   maintainers:
   - name: Snowdrop

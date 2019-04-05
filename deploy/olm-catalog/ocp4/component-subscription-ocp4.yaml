@@ -11,4 +11,4 @@ spec:
   name: component
   source: installed-custom-openshift-operators
   sourceNamespace: openshift-operators
-  startingCSV: component-operator.v0.8.0
+  startingCSV: component-operator.v0.9.0
