@@ -265,7 +265,7 @@ Push finally the bundle on quay as an `application`.
 
     export QUAY_ORG="quay_organization (e.g ch007m)"
     export REPOSITORY="component"
-    export RELEASE="0.7.0"
+    export RELEASE="0.8.0"
     operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
 
 ### How to deploy the Component Operator on OCP4
@@ -294,7 +294,7 @@ To clean-up , execute the following commands
     oc delete -n openshift-operators subscriptions/component
     oc delete -n openshift-marketplace operatorsource/component-operator
     oc delete crd/components.component.k8s.io
-    oc delete -n openshift-operators ClusterServiceVersion/component-operator.v0.7.0
+    oc delete -n openshift-operators ClusterServiceVersion/component-operator.v0.8.0
     oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
     oc delete -n openshift-operators deployment/component-operator
 
