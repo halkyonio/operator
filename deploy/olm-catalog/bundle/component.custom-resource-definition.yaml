@@ -29,25 +29,25 @@ spec:
                 - vert.x
                 - thorntail
   additionalPrinterColumns:
-  - name: Runtime
-    type: string
-    description: "The runtime's technology/framework such as : Spring Boot, Eclipse Vert.x, ...."
-    JSONPath: .spec.runtime
-  - name: Version
-    type: string
-    description: "The version of the runtime"
-    JSONPath: .spec.version
-  - name: Service
-    type: string
-    description: "The service created from the catalog"
-    JSONPath: .spec.services[0].name
-  - name: Injected
-    type: string
-    description: "The relation which exists between a component and a service, ..."
-    JSONPath: .spec.links[0].kind
-  - name: Age
-    type: date
-    JSONPath: .metadata.creationTimestamp
-  - name: Status
-    type: string
-    JSONPath: .status.phase
+    - name: Runtime
+      type: string
+      description: "The runtime's technology/framework such as : Spring Boot, Eclipse Vert.x, ...."
+      JSONPath: .spec.runtime
+    - name: Version
+      type: string
+      description: "The version of the runtime"
+      JSONPath: .spec.version
+    - name: Service
+      type: string
+      description: "The service created from the catalog"
+      JSONPath: .spec.services[0].name
+    - name: Injected
+      type: string
+      description: "The relation which exists between a component and a service, ..."
+      JSONPath: .spec.links[0].kind
+    - name: Age
+      type: date
+      JSONPath: .metadata.creationTimestamp
+    - name: Status
+      type: string
+      JSONPath: .status.phase
