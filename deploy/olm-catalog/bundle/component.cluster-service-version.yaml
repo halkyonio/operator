@@ -10,14 +10,69 @@ metadata:
     support: Snowdrop
     certified: "false"
     repository: https://github.com/snowdrop/component-operator
-  name: component-operator.v0.6.0
+  name: component-operator.v0.7.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
-  description: Component Operator to install application, service
+  description: |-
+    The  `Component CRD` simplifies the process to install a Microservice such as `Spring Boot` on a cloud Kubernetes / OpenShift platform. It can be used during the development phase of the
+    application or when the project is mature enough to install it using a classical docker build and deployment model as supported by Kubernetes.
+    You can also configure a Service from a Service Broker Catalog such as a Database (PostgreSQL) and to inject the `env variables` as parameters to the application.
+
+    ### Description
+    The CRD contains `METADATA` information about the framework/language to be used to install the Pod - Linux container on the cloud platform, the strategy to be used to install the project (Development mode or CI/CD build)
+    like also to configure the microservice and to pass `env var, secret, ...`
+
+    ### How to play with it
+    The deployment or installation of an application in a namespace will consist in to create a `Component` yaml resource file defined according to the
+    [Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha1/component_types.go#L11).
+
+    When the CRD resource is consumed by the Kuke Api Server, then the `Component operator` will execute different operations to create :
+    - For the `runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push a `uber jar` file compiled locally,
+    - A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
+    - `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
+
+    ### Example
+
+    Simple example to install a Development pod where a Spring Boot application is deployed and can be accessed either using a kubernetes Ingress or Openshift route address
+
+      apiVersion: component.k8s.io/v1alpha1
+      kind: Component
+      metadata:
+        name: fruit-backend
+      spec:
+        deploymentMode: innerloop
+        runtime: springboot
+        version: 2.1.3
+        exposeService: true
+        envs:
+        - name: SPRING_PROFILES_ACTIVE
+          value: openshift-catalog
+
+    To configure a Service from the Openshift Automation Broker
+
+      apiVersion: component.k8s.io/v1alpha1
+      kind: Component
+      metadata:
+        name: fruit-database
+      spec:
+        services:
+          - name: postgresql-db   # Name of the instance to be created within the namespace
+            class: dh-postgresql-apb # Class or name of the service selected from the catalog
+            plan: dev                # Plan selected : dev, ....
+            parameters:
+            - name: postgresql_user
+              value: "luke"
+            - name: postgresql_password
+              value: "secret"
+            - name: postgresql_database
+              value: "my_data"
+            - name: postgresql_version
+              value: "9.6"
+
   displayName: Component Operator
   keywords: ['component','microservices','composition']
-  version: 0.6.0
+  version: 0.7.0
   maturity: alpha
   maintainers:
   - name: Snowdrop
