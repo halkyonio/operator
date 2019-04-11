@@ -10,7 +10,7 @@ metadata:
     support: Snowdrop
     certified: "false"
     repository: https://github.com/snowdrop/component-operator
-  name: component-operator.v0.9.0
+  name: component-operator.v0.10.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -75,7 +75,7 @@ spec:
 
   displayName: Component Operator
   keywords: ['component','microservices','composition']
-  version: 0.9.0
+  version: 0.10.0
   maturity: alpha
   maintainers:
   - name: Snowdrop
@@ -172,6 +172,13 @@ spec:
               - apps.openshift.io
             resources:
               - deploymentconfigs
+            verbs:
+              - "*"
+          - apiGroups:
+              - build.openshift.io
+            resources:
+              - builds
+              - buildconfigs
             verbs:
               - "*"
           - apiGroups:
