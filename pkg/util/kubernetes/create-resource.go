@@ -1,11 +1,9 @@
 package kubernetes
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	"golang.org/x/net/context"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,7 +24,6 @@ func CreateResource(tmpl template.Template, component *v1alpha1.Component, c cli
 			obj.SetLabels(PopulateK8sLabels(component, "Backend"))
 		}
 		err = c.Create(context.TODO(), r)
-		log.Infof("##### Error returned : #####",err)
 		if err != nil {
 			return err
 		}
