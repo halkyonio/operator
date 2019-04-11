@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	"github.com/redhat-developer/odo/pkg/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	"golang.org/x/net/context"
