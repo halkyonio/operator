@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"github.com/redhat-developer/odo/pkg/log"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	"golang.org/x/net/context"
@@ -21,10 +22,13 @@ func CreateResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	}
 
 	for _, r := range res {
+		log.Info("##### Resource created #####")
 		if obj, ok := r.(metav1.Object); ok {
 			obj.SetLabels(PopulateK8sLabels(component, "Backend"))
+			log.Info("##### Labels set #####")
 		}
-		err = c.Create(context.TODO(), r)
+		log.Infof("##### Resource object : #####",r)
+		err = c.Create(context.Background(), r)
 		if err != nil && k8serrors.IsNotFound(err) {
 			return err
 		}
