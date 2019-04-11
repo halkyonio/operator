@@ -71,7 +71,7 @@ rules:
   - build.openshift.io
   resources:
   - builds
-   - buildconfigs
+  - buildconfigs
   verbs:
   - "*"
 - apiGroups:
