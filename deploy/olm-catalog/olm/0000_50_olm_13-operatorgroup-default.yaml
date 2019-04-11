@@ -1,12 +1,12 @@
 ---
-# Source: olm/templates/0000_50_olm_12-operatorgroup-default.yaml
-apiVersion: operators.coreos.com/v1alpha2
+# Source: olm/templates/0000_50_olm_13-operatorgroup-default.yaml
+apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: global-operators
   namespace: openshift-operators
 ---
-apiVersion: operators.coreos.com/v1alpha2
+apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: olm-operators

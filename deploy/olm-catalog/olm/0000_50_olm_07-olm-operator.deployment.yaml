@@ -1,5 +1,5 @@
 ---
-# Source: olm/templates/0000_50_olm_06-olm-operator.deployment.yaml
+# Source: olm/templates/0000_50_olm_07-olm-operator.deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,10 +27,13 @@ spec:
           args:
           - -writeStatusName
           - operator-lifecycle-manager
-          image: quay.io/operator-framework/olm@sha256:4b7dec341fc754fdd2c8784ca7d81747ebbb2b87866b9e61ebbebc8c5614cfdc
+          image: quay.io/operator-framework/olm@sha256:7e4b13b89b3d59876b228697bbd0c9e364fd73f946ab90308c34fd82053a5a76
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+            - containerPort: 8081
+              name: metrics
+              protocol: TCP
           livenessProbe:
             httpGet:
               path: /healthz
@@ -47,6 +50,8 @@ spec:
                 fieldPath: metadata.namespace
           - name: OPERATOR_NAME
             value: olm-operator
+          
+      
       nodeSelector:
         beta.kubernetes.io/os: linux
         

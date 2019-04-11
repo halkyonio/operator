@@ -321,21 +321,20 @@ source ./contrib/oc-environment.sh
 
 From another terminal, install the *Operator Lifecycle Manager* using this command:
 ```bash
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_00-namespace.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_01-olm-operator.serviceaccount.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_02-clusterserviceversion.crd.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_03-installplan.crd.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_04-subscription.crd.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_05-catalogsource.crd.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_06-olm-operator.deployment.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_07-catalog-operator.deployment.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_08-aggregated.clusterrole.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_09-operatorgroup.crd.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_10-olm-operators.configmap.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_11-olm-operators.catalogsource.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_12-operatorgroup-default.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_13-packageserver.subscription.yaml
-oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.8.1/0000_50_olm_17-upstream-operators.catalogsource.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_00-namespace.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_01-olm-operator.serviceaccount.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_03-clusterserviceversion.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_04-installplan.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_05-subscription.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_06-catalogsource.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_07-olm-operator.deployment.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_08-catalog-operator.deployment.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_09-aggregated.clusterrole.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_10-operatorgroup.crd.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_11-olm-operators.configmap.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_12-olm-operators.catalogsource.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_13-operatorgroup-default.yaml
+oc apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/manifests/0.9.0/0000_50_olm_14-packageserver.subscription.yaml
 ```
 
 **Remark** the following command fails `oc create -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml` as some resources can't be installed
@@ -353,9 +352,10 @@ oc create -f https://raw.githubusercontent.com/operator-framework/operator-marke
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/upstream/07_operator.yaml
 ```
 
-Add the `upstream/community` operator source to fetch the data from the `quay/cnr` repo
+Add the `upstream OR community` operator source to fetch the data from the `quay/cnr` repo
 ```bash
 oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/upstream.operatorsource.cr.yaml -n marketplace
+oc create -f https://raw.githubusercontent.com/operator-framework/operator-marketplace/master/deploy/examples/community.operatorsource.cr.yaml -n marketplace
 ```
 
 #### Step 3 - Install our Component Operator Source
@@ -370,6 +370,12 @@ After a few moment, check if the `OperatorSource` have been deployed successfull
 oc get opsrc upstream-community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n marketplace
 NAME                           PACKAGES
 upstream-community-operators   jaeger,prometheus,aws-service,etcd,mongodb-enterprise,redis-enterprise,federation,planetscale,strimzi-kafka-operator,cockroachdb,microcks,vault,percona,couchbase-enterprise,postgresql,oneagent
+
+OR
+
+oc get opsrc community-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n marketplace 
+NAME                  PACKAGES
+community-operators   etcd,prometheus,automationbroker,cockroachdb,hazelcast-enterprise,metering,jaeger,cluster-logging,node-problem-detector,templateservicebroker,postgresql,kiecloud-operator,planetscale,elasticsearch-operator,node-network-operator,microcks,descheduler,camel-k,oneagent,percona,strimzi-kafka-operator,federation
 
 oc get opsrc component-operator -n marketplace
 NAME                 TYPE          ENDPOINT              REGISTRY   DISPLAYNAME          PUBLISHER   STATUS      MESSAGE                                       AGE
