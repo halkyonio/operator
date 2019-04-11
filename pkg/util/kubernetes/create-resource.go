@@ -25,10 +25,9 @@ func CreateResource(tmpl template.Template, component *v1alpha1.Component, c cli
 		if obj, ok := r.(metav1.Object); ok {
 			obj.SetLabels(PopulateK8sLabels(component, "Backend"))
 		}
-		log.Infof("##### Resource object : #####",r)
 		err = c.Create(context.TODO(), r)
 		log.Infof("##### Error returned : #####",err)
-		if err != nil && k8serrors.IsNotFound(err) {
+		if err != nil {
 			return err
 		}
 	}
@@ -61,7 +60,6 @@ func newResourceFromTemplate(tmpl template.Template, component *v1alpha1.Compone
 				return nil, err
 			}
 			controllerutil.SetControllerReference(component, ro, scheme)
-			//kubernetes.SetNamespaceAndOwnerReference(obj, component)
 			result = append(result, obj)
 		}
 	} else {
@@ -76,7 +74,6 @@ func newResourceFromTemplate(tmpl template.Template, component *v1alpha1.Compone
 			return nil, err
 		}
 		controllerutil.SetControllerReference(component, ro, scheme)
-		//kubernetes.SetNamespaceAndOwnerReference(obj, component)
 		result = append(result, obj)
 	}
 	return result, nil
