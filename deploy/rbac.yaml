@@ -30,7 +30,13 @@ rules:
   - statefulsets
   verbs:
   - "*"
-
+- apiGroups:
+    - build.openshift.io
+  resources:
+    - builds
+    - buildconfigs
+  verbs:
+    - "*"
 ---
 
 kind: RoleBinding

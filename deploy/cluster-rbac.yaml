@@ -68,6 +68,13 @@ rules:
   verbs:
   - "*"
 - apiGroups:
+  - build.openshift.io
+  resources:
+  - builds
+   - buildconfigs
+  verbs:
+  - "*"
+- apiGroups:
   - automationbroker.io
   resources:
   - "access"
