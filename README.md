@@ -58,6 +58,8 @@ When this `Custom resource` will be processed by the Kukernetes Api Server and p
 - A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
 - `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
 
+**Remark** : The `Component` Operator can be deployed on Kubernetes >= 1.11 or OpenShift >= 3.11
+
 ## For the users
 
 ### How to play with the Component operator locally
