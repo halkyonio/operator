@@ -79,9 +79,11 @@ func generateSpringBootJavaProject(outDir, template, artifactid string) {
 	client := http.Client{}
 	form := url.Values{}
 	form.Add("artifactid", artifactid)
-	form.Add("module", template)
-	form.Add("packagename", "org.acme")
-	form.Add("springbootversion", "2.1.2.RELEASE")
+	form.Add("groupid", "me.snowdrop")
+	form.Add("template", template)
+	form.Add("packagename", "me.snowdrop.demo")
+	form.Add("springbootversion", "2.1.3.RELEASE")
+	form.Add("version", "1.0.0-SNAPSHOT")
 	parameters := form.Encode()
 	if parameters != "" {
 		parameters = "?" + parameters
@@ -127,17 +129,17 @@ func addClientHeader(req *http.Request) {
 }
 
 func Unzip(src, dest string) error {
-	log.Infof("Src file : %s",src)
-	log.Infof("Dest file : %s",dest)
+	log.Debugf("Src file : %s",src)
+	log.Debugf("Dest file : %s",dest)
 	r, err := zip.OpenReader(src)
-	log.Infof("Create OpenReader for zipfile")
+	log.Debugf("Create OpenReader for zipfile")
 	if err != nil {
 		return err
 	}
 	defer r.Close()
 
 	for _, f := range r.File {
-		log.Infof("Open file : %s",f.Name)
+		log.Debugf("Open file : %s",f.Name)
 		rc, err := f.Open()
 		if err != nil {
 			return err
@@ -186,12 +188,12 @@ func runMavenBuild(buildDir string) error {
 	cmd := exec.Command("mvn", mavenExtraOptions(buildDir), "package")
 	cmd.Dir = buildDir
 	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	//cmd.Stdout = os.Stdout
 
 	log.Infof("running maven package: %v", cmd.Args)
 	if err := cmd.Run(); err != nil {
-		log.Errorf("Maven error: %s",cmd.Stdout)
-		return errors.Wrap(err,"error occured during mvn package execution")
+		//log.Debugf("Maven cmd : %s",cmd.Stdout)
+		return errors.Wrap(err,"Error occured during mvn package execution")
 	}
 	log.Info("Maven build completed successfully")
 	return nil
