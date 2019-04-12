@@ -8,7 +8,7 @@ Table of Contents
   * [For the users](#for-the-users)
     * [How to play with the Component operator locally](#how-to-play-with-the-component-operator-locally)
     * [A more complex scenario](#a-more-complex-scenario)
-    * [Switch fromm inner to outer mode](#switch-fromm-inner-to-outer)
+    * [Switch from Development to Build/Prod mode](#switch-from-development-to-buildprod-mode)
     * [How to install the operator on an cluster](#how-to-install-the-operator-on-the-cluster)
     * [Cleanup the operator](#cleanup)
   * [For the developers only](#for-the-developers-only)
@@ -138,13 +138,13 @@ like also the `links` needed to update the `DeploymentConfig`, then you should e
   oc apply -f examples/demo/component-link.yml
   ```  
   
-### Switch from inner to outer
+### Switch from Development to Build/Prod mode
 
 The existing operator supports to switch from the `inner` or development mode (where code must be pushed to the development's pod) to the `outer` mode (responsible to perform a `s2i` build 
 deployment using a SCM project). In this case, a container image will be created from the project compiled and next a new deploymentConfig will be created in order to launch the 
 runtime.
 
-In order to switch, execute the following operations: 
+In order to switch between the 2 modes, execute the following operations: 
 
 - Decorate the `Component CRD yaml` file with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
   the dev loop to the outer loop
