@@ -137,7 +137,7 @@ func Unzip(src, dest string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		log.Infof("Open file : %s",f)
+		log.Infof("Open file : %s",f.Name)
 		rc, err := f.Open()
 		if err != nil {
 			return err
