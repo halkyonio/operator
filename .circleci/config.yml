@@ -108,7 +108,6 @@ jobs:
     - run:
         name: Perform E2E tests
         command: |
-          sudo apt-get install maven
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
           GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
           PROJECT_PATH=src/github.com/snowdrop/component-operator
