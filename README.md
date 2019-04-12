@@ -53,7 +53,7 @@ spec:
       value: openshift-catalog
 ```
 
-When the CRD resource is consumed by the Kuke Api Server and published, then the `Component operator` will been notified and will execute different operations to create : 
+When this `Custom resource` will be processed by the Kukernetes Api Server and published, then the `Component operator` will be notified and will execute different operations to create : 
 - For the `runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push a `uber jar` file compiled locally, 
 - A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
 - `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
