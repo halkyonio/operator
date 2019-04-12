@@ -35,7 +35,25 @@ The CRD contains `METADATA` information about the framework/language to be used 
 The deployment or installation of an application in a namespace will consist in to create a `Component` yaml resource file defined according to the 
 [Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha1/component_types.go#L11).
 
-When the CRD resource is consumed by the Kuke Api Server, then the `Component operator` will execute different operations to create : 
+```bash
+apiVersion: component.k8s.io/v1alpha1
+kind: Component
+metadata:
+  name: spring-boot-demo
+spec:
+  # Strategy used by the operator to install the kubernetes resources as DevMode = innerloop or BuidMode = outerloop
+  deploymentMode: innerloop 
+  # Runtime type that the operator will map with a docker image (java, node, ...)
+  runtime: spring-boot
+  version: 1.5.16
+  # To been able to create a Kubernetes Ingress resource OR Openshift Route
+  exposeService: true
+  envs:
+    - name: SPRING_PROFILES_ACTIVE
+      value: openshift-catalog
+```
+
+When the CRD resource is consumed by the Kuke Api Server and published, then the `Component operator` will been notified and will execute different operations to create : 
 - For the `runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push a `uber jar` file compiled locally, 
 - A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
 - `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
