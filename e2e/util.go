@@ -127,8 +127,8 @@ func addClientHeader(req *http.Request) {
 }
 
 func Unzip(src, dest string) error {
-	log.Infof("Src file :",src)
-	log.Infof("Dest file :",dest)
+	log.Infof("Src file : %s",src)
+	log.Infof("Dest file : %s",dest)
 	r, err := zip.OpenReader(src)
 	log.Infof("Create OpenReader for zipfile")
 	if err != nil {
@@ -137,7 +137,7 @@ func Unzip(src, dest string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		log.Infof("Open file",f)
+		log.Infof("Open file : %s",f)
 		rc, err := f.Open()
 		if err != nil {
 			return err
