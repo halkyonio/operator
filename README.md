@@ -23,11 +23,14 @@ Table of Contents
    
 ## Introduction
 
-The purpose of this project is to develop a Kubernetes `Custom Resource Definition` called `Component CRD` and [Kubernetes Operator](https://goo.gl/D8iE2K) able to install a Microservice Application such as `Spring Boot` on a cloud platform: Kubernetes or OpenShift
+The purpose of this project is to develop a Kubernetes `Custom Resource Definition` called `Component CRD` and [Kubernetes Operator](https://goo.gl/D8iE2K) able to install a Microservice Application such as `Spring Boot` on a cloud platform: `Kubernetes` or `OpenShift`
 or to deploy a Service using the help of Service Broker Catalog.
 
-The CRD contains `METADATA` information about the framework/language to be used to install the Pod - Linux container on the cloud platform, the strategy to be used to install the project (Development mode or CI/CD build)
-like also to configure the microservice and to pass `env var, secret, ...`
+The CRD contains `METADATA` information about the framework/language to be used to either :
+- Configure the strategy that we want to adopt to code and install the application: `Development mode` or `Building/Prod mode`
+- Select the container image to be used to launch the application: java for `Spring Boot, Eclipse Vert.x, Thorntail`; node for `nodejs` 
+- Configure the microservice in order to inject `env var, secret, ...`
+- Create a service selected from a Service Broker Catalog
 
 The deployment or installation of an application in a namespace will consist in to create a `Component` yaml resource file defined according to the 
 [Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha1/component_types.go#L11).
