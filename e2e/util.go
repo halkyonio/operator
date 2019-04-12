@@ -183,17 +183,16 @@ func Exists(name string) bool {
 }
 
 func runMavenBuild(buildDir string) error {
-	goal := fmt.Sprintf("package")
-	cmd := exec.Command("mvn", mavenExtraOptions(buildDir), goal)
+	cmd := exec.Command("mvn", mavenExtraOptions(buildDir), "package")
 	cmd.Dir = buildDir
-	//cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
 
 	log.Infof("running maven package: %v", cmd.Args)
 	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "failure while determining classpath")
+		log.Errorf("Maven error: %s",cmd.Stdout)
+		return errors.Wrap(err,"error occured during mvn package execution")
 	}
-
 	log.Info("Maven build completed successfully")
 	return nil
 }
