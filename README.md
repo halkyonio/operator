@@ -197,7 +197,12 @@ the container image using the `operator-sdk` tool [1], to push the image and nex
 
 Instructions followed to create the Component's CRD, operator using the `operator-sdk`'s kit
 
-- Execute this command within the `$GOPATH/github.com/$ORG/` folder is a terminal
+- Install the `operator-sdk` 
+  ```bash
+  brew install operator-sdk
+  ```
+
+- Execute this command within the `$GOPATH/github.com/$ORG/` folder in a terminal
   ```bash
   operator-sdk new component-operator --api-version=component.k8s.io/v1alpha1 --kind=Component --skip-git-init
   operator-sdk add api --api-version=component.k8s.io/v1alpha1 --kind=Component 
