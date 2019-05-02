@@ -3,13 +3,104 @@ kind: ClusterServiceVersion
 metadata:
   annotations:
     capabilities: Full Lifecycle
-    description: Developer Operator aiming to generate/install k8s resources of a microservice (aka component) on Kubernetes/ OpenShift
-    categories: "Developer Kubernetes & Composition Tool"
+    categories: "Developer Tools"
     containerImage: quay.io/snowdrop/component-operator:master
     createdAt: 2019-03-07
-    support: Snowdrop
     certified: "false"
+    support: Snowdrop
     repository: https://github.com/snowdrop/component-operator
+    alm-examples: |-
+      [
+        {
+          "apiVersion" : "v1",
+          "kind" : "List",
+          "items" : [ {
+            "apiVersion" : "component.k8s.io/v1alpha1",
+            "kind" : "Component",
+            "metadata" : {
+              "name" : "fruit-client-sb"
+            },
+            "spec" : {
+              "deploymentMode" : "innerloop",
+              "runtime" : "spring-boot",
+              "version" : "1.5.15.RELEASE",
+              "exposeService" : true,
+              "links" : [ {
+                "kind" : "Env",
+                "name" : "Env var to be injected within the target component -> fruit-backend",
+                "targetComponentName" : "fruit-client-sb",
+                "envs" : [ {
+                  "name" : "OPENSHIFT_ENDPOINT_BACKEND",
+                  "value" : "http://fruit-backend-sb:8080/api/fruits"
+                } ],
+                "ref" : ""
+              } ]
+            }
+          } ]
+        },
+        {
+          "apiVersion" : "v1",
+          "kind" : "List",
+          "items" : [ {
+            "apiVersion" : "component.k8s.io/v1alpha1",
+            "kind" : "Component",
+            "metadata" : {
+              "annotations" : {
+                "app.openshift.io/java-app-jar" : "fruit-backend-sb-0.0.1-SNAPSHOT.jar",
+                "app.openshift.io/runtime-image" : "fruit-backend-sb",
+                "app.openshift.io/git-ref" : "master",
+                "app.openshift.io/git-dir" : "fruit-backend-sb",
+                "app.openshift.io/artifact-copy-args" : "'*.jar'",
+                "app.openshift.io/component-name" : "fruit-backend-sb",
+                "app.openshift.io/git-uri" : "'https://github.com/snowdrop/component-operator-demo.git'"
+              },
+              "labels" : {
+                "app" : "fruit-backend-sb",
+                "version" : "0.0.1-SNAPSHOT",
+                "group" : "dabou"
+              },
+              "name" : "fruit-backend-sb"
+            },
+            "spec" : {
+              "deploymentMode" : "innerloop",
+              "runtime" : "spring-boot",
+              "version" : "1.5.15.RELEASE",
+              "exposeService" : true,
+              "envs" : [ {
+                "name" : "SPRING_PROFILES_ACTIVE",
+                "value" : "openshift-catalog"
+              } ],
+              "links" : [ {
+                "kind" : "Secret",
+                "name" : "Secret to be injected as EnvVar using Service's secret",
+                "targetComponentName" : "fruit-backend-sb",
+                "ref" : "postgresql-db"
+              } ],
+              "services" : [ {
+                "name" : "postgresql-db",
+                "class" : "dh-postgresql-apb",
+                "plan" : "dev",
+                "secretName" : "postgresql-db",
+                "parameters" : [ {
+                  "name" : "postgresql_user",
+                  "value" : "luke"
+                }, {
+                  "name" : "postgresql_password",
+                  "value" : "secret"
+                }, {
+                  "name" : "postgresql_database",
+                  "value" : "my_data"
+                }, {
+                  "name" : "postgresql_version",
+                  "value" : "9.6"
+                } ]
+              } ]
+            }
+          } ]
+        }
+      ]
+    description: |-
+      Developer Operator aiming to generate/install k8s resources of a microservice (aka component) on Kubernetes/ OpenShift
   name: component-operator.v0.10.0
   namespace: placeholder
 spec:
