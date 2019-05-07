@@ -1,12 +1,3 @@
-[prune]
-  go-tests = true
-  non-go = true
-  unused-packages = true
-
-  [[prune.project]]
-    name = "k8s.io/code-generator"
-    non-go = false
-
 # Force dep to vendor the code generators, which aren't imported just used at dev time.
 required = [
   "k8s.io/code-generator/cmd/defaulter-gen",
@@ -77,3 +68,12 @@ required = [
 [[override]]
   source = "https://github.com/fsnotify/fsnotify/archive/v1.4.7.tar.gz"
   name = "gopkg.in/fsnotify.v1"
+
+[prune]
+  go-tests = true
+  non-go = true
+  unused-packages = true
+
+  [[prune.project]]
+    name = "k8s.io/code-generator"
+    non-go = false
