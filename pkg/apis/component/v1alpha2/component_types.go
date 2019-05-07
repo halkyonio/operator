@@ -1,13 +1,11 @@
-package v1alpha1
+package v1alpha2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // ComponentSpec defines the desired state of Component
+// +k8s:openapi-gen=true
 type ComponentSpec struct {
 	// The name represents a human readable string describing from a business perspective what this component is related to
 	// Example : payment-frontend, retail-backend
@@ -61,6 +59,7 @@ type ComponentSpec struct {
 }
 
 // ComponentStatus defines the observed state of Component
+// +k8s:openapi-gen=true
 type ComponentStatus struct {
 	Phase     Phase `json:"phase,omitempty"`
 	RevNumber string
