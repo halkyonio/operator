@@ -34,7 +34,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	. "github.com/snowdrop/component-operator/pkg/util/helper"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -97,6 +96,7 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		client: mgr.GetClient(),
 		config: mgr.GetConfig(),
 		scheme: mgr.GetScheme(),
+		reqLogger: log,
 		outerLoopSteps: []pipeline.Step{
 			outerloop.NewInstallStep(),
 			outerloop.NewCloneDeploymentStep(),
