@@ -35,6 +35,14 @@ func (r *ReconcileComponent) fetchRoute(instance *v1alpha2.Component) (*routev1.
 	return route, err
 }
 
+//fetchPod returns the pod resource created for this instance
+func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod, error) {
+	r.reqLogger.Info("Checking if the service already exists")
+	pod := &corev1.Pod{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, pod)
+	return pod, err
+}
+
 //fetchService returns the service resource created for this instance
 func (r *ReconcileComponent) fetchService(instance *v1alpha2.Component) (*corev1.Service, error) {
 	r.reqLogger.Info("Checking if the service already exists")

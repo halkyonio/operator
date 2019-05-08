@@ -48,6 +48,13 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		return err
 	}
 
+	//Check Pod Status
+	if pod, err := r.fetchPod(component); err == nil {
+		c := pod.Status.Conditions
+		lastStatus := c[len(c)-1]
+		r.reqLogger.Info("Pod last condition","Status",lastStatus.Status,"Type",lastStatus.Type)
+	}
+
 	if (isOpenshift) {
 		tmpl, ok := util.Templates["innerloop/imagestream"]
 		if ok {
@@ -125,7 +132,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 
 			// Create Deployment if it does not exists
 			if _, err := r.fetchDeployment(component); err != nil {
-				err := CreateResource(tmpl, component, r.client, r.scheme)
+				// err := CreateResource(tmpl, component, r.client, r.scheme)
 				if _, err := r.create(component, SERVICE, err); err != nil {
 					return err
 				} else {

@@ -82,8 +82,23 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	/** Watch for changes of child/secondary resources **/
+	//BuildConfig
+	if err := watchBuildConfig(c); err != nil {
+		return err
+	}
+
 	//Deployment
 	if err := watchDeployment(c); err != nil {
+		return err
+	}
+
+	//DeploymentConfig
+	if err := watchDeploymentConfig(c); err != nil {
+		return err
+	}
+
+	//Pod
+	if err := watchPod(c); err != nil {
 		return err
 	}
 
