@@ -126,10 +126,11 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			// Create Deployment if it does not exists
 			if _, err := r.fetchDeployment(component); err != nil {
 				err := CreateResource(tmpl, component, r.client, r.scheme)
-				if err != nil {
+				if _, err := r.create(component, SERVICE, err); err != nil {
 					return err
+				} else {
+					r.reqLogger.Info("### Created dev's deployment containing as initContainer : supervisord")
 				}
-				r.reqLogger.Info("### Created dev's deployment containing as initContainer : supervisord")
 			}
 		}
 

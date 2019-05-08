@@ -22,6 +22,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/pipeline/generic"
 	"github.com/snowdrop/component-operator/pkg/pipeline/outerloop"
 	"golang.org/x/net/context"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/rest"
 	"strconv"
 
@@ -47,18 +48,27 @@ const (
 	deletionOperation = "DELETION"
 	creationOperation = "CREATION"
 	updateOperation   = "UPDATE"
+
+	CONFIGMAP        = "ConfigMap"
+	DEPLOYMENT       = "Deployment"
+	DEPLOYMENTCONFIG = "DeploymentConfig"
+	SERVICE          = "Service"
+	ROUTE            = "Route"
+	IMAGESTREAM      = "ImageStream"
+	BUILDCONFIG      = "BuildConfig"
 )
+
 
 var log = logf.Log.WithName("controller_component")
 
 // New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func New(mgr manager.Manager) error {
-	return create(mgr, NewReconciler(mgr))
+	return Add(mgr, NewReconciler(mgr))
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
-func create(mgr manager.Manager, r reconcile.Reconciler) error {
+func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -119,6 +129,39 @@ type ReconcileComponent struct {
 	outerLoopSteps      []pipeline.Step
 	serviceCatalogSteps []pipeline.Step
 	linkSteps           []pipeline.Step
+}
+
+//buildFactory will return the resource according to the kind defined
+func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind string) (runtime.Object, error) {
+	r.reqLogger.Info("Check "+kind, "into the namespace", instance.Namespace)
+	switch kind {
+	case SERVICE:
+		return r.buildService(instance), nil
+	default:
+		msg := "Failed to recognize type of object" + kind + " into the Namespace " + instance.Namespace
+		panic(msg)
+	}
+}
+
+//Create the factory object and requeue
+func (r *ReconcileComponent) create(instance *v1alpha2.Component, kind string, err error) (reconcile.Result, error) {
+	obj, errBuildObject := r.buildFactory(instance, kind)
+	if errBuildObject != nil {
+		return reconcile.Result{}, errBuildObject
+	}
+	if errors.IsNotFound(err) {
+		r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
+		err = r.client.Create(context.TODO(), obj)
+		if err != nil {
+			r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
+			return reconcile.Result{}, err
+		}
+		r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
+		return reconcile.Result{Requeue: true}, nil
+	}
+	r.reqLogger.Error(err, "Failed to get", "kind", kind, "Namespace", instance.Namespace)
+	return reconcile.Result{}, err
+
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
