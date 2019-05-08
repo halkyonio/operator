@@ -2,6 +2,9 @@ package component
 
 import (
 	"context"
+	buildv1 "github.com/openshift/api/build/v1"
+	deploymentconfigv1 "github.com/openshift/api/apps/v1"
+	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
@@ -40,10 +43,42 @@ func (r *ReconcileComponent) fetchService(instance *v1alpha2.Component) (*corev1
 	return service, err
 }
 
+//fetchImageStream returns the image stream resources created for this instance
+func (r *ReconcileComponent) fetchImageStream(instance *v1alpha2.Component) (*imagev1.ImageStream, error) {
+	r.reqLogger.Info("Checking if the service already exists")
+	is := &imagev1.ImageStream{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, is)
+	return is, err
+}
+
 //fetchDeployment returns the deployment resource created for this instance
 func (r *ReconcileComponent) fetchDeployment(instance *v1alpha2.Component) (*v1beta1.Deployment, error) {
 	r.reqLogger.Info("Checking if the deployment already exists")
 	deployment := &v1beta1.Deployment{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
 	return deployment, err
+}
+
+//fetchDeploymentConfig returns the deployment config resource created for this instance
+func (r *ReconcileComponent) fetchDeploymentConfig(instance *v1alpha2.Component) (*deploymentconfigv1.DeploymentConfig, error) {
+	r.reqLogger.Info("Checking if the deployment already exists")
+	deployment := &deploymentconfigv1.DeploymentConfig{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
+	return deployment, err
+}
+
+//fetchBuildConfig returns the build config resource created for this instance
+func (r *ReconcileComponent) fetchBuildConfig(instance *v1alpha2.Component) (*buildv1.BuildConfig, error) {
+	r.reqLogger.Info("Checking if the deployment already exists")
+	build := &buildv1.BuildConfig{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, build)
+	return build, err
+}
+
+//fetchPVC returns the PVC resource created for this instance
+func (r *ReconcileComponent) fetchPVC(instance *v1alpha2.Component) (*corev1.PersistentVolumeClaim, error) {
+	r.reqLogger.Info("Checking if the deployment already exists")
+	pvc := &corev1.PersistentVolumeClaim{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, pvc)
+	return pvc, err
 }

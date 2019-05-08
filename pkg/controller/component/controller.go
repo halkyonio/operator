@@ -147,9 +147,52 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	reqLogger.Info("** Deletion time : %s", component.ObjectMeta.DeletionTimestamp)
 	reqLogger.Info("----------------------------------------------------")
 
-	// Assign the generated ResourceVersion to the resource status
-	if component.Status.RevNumber == "" {
-		component.Status.RevNumber = component.ObjectMeta.ResourceVersion
+	// Check if the child resources needed are created according to the mode
+	// Check if Spec is not null and if the DeploymentMode strategy is equal to Dev Mode (aka innerloop)
+	if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
+		if err := r.installInnerLoop(component, request.Namespace); err != nil {
+			reqLogger.Error(err, "Innerloop creation failed")
+			return reconcile.Result{}, err
+		}
+	}
+
+	// TODO: Align the logic hereafter as we did for the inner loop
+	if component.Spec.DeploymentMode == "outerloop" {
+		for _, a := range r.outerLoopSteps {
+			if a.CanHandle(component) {
+				reqLogger.Info("## Invoking pipeline 'outerloop', action '%s' on %s", a.Name(), component.Name)
+				if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
+					reqLogger.Error(err, "Outerloop creation failed")
+					return reconcile.Result{}, err
+				}
+			}
+		}
+	}
+
+	// Check if the component is a Service to be installed from the catalog
+	if component.Spec.Services != nil {
+		for _, a := range r.serviceCatalogSteps {
+			if a.CanHandle(component) {
+				reqLogger.Info("## Invoking pipeline 'service catalog', action '%s' on %s", a.Name(), component.Name)
+				if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
+					reqLogger.Error(err,"Service instance, binding creation failed")
+					return reconcile.Result{}, err
+				}
+			}
+		}
+	}
+
+	// Check if the component is a Link and that
+	if component.Spec.Links != nil {
+		for _, a := range r.linkSteps {
+			if a.CanHandle(component) {
+				reqLogger.Info("## Invoking pipeline 'link', action '%s' on %s", a.Name(), component.Name)
+				if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
+					reqLogger.Error(err,"Linking components failed")
+					return reconcile.Result{}, err
+				}
+			}
+		}
 	}
 
 	// See finalizer doc for more info : https://book.kubebuilder.io/beyond_basics/using_finalizers.html
@@ -181,77 +224,6 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		reqLogger.Info("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
 		reqLogger.Info("***** Operation performed : %s", operation)
 		return reconcile.Result{}, nil
-	}
-
-	// We only call the pipeline when the component has been created
-	// and if the Status Revision Number is the same
-	if component.Status.RevNumber == component.ObjectMeta.ResourceVersion {
-
-		// Component Custom Resource instance has been created
-		operation = creationOperation
-
-		// Check if Spec is not null and if the DeploymentMode strategy is equal to Dev Mode (aka innerloop)
-		if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
-			/*
-			for _, a := range r.innerLoopSteps {
-				if a.CanHandle(component) {
-					log.Infof("## Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
-					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-						log.Error("Innerloop creation failed", err)
-						return reconcile.Result{}, err
-					}
-				}
-			}
-			*/
-			if err := r.installInnerLoop(component, request.Namespace); err != nil {
-				reqLogger.Error(err, "Innerloop creation failed")
-				return reconcile.Result{}, err
-			}
-
-		}
-
-		// Check if the component is a Service to be installed from the catalog
-		if component.Spec.Services != nil {
-			for _, a := range r.serviceCatalogSteps {
-				if a.CanHandle(component) {
-					reqLogger.Info("## Invoking pipeline 'service catalog', action '%s' on %s", a.Name(), component.Name)
-					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-						reqLogger.Error(err,"Service instance, binding creation failed")
-						return reconcile.Result{}, err
-					}
-				}
-			}
-		}
-
-		// Check if the component is a Link and that
-		if component.Spec.Links != nil {
-			for _, a := range r.linkSteps {
-				if a.CanHandle(component) {
-					reqLogger.Info("## Invoking pipeline 'link', action '%s' on %s", a.Name(), component.Name)
-					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-						reqLogger.Error(err,"Linking components failed")
-						return reconcile.Result{}, err
-					}
-				}
-			}
-		}
-	} else {
-		operation = updateOperation
-
-		if component.Spec.DeploymentMode == "outerloop" {
-			for _, a := range r.outerLoopSteps {
-				if a.CanHandle(component) {
-					reqLogger.Info("## Invoking pipeline 'outerloop', action '%s' on %s", a.Name(), component.Name)
-					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-						reqLogger.Error(err, "Outerloop creation failed")
-						return reconcile.Result{}, err
-					}
-				}
-			}
-		} else {
-			log.Info("No pipeline invoked")
-			log.Info("------------------------------------------------------")
-		}
 	}
 
 	reqLogger.Info("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)

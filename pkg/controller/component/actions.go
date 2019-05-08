@@ -66,11 +66,13 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 
 			component.Spec.Images = append(component.Spec.Images, r.createTypeImage(true, component.Spec.RuntimeName, "latest", image[imageKey], false))
 
-			err := CreateResource(tmpl, component, r.client, r.scheme)
-			if err != nil {
-				return err
+			// Create ImageStream if it does not exists
+			if _, err := r.fetchImageStream(component); err != nil {
+				err = CreateResource(tmpl, component, r.client, r.scheme)
+				if err != nil {
+					return err
+				}
 			}
-
 			r.reqLogger.Info("### Created 'supervisord and '%s' imagestreams", image[imageKey])
 		}
 
@@ -84,9 +86,12 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			// Enrich Env Vars with Default values
 			r.populateEnvVar(component)
 
-			err := CreateResource(tmpl, component, r.client, r.scheme)
-			if err != nil {
-				return err
+			// Create DeploymentConfig if it does not exists
+			if _, err := r.fetchDeploymentConfig(component); err != nil {
+				err := CreateResource(tmpl, component, r.client, r.scheme)
+				if err != nil {
+					return err
+				}
 			}
 			r.reqLogger.Info("### Created dev's deployment config containing as initContainer : supervisord")
 		}
@@ -94,9 +99,12 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		tmpl, ok = util.Templates["innerloop/route"]
 		if ok {
 			if component.Spec.ExposeService {
-				err := CreateResource(tmpl, component, r.client, r.scheme)
-				if err != nil {
-					return err
+				// Create Route if it does not exists
+				if _, err := r.fetchRoute(component); err != nil {
+					err := CreateResource(tmpl, component, r.client, r.scheme)
+					if err != nil {
+						return err
+					}
 				}
 				r.reqLogger.Info("### Exposed service's port '%d' as cluster's route", component.Spec.Port)
 			}
@@ -113,9 +121,12 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			// Enrich Env Vars with Default values
 			r.populateEnvVar(component)
 
-			err := CreateResource(tmpl, component, r.client, r.scheme)
-			if err != nil {
-				return err
+			// Create Deployment if it does not exists
+			if _, err := r.fetchDeployment(component); err != nil {
+				err := CreateResource(tmpl, component, r.client, r.scheme)
+				if err != nil {
+					return err
+				}
 			}
 			r.reqLogger.Info("### Created dev's deployment containing as initContainer : supervisord")
 		}
@@ -123,11 +134,14 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		tmpl, ok = util.Templates["innerloop/ingress"]
 		if ok {
 			if component.Spec.ExposeService {
-				err := CreateResource(tmpl, component, r.client, r.scheme)
-				if err != nil {
-					return err
+				// Create Route if it does not exists
+				if _, err := r.fetchRoute(component); err != nil {
+					err := CreateResource(tmpl, component, r.client, r.scheme)
+					if err != nil {
+						return err
+					}
+					r.reqLogger.Info("### Exposed service's port '%d' as cluster's ingress route", component.Spec.Port)
 				}
-				r.reqLogger.Info("### Exposed service's port '%d' as cluster's ingress route", component.Spec.Port)
 			}
 		}
 
@@ -138,9 +152,12 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	if ok {
 		component.Spec.Storage.Capacity = "1Gi"
 		component.Spec.Storage.Mode = "ReadWriteOnce"
-		err := CreateResource(tmpl, component, r.client, r.scheme)
-		if err != nil {
-			return err
+		// Create Route if it does not exists
+		if _, err := r.fetchPVC(component); err != nil {
+			err := CreateResource(tmpl, component, r.client, r.scheme)
+			if err != nil {
+				return err
+			}
 		}
 		r.reqLogger.Info("### Created '%s' persistent volume storage; capacity: '%s'; mode '%s'", component.Spec.Storage.Name, component.Spec.Storage.Capacity, component.Spec.Storage.Mode)
 	}
@@ -150,9 +167,12 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		if component.Spec.Port == 0 {
 			component.Spec.Port = 8080 // Add a default port if empty
 		}
-		err := CreateResource(tmpl, component, r.client, r.scheme)
-		if err != nil {
-			return err
+		// Create Service if it does not exists
+		if _, err := r.fetchService(component); err != nil {
+			err := CreateResource(tmpl, component, r.client, r.scheme)
+			if err != nil {
+				return err
+			}
 		}
 		r.reqLogger.Info("### Created service's port '%d'", component.Spec.Port)
 
@@ -236,11 +256,4 @@ func newResourceFromTemplate(template template.Template, component *v1alpha2.Com
 		result = append(result, obj)
 	}
 	return result, nil
-}
-
-func getLabels(component string) map[string]string {
-	labels := map[string]string{
-		"Component": component,
-	}
-	return labels
 }
