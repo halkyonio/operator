@@ -20,9 +20,9 @@ package outerloop
 import (
 	"context"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 	build "github.com/openshift/api/build/v1"
 	image "github.com/openshift/api/image/v1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -45,16 +45,16 @@ func (installStep) Name() string {
 	return "deploy buildconfig"
 }
 
-func (installStep) CanHandle(component *v1alpha1.Component) bool {
+func (installStep) CanHandle(component *v1alpha2.Component) bool {
 	// log.Infof("## Status to be checked : %s", component.Status.Phase)
 	return true
 }
 
-func (installStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+func (installStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
 	return installOuterLoop(*component, *config, *client, namespace, *scheme)
 }
 
-func installOuterLoop(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
+func installOuterLoop(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	log.Info("Install BuildConfig ...")
 	component.ObjectMeta.Namespace = namespace
 
@@ -97,14 +97,14 @@ func installOuterLoop(component v1alpha1.Component, config rest.Config, c client
 	return nil
 }
 
-func fetchBuildConfig(c client.Client, component *v1alpha1.Component) (*build.BuildConfig, error) {
+func fetchBuildConfig(c client.Client, component *v1alpha2.Component) (*build.BuildConfig, error) {
 	log.Info("## Checking if the BuilConfig already exists")
 	buildConfig := &build.BuildConfig{}
 	err := c.Get(context.TODO(), types.NamespacedName{Name: component.Name, Namespace: component.Namespace}, buildConfig)
 	return buildConfig, err
 }
 
-func fetchImageStream(c client.Client, component *v1alpha1.Component) (*image.ImageStream, error) {
+func fetchImageStream(c client.Client, component *v1alpha2.Component) (*image.ImageStream, error) {
 	log.Info("## Checking if the ImageStream already exists")
 	is := &image.ImageStream{}
 	err := c.Get(context.TODO(), types.NamespacedName{Name: component.Name, Namespace: component.Namespace}, is)

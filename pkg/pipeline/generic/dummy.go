@@ -20,7 +20,7 @@ package generic
 import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
@@ -44,15 +44,15 @@ func (serviceStep) Name() string {
 	return "service"
 }
 
-func (serviceStep) CanHandle(component *v1alpha1.Component) bool {
+func (serviceStep) CanHandle(component *v1alpha2.Component) bool {
 	return true
 }
 
-func (serviceStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+func (serviceStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
 	return installService(*component, *config, *client, namespace, *scheme)
 }
 
-func installService(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
+func installService(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	// TODO : Refactor to create a real service
 	serviceName := "toto"
 	service := &corev1.Service{

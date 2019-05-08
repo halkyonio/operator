@@ -18,10 +18,10 @@ limitations under the License.
 package pipeline
 
 import (
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
 )
 
 // Action --
@@ -31,8 +31,8 @@ type Step interface {
 	Name() string
 
 	// returns true if the action can handle the integration
-	CanHandle(component *v1alpha1.Component) bool
+	CanHandle(component *v1alpha2.Component) bool
 
 	// executes the handling function
-	Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error
+	Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error
 }

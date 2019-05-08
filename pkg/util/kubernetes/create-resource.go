@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +13,7 @@ import (
 	"text/template"
 )
 
-func CreateResource(tmpl template.Template, component *v1alpha1.Component, c client.Client, scheme *runtime.Scheme) error {
+func CreateResource(tmpl template.Template, component *v1alpha2.Component, c client.Client, scheme *runtime.Scheme) error {
 	res, err := newResourceFromTemplate(tmpl, component, scheme)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func CreateResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	return nil
 }
 
-func newResourceFromTemplate(tmpl template.Template, component *v1alpha1.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {
+func newResourceFromTemplate(tmpl template.Template, component *v1alpha2.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {
 	var result = []runtime.Object{}
 
 	var b = util.Parse(tmpl, component)

@@ -18,12 +18,12 @@ limitations under the License.
 package innerloop
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 )
 
 var (
 	defaultEnvVar = make(map[string]string)
-	envs          = []v1alpha1.Env{}
+	envs          = []v1alpha2.Env{}
 )
 
 func init() {
@@ -34,7 +34,7 @@ func init() {
 	// defaultEnvVar["CMDS"] = "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
 }
 
-func populateEnvVar(component *v1alpha1.Component) {
+func populateEnvVar(component *v1alpha2.Component) {
 	envs := component.Spec.Envs
 	tmpEnvVar := make(map[string]string)
 
@@ -51,9 +51,9 @@ func populateEnvVar(component *v1alpha1.Component) {
 	}
 
 	// Convert Map to Slice
-	newEnvVars := []v1alpha1.Env{}
+	newEnvVars := []v1alpha2.Env{}
 	for k, v := range tmpEnvVar {
-		newEnvVars = append(newEnvVars, v1alpha1.Env{Name: k, Value: v})
+		newEnvVars = append(newEnvVars, v1alpha2.Env{Name: k, Value: v})
 	}
 
 	// Store result

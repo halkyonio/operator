@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"os"
@@ -23,23 +23,23 @@ func GetWatchNamespace() (string, error) {
 	return ns, nil
 }
 
-func SetNamespace(resource interface{}, component *v1alpha1.Component) {
+func SetNamespace(resource interface{}, component *v1alpha2.Component) {
 	if obj, ok := resource.(metav1.Object); ok {
 		obj.SetNamespace(component.ObjectMeta.GetNamespace())
 	}
 }
 
-func SetOwnerReferences(obj metav1.Object, component *v1alpha1.Component) {
+func SetOwnerReferences(obj metav1.Object, component *v1alpha2.Component) {
 	obj.SetOwnerReferences([]metav1.OwnerReference{
 		*metav1.NewControllerRef(component, schema.GroupVersionKind{
-			Group:   v1alpha1.GroupVersion.Group,
-			Version: v1alpha1.GroupVersion.Version,
+			Group:   v1alpha2.GroupVersion.Group,
+			Version: v1alpha2.GroupVersion.Version,
 			Kind:    component.Kind,
 		}),
 	})
 }
 
-func SetNamespaceAndOwnerReference(resource interface{}, component *v1alpha1.Component) {
+func SetNamespaceAndOwnerReference(resource interface{}, component *v1alpha2.Component) {
 	if obj, ok := resource.(metav1.Object); ok {
 		obj.SetNamespace(component.ObjectMeta.GetNamespace())
 		SetOwnerReferences(obj, component)

@@ -26,7 +26,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"github.com/snowdrop/component-operator/pkg/pipeline/innerloop"
 	"github.com/snowdrop/component-operator/pkg/pipeline/link"
@@ -67,7 +67,7 @@ func create(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Component
-	err = c.Watch(&source.Kind{Type: &v1alpha1.Component{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &v1alpha2.Component{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	operation := ""
 
 	// Fetch the Component created, deleted or updated
-	component := &v1alpha1.Component{}
+	component := &v1alpha2.Component{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
 
 	if err != nil {

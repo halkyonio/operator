@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/onsi/gomega"
-	compv1alpha "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	compv1alpha "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

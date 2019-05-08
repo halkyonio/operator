@@ -18,7 +18,7 @@ limitations under the License.
 package innerloop
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,8 +34,8 @@ func init() {
 	image["supervisord"] = "quay.io/snowdrop/supervisord"
 }
 
-func CreateTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) v1alpha1.Image {
-	return v1alpha1.Image{
+func CreateTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) v1alpha2.Image {
+	return v1alpha2.Image{
 		DockerImage:    dockerImage,
 		Name:           name,
 		Repo:           repo,
@@ -44,8 +44,8 @@ func CreateTypeImage(dockerImage bool, name string, tag string, repo string, ann
 	}
 }
 
-func GetSupervisordImage() []v1alpha1.Image {
-	return []v1alpha1.Image{
+func GetSupervisordImage() []v1alpha2.Image {
+	return []v1alpha2.Image{
 		CreateTypeImage(true, "copy-supervisord", "latest", image["supervisord"], true),
 	}
 }

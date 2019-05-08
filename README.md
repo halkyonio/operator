@@ -33,10 +33,10 @@ The CRD contains `METADATA` information about the framework/language to be used 
 - Create a service selected from a Service Broker Catalog
 
 The deployment or installation of an application in a namespace will consist in to create a `Component` yaml resource file defined according to the 
-[Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha1/component_types.go#L11).
+[Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha2/component_types.go#L11).
 
 ```bash
-apiVersion: component.k8s.io/v1alpha1
+apiVersion: component.k8s.io/v1alpha2
 kind: Component
 metadata:
   name: spring-boot-demo
@@ -85,7 +85,7 @@ When this `Custom resource` will be processed by the Kukernetes Api Server and p
 - In a separate terminal create a component's yaml file with the following information
   ```bash
   echo "
-  apiVersion: component.k8s.io/v1alpha1
+  apiVersion: component.k8s.io/v1alpha2
   kind: Component
   metadata:
     name: my-spring-boot
@@ -204,14 +204,14 @@ Instructions followed to create the Component's CRD, operator using the `operato
 
 - Execute this command within the `$GOPATH/github.com/$ORG/` folder in a terminal
   ```bash
-  operator-sdk new component-operator --api-version=component.k8s.io/v1alpha1 --kind=Component --skip-git-init
-  operator-sdk add api --api-version=component.k8s.io/v1alpha1 --kind=Component 
+  operator-sdk new component-operator --api-version=component.k8s.io/v1alpha2 --kind=Component --skip-git-init
+  operator-sdk add api --api-version=component.k8s.io/v1alpha2 --kind=Component 
   ```
   using the following parameters 
 
   Name of the folder to be created : `component-operator`
   Api Group Name   : `component.k8s.io`
-  Api Version      : `v1alpha1`
+  Api Version      : `v1alpha2`
   Kind of Resource : `Component` 
 
 - Build and push the `component-operator` image to `quai.io`s registry

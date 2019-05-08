@@ -4,7 +4,7 @@ metadata:
   name: components.component.k8s.io
 spec:
   group: component.k8s.io
-  version: v1alpha1
+  version: v1alpha2
   names:
     kind: Component
     listKind: ComponentList

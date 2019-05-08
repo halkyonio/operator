@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	. "github.com/snowdrop/component-operator/pkg/util/helper"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
@@ -54,16 +54,16 @@ func (newServiceInstanceStep) Name() string {
 
 // Service is installed when the status of the component is empty.
 // Such case occurs the first time the component is created AND before the innerloop takes place
-func (newServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
+func (newServiceInstanceStep) CanHandle(component *v1alpha2.Component) bool {
 	// log.Infof("## Status to be checked : %s", component.Status.Phase)
-	return component.Status.Phase == "" || component.Status.Phase == v1alpha1.PhaseDeploying
+	return component.Status.Phase == "" || component.Status.Phase == v1alpha2.PhaseDeploying
 }
 
-func (newServiceInstanceStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+func (newServiceInstanceStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
 	return createService(*component, *config, *client, namespace, *scheme)
 }
 
-func createService(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
+func createService(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
 	IsServiceInstalled := false
@@ -127,13 +127,13 @@ func createService(component v1alpha1.Component, config rest.Config, c client.Cl
 	}
 
 	// Fetch the latest Component created (as it could have been modified by another step of the pipeline)
-	newComponent := &v1alpha1.Component{}
+	newComponent := &v1alpha2.Component{}
 	err = c.Get(context.TODO(), types.NamespacedName{Name: component.Name, Namespace: component.Namespace}, newComponent)
 	if err != nil {
 		return err
 	}
 	// Update status
-	newComponent.Status.Phase = v1alpha1.PhaseServiceCreation
+	newComponent.Status.Phase = v1alpha2.PhaseServiceCreation
 	// Add Finalizer to allow the serviceinstance/binding to be deleted when the component will be deleted
 	svcFinalizerName := "service.component.k8s.io"
 	if !ContainsString(newComponent.ObjectMeta.Finalizers, svcFinalizerName) {
@@ -164,7 +164,7 @@ func BuildParameters(params interface{}) *runtime.RawExtension {
 }
 
 // Convert Array of parameters to a Map
-func ParametersAsMap(parameters []v1alpha1.Parameter) map[string]string {
+func ParametersAsMap(parameters []v1alpha2.Parameter) map[string]string {
 	result := make(map[string]string)
 	for _, parameter := range parameters {
 		result[parameter.Name] = parameter.Value
@@ -172,7 +172,7 @@ func ParametersAsMap(parameters []v1alpha1.Parameter) map[string]string {
 	return result
 }
 
-func createResource(tmpl template.Template, component *v1alpha1.Component, c client.Client) error {
+func createResource(tmpl template.Template, component *v1alpha2.Component, c client.Client) error {
 	res, err := newResourceFromTemplate(tmpl, component)
 	if err != nil {
 		return err
@@ -191,7 +191,7 @@ func createResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	return nil
 }
 
-func newResourceFromTemplate(template template.Template, component *v1alpha1.Component) ([]runtime.Object, error) {
+func newResourceFromTemplate(template template.Template, component *v1alpha2.Component) ([]runtime.Object, error) {
 	var result = []runtime.Object{}
 
 	var b = util.Parse(template, component)
@@ -235,7 +235,7 @@ func newResourceFromTemplate(template template.Template, component *v1alpha1.Com
 	return result, nil
 }
 
-func listServiceBindings(component *v1alpha1.Component, c client.Client) (*servicecatalog.ServiceBindingList, error) {
+func listServiceBindings(component *v1alpha2.Component, c client.Client) (*servicecatalog.ServiceBindingList, error) {
 	listServiceBinding := new(servicecatalog.ServiceBindingList)
 	listServiceBinding.TypeMeta = metav1.TypeMeta{
 		Kind:       "ServiceBinding",

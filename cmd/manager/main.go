@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	k8sutil "github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"log"
@@ -42,7 +42,7 @@ func main() {
 
 	// Setup Scheme for all resources
 	log.Print("Registering Components")
-	if err := v1alpha1.Install(mgr.GetScheme()); err != nil {
+	if err := v1alpha2.Install(mgr.GetScheme()); err != nil {
 		log.Fatal(err)
 	}
 

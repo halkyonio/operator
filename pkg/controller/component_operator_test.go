@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
-	compv1alpha "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	compv1alpha "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"golang.org/x/net/context"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

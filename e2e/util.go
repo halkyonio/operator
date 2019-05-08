@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pkg/errors"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"io"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,7 +43,7 @@ func crudClient() client.Client {
 	// Register the core k8s types
 	k8sscheme.AddToScheme(scheme)
 	// Register custom resource type
-	v1alpha1.Install(scheme)
+	v1alpha2.Install(scheme)
 
 	kubeconfig, err := config.GetConfig()
 	if err != nil {
@@ -56,17 +56,17 @@ func crudClient() client.Client {
 	return runtimeClient
 }
 
-func springBootComponent(name, ns string) *v1alpha1.Component {
-	return &v1alpha1.Component{
+func springBootComponent(name, ns string) *v1alpha2.Component {
+	return &v1alpha2.Component{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.GroupVersion.String(),
-			Kind:       v1alpha1.ComponentKind,
+			APIVersion: v1alpha2.GroupVersion.String(),
+			Kind:       v1alpha2.ComponentKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
 		},
-		Spec: v1alpha1.ComponentSpec{
+		Spec: v1alpha2.ComponentSpec{
 			DeploymentMode: "innerloop",
 			Runtime:        "spring-boot",
 		},

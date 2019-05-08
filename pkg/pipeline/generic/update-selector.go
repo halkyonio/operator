@@ -2,7 +2,7 @@ package generic
 
 import (
  	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"golang.org/x/net/context"
 	"k8s.io/api/core/v1"
@@ -24,16 +24,16 @@ func (serviceSelectorStep) Name() string {
 	return "update-service-selector"
 }
 
-func (serviceSelectorStep) CanHandle(component *v1alpha1.Component) bool {
+func (serviceSelectorStep) CanHandle(component *v1alpha2.Component) bool {
 	// log.Infof("## Status to be checked : %s", component.Status.Phase)
 	return true
 }
 
-func (serviceSelectorStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+func (serviceSelectorStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
 	return updateSelector(*component, *config, *client, namespace, *scheme)
 }
 
-func updateSelector(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
+func updateSelector(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 	componentName := component.Annotations["app.openshift.io/component-name"]
 	svc := &v1.Service{}

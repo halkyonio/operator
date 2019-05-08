@@ -20,7 +20,7 @@ package servicecatalog
 import (
 	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"golang.org/x/net/context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,15 +41,15 @@ func (removeServiceInstanceStep) Name() string {
 	return "remove service"
 }
 
-func (removeServiceInstanceStep) CanHandle(component *v1alpha1.Component) bool {
+func (removeServiceInstanceStep) CanHandle(component *v1alpha2.Component) bool {
 	return component.Status.Phase == "CreatingService"
 }
 
-func (removeServiceInstanceStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+func (removeServiceInstanceStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
 	return deleteService(*component, *config, *client, namespace, scheme)
 }
 
-func deleteService(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme *runtime.Scheme) error {
+func deleteService(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme *runtime.Scheme) error {
 	for _, s := range component.Spec.Services {
 		// Let's retrieve the ServiceBindings to delete them first
 		list, err := listServiceBindings(&component, c)

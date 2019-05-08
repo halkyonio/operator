@@ -22,7 +22,7 @@ import (
 	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"github.com/snowdrop/component-operator/pkg/util/openshift"
@@ -49,16 +49,16 @@ func (linkStep) Name() string {
 	return "link"
 }
 
-func (linkStep) CanHandle(component *v1alpha1.Component) bool {
+func (linkStep) CanHandle(component *v1alpha2.Component) bool {
 	 // log.Infof("## Status to be checked : %s", component.Status.Phase)
-	 return component.Status.Phase == v1alpha1.PhaseServiceCreation ||  component.Status.Phase == v1alpha1.PhaseDeploying || component.Status.Phase == ""
+	 return component.Status.Phase == v1alpha2.PhaseServiceCreation ||  component.Status.Phase == v1alpha2.PhaseDeploying || component.Status.Phase == ""
 }
 
-func (linkStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+func (linkStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
 	return createLink(*component, *config, *client, namespace, *scheme)
 }
 
-func createLink(component v1alpha1.Component, cfg rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
+func createLink(component v1alpha2.Component, cfg rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	retryInterval, _ := time.ParseDuration("10s")
 	component.ObjectMeta.Namespace = namespace
 
@@ -166,7 +166,7 @@ func createLink(component v1alpha1.Component, cfg rest.Config, c client.Client, 
 
 	log.Info("### Component Link updated.")
 
-	component.Status.Phase = v1alpha1.PhaseLinking
+	component.Status.Phase = v1alpha2.PhaseLinking
 	// err = c.Status().Update(context.TODO(), found)
 	err = c.Update(context.TODO(),&component)
 	if err != nil && k8serrors.IsNotFound(err) {

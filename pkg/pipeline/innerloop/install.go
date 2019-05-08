@@ -19,7 +19,7 @@ package innerloop
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -48,16 +48,16 @@ func (installStep) Name() string {
 	return "deploy"
 }
 
-func (installStep) CanHandle(component *v1alpha1.Component) bool {
+func (installStep) CanHandle(component *v1alpha2.Component) bool {
 	// log.Infof("## Status to be checked : %s", component.Status.Phase)
 	return component.Status.Phase == ""
 }
 
-func (installStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+func (installStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
 	return installInnerLoop(*component, *config, *client, namespace, *scheme)
 }
 
-func installInnerLoop(component v1alpha1.Component, cfg rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
+func installInnerLoop(component v1alpha2.Component, cfg rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 	// Append dev runtime's image (java, nodejs, ...)
 	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
@@ -182,7 +182,7 @@ func installInnerLoop(component v1alpha1.Component, cfg rest.Config, c client.Cl
 	}
 
 	log.Infof("### Created %s CRD's component ", component.Name)
-	component.Status.Phase = v1alpha1.PhaseDeploying
+	component.Status.Phase = v1alpha2.PhaseDeploying
 	err = c.Update(context.TODO(), &component)
 	// err = c.Status().Update(context.TODO(), component)
 	if err != nil && k8serrors.IsConflict(err) {
@@ -196,7 +196,7 @@ func installInnerLoop(component v1alpha1.Component, cfg rest.Config, c client.Cl
 	return nil
 }
 
-func CreateResource(tmpl template.Template, component *v1alpha1.Component, c client.Client, scheme *runtime.Scheme) error {
+func CreateResource(tmpl template.Template, component *v1alpha2.Component, c client.Client, scheme *runtime.Scheme) error {
 	res, err := newResourceFromTemplate(tmpl, component, scheme)
 	if err != nil {
 		return err
@@ -215,7 +215,7 @@ func CreateResource(tmpl template.Template, component *v1alpha1.Component, c cli
 	return nil
 }
 
-func newResourceFromTemplate(template template.Template, component *v1alpha1.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {
+func newResourceFromTemplate(template template.Template, component *v1alpha2.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {
 	var result = []runtime.Object{}
 
 	var b = util.Parse(template, component)

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	deploymentconfig "github.com/openshift/api/apps/v1"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"github.com/snowdrop/component-operator/pkg/util/openshift"
@@ -30,16 +30,16 @@ func (cloneDeploymentStep) Name() string {
 	return "clone-deployment"
 }
 
-func (cloneDeploymentStep) CanHandle(component *v1alpha1.Component) bool {
+func (cloneDeploymentStep) CanHandle(component *v1alpha2.Component) bool {
 	// log.Infof("## Status to be checked : %s", component.Status.Phase)
 	return true
 }
 
-func (cloneDeploymentStep) Handle(component *v1alpha1.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+func (cloneDeploymentStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
 	return cloneDeploymentLoop(*component, *config, *client, namespace, *scheme)
 }
 
-func cloneDeploymentLoop(component v1alpha1.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
+func cloneDeploymentLoop(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
 	isOpenshift, err := kubernetes.DetectOpenShift(&config)
@@ -100,7 +100,7 @@ func UpdateEnv(envs []v1.EnvVar, jarName string) []v1.EnvVar {
 	return newEnvs
 }
 
-func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha1.Component) (*unstructured.Unstructured, error) {
+func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha2.Component) (*unstructured.Unstructured, error) {
 	b := Parse(tmpl, component)
 	r, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
 	if err != nil {
@@ -111,7 +111,7 @@ func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha1.Co
 
 
 // Parse the file's template using the Application struct
-func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
+func Parse(t template.Template, obj *v1alpha2.Component) bytes.Buffer {
 	var b bytes.Buffer
 	err := t.Execute(&b, obj)
 	//fmt.Println(&b, obj)

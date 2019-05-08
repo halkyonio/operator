@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"github.com/shurcooL/httpfs/vfsutil"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	// "github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	// "k8s.io/apimachinery/pkg/runtime"
 	"os"
@@ -81,13 +81,13 @@ func init() {
 }
 
 // Parse the file's template using the Component and the path of the template asset to use
-func ParseTemplate(tmpl string, obj *v1alpha1.Component) bytes.Buffer {
+func ParseTemplate(tmpl string, obj *v1alpha2.Component) bytes.Buffer {
 	t := Templates[tmpl]
 	return Parse(t, obj)
 }
 
 // Parse the file's template using the Application struct
-func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
+func Parse(t template.Template, obj *v1alpha2.Component) bytes.Buffer {
 	var b bytes.Buffer
 	err := t.Execute(&b, obj)
 	//fmt.Println(&b, obj)
@@ -98,7 +98,7 @@ func Parse(t template.Template, obj *v1alpha1.Component) bytes.Buffer {
 	return b
 }
 
-/*func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha1.Component) (runtime.Object, error) {
+/*func ParseTemplateToRuntimeObject(tmpl template.Template, component *v1alpha2.Component) (runtime.Object, error) {
 		b := Parse(tmpl, component)
 		r, err := kubernetes.PopulateKubernetesObjectFromYaml(b.String())
 		if err != nil {

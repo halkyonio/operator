@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	stdlog "log"
 	"os"
 	"path/filepath"
@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	t := &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "..", "..", "config", "crds")},
 	}
-	v1alpha1.Install(scheme.Scheme)
+	v1alpha2.Install(scheme.Scheme)
 
 	var err error
 	if cfg, err = t.Start(); err != nil {
