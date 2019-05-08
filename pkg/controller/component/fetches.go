@@ -44,10 +44,10 @@ func (r *ReconcileComponent) fetchService(instance *v1alpha2.Component) (*corev1
 }
 
 //fetchImageStream returns the image stream resources created for this instance
-func (r *ReconcileComponent) fetchImageStream(instance *v1alpha2.Component) (*imagev1.ImageStream, error) {
+func (r *ReconcileComponent) fetchImageStream(instance *v1alpha2.Component, imageName string) (*imagev1.ImageStream, error) {
 	r.reqLogger.Info("Checking if the image streams already exists")
 	is := &imagev1.ImageStream{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, is)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: imageName, Namespace: instance.Namespace}, is)
 	return is, err
 }
 

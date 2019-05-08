@@ -67,10 +67,12 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			component.Spec.Images = append(component.Spec.Images, r.createTypeImage(true, component.Spec.RuntimeName, "latest", image[imageKey], false))
 
 			// Create ImageStream if it does not exists
-			if _, err := r.fetchImageStream(component); err != nil {
-				err = CreateResource(tmpl, component, r.client, r.scheme)
-				if err != nil {
-					return err
+			for _, is := range component.Spec.Images {
+				if _, err := r.fetchImageStream(component, is.Name); err != nil {
+					err = CreateResource(tmpl, component, r.client, r.scheme)
+					if err != nil {
+						return err
+					}
 				}
 			}
 			r.reqLogger.Info("### Created imagestreams", "Name", image[imageKey])
