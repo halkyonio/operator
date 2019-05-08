@@ -5,4 +5,5 @@ metadata:
 spec:
   deploymentMode: innerloop
   runtime: springboot
+  version: 1.5.16
   exposeService: true
