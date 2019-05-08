@@ -63,3 +63,9 @@ func (r *ReconcileComponent) getSupervisordImage() []v1alpha2.Image {
 	}
 }
 
+//Check if the mandatory specs are filled
+func (r *ReconcileComponent) hasMandatorySpecs(instance *v1alpha2.Component) bool {
+	// TODO
+	return true
+}
+

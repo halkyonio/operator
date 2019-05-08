@@ -18,30 +18,28 @@ limitations under the License.
 package component
 
 import (
+	"github.com/go-logr/logr"
 	"github.com/snowdrop/component-operator/pkg/pipeline/generic"
 	"github.com/snowdrop/component-operator/pkg/pipeline/outerloop"
 	"golang.org/x/net/context"
 	"k8s.io/client-go/rest"
 	"strconv"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
-	"github.com/snowdrop/component-operator/pkg/pipeline/innerloop"
 	"github.com/snowdrop/component-operator/pkg/pipeline/link"
 	"github.com/snowdrop/component-operator/pkg/pipeline/servicecatalog"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	. "github.com/snowdrop/component-operator/pkg/util/helper"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	. "github.com/snowdrop/component-operator/pkg/util/helper"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 const (
@@ -51,6 +49,8 @@ const (
 	creationOperation = "CREATION"
 	updateOperation   = "UPDATE"
 )
+
+var log = logf.Log.WithName("controller_mobilesecurityservice")
 
 // New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -72,6 +72,22 @@ func create(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	/** Watch for changes of child/secondary resources **/
+	//Deployment
+	if err := watchDeployment(c); err != nil {
+		return err
+	}
+
+	//Service
+	if err := watchService(c); err != nil {
+		return err
+	}
+
+	//Route
+	if err:= watchRoute(c); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -81,9 +97,6 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		client: mgr.GetClient(),
 		config: mgr.GetConfig(),
 		scheme: mgr.GetScheme(),
-		innerLoopSteps: []pipeline.Step{
-			innerloop.NewInstallStep(),
-		},
 		outerLoopSteps: []pipeline.Step{
 			outerloop.NewInstallStep(),
 			outerloop.NewCloneDeploymentStep(),
@@ -102,39 +115,37 @@ type ReconcileComponent struct {
 	client              client.Client
 	config              *rest.Config
 	scheme              *runtime.Scheme
-	innerLoopSteps      []pipeline.Step
+	reqLogger           logr.Logger
 	outerLoopSteps      []pipeline.Step
 	serviceCatalogSteps []pipeline.Step
 	linkSteps           []pipeline.Step
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	log := logrus.New()
+	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 
 	operation := ""
 
 	// Fetch the Component created, deleted or updated
 	component := &v1alpha2.Component{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
-
 	if err != nil {
-		if errors.IsNotFound(err) {
-			// Object not found, return.  Created objects are automatically garbage collected.
-			// Finalizer has been removed and component deleted. So we can exit
-			return reconcile.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
+		return r.fetch(err)
 	}
 
-	log.Info("----------------------------------------------------")
-	log.Infof("***** Reconciling Component %s, namespace %s", request.Name, request.Namespace)
-	log.Infof("** Status of the component : %s", component.Status.Phase)
-	log.Infof("** Creation time : %s", component.ObjectMeta.CreationTimestamp)
-	log.Infof("** Resource version : %s", component.ObjectMeta.ResourceVersion)
-	log.Infof("** Generation version : %s", strconv.FormatInt(component.ObjectMeta.Generation, 10))
-	log.Infof("** Deletion time : %s", component.ObjectMeta.DeletionTimestamp)
-	log.Info("----------------------------------------------------")
+	//TODO : add Check/Validate spec content
+	if !r.hasMandatorySpecs(component) {
+		return reconcile.Result{Requeue: true}, nil
+	}
+
+	reqLogger.Info("----------------------------------------------------")
+	reqLogger.Info("***** Reconciling Component %s, namespace %s", request.Name, request.Namespace)
+	reqLogger.Info("** Status of the component : %s", component.Status.Phase)
+	reqLogger.Info("** Creation time : %s", component.ObjectMeta.CreationTimestamp)
+	reqLogger.Info("** Resource version : %s", component.ObjectMeta.ResourceVersion)
+	reqLogger.Info("** Generation version : %s", strconv.FormatInt(component.ObjectMeta.Generation, 10))
+	reqLogger.Info("** Deletion time : %s", component.ObjectMeta.DeletionTimestamp)
+	reqLogger.Info("----------------------------------------------------")
 
 	// Assign the generated ResourceVersion to the resource status
 	if component.Status.RevNumber == "" {
@@ -151,12 +162,13 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 
 			// our finalizer is present, so lets handle our external dependency
 			// Check if the component is a Service and then delete the ServiceInstance, ServiceBinding
+			// TODO: Move this code under the ServiceController !!
 			if component.Spec.Services != nil {
 				removeServiceInstanceStep := servicecatalog.RemoveServiceInstanceStep()
-				log.Infof("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
+				reqLogger.Info("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
 				//log.Infof("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
 				if err := removeServiceInstanceStep.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-					log.Errorf("Removing Service Instance, binding failed %s", err)
+					reqLogger.Error(err, "Removing Service Instance, binding failed")
 				}
 			}
 
@@ -166,8 +178,8 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 				return reconcile.Result{Requeue: true}, nil
 			}
 		}
-		log.Infof("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
-		log.Infof("***** Operation performed : %s", operation)
+		reqLogger.Info("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
+		reqLogger.Info("***** Operation performed : %s", operation)
 		return reconcile.Result{}, nil
 	}
 
@@ -178,7 +190,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		// Component Custom Resource instance has been created
 		operation = creationOperation
 
-		// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
+		// Check if Spec is not null and if the DeploymentMode strategy is equal to Dev Mode (aka innerloop)
 		if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
 			/*
 			for _, a := range r.innerLoopSteps {
@@ -192,7 +204,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			}
 			*/
 			if err := r.installInnerLoop(component, request.Namespace); err != nil {
-				log.Error("Innerloop creation failed", err)
+				reqLogger.Error(err, "Innerloop creation failed")
 				return reconcile.Result{}, err
 			}
 
@@ -202,9 +214,9 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		if component.Spec.Services != nil {
 			for _, a := range r.serviceCatalogSteps {
 				if a.CanHandle(component) {
-					log.Infof("## Invoking pipeline 'service catalog', action '%s' on %s", a.Name(), component.Name)
+					reqLogger.Info("## Invoking pipeline 'service catalog', action '%s' on %s", a.Name(), component.Name)
 					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-						log.Error("Service instance, binding creation failed", err)
+						reqLogger.Error(err,"Service instance, binding creation failed")
 						return reconcile.Result{}, err
 					}
 				}
@@ -215,9 +227,9 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		if component.Spec.Links != nil {
 			for _, a := range r.linkSteps {
 				if a.CanHandle(component) {
-					log.Infof("## Invoking pipeline 'link', action '%s' on %s", a.Name(), component.Name)
+					reqLogger.Info("## Invoking pipeline 'link', action '%s' on %s", a.Name(), component.Name)
 					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-						log.Error("Linking components failed", err)
+						reqLogger.Error(err,"Linking components failed")
 						return reconcile.Result{}, err
 					}
 				}
@@ -229,9 +241,9 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		if component.Spec.DeploymentMode == "outerloop" {
 			for _, a := range r.outerLoopSteps {
 				if a.CanHandle(component) {
-					log.Infof("## Invoking pipeline 'outerloop', action '%s' on %s", a.Name(), component.Name)
+					reqLogger.Info("## Invoking pipeline 'outerloop', action '%s' on %s", a.Name(), component.Name)
 					if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-						log.Error("Outerloop creation failed", err)
+						reqLogger.Error(err, "Outerloop creation failed")
 						return reconcile.Result{}, err
 					}
 				}
@@ -242,7 +254,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	}
 
-	log.Infof("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
-	log.Infof("***** Operation performed : %s", operation)
+	reqLogger.Info("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
+	reqLogger.Info("***** Operation performed : %s", operation)
 	return reconcile.Result{}, nil
 }

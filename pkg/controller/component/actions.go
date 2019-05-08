@@ -18,7 +18,6 @@ limitations under the License.
 package component
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -72,7 +71,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				return err
 			}
 
-			log.Infof("### Created 'supervisord and '%s' imagestreams", image[imageKey])
+			r.reqLogger.Info("### Created 'supervisord and '%s' imagestreams", image[imageKey])
 		}
 
 		tmpl, ok = util.Templates["innerloop/deploymentconfig"]
@@ -89,7 +88,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			if err != nil {
 				return err
 			}
-			log.Infof("### Created dev's deployment config containing as initContainer : supervisord")
+			r.reqLogger.Info("### Created dev's deployment config containing as initContainer : supervisord")
 		}
 
 		tmpl, ok = util.Templates["innerloop/route"]
@@ -99,7 +98,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				if err != nil {
 					return err
 				}
-				log.Infof("### Exposed service's port '%d' as cluster's route", component.Spec.Port)
+				r.reqLogger.Info("### Exposed service's port '%d' as cluster's route", component.Spec.Port)
 			}
 		}
 	} else {
@@ -118,7 +117,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			if err != nil {
 				return err
 			}
-			log.Infof("### Created dev's deployment containing as initContainer : supervisord")
+			r.reqLogger.Info("### Created dev's deployment containing as initContainer : supervisord")
 		}
 
 		tmpl, ok = util.Templates["innerloop/ingress"]
@@ -128,7 +127,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				if err != nil {
 					return err
 				}
-				log.Infof("### Exposed service's port '%d' as cluster's ingress route", component.Spec.Port)
+				r.reqLogger.Info("### Exposed service's port '%d' as cluster's ingress route", component.Spec.Port)
 			}
 		}
 
@@ -143,7 +142,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		if err != nil {
 			return err
 		}
-		log.Infof("### Created '%s' persistent volume storage; capacity: '%s'; mode '%s'", component.Spec.Storage.Name, component.Spec.Storage.Capacity, component.Spec.Storage.Mode)
+		r.reqLogger.Info("### Created '%s' persistent volume storage; capacity: '%s'; mode '%s'", component.Spec.Storage.Name, component.Spec.Storage.Capacity, component.Spec.Storage.Mode)
 	}
 
 	tmpl, ok = util.Templates["innerloop/service"]
@@ -155,11 +154,11 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		if err != nil {
 			return err
 		}
-		log.Infof("### Created service's port '%d'", component.Spec.Port)
+		r.reqLogger.Info("### Created service's port '%d'", component.Spec.Port)
 
 	}
 
-	log.Infof("### Created %s CRD's component ", component.Name)
+	r.reqLogger.Info("### Created %s CRD's component ", component.Name)
 	component.Status.Phase = v1alpha2.PhaseDeploying
 	err = r.client.Update(context.TODO(), component)
 	// err = c.Status().Update(context.TODO(), component)
@@ -167,10 +166,10 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		log.Info("## Component Innerloop - status update failed")
 		return err
 	}
-	log.Info("## Pipeline 'innerloop' ended ##")
-	log.Infof("## Status updated : %s ##",component.Status.Phase)
-	log.Infof("## Status RevNumber : %s ##",component.Status.RevNumber)
-	log.Info("------------------------------------------------------")
+	r.reqLogger.Info("## Pipeline 'innerloop' ended ##")
+	r.reqLogger.Info("## Status updated : %s ##",component.Status.Phase)
+	r.reqLogger.Info("## Status RevNumber : %s ##",component.Status.RevNumber)
+	r.reqLogger.Info("------------------------------------------------------")
 	return nil
 }
 
