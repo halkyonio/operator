@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Create component controller and add it to the manager
-	if err := controller.New(mgr); err != nil {
+	if err := controller.AddToManager(mgr); err != nil {
 		log.Fatal(err)
 	}
 

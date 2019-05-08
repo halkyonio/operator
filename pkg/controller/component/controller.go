@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/pipeline/generic"
@@ -180,6 +180,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 
 		// Check if Spec is not null and if the DeploymentMode strategy is equal to innerloop
 		if component.Spec.Runtime != "" && component.Spec.DeploymentMode == "innerloop" {
+			/*
 			for _, a := range r.innerLoopSteps {
 				if a.CanHandle(component) {
 					log.Infof("## Invoking pipeline 'innerloop', action '%s' on %s", a.Name(), component.Name)
@@ -189,6 +190,12 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 					}
 				}
 			}
+			*/
+			if err := r.installInnerLoop(component, request.Namespace); err != nil {
+				log.Error("Innerloop creation failed", err)
+				return reconcile.Result{}, err
+			}
+
 		}
 
 		// Check if the component is a Service to be installed from the catalog
