@@ -49,7 +49,7 @@ const (
 	updateOperation   = "UPDATE"
 )
 
-var log = logf.Log.WithName("controller_mobilesecurityservice")
+var log = logf.Log.WithName("controller_component")
 
 // New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
