@@ -7,6 +7,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/controller"
 	k8sutil "github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"github.com/spf13/pflag"
+	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"os"
 	"runtime"
@@ -18,7 +19,7 @@ import (
 )
 
 var (
-	Version   = "unset"
+	Version = "Unset"
 	GitCommit = "HEAD"
 )
 
@@ -27,6 +28,7 @@ var log = logf.Log.WithName("cmd")
 func printVersion() {
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
+	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
 	log.Info(fmt.Sprintf("component-operator version: %v", Version))
 	log.Info(fmt.Sprintf("component-operator git commit: %v", GitCommit))
 }

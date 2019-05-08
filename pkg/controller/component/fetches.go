@@ -79,6 +79,6 @@ func (r *ReconcileComponent) fetchBuildConfig(instance *v1alpha2.Component) (*bu
 func (r *ReconcileComponent) fetchPVC(instance *v1alpha2.Component) (*corev1.PersistentVolumeClaim, error) {
 	r.reqLogger.Info("Checking if the deployment already exists")
 	pvc := &corev1.PersistentVolumeClaim{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, pvc)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: "m2-data-" + instance.Name, Namespace: instance.Namespace}, pvc)
 	return pvc, err
 }

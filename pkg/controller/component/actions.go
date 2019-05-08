@@ -73,9 +73,9 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 					if err != nil {
 						return err
 					}
+					r.reqLogger.Info("### Created imagestreams", "Name", image[imageKey])
 				}
 			}
-			r.reqLogger.Info("### Created imagestreams", "Name", image[imageKey])
 		}
 
 		tmpl, ok = util.Templates["innerloop/deploymentconfig"]
@@ -94,8 +94,8 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				if err != nil {
 					return err
 				}
+				r.reqLogger.Info("### Created dev's deployment config containing as initContainer : supervisord")
 			}
-			r.reqLogger.Info("### Created dev's deployment config containing as initContainer : supervisord")
 		}
 
 		tmpl, ok = util.Templates["innerloop/route"]
@@ -107,8 +107,8 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 					if err != nil {
 						return err
 					}
+					r.reqLogger.Info("### Exposed service's port as cluster's route", "Spec port", component.Spec.Port)
 				}
-				r.reqLogger.Info("### Exposed service's port as cluster's route", "Spec port", component.Spec.Port)
 			}
 		}
 	} else {
@@ -129,8 +129,8 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				if err != nil {
 					return err
 				}
+				r.reqLogger.Info("### Created dev's deployment containing as initContainer : supervisord")
 			}
-			r.reqLogger.Info("### Created dev's deployment containing as initContainer : supervisord")
 		}
 
 		tmpl, ok = util.Templates["innerloop/ingress"]
@@ -160,8 +160,9 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			if err != nil {
 				return err
 			}
+			r.reqLogger.Info("### Created persistent volume storage", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
+
 		}
-		r.reqLogger.Info("### Created persistent volume storage", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
 	}
 
 	tmpl, ok = util.Templates["innerloop/service"]
@@ -175,8 +176,8 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			if err != nil {
 				return err
 			}
+			r.reqLogger.Info("### Created service's port", "Spec port", component.Spec.Port)
 		}
-		r.reqLogger.Info("### Created service's port", "Spec port", component.Spec.Port)
 
 	}
 
