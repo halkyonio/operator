@@ -42,7 +42,7 @@ require (
 	github.com/onsi/gomega v1.5.0
 	github.com/openshift/api v0.0.0-20190322043348-8741ff068a47
 	github.com/openshift/client-go v3.9.0+incompatible
-	github.com/operator-framework/operator-sdk v0.1.1
+	github.com/operator-framework/operator-sdk v0.7.0
 	github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709
 	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c
 	github.com/peterbourgon/diskv v2.0.1+incompatible

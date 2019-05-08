@@ -139,12 +139,12 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	reqLogger.Info("----------------------------------------------------")
-	reqLogger.Info("***** Reconciling Component %s, namespace %s", request.Name, request.Namespace)
-	reqLogger.Info("** Status of the component : %s", component.Status.Phase)
-	reqLogger.Info("** Creation time : %s", component.ObjectMeta.CreationTimestamp)
-	reqLogger.Info("** Resource version : %s", component.ObjectMeta.ResourceVersion)
-	reqLogger.Info("** Generation version : %s", strconv.FormatInt(component.ObjectMeta.Generation, 10))
-	reqLogger.Info("** Deletion time : %s", component.ObjectMeta.DeletionTimestamp)
+	reqLogger.Info("***** Reconciling Component ******")
+	reqLogger.Info("** Status of the component", "Status phase", component.Status.Phase)
+	reqLogger.Info("** Creation time","Creation time", component.ObjectMeta.CreationTimestamp)
+	reqLogger.Info("** Resource version", "Resource version", component.ObjectMeta.ResourceVersion)
+	reqLogger.Info("** Generation version", "Generation version", strconv.FormatInt(component.ObjectMeta.Generation, 10))
+	reqLogger.Info("** Deletion time", "Deletion time", component.ObjectMeta.DeletionTimestamp)
 	reqLogger.Info("----------------------------------------------------")
 
 	// Check if the child resources needed are created according to the mode
@@ -160,7 +160,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	if component.Spec.DeploymentMode == "outerloop" {
 		for _, a := range r.outerLoopSteps {
 			if a.CanHandle(component) {
-				reqLogger.Info("## Invoking pipeline 'outerloop', action '%s' on %s", a.Name(), component.Name)
+				reqLogger.Info("## Invoking pipeline 'outerloop'","Action", a.Name(), "Component name", component.Name)
 				if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
 					reqLogger.Error(err, "Outerloop creation failed")
 					return reconcile.Result{}, err
@@ -226,7 +226,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, nil
 	}
 
-	reqLogger.Info("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
-	reqLogger.Info("***** Operation performed : %s", operation)
+	reqLogger.Info("***** Reconciled Component *****")
+	reqLogger.Info("***** Action ", "Type", operation)
 	return reconcile.Result{}, nil
 }

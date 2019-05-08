@@ -73,7 +73,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 					return err
 				}
 			}
-			r.reqLogger.Info("### Created 'supervisord and '%s' imagestreams", image[imageKey])
+			r.reqLogger.Info("### Created imagestreams", "Name", image[imageKey])
 		}
 
 		tmpl, ok = util.Templates["innerloop/deploymentconfig"]
@@ -106,7 +106,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 						return err
 					}
 				}
-				r.reqLogger.Info("### Exposed service's port '%d' as cluster's route", component.Spec.Port)
+				r.reqLogger.Info("### Exposed service's port as cluster's route", "Spec port", component.Spec.Port)
 			}
 		}
 	} else {
@@ -140,7 +140,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 					if err != nil {
 						return err
 					}
-					r.reqLogger.Info("### Exposed service's port '%d' as cluster's ingress route", component.Spec.Port)
+					r.reqLogger.Info("### Exposed service's port as cluster's ingress route", "Port", component.Spec.Port)
 				}
 			}
 		}
@@ -159,7 +159,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				return err
 			}
 		}
-		r.reqLogger.Info("### Created '%s' persistent volume storage; capacity: '%s'; mode '%s'", component.Spec.Storage.Name, component.Spec.Storage.Capacity, component.Spec.Storage.Mode)
+		r.reqLogger.Info("### Created persistent volume storage", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
 	}
 
 	tmpl, ok = util.Templates["innerloop/service"]
@@ -174,11 +174,11 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				return err
 			}
 		}
-		r.reqLogger.Info("### Created service's port '%d'", component.Spec.Port)
+		r.reqLogger.Info("### Created service's port", "Spec port", component.Spec.Port)
 
 	}
 
-	r.reqLogger.Info("### Created %s CRD's component ", component.Name)
+	r.reqLogger.Info("### Created CRD's component ", "Component name", component.Name)
 	component.Status.Phase = v1alpha2.PhaseDeploying
 	err = r.client.Update(context.TODO(), component)
 	// err = c.Status().Update(context.TODO(), component)
@@ -187,8 +187,8 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		return err
 	}
 	r.reqLogger.Info("## Pipeline 'innerloop' ended ##")
-	r.reqLogger.Info("## Status updated : %s ##",component.Status.Phase)
-	r.reqLogger.Info("## Status RevNumber : %s ##",component.Status.RevNumber)
+	r.reqLogger.Info("## Status updated ##","Status", component.Status.Phase)
+	r.reqLogger.Info("## Status RevNumber ##","Revision", component.Status.RevNumber)
 	r.reqLogger.Info("------------------------------------------------------")
 	return nil
 }
