@@ -129,6 +129,8 @@ const (
 	PhaseDeploying Phase = "Deploying"
 	// PhaseDeployed --
 	PhaseDeployed Phase = "Deployed"
+	// PhaseReady --
+	PhaseReady Phase = "Ready"
 	// PhaseLinking --
 	PhaseLinking Phase = "Linking"
 	// PhaseError --

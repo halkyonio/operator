@@ -36,7 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	. "github.com/snowdrop/component-operator/pkg/util/helper"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -293,14 +292,15 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, nil
 	}
 
-	// Update status
-	if component.Status.Phase == "" {
-		component.Status.Phase = v1alpha2.PhaseDeploying
-		if err := r.client.Update(context.TODO(), component); err != nil && k8serrors.IsConflict(err) {
-			log.Info("Component Innerloop - status update failed")
-		}
-		r.reqLogger.Info(fmt.Sprintf("Status updated : %s",component.Status.Phase))
-		r.reqLogger.Info(fmt.Sprintf("Status RevNumber : %s",component.Status.RevNumber))
+	//Check If Pod Status is Ready
+	podStatus, err := r.checkPodReady(component)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// Update status of the Component
+	if err := r.updateStatus(podStatus, component); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s",component.Name))

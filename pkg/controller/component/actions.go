@@ -48,15 +48,6 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		return err
 	}
 
-	//Check Pod Status
-	if pods, err := r.fetchPod(component); err == nil {
-		for _, pod := range pods.Items {
-			for _, c := range pod.Status.Conditions {
-				r.reqLogger.Info("Pod last condition","Status",c.Status,"Type",c.Type)
-			}
-		}
-	}
-
 	if (isOpenshift) {
 		tmpl, ok := util.Templates["innerloop/imagestream"]
 		if ok {
