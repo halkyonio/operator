@@ -11,6 +11,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -29,64 +30,91 @@ func (r *ReconcileComponent) fetch(err error) (reconcile.Result, error) {
 
 //fetchRoute returns the Route resource created for this instance
 func (r *ReconcileComponent) fetchRoute(instance *v1alpha2.Component) (*routev1.Route, error) {
-	r.reqLogger.Info("Checking if the route already exists")
 	route := &routev1.Route{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, route)
-	return route, err
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, route); err != nil {
+		r.reqLogger.Info("Route don't exist")
+		return route, err
+	} else {
+		return route, nil
+	}
 }
 
 //fetchPod returns the pod resource created for this instance
-func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod, error) {
-	r.reqLogger.Info("Checking if the service already exists")
-	pod := &corev1.Pod{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, pod)
-	return pod, err
+func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.PodList, error) {
+	pods := &corev1.PodList{}
+	lo := &client.ListOptions{}
+	lo.InNamespace(instance.Name)
+	lo.MatchingLabels(map[string]string{"app": instance.Name})
+	if err := r.client.List(context.TODO(), lo, pods); err != nil {
+		r.reqLogger.Info("Pod(s) don't exist")
+		return pods, err
+	} else {
+		return pods, nil
+	}
 }
 
 //fetchService returns the service resource created for this instance
 func (r *ReconcileComponent) fetchService(instance *v1alpha2.Component) (*corev1.Service, error) {
-	r.reqLogger.Info("Checking if the service already exists")
 	service := &corev1.Service{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, service)
-	return service, err
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, service); err != nil {
+		r.reqLogger.Info("Service don't exists")
+		return service, err
+	} else {
+		return service, nil
+	}
 }
 
 //fetchImageStream returns the image stream resources created for this instance
 func (r *ReconcileComponent) fetchImageStream(instance *v1alpha2.Component, imageName string) (*imagev1.ImageStream, error) {
-	r.reqLogger.Info("Checking if the image streams already exists")
 	is := &imagev1.ImageStream{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: imageName, Namespace: instance.Namespace}, is)
-	return is, err
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: imageName, Namespace: instance.Namespace}, is); err != nil {
+		r.reqLogger.Info("Imagestream don't exist")
+		return is, err
+	} else {
+		return is, nil
+	}
 }
 
 //fetchDeployment returns the deployment resource created for this instance
 func (r *ReconcileComponent) fetchDeployment(instance *v1alpha2.Component) (*v1beta1.Deployment, error) {
-	r.reqLogger.Info("Checking if the deployment already exists")
 	deployment := &v1beta1.Deployment{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
-	return deployment, err
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment); err != nil {
+		r.reqLogger.Info("Deployment don't exist")
+		return deployment, err
+	} else {
+		return deployment, nil
+	}
 }
 
 //fetchDeploymentConfig returns the deployment config resource created for this instance
 func (r *ReconcileComponent) fetchDeploymentConfig(instance *v1alpha2.Component) (*deploymentconfigv1.DeploymentConfig, error) {
-	r.reqLogger.Info("Checking if the deployment already exists")
 	deployment := &deploymentconfigv1.DeploymentConfig{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
-	return deployment, err
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment); err != nil {
+		r.reqLogger.Info("DeploymentConfig don't exist")
+		return deployment, err
+	} else {
+		return deployment, nil
+	}
 }
 
 //fetchBuildConfig returns the build config resource created for this instance
 func (r *ReconcileComponent) fetchBuildConfig(instance *v1alpha2.Component) (*buildv1.BuildConfig, error) {
-	r.reqLogger.Info("Checking if the deployment already exists")
 	build := &buildv1.BuildConfig{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, build)
-	return build, err
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, build); err != nil {
+		r.reqLogger.Info("BuildConfig don't exist")
+		return build, err
+	} else {
+		return build, nil
+	}
 }
 
 //fetchPVC returns the PVC resource created for this instance
 func (r *ReconcileComponent) fetchPVC(instance *v1alpha2.Component) (*corev1.PersistentVolumeClaim, error) {
-	r.reqLogger.Info("Checking if the deployment already exists")
 	pvc := &corev1.PersistentVolumeClaim{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: "m2-data-" + instance.Name, Namespace: instance.Namespace}, pvc)
-	return pvc, err
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: "m2-data-" + instance.Name, Namespace: instance.Namespace}, pvc); err != nil {
+		r.reqLogger.Info("PVC don't exist")
+		return pvc, err
+	} else {
+		return pvc, nil
+	}
 }

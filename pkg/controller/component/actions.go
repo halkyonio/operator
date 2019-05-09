@@ -49,10 +49,12 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	}
 
 	//Check Pod Status
-	if pod, err := r.fetchPod(component); err == nil {
-		c := pod.Status.Conditions
-		lastStatus := c[len(c)-1]
-		r.reqLogger.Info("Pod last condition","Status",lastStatus.Status,"Type",lastStatus.Type)
+	if pods, err := r.fetchPod(component); err == nil {
+		for _, pod := range pods.Items {
+			for _, c := range pod.Status.Conditions {
+				r.reqLogger.Info("Pod last condition","Status",c.Status,"Type",c.Type)
+			}
+		}
 	}
 
 	if (isOpenshift) {
@@ -80,7 +82,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 					if err != nil {
 						return err
 					}
-					r.reqLogger.Info("### Created imagestreams", "Name", image[imageKey])
+					r.reqLogger.Info("Created imagestreams", "Name", image[imageKey])
 				}
 			}
 		}
@@ -101,7 +103,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				if err != nil {
 					return err
 				}
-				r.reqLogger.Info("### Created dev's deployment config containing as initContainer : supervisord")
+				r.reqLogger.Info("Created deployment config")
 			}
 		}
 
@@ -114,7 +116,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 					if err != nil {
 						return err
 					}
-					r.reqLogger.Info("### Exposed service's port as cluster's route", "Spec port", component.Spec.Port)
+					r.reqLogger.Info("Create route", "Spec port", component.Spec.Port)
 				}
 			}
 		}
@@ -136,7 +138,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 				if _, err := r.create(component, SERVICE, err); err != nil {
 					return err
 				} else {
-					r.reqLogger.Info("### Created dev's deployment containing as initContainer : supervisord")
+					r.reqLogger.Info("Created deployment")
 				}
 			}
 		}
@@ -150,7 +152,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 					if err != nil {
 						return err
 					}
-					r.reqLogger.Info("### Exposed service's port as cluster's ingress route", "Port", component.Spec.Port)
+					r.reqLogger.Info("Created ingress", "Port", component.Spec.Port)
 				}
 			}
 		}
@@ -168,7 +170,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			if err != nil {
 				return err
 			}
-			r.reqLogger.Info("### Created persistent volume storage", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
+			r.reqLogger.Info("Created pvc", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
 
 		}
 	}
@@ -184,23 +186,15 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			if err != nil {
 				return err
 			}
-			r.reqLogger.Info("### Created service's port", "Spec port", component.Spec.Port)
+			r.reqLogger.Info("Created service", "Spec port", component.Spec.Port)
 		}
 
 	}
+	r.reqLogger.Info("Deploying Component")
+	return nil
+}
 
-	r.reqLogger.Info("### Created CRD's component ", "Component name", component.Name)
-	component.Status.Phase = v1alpha2.PhaseDeploying
-	err = r.client.Update(context.TODO(), component)
-	// err = c.Status().Update(context.TODO(), component)
-	if err != nil && k8serrors.IsConflict(err) {
-		log.Info("## Component Innerloop - status update failed")
-		return err
-	}
-	r.reqLogger.Info("## Pipeline 'innerloop' ended ##")
-	r.reqLogger.Info("## Status updated ##","Status", component.Status.Phase)
-	r.reqLogger.Info("## Status RevNumber ##","Revision", component.Status.RevNumber)
-	r.reqLogger.Info("------------------------------------------------------")
+func (r *ReconcileComponent) installIOuterLoop(component *v1alpha2.Component, namespace string) error {
 	return nil
 }
 
