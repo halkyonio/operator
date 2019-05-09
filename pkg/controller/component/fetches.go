@@ -43,7 +43,7 @@ func (r *ReconcileComponent) fetchRoute(instance *v1alpha2.Component) (*routev1.
 func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.PodList, error) {
 	pods := &corev1.PodList{}
 	lo := &client.ListOptions{}
-	lo.InNamespace(instance.Name)
+	lo.InNamespace(instance.Namespace)
 	lo.MatchingLabels(map[string]string{"app": instance.Name})
 	if err := r.client.List(context.TODO(), lo, pods); err != nil {
 		r.reqLogger.Info("Pod(s) don't exist")
@@ -72,6 +72,20 @@ func (r *ReconcileComponent) fetchImageStream(instance *v1alpha2.Component, imag
 		return is, err
 	} else {
 		return is, nil
+	}
+}
+
+//fetchImageStreamList returns the image stream resources created for this instance
+func (r *ReconcileComponent) fetchImageStreamList(instance *v1alpha2.Component) (*imagev1.ImageStreamList, error) {
+	l := &imagev1.ImageStreamList{}
+	lo := &client.ListOptions{}
+	lo.InNamespace(instance.Namespace)
+	lo.MatchingLabels(map[string]string{"app": instance.Name})
+	if err := r.client.List(context.TODO(), lo, l); err != nil {
+		r.reqLogger.Info("Imagestream don't exist")
+		return l, err
+	} else {
+		return l, nil
 	}
 }
 

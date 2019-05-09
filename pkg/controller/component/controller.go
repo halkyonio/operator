@@ -56,6 +56,7 @@ const (
 	ROUTE            = "Route"
 	INGRESS          = "Ingress"
 	IMAGESTREAM      = "ImageStream"
+	IMAGESTREAMLIST  = "ImageStreamList"
 	BUILDCONFIG      = "BuildConfig"
 	PERSISTENTVOLUMECLAIM      = "BuildConfig"
 )
@@ -156,8 +157,6 @@ func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind str
 		return r.buildDeploymentConfig(instance), nil
 	case DEPLOYMENT:
 		return r.buildDeployment(instance), nil
-	case IMAGESTREAM:
-		return r.buildImageStream(instance), nil
 	case SERVICE:
 		return r.buildService(instance), nil
 	case ROUTE:

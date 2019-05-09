@@ -18,6 +18,7 @@ limitations under the License.
 package component
 
 import (
+	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,37 +49,25 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 
 	if (isOpenshift) {
 
-		component.Spec.Images = r.getSupervisordImage()
-		component.Spec.Images = append(component.Spec.Images, r.createTypeImage(true, component.Spec.RuntimeName, "latest", image[getImageStreamKey(component)], false))
-
-		tmpl, ok := util.Templates["innerloop/imagestream"]
-		if ok {
-			for _, is := range component.Spec.Images {
-				if _, err := r.fetchImageStream(component, is.Name); err != nil {
-					err = CreateResource(tmpl, component, r.client, r.scheme)
-					if err != nil {
-						return err
-					}
-					r.reqLogger.Info("Created imagestreams", "Name", is.Name)
-				}
+		// Create ImageStream if it does not exists
+		imageStreamToCreate := []string{}
+		for _, name := range r.getDevImageNames(component) {
+			if _, err := r.fetchImageStream(component, name); err != nil {
+				imageStreamToCreate = append(imageStreamToCreate, name)
 			}
 		}
 
-		/*
-		DO NOT WORK AS BUILDFACTORY CAN'T HANDLE LIST
-		// Create ImageStream if it does not exists
-		for _, is := range component.Spec.Images {
-			if _, err := r.fetchImageStream(component, is.Name); err != nil {
-				if _, err := r.create(component, IMAGESTREAM, err); err != nil {
-					if err != nil {
-						return err
-					}
+		for _, name := range imageStreamToCreate {
+			if err := r.client.Create(context.TODO(),r.buildImageStream(component, name)); err != nil {
+				if err != nil {
+					return err
 				}
-				r.reqLogger.Info("Created imagestreams", "Name", image[getImageStreamKey(component)])
 			}
-		}*/
+			r.reqLogger.Info(fmt.Sprintf("Created imagestream : %s",name))
+		}
 
-		tmpl, ok = util.Templates["innerloop/deploymentconfig"]
+
+		tmpl, ok := util.Templates["innerloop/deploymentconfig"]
 		if ok {
 			if component.Spec.Port == 0 {
 				component.Spec.Port = 8080 // Add a default port if empty
@@ -193,18 +182,6 @@ func CreateResource(tmpl template.Template, component *v1alpha2.Component, c cli
 	}
 
 	return nil
-}
-
-// Get the key of the image stream to of the runtime
-func getImageStreamKey(c *v1alpha2.Component) string {
-	switch r := c.Spec.Runtime; r {
-	case "spring-boot", "vert.x", "thorntail":
-		return "java"
-	case "nodejs":
-		return "nodejs"
-	default:
-		return "java"
-	}
 }
 
 func newResourceFromTemplate(template template.Template, component *v1alpha2.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {

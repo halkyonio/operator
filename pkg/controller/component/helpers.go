@@ -15,10 +15,6 @@ func init() {
 	defaultEnvVar["JAVA_DEBUG_PORT"] = "\"5005\""
 	defaultEnvVar["JAVA_APP_JAR"] = "app.jar"
 	// defaultEnvVar["CMDS"] = "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"
-
-	image["java"] = "quay.io/snowdrop/spring-boot-s2i"
-	image["nodejs"] = "nodeshift/centos7-s2i-nodejs:10.x"
-	image["supervisord"] = "quay.io/snowdrop/supervisord"
 }
 
 func (r *ReconcileComponent) populateEnvVar(component *v1alpha2.Component) {
@@ -45,22 +41,6 @@ func (r *ReconcileComponent) populateEnvVar(component *v1alpha2.Component) {
 
 	// Store result
 	component.Spec.Envs = newEnvVars
-}
-
-func (r *ReconcileComponent) createTypeImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) v1alpha2.Image {
-	return v1alpha2.Image{
-		DockerImage:    dockerImage,
-		Name:           name,
-		Repo:           repo,
-		AnnotationCmds: annotationCmd,
-		Tag:            tag,
-	}
-}
-
-func (r *ReconcileComponent) getSupervisordImage() []v1alpha2.Image {
-	return []v1alpha2.Image{
-		r.createTypeImage(true, "copy-supervisord", "latest", image["supervisord"], true),
-	}
 }
 
 //getAppLabels returns an string map with the labels which wil be associated to the kubernetes/ocp resource which will be created and managed by this operator
