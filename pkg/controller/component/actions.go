@@ -102,9 +102,11 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			if component.Spec.ExposeService {
 				// Create Route if it does not exists
 				if _, err := r.fetchRoute(component); err != nil {
-					err := CreateResource(tmpl, component, r.client, r.scheme)
-					if err != nil {
-						return err
+					//err := CreateResource(tmpl, component, r.client, r.scheme)
+					if _, err := r.create(component, ROUTE, err); err != nil {
+						if err != nil {
+							return err
+						}
 					}
 					r.reqLogger.Info("Create route", "Spec port", component.Spec.Port)
 				}
@@ -138,9 +140,11 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			if component.Spec.ExposeService {
 				// Create Route if it does not exists
 				if _, err := r.fetchRoute(component); err != nil {
-					err := CreateResource(tmpl, component, r.client, r.scheme)
-					if err != nil {
-						return err
+					//err := CreateResource(tmpl, component, r.client, r.scheme)
+					if _, err := r.create(component, ROUTE, err); err != nil {
+						if err != nil {
+							return err
+						}
 					}
 					r.reqLogger.Info("Created ingress", "Port", component.Spec.Port)
 				}

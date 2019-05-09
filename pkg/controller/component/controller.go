@@ -154,6 +154,8 @@ func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind str
 	switch kind {
 	case SERVICE:
 		return r.buildService(instance), nil
+	case ROUTE:
+		return r.buildRoute(instance), nil
 	case PERSISTENTVOLUMECLAIM:
 		return r.buildPVC(instance), nil
 	default:
