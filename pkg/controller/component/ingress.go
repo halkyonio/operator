@@ -31,7 +31,10 @@ func (r *ReconcileComponent) buildIngress(c *v1alpha2.Component) *v1beta1.Ingres
 									Path: "/",
 									Backend: v1beta1.IngressBackend{
 										ServiceName: c.Name,
-										ServicePort: intstr.IntOrString{Type: "string", StrVal: "c.Spec.Port"},
+										ServicePort: intstr.IntOrString{
+											Type:   intstr.Int,
+											IntVal: c.Spec.Port,
+										},
 									},
 								},
 							},
