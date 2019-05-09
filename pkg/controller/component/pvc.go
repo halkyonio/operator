@@ -18,7 +18,7 @@ func (r *ReconcileComponent) buildPVC(c *v1alpha2.Component) *corev1.PersistentV
 			Kind:       "PersistentVolumeClaim",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.Name,
+			Name:      c.Spec.Storage.Name,
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},

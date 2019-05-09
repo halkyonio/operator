@@ -38,7 +38,6 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	component.ObjectMeta.Namespace = namespace
 	// Append dev runtime's image (java, nodejs, ...)
 	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
-	component.Spec.Storage.Name = "m2-data-" + component.Name
 
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(component, "Backend")
@@ -155,6 +154,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	if ok {
 		component.Spec.Storage.Capacity = "1Gi"
 		component.Spec.Storage.Mode = "ReadWriteOnce"
+		component.Spec.Storage.Name = "m2-data-" + component.Name
 		// Create Route if it does not exists
 		if _, err := r.fetchPVC(component); err != nil {
 			//err := CreateResource(tmpl, component, r.client, r.scheme)
