@@ -50,11 +50,11 @@ const (
 	creationOperation = "CREATION"
 	updateOperation   = "UPDATE"
 
-	CONFIGMAP        = "ConfigMap"
 	DEPLOYMENT       = "Deployment"
 	DEPLOYMENTCONFIG = "DeploymentConfig"
 	SERVICE          = "Service"
 	ROUTE            = "Route"
+	INGRESS          = "Ingress"
 	IMAGESTREAM      = "ImageStream"
 	BUILDCONFIG      = "BuildConfig"
 	PERSISTENTVOLUMECLAIM      = "BuildConfig"
@@ -152,9 +152,17 @@ type ReconcileComponent struct {
 func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind string) (runtime.Object, error) {
 	r.reqLogger.Info("Check "+kind, "into the namespace", instance.Namespace)
 	switch kind {
+	case DEPLOYMENTCONFIG:
+		return r.buildDeploymentConfig(instance), nil
+	case DEPLOYMENT:
+		return r.buildDeployment(instance), nil
+	case IMAGESTREAM:
+		return r.buildImageStream(instance), nil
 	case SERVICE:
 		return r.buildService(instance), nil
 	case ROUTE:
+		return r.buildRoute(instance), nil
+	case INGRESS:
 		return r.buildRoute(instance), nil
 	case PERSISTENTVOLUMECLAIM:
 		return r.buildPVC(instance), nil

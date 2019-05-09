@@ -38,7 +38,6 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	component.ObjectMeta.Namespace = namespace
 	// Append dev runtime's image (java, nodejs, ...)
 	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
-
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(component, "Backend")
 
@@ -48,34 +47,37 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	}
 
 	if (isOpenshift) {
+
+		component.Spec.Images = r.getSupervisordImage()
+		component.Spec.Images = append(component.Spec.Images, r.createTypeImage(true, component.Spec.RuntimeName, "latest", image[getImageStreamKey(component)], false))
+
 		tmpl, ok := util.Templates["innerloop/imagestream"]
 		if ok {
-			component.Spec.Images = r.getSupervisordImage()
-
-			// Define the key of the image to search according to the runtime
-			imageKey := ""
-			switch r := component.Spec.Runtime; r {
-			case "spring-boot", "vert.x", "thorntail":
-				imageKey = "java"
-			case "nodejs":
-				imageKey = "nodejs"
-			default:
-				imageKey = "java"
-			}
-
-			component.Spec.Images = append(component.Spec.Images, r.createTypeImage(true, component.Spec.RuntimeName, "latest", image[imageKey], false))
-
-			// Create ImageStream if it does not exists
 			for _, is := range component.Spec.Images {
 				if _, err := r.fetchImageStream(component, is.Name); err != nil {
+					r.buildImageStream()
 					err = CreateResource(tmpl, component, r.client, r.scheme)
 					if err != nil {
 						return err
 					}
-					r.reqLogger.Info("Created imagestreams", "Name", image[imageKey])
+					r.reqLogger.Info("Created imagestreams", "Name", is.Name)
 				}
 			}
 		}
+
+		/*
+		DO NOT WORK AS BUILDFACTORY CAN'T HANDLE LIST
+		// Create ImageStream if it does not exists
+		for _, is := range component.Spec.Images {
+			if _, err := r.fetchImageStream(component, is.Name); err != nil {
+				if _, err := r.create(component, IMAGESTREAM, err); err != nil {
+					if err != nil {
+						return err
+					}
+				}
+				r.reqLogger.Info("Created imagestreams", "Name", image[getImageStreamKey(component)])
+			}
+		}*/
 
 		tmpl, ok = util.Templates["innerloop/deploymentconfig"]
 		if ok {
@@ -97,96 +99,76 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			}
 		}
 
-		tmpl, ok = util.Templates["innerloop/route"]
-		if ok {
-			if component.Spec.ExposeService {
-				// Create Route if it does not exists
-				if _, err := r.fetchRoute(component); err != nil {
-					//err := CreateResource(tmpl, component, r.client, r.scheme)
-					if _, err := r.create(component, ROUTE, err); err != nil {
-						if err != nil {
-							return err
-						}
+		if component.Spec.ExposeService {
+			// Create Route if it does not exists
+			if _, err := r.fetchRoute(component); err != nil {
+				if _, err := r.create(component, ROUTE, err); err != nil {
+					if err != nil {
+						return err
 					}
-					r.reqLogger.Info("Create route", "Spec port", component.Spec.Port)
 				}
+				r.reqLogger.Info("Create route", "Spec port", component.Spec.Port)
 			}
 		}
 	} else {
 		// This is not an OpenShift cluster but instead a K8s platform
-		tmpl, ok := util.Templates["innerloop/deployment"]
-		if ok {
-			if component.Spec.Port == 0 {
-				component.Spec.Port = 8080 // Add a default port if empty
-			}
-			component.Spec.SupervisordName = "copy-supervisord"
-
-			// Enrich Env Vars with Default values
-			r.populateEnvVar(component)
-
-			// Create Deployment if it does not exists
-			if _, err := r.fetchDeployment(component); err != nil {
-				// err := CreateResource(tmpl, component, r.client, r.scheme)
-				if _, err := r.create(component, SERVICE, err); err != nil {
-					return err
-				} else {
-					r.reqLogger.Info("Created deployment")
-				}
-			}
-		}
-
-		tmpl, ok = util.Templates["innerloop/ingress"]
-		if ok {
-			if component.Spec.ExposeService {
-				// Create Route if it does not exists
-				if _, err := r.fetchRoute(component); err != nil {
-					//err := CreateResource(tmpl, component, r.client, r.scheme)
-					if _, err := r.create(component, ROUTE, err); err != nil {
-						if err != nil {
-							return err
-						}
-					}
-					r.reqLogger.Info("Created ingress", "Port", component.Spec.Port)
-				}
-			}
-		}
-
-	}
-
-	// Install common resources
-	tmpl, ok := util.Templates["innerloop/pvc"]
-	if ok {
-		component.Spec.Storage.Capacity = "1Gi"
-		component.Spec.Storage.Mode = "ReadWriteOnce"
-		component.Spec.Storage.Name = "m2-data-" + component.Name
-		// Create Route if it does not exists
-		if _, err := r.fetchPVC(component); err != nil {
-			//err := CreateResource(tmpl, component, r.client, r.scheme)
-			if _, err := r.create(component, PERSISTENTVOLUMECLAIM, err); err != nil {
-				if err != nil {
-					return err
-				}
-			}
-			r.reqLogger.Info("Created pvc", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
-
-		}
-	}
-
-	tmpl, ok = util.Templates["innerloop/service"]
-	if ok {
 		if component.Spec.Port == 0 {
 			component.Spec.Port = 8080 // Add a default port if empty
 		}
-		// Create Service if it does not exists
-		if _, err := r.fetchService(component); err != nil {
-			err := CreateResource(tmpl, component, r.client, r.scheme)
+		component.Spec.SupervisordName = "copy-supervisord"
+		// Enrich Env Vars with Default values
+		r.populateEnvVar(component)
+
+		// Create Deployment if it does not exists
+		if _, err := r.fetchDeployment(component); err != nil {
+			if _, err := r.create(component, DEPLOYMENT, err); err != nil {
+				return err
+			} else {
+				r.reqLogger.Info("Created deployment")
+			}
+		}
+
+		if component.Spec.ExposeService {
+			if _, err := r.fetchRoute(component); err != nil {
+				if _, err := r.create(component, ROUTE, err); err != nil {
+					if err != nil {
+						return err
+					}
+				}
+				r.reqLogger.Info("Created ingress", "Port", component.Spec.Port)
+			}
+		}
+	}
+
+	// Install common resources
+
+	// Create PVC if it does not exists
+	component.Spec.Storage.Capacity = "1Gi"
+	component.Spec.Storage.Mode = "ReadWriteOnce"
+	component.Spec.Storage.Name = "m2-data-" + component.Name
+	if _, err := r.fetchPVC(component); err != nil {
+		if _, err := r.create(component, PERSISTENTVOLUMECLAIM, err); err != nil {
 			if err != nil {
 				return err
 			}
-			r.reqLogger.Info("Created service", "Spec port", component.Spec.Port)
 		}
+		r.reqLogger.Info("Created pvc", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
 
 	}
+
+	// Create Service if it does not exists
+	if component.Spec.Port == 0 {
+		component.Spec.Port = 8080 // Add a default port if empty
+	}
+	if _, err := r.fetchService(component); err != nil {
+		if _, err := r.create(component, SERVICE, err); err != nil {
+			if err != nil {
+				return err
+			}
+		}
+		r.reqLogger.Info("Created service", "Spec port", component.Spec.Port)
+	}
+
 	r.reqLogger.Info("Deploying Component")
 	return nil
 }
@@ -212,6 +194,18 @@ func CreateResource(tmpl template.Template, component *v1alpha2.Component, c cli
 	}
 
 	return nil
+}
+
+// Get the key of the image stream to of the runtime
+func getImageStreamKey(c *v1alpha2.Component) string {
+	switch r := c.Spec.Runtime; r {
+	case "spring-boot", "vert.x", "thorntail":
+		return "java"
+	case "nodejs":
+		return "nodejs"
+	default:
+		return "java"
+	}
 }
 
 func newResourceFromTemplate(template template.Template, component *v1alpha2.Component, scheme *runtime.Scheme) ([]runtime.Object, error) {
