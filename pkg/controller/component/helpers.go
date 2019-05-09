@@ -2,6 +2,7 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	corev1 "k8s.io/api/core/v1"
 )
 
 var (
@@ -43,9 +44,38 @@ func (r *ReconcileComponent) populateEnvVar(component *v1alpha2.Component) {
 	component.Spec.Envs = newEnvVars
 }
 
+func (r *ReconcileComponent) populatePodEnvVar(component *v1alpha2.Component) *[]corev1.EnvVar{
+	envs := component.Spec.Envs
+	tmpEnvVar := make(map[string]string)
+
+	// Convert Slice to Map
+	for i := 0; i < len(envs); i += 1 {
+		tmpEnvVar[envs[i].Name] = envs[i].Value
+	}
+
+	// Check if Component EnvVar contains the defaults
+	for k, _ := range defaultEnvVar {
+		if tmpEnvVar[k] == "" {
+			tmpEnvVar[k] = defaultEnvVar[k]
+		}
+	}
+
+	// Convert Map to Slice
+	newEnvVars := []corev1.EnvVar{}
+	for k, v := range tmpEnvVar {
+		newEnvVars = append(newEnvVars, corev1.EnvVar{Name: k, Value: v})
+	}
+
+	return &newEnvVars
+}
+
 //getAppLabels returns an string map with the labels which wil be associated to the kubernetes/ocp resource which will be created and managed by this operator
 func (r *ReconcileComponent) getAppLabels(name string) map[string]string {
-	return map[string]string{"app": "mobilesecurityservice", "mobilesecurityservice_cr": name}
+	return map[string]string{
+		"app": "component",
+		"component_cr": name,
+		"deploymentconfig": name,
+	}
 }
 
 //Check if the mandatory specs are filled
