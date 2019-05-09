@@ -3,14 +3,15 @@ package component
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	routev1 "github.com/openshift/api/route/v1"
+	v1beta1 "k8s.io/api/extensions/v1beta1"
 )
 
 //buildIngress returns the Ingress resource
-func (r *ReconcileComponent) buildIngress(c *v1alpha2.Component) *routev1.Route {
+func (r *ReconcileComponent) buildIngress(c *v1alpha2.Component) *v1beta1.Ingress {
 	ls := r.getAppLabels(c.Name)
-	route := &routev1.Route{
+	route := &v1beta1.Ingress{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Route",
@@ -20,10 +21,23 @@ func (r *ReconcileComponent) buildIngress(c *v1alpha2.Component) *routev1.Route 
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
-		Spec: routev1.RouteSpec{
-			To: routev1.RouteTargetReference{
-				Kind: "Service",
-				Name: c.Name ,
+		Spec: v1beta1.IngressSpec{
+			Rules: []v1beta1.IngressRule{
+				{Host: c.Name,
+					IngressRuleValue: v1beta1.IngressRuleValue{
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
+								{
+									Path: "/",
+									Backend: v1beta1.IngressBackend{
+										ServiceName: c.Name,
+										ServicePort: intstr.IntOrString{Type: "string", StrVal: "c.Spec.Port"},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}

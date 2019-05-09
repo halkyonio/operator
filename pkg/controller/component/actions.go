@@ -118,7 +118,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 
 		if component.Spec.ExposeService {
 			if _, err := r.fetchRoute(component); err != nil {
-				if _, err := r.create(component, ROUTE, err); err != nil {
+				if _, err := r.create(component, INGRESS, err); err != nil {
 					if err != nil {
 						return err
 					}
