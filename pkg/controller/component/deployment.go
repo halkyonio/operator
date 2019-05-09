@@ -2,8 +2,6 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/api/extensions/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +23,7 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Dep
 		},
 		Spec: v1beta1.DeploymentSpec{
 			Strategy: v1beta1.DeploymentStrategy{
-				Type: v1beta1.RecreateDeploymentStrategyType,
+				Type: v1beta1.RollingUpdateDeploymentStrategyType,
 			},
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
@@ -33,66 +31,53 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Dep
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: ls,
+					Name:   c.Name,
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:           "",
-						Name:            c.Spec.RuntimeName,
+						Args: []string{
+							"-c",
+							"/var/lib/supervisord/conf/supervisor.conf",
+						},
+						Command: []string{
+							"/var/lib/supervisord/bin/supervisord",
+						},
+						Env:             *r.populatePodEnvVar(c),
+						Image:           c.Spec.RuntimeName + ":latest",
 						ImagePullPolicy: corev1.PullAlways,
+						Name:            c.Name,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: c.Spec.Port,
 							Name:          "http",
 							Protocol:      "TCP",
 						}},
-						// Get the value from the ConfigMap
-						//Env: *envinronment,
-						ReadinessProbe: &corev1.Probe{
-							Handler: corev1.Handler{
-								HTTPGet: &corev1.HTTPGetAction{
-									Path: "/api/healthz",
-									Port: intstr.IntOrString{
-										Type:   intstr.Int,
-										IntVal: c.Spec.Port,
-									},
-									Scheme: corev1.URISchemeHTTP,
-								},
-							},
-							FailureThreshold: 3,
-							InitialDelaySeconds: 5,
-							PeriodSeconds: 10,
-							TimeoutSeconds:      1,
-							SuccessThreshold: 1,
-						},
-						LivenessProbe: &corev1.Probe{
-							Handler: corev1.Handler{
-								HTTPGet: &corev1.HTTPGetAction{
-									Path: "/api/ping",
-									Port: intstr.IntOrString{
-										Type:   intstr.Int,
-										IntVal: c.Spec.Port,
-									},
-									Scheme: corev1.URISchemeHTTP,
-								},
-							},
-							FailureThreshold: 3,
-							InitialDelaySeconds: 120,
-							PeriodSeconds: 10,
-							TimeoutSeconds:      10,
-							SuccessThreshold: 1,
-						},
-						Resources: corev1.ResourceRequirements{
-							Limits: corev1.ResourceList{
-								corev1.ResourceMemory: resource.MustParse(c.Spec.Memory),
-							},
-							Requests: corev1.ResourceList{
-								corev1.ResourceMemory: resource.MustParse(c.Spec.Memory),
-							},
+						VolumeMounts: []corev1.VolumeMount{
+							{Name: "shared-data", MountPath: "/var/lib/supervisord"},
+							{Name: c.Spec.Storage.Name, MountPath: "/tmp/artifacts"},
 						},
 					}},
-				},
-			},
+					InitContainers: []corev1.Container{{
+						Env: []corev1.EnvVar{
+							{Name: "CMDS", Value: ""}},
+						Image:                    SUPERVISOR_IMAGE_NAME + ":latest",
+						ImagePullPolicy:          corev1.PullAlways,
+						Name:                     SUPERVISOR_IMAGE_NAME,
+						TerminationMessagePath:   "dev/termination-log",
+						TerminationMessagePolicy: "File",
+						VolumeMounts: []corev1.VolumeMount{
+							{Name: "shared-data", MountPath: "/var/lib/supervisord"},
+						},
+					}},
+					Volumes: []corev1.Volume{
+						{Name: "shared-data",
+							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+						{Name: "",
+							VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: ""}}},
+					},
+				}},
 		},
 	}
+
 	// Set MobileSecurityService instance as the owner and controller
 	controllerutil.SetControllerReference(c, dep, r.scheme)
 	return dep
