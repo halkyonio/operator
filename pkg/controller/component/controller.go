@@ -57,6 +57,7 @@ const (
 	ROUTE            = "Route"
 	IMAGESTREAM      = "ImageStream"
 	BUILDCONFIG      = "BuildConfig"
+	PERSISTENTVOLUMECLAIM      = "BuildConfig"
 )
 
 
@@ -153,6 +154,8 @@ func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind str
 	switch kind {
 	case SERVICE:
 		return r.buildService(instance), nil
+	case PERSISTENTVOLUMECLAIM:
+		return r.buildPVC(instance), nil
 	default:
 		msg := "Failed to recognize type of object" + kind + " into the Namespace " + instance.Namespace
 		panic(msg)

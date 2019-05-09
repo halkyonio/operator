@@ -157,9 +157,11 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		component.Spec.Storage.Mode = "ReadWriteOnce"
 		// Create Route if it does not exists
 		if _, err := r.fetchPVC(component); err != nil {
-			err := CreateResource(tmpl, component, r.client, r.scheme)
-			if err != nil {
-				return err
+			//err := CreateResource(tmpl, component, r.client, r.scheme)
+			if _, err := r.create(component, PERSISTENTVOLUMECLAIM, err); err != nil {
+				if err != nil {
+					return err
+				}
 			}
 			r.reqLogger.Info("Created pvc", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
 
