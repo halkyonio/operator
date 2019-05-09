@@ -205,7 +205,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	r.reqLogger.Info("Creation time          ","Creation time", component.ObjectMeta.CreationTimestamp)
 	r.reqLogger.Info("Resource version       ","Resource version", component.ObjectMeta.ResourceVersion)
 	r.reqLogger.Info("Generation version     ","Generation version", strconv.FormatInt(component.ObjectMeta.Generation, 10))
-	r.reqLogger.Info("Deletion time          ","Deletion time", component.ObjectMeta.DeletionTimestamp)
+	// r.reqLogger.Info("Deletion time          ","Deletion time", component.ObjectMeta.DeletionTimestamp)
 
 	switch m := component.Spec.DeploymentMode; m {
 	case "innerloop":
