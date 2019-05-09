@@ -54,8 +54,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		tmpl, ok := util.Templates["innerloop/imagestream"]
 		if ok {
 			for _, is := range component.Spec.Images {
-				if _, err := r.fetchImageStream(component, is.Name); err != nil {
-					r.buildImageStream()
+				if _, err := r.fetchImageStream(component, is.Name); err != nil {git
 					err = CreateResource(tmpl, component, r.client, r.scheme)
 					if err != nil {
 						return err
