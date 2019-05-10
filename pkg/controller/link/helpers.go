@@ -8,13 +8,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func (r *ReconcileLink) addSecretAsEnvFromSource(secretName string) []corev1.EnvFromSource {
-	return []corev1.EnvFromSource{
-		{
+func (r *ReconcileLink) addSecretAsEnvFromSource(secretName string) corev1.EnvFromSource {
+	return corev1.EnvFromSource{
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
 			},
-		},
 	}
 }
 

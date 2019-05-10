@@ -7,9 +7,9 @@ import (
 	deploymentconfigv1 "github.com/openshift/api/apps/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -120,7 +120,8 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 			return reconcile.Result{}, nil
 		}
 
-		existing := found.DeepCopyObject()
+		// existing := found.DeepCopyObject()
+		isModified := false
 
 		// Enrich the DeploymentConfig of the Component using the information passed within the Link Spec
 		kind := link.Spec.Kind
@@ -140,7 +141,8 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 				}
 				if (!isEnvFromExist) {
 					// Add the Secret as EnvVar to the container
-					container.EnvFrom = r.addSecretAsEnvFromSource(secretName)
+					container.EnvFrom = append(container.EnvFrom,r.addSecretAsEnvFromSource(secretName))
+					isModified = true
 					//r.updateDeploymentWithLink(found,link,"Added the deploymentConfig's EnvFrom reference of the secret " + secretName)
 				}
 			}
@@ -159,13 +161,14 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 					}
 					if (!isEnvExist) {
 						// Add the Secret as EnvVar to the container
-						container.Env = append(container.Env, r.addKeyValueAsEnvVar(specEnv.Name, specEnv.Value))
+						r.appendEnvTocontainer(&container, specEnv.Name, specEnv.Value)
+						isModified = true
 					}
 				}
 			}
 		}
 
-		if !reflect.DeepEqual(existing, found) {
+		if isModified {
 			if err := r.updateDeploymentWithLink(found, link); err != nil {
 				return reconcile.Result{}, err
 			}
@@ -212,6 +215,10 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 	}
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", link.Name))
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileLink) appendEnvTocontainer(cont *v1.Container, name, value string) {
+	cont.Env = append(cont.Env, r.addKeyValueAsEnvVar(name, value))
 }
 
 func (r *ReconcileLink) updateDeploymentWithLink(dc *deploymentconfigv1.DeploymentConfig, link *v1alpha2.Link) error {
