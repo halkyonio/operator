@@ -24,9 +24,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
-	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	//"github.com/snowdrop/component-operator/pkg/util/openshift"
-	"golang.org/x/net/context"
+	// "golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -62,12 +61,14 @@ func createLink(component v1alpha2.Component, cfg rest.Config, c client.Client, 
 	//_, _ := time.ParseDuration("10s")
 	component.ObjectMeta.Namespace = namespace
 
-	_, err := kubernetes.DetectOpenShift(&cfg)
-	if err != nil {
-		return err
-	}
 
-/*	for _, l := range component.Spec.Links {
+
+/*		_, err := kubernetes.DetectOpenShift(&cfg)
+if err != nil {
+	return err
+}
+
+for _, l := range component.Spec.Links {
 		componentName := l.TargetComponentName
 		if componentName != "" {
 			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
@@ -162,7 +163,7 @@ func createLink(component v1alpha2.Component, cfg rest.Config, c client.Client, 
 		} else {
 			return errors.New("Target component is not defined !!")
 		}
-	}*/
+	}
 
 	log.Info("### Component Link updated.")
 
@@ -177,6 +178,7 @@ func createLink(component v1alpha2.Component, cfg rest.Config, c client.Client, 
 	log.Infof("## Status updated : %s ##",component.Status.Phase)
 	log.Infof("## Status RevNumber : %s ##",component.Status.RevNumber)
 	log.Info("------------------------------------------------------")
+ */
 	return nil
 }
 

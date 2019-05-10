@@ -28,8 +28,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/snowdrop/component-operator/pkg/pipeline"
-	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
-	util "github.com/snowdrop/component-operator/pkg/util/template"
 
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -51,9 +49,11 @@ func (installStep) CanHandle(component *v1alpha2.Component) bool {
 }
 
 func (installStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return installOuterLoop(*component, *config, *client, namespace, *scheme)
+	// return installOuterLoop(*component, *config, *client, namespace, *scheme)
+	return nil
 }
 
+/*
 func installOuterLoop(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	log.Info("Install BuildConfig ...")
 	component.ObjectMeta.Namespace = namespace
@@ -96,6 +96,7 @@ func installOuterLoop(component v1alpha2.Component, config rest.Config, c client
 	}
 	return nil
 }
+*/
 
 func fetchBuildConfig(c client.Client, component *v1alpha2.Component) (*build.BuildConfig, error) {
 	log.Info("## Checking if the BuilConfig already exists")

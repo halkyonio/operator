@@ -2,21 +2,16 @@ package outerloop
 
 import (
 	"bytes"
-	"context"
 	"fmt"
-	deploymentconfig "github.com/openshift/api/apps/v1"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
-	"github.com/snowdrop/component-operator/pkg/util/openshift"
-	util "github.com/snowdrop/component-operator/pkg/util/template"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"text/template"
 )
 
@@ -36,9 +31,11 @@ func (cloneDeploymentStep) CanHandle(component *v1alpha2.Component) bool {
 }
 
 func (cloneDeploymentStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return cloneDeploymentLoop(*component, *config, *client, namespace, *scheme)
+	// return cloneDeploymentLoop(*component, *config, *client, namespace, *scheme)
+	return nil
 }
 
+/*
 func cloneDeploymentLoop(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
@@ -86,7 +83,7 @@ func cloneDeploymentLoop(component v1alpha2.Component, config rest.Config, c cli
 	log.Info("## Pipeline 'outerloop' ended ##")
 	log.Info("------------------------------------------------------")
 	return nil
-}
+}*/
 
 func UpdateEnv(envs []v1.EnvVar, jarName string) []v1.EnvVar {
 	newEnvs := []v1.EnvVar{}
