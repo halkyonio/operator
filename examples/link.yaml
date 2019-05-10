@@ -1,0 +1,6 @@
+apiVersion: component.k8s.io/v1alpha2
+kind: Link
+metadata:
+  name: example-link
+spec:
+  size: 3

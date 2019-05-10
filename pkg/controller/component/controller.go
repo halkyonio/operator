@@ -260,19 +260,6 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	}
 
-	// Check if the component is a Link and that
-	if component.Spec.Links != nil {
-		for _, a := range r.linkSteps {
-			if a.CanHandle(component) {
-				r.reqLogger.Info("## Invoking pipeline 'link', action '%s' on %s", a.Name(), component.Name)
-				if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-					r.reqLogger.Error(err,"Linking components failed")
-					return reconcile.Result{}, err
-				}
-			}
-		}
-	}
-
 	// See finalizer doc for more info : https://book.kubebuilder.io/beyond_basics/using_finalizers.html
 	// If DeletionTimeStamp is not equal zero, then the resource has been marked for deletion
 	if !component.ObjectMeta.DeletionTimestamp.IsZero() {

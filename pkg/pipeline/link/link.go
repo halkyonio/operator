@@ -20,21 +20,21 @@ package link
 import (
 	appsv1 "github.com/openshift/api/apps/v1"
 	appsocpv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
-	"github.com/pkg/errors"
+	//"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
-	"github.com/snowdrop/component-operator/pkg/util/openshift"
+	//"github.com/snowdrop/component-operator/pkg/util/openshift"
 	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/wait"
+	//"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"time"
+	//"time"
 )
 
 // NewLinkStep creates a step that handles the creation of the Service from the catalog
@@ -59,15 +59,15 @@ func (linkStep) Handle(component *v1alpha2.Component, config *rest.Config, clien
 }
 
 func createLink(component v1alpha2.Component, cfg rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
-	retryInterval, _ := time.ParseDuration("10s")
+	//_, _ := time.ParseDuration("10s")
 	component.ObjectMeta.Namespace = namespace
 
-	isOpenshift, err := kubernetes.DetectOpenShift(&cfg)
+	_, err := kubernetes.DetectOpenShift(&cfg)
 	if err != nil {
 		return err
 	}
 
-	for _, l := range component.Spec.Links {
+/*	for _, l := range component.Spec.Links {
 		componentName := l.TargetComponentName
 		if componentName != "" {
 			// Get DeploymentConfig to inject EnvFrom using Secret and restart it
@@ -162,7 +162,7 @@ func createLink(component v1alpha2.Component, cfg rest.Config, c client.Client, 
 		} else {
 			return errors.New("Target component is not defined !!")
 		}
-	}
+	}*/
 
 	log.Info("### Component Link updated.")
 

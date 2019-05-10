@@ -54,8 +54,6 @@ type ComponentSpec struct {
 	// to operate with by example a Prometheus backend system to collect metrics, an OpenTracing datastore
 	// to centralize the traces/logs of the runtime, to deploy a servicemesh, ...
 	Features []Feature `json:"features,omitempty" `
-	//
-	Links []Link `json:"links,omitempty"`
 }
 
 // ComponentStatus defines the observed state of Component
@@ -63,15 +61,6 @@ type ComponentSpec struct {
 type ComponentStatus struct {
 	Phase     Phase `json:"phase,omitempty"`
 	RevNumber string
-}
-
-type Link struct {
-	Name                string `json:"name,omitempty"`
-	TargetComponentName string `json:"targetComponentName,omitempty"`
-	Kind                string `json:"kind,omitempty"`
-	Ref                 string `json:"ref,omitempty"`
-	// Array of env variables containing extra/additional info to be used to configure the runtime
-	Envs []Env `json:"envs,omitempty"`
 }
 
 type Feature struct {
@@ -86,11 +75,6 @@ type Image struct {
 	Repo           string
 	Tag            string
 	DockerImage    bool
-}
-
-type Env struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
 }
 
 type Service struct {
