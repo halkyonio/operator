@@ -107,8 +107,9 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 		return reconcile.Result{}, err
 	}
 
-	var copy = deploymentconfigv1.DeploymentConfig{}
-	var found = deploymentconfigv1.DeploymentConfig{}
+	//var copy = deploymentconfigv1.DeploymentConfig{}
+	//var found = &deploymentconfigv1.DeploymentConfig{}
+	//var existing = deploymentconfigv1.DeploymentConfig{}
 
 	if (isOpenShift) {
 		// Search about the DeploymentConfig to be updated using the "Component Name"
@@ -119,7 +120,7 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 			return reconcile.Result{}, nil
 		}
 
-		copy = *found
+		existing := found.DeepCopyObject()
 
 		// Enrich the DeploymentConfig of the Component using the information passed within the Link Spec
 		kind := link.Spec.Kind
@@ -163,6 +164,12 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 				}
 			}
 		}
+
+		if !reflect.DeepEqual(existing, found) {
+			if err := r.updateDeploymentWithLink(found, link); err != nil {
+				return reconcile.Result{}, err
+			}
+		}
 	} else {
 		// TODO
         /*
@@ -202,12 +209,6 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 		r.reqLogger.Info("### Rollout Deployment of the '%s' component", component.Name)
 		return true, nil
         */
-	}
-
-	if !reflect.DeepEqual(copy, found) {
-		if err := r.updateDeploymentWithLink(&found, link); err != nil {
-			return reconcile.Result{}, err
-		}
 	}
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", link.Name))
 	return reconcile.Result{}, nil
