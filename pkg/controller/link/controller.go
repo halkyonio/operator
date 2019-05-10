@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	"k8s.io/api/extensions/v1beta1"
 	deploymentconfigv1 "github.com/openshift/api/apps/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
@@ -121,102 +122,31 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 				return reconcile.Result{}, nil
 			}
 
-			// existing := found.DeepCopyObject()
-			isModified := false
-
-			// Enrich the DeploymentConfig of the Component using the information passed within the Link Spec
-			kind := link.Spec.Kind
-			switch kind {
-			case "Secret":
-				secretName := link.Spec.Ref
-
-				// Check if EnvFrom already exists
-				// If this is the case, exit without error
-				containers := found.Spec.Template.Spec.Containers
-				for i := 0; i < len(containers); i++ {
-					var isEnvFromExist = false
-					for _, env := range containers[i].EnvFrom {
-						if env.String() == secretName {
-							// EnvFrom already exists for the Secret Ref
-							isEnvFromExist = true
-						}
-					}
-					if (!isEnvFromExist) {
-						// Add the Secret as EnvVar to the container
-						containers[i].EnvFrom = append(containers[i].EnvFrom,r.addSecretAsEnvFromSource(secretName))
-						isModified = true
-						//r.updateDeploymentWithLink(found,link,"Added the deploymentConfig's EnvFrom reference of the secret " + secretName)
-					}
-				}
+			// Enrich the DeploymentConfig object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
+			if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers); isModified {
 				found.Spec.Template.Spec.Containers = containers
-
-			case "Env":
-				// Check if Env already exists
-				// If this is the case, exit without error
-				containers := found.Spec.Template.Spec.Containers
-				for i := 0; i < len(containers); i++ {
-					var isEnvExist = false
-					for _, specEnv := range link.Spec.Envs {
-						for _, env := range containers[i].Env {
-							if specEnv.Name == env.Name && specEnv.Value == env.Value {
-								// EnvFrom already exists for the Secret Ref
-								isEnvExist = true
-							}
-						}
-						if (!isEnvExist) {
-							// Add the Secret as EnvVar to the container
-							containers[i].Env = append(containers[i].Env, r.addKeyValueAsEnvVar(specEnv.Name, specEnv.Value))
-							isModified = true
-						}
-					}
+				if err := r.updateDeploymentConfigWithLink(found, link); err != nil {
+					return reconcile.Result{}, err
 				}
-				found.Spec.Template.Spec.Containers = containers
 			}
 
-			if isModified {
+		} else {
+			//K8s platform. We will fetch a deployment
+			found, err := r.fetchDeployment(request.Namespace, link.Spec.ComponentName)
+			if err != nil {
+				r.reqLogger.Info("Component not found")
+				// TODO Update status of the link to report the error
+				return reconcile.Result{}, nil
+			}
+
+			// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
+			if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers); isModified {
+				found.Spec.Template.Spec.Containers = containers
 				if err := r.updateDeploymentWithLink(found, link); err != nil {
 					return reconcile.Result{}, err
 				}
 			}
-		} else {
-			// TODO
-			/*
-			        // K8s platform. We will fetch a deployment
-					d, err := kubernetes.GetDeployment(namespace, componentName, c)
-					if err != nil {
-						return false, err
-					}
-					logMessage := ""
-					kind := link.Spec.Kind
-					switch kind {
-					case "Secret":
-						secretName := link.Spec.Ref
-						// Add the Secret as EnvVar to the container
-						d.Spec.Template.Spec.Containers[0].EnvFrom = addSecretAsEnvFromSource(secretName)
-						logMessage = "### Added the deploymentConfig's EnvFrom reference of the secret " + secretName
-					case "Env":
-						// TODO Iterate through Env vars
-						key := link.Spec.Envs[0].Name
-						val := link.Spec.Envs[0].Value
-						d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, addKeyValueAsEnvVar(key, val))
-						logMessage = "### Added the deploymentConfig's EnvVar : " + key + ", " + val
-					}
 
-					// Update the Deployment
-					err = c.Update(context.TODO(), d)
-					if err != nil && k8serrors.IsConflict(err) {
-						// Retry function on conflict
-						return false, nil
-					}
-					if err != nil {
-						return false, err
-					}
-					log.Info(logMessage)
-
-					r.reqLogger.Info("### Added link", "Target Component",link.Spec.TargetComponentName)
-					r.reqLogger.Info("### Rollout Deployment of the '%s' component", component.Name)
-					return true, nil
-			*/
 		}
 	}
 
@@ -224,11 +154,55 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileLink) appendEnvTocontainer(cont *v1.Container, name, value string) {
-	cont.Env = append(cont.Env, r.addKeyValueAsEnvVar(name, value))
+func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, containers []v1.Container) ([]v1.Container, bool) {
+	var isModified = false
+	kind := link.Spec.Kind
+	switch kind {
+	case "Secret":
+		secretName := link.Spec.Ref
+
+		// Check if EnvFrom already exists
+		// If this is the case, exit without error
+		for i := 0; i < len(containers); i++ {
+			var isEnvFromExist = false
+			for _, env := range containers[i].EnvFrom {
+				if env.String() == secretName {
+					// EnvFrom already exists for the Secret Ref
+					isEnvFromExist = true
+				}
+			}
+			if (!isEnvFromExist) {
+				// Add the Secret as EnvVar to the container
+				containers[i].EnvFrom = append(containers[i].EnvFrom,r.addSecretAsEnvFromSource(secretName))
+				isModified = true
+			}
+		}
+
+	case "Env":
+		// Check if Env already exists
+		// If this is the case, exit without error
+		for i := 0; i < len(containers); i++ {
+			var isEnvExist = false
+			for _, specEnv := range link.Spec.Envs {
+				for _, env := range containers[i].Env {
+					if specEnv.Name == env.Name && specEnv.Value == env.Value {
+						// EnvFrom already exists for the Secret Ref
+						isEnvExist = true
+					}
+				}
+				if (!isEnvExist) {
+					// Add the Secret as EnvVar to the container
+					containers[i].Env = append(containers[i].Env, r.addKeyValueAsEnvVar(specEnv.Name, specEnv.Value))
+					isModified = true
+				}
+			}
+		}
+	}
+
+	return containers, isModified
 }
 
-func (r *ReconcileLink) updateDeploymentWithLink(dc *deploymentconfigv1.DeploymentConfig, link *v1alpha2.Link) error {
+func (r *ReconcileLink) updateDeploymentConfigWithLink(dc *deploymentconfigv1.DeploymentConfig, link *v1alpha2.Link) error {
 	// Update the DeploymentConfig of the component
 	r.update(dc)
 
@@ -248,5 +222,19 @@ func (r *ReconcileLink) updateDeploymentWithLink(dc *deploymentconfigv1.Deployme
 
 	r.reqLogger.Info("Added link to the component", "Name", link.Spec.ComponentName)
 	r.reqLogger.Info("Rollout the DeploymentConfig")
+	return nil
+}
+
+func (r *ReconcileLink) updateDeploymentWithLink(d *v1beta1.Deployment, link *v1alpha2.Link) error {
+	// Update the Deployment of the component
+	r.update(d)
+
+	// Update Status to value "Linked"
+	if err := r.updateStatusInstance(v1alpha2.PhaseLinked, link); err != nil {
+		r.reqLogger.Info("Status update failed !")
+		return err
+	}
+
+	r.reqLogger.Info("Added link to the component", "Name", link.Spec.ComponentName)
 	return nil
 }

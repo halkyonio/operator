@@ -3,7 +3,6 @@ package link
 import (
 	"context"
 	deploymentconfigv1 "github.com/openshift/api/apps/v1"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,9 +23,9 @@ func (r *ReconcileLink) fetch(err error) (reconcile.Result, error) {
 }
 
 //fetchDeployment returns the deployment resource created for this instance
-func (r *ReconcileLink) fetchDeployment(instance *v1alpha2.Component) (*v1beta1.Deployment, error) {
+func (r *ReconcileLink) fetchDeployment(namespace, name string) (*v1beta1.Deployment, error) {
 	deployment := &v1beta1.Deployment{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment); err != nil {
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, deployment); err != nil {
 		r.reqLogger.Info("Deployment don't exist")
 		return deployment, err
 	} else {

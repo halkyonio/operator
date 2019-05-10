@@ -3,6 +3,7 @@ module github.com/snowdrop/component-operator
 go 1.12
 
 require (
+	cloud.google.com/go v0.34.0
 	github.com/PuerkitoBio/purell v1.1.1
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 	github.com/beorn7/perks v1.0.0
@@ -23,6 +24,7 @@ require (
 	github.com/google/btree v1.0.0
 	github.com/google/gofuzz v1.0.0
 	github.com/google/uuid v1.1.1
+	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 	github.com/googleapis/gnostic v0.2.0
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc
 	github.com/hashicorp/golang-lru v0.5.1
@@ -66,7 +68,10 @@ require (
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c
+	google.golang.org/api v0.5.0 // indirect
 	google.golang.org/appengine v1.5.0
+	google.golang.org/genproto v0.0.0-20190508193815-b515fa19cec8 // indirect
+	google.golang.org/grpc v1.20.1 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/inf.v0 v0.9.1
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
