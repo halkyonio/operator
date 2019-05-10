@@ -72,8 +72,8 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 					Volumes: []corev1.Volume{
 						{Name: "shared-data",
 							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
-						{Name: "",
-							VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: ""}}},
+						{Name: c.Spec.Storage.Name,
+							VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: c.Spec.Storage.Name}}},
 					},
 				}},
 			Triggers: []deploymentcfgv1.DeploymentTriggerPolicy{
