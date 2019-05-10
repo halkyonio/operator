@@ -161,7 +161,7 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 					}
 					if (!isEnvExist) {
 						// Add the Secret as EnvVar to the container
-						r.appendEnvTocontainer(&container, specEnv.Name, specEnv.Value)
+						container.Env = append(container.Env, r.addKeyValueAsEnvVar(specEnv.Name, specEnv.Value))
 						isModified = true
 					}
 				}
