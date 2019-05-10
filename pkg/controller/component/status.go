@@ -6,6 +6,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 )
 
@@ -31,10 +32,18 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 		status = v1alpha2.PhaseDeploying
 	}
 
-	if !reflect.DeepEqual(status, instance.Status.Phase) {
-		instance.Status.Phase = status
+	// Get a more recent version of the CR to avoid error:
+	component := &v1alpha2.Component{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, component)
+	if err != nil {
+		r.reqLogger.Error(err, "Failed to get a Component updated")
+		return err
+	}
+
+	if !reflect.DeepEqual(status, component.Status.Phase) {
+		component.Status.Phase = status
 		//err := r.client.Status().Update(context.TODO(), instance)
-		err := r.client.Update(context.TODO(),instance)
+		err := r.client.Update(context.TODO(),component)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update Status for the Component")
 			return err
