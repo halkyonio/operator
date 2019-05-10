@@ -32,12 +32,17 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(component, "Backend")
-	//
+	// Check if Service port exists, otherwise define it
 	if component.Spec.Port == 0 {
 		component.Spec.Port = 8080 // Add a default port if empty
 	}
-	//
+	// Add the Supervisord name
 	component.Spec.SupervisordName = "copy-supervisord"
+
+	// Specify the default Storage data - value
+	component.Spec.Storage.Capacity = "1Gi"
+	component.Spec.Storage.Mode = "ReadWriteOnce"
+	component.Spec.Storage.Name = "m2-data-" + component.Name
 
 	isOpenshift, err := kubernetes.DetectOpenShift(r.config)
 	if err != nil {
@@ -116,9 +121,6 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	// Install common resources
 
 	// Create PVC if it does not exists
-	component.Spec.Storage.Capacity = "1Gi"
-	component.Spec.Storage.Mode = "ReadWriteOnce"
-	component.Spec.Storage.Name = "m2-data-" + component.Name
 	if _, err := r.fetchPVC(component); err != nil {
 		if _, err := r.create(component, PERSISTENTVOLUMECLAIM, err); err != nil {
 			if err != nil {
