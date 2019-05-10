@@ -131,9 +131,10 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 
 			// Check if EnvFrom already exists
 			// If this is the case, exit without error
-			for _, container := range found.Spec.Template.Spec.Containers {
+			containers := found.Spec.Template.Spec.Containers
+			for i := 0; i < len(containers); i++ {
 				var isEnvFromExist = false
-				for _, env := range container.EnvFrom {
+				for _, env := range containers[i].EnvFrom {
 					if env.String() == secretName {
 						// EnvFrom already exists for the Secret Ref
 						isEnvFromExist = true
@@ -141,19 +142,21 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 				}
 				if (!isEnvFromExist) {
 					// Add the Secret as EnvVar to the container
-					container.EnvFrom = append(container.EnvFrom,r.addSecretAsEnvFromSource(secretName))
+					containers[i].EnvFrom = append(containers[i].EnvFrom,r.addSecretAsEnvFromSource(secretName))
 					isModified = true
 					//r.updateDeploymentWithLink(found,link,"Added the deploymentConfig's EnvFrom reference of the secret " + secretName)
 				}
 			}
+			found.Spec.Template.Spec.Containers = containers
 
 		case "Env":
 			// Check if Env already exists
 			// If this is the case, exit without error
-			for _, container := range found.Spec.Template.Spec.Containers {
+			containers := found.Spec.Template.Spec.Containers
+			for i := 0; i < len(containers); i++ {
 				var isEnvExist = false
 				for _, specEnv := range link.Spec.Envs {
-					for _, env := range container.Env {
+					for _, env := range containers[i].Env {
 						if specEnv.Name == env.Name && specEnv.Value == env.Value {
 							// EnvFrom already exists for the Secret Ref
 							isEnvExist = true
@@ -161,11 +164,12 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 					}
 					if (!isEnvExist) {
 						// Add the Secret as EnvVar to the container
-						container.Env = append(container.Env, r.addKeyValueAsEnvVar(specEnv.Name, specEnv.Value))
+						containers[i].Env = append(containers[i].Env, r.addKeyValueAsEnvVar(specEnv.Name, specEnv.Value))
 						isModified = true
 					}
 				}
 			}
+			found.Spec.Template.Spec.Containers = containers
 		}
 
 		if isModified {
