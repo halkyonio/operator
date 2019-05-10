@@ -38,12 +38,11 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 						Args: []string{
 							"-c",
 							"/var/lib/supervisord/conf/supervisor.conf",
-
 						},
 						Command: []string{
 							"/var/lib/supervisord/bin/supervisord",
 						},
-						Env: *r.populatePodEnvVar(c),
+						Env:             *r.populatePodEnvVar(c),
 						Image:           c.Spec.RuntimeName + ":latest",
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            c.Name,
@@ -59,7 +58,8 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 					}},
 					InitContainers: []corev1.Container{{
 						Env: []corev1.EnvVar{
-							{Name: "CMDS", Value: ""}},
+							{Name: "CMDS",
+							 Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"add miss}},
 						Image:                    SUPERVISOR_IMAGE_NAME + ":latest",
 						ImagePullPolicy:          corev1.PullAlways,
 						Name:                     SUPERVISOR_IMAGE_NAME,
