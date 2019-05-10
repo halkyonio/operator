@@ -10,8 +10,6 @@ spec:
     plural: links
     singular: link
   scope: Namespaced
-  subresources:
-    status: {}
   version: v1alpha2
   versions:
   - name: v1alpha2
