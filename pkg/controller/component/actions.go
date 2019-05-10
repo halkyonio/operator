@@ -20,9 +20,10 @@ package component
 import (
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"golang.org/x/net/context"
 
-	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	util "github.com/snowdrop/component-operator/pkg/util"
 	"strings"
 )
 
@@ -44,12 +45,12 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	component.Spec.Storage.Mode = "ReadWriteOnce"
 	component.Spec.Storage.Name = "m2-data-" + component.Name
 
-	isOpenshift, err := kubernetes.DetectOpenShift(r.config)
+	isOpenShift, err := util.IsOpenshift(r.config)
 	if err != nil {
 		return err
 	}
 
-	if (isOpenshift) {
+	if (isOpenShift) {
 		// Create ImageStream if it does not exists
 		imageStreamToCreate := []string{}
 		for _, name := range r.getDevImageNames(component) {

@@ -1,6 +1,11 @@
 apiVersion: component.k8s.io/v1alpha2
 kind: Link
 metadata:
-  name: example-link
+  name: link-to-fruit-backend-sb
 spec:
-  size: 3
+  kind: "Env"
+  name: "Link to fruit-backend-sb"
+  componentName: "fruit-client-sb"
+  envs:
+    - name: "OPENSHIFT_ENDPOINT_BACKEND"
+      value: "http://fruit-backend-sb:8080/api/fruits"

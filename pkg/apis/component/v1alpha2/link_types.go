@@ -14,7 +14,7 @@ type LinkSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	Name                string `json:"name,omitempty"`
-	TargetComponentName string `json:"targetComponentName,omitempty"`
+	ComponentName		string `json:"componentName,omitempty"`
 	Kind                string `json:"kind,omitempty"`
 	Ref                 string `json:"ref,omitempty"`
 	// Array of env variables containing extra/additional info to be used to configure the runtime
