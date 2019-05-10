@@ -59,7 +59,7 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 					InitContainers: []corev1.Container{{
 						Env: []corev1.EnvVar{
 							{Name: "CMDS",
-							 Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp",dd}},
+							 Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp",}},
 						Image:                    SUPERVISOR_IMAGE_NAME + ":latest",
 						ImagePullPolicy:          corev1.PullAlways,
 						Name:                     SUPERVISOR_IMAGE_NAME,
