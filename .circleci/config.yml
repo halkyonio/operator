@@ -93,7 +93,7 @@ jobs:
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/sa.yaml
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-rbac.yaml
-          oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/crd-v1alpha2.yaml
+          oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component-v1alpha2.yaml
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/examples/operator.yaml
 
     - run:
