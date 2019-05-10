@@ -63,7 +63,8 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 						Image:                    SUPERVISOR_IMAGE_NAME + ":latest",
 						ImagePullPolicy:          corev1.PullAlways,
 						Name:                     SUPERVISOR_IMAGE_NAME,
-						TerminationMessagePath:   "dev/termination-log",
+						TerminationMessagePath:   "/" +
+							"dev/termination-log",
 						TerminationMessagePolicy: "File",
 						VolumeMounts: []corev1.VolumeMount{
 							{Name: "shared-data", MountPath: "/var/lib/supervisord"},

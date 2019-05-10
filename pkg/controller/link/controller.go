@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	deploymentconfigv1 "github.com/openshift/api/apps/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -98,6 +100,16 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 		return reconcile.Result{}, err
 	}
 
+	// Update Status to value "Linking" as we will try to update the Deployment
+	err = r.updateStatusInstance(v1alpha2.PhaseLinking, link)
+	if err != nil {
+		r.reqLogger.Info("Status update failed !")
+		return reconcile.Result{}, err
+	}
+
+	var copy = deploymentconfigv1.DeploymentConfig{}
+	var found = deploymentconfigv1.DeploymentConfig{}
+
 	if (isOpenShift) {
 		// Search about the DeploymentConfig to be updated using the "Component Name"
 		found, err := r.fetchDeploymentConfig(request.Namespace, link.Spec.ComponentName)
@@ -107,37 +119,52 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 			return reconcile.Result{}, nil
 		}
 
+		copy = *found
+
 		// Enrich the DeploymentConfig of the Component using the information passed within the Link Spec
-		var logMessage = ""
 		kind := link.Spec.Kind
 		switch kind {
 		case "Secret":
 			secretName := link.Spec.Ref
-			// Add the Secret as EnvVar to the container
-			found.Spec.Template.Spec.Containers[0].EnvFrom = r.addSecretAsEnvFromSource(secretName)
-			logMessage = "Added the deploymentConfig's EnvFrom reference of the secret " + secretName
+
+			// Check if EnvFrom already exists
+			// If this is the case, exit without error
+			for _, container := range found.Spec.Template.Spec.Containers {
+				var isEnvFromExist = false
+				for _, env := range container.EnvFrom {
+					if env.String() == secretName {
+						// EnvFrom already exists for the Secret Ref
+						isEnvFromExist = true
+					}
+				}
+				if (!isEnvFromExist) {
+					// Add the Secret as EnvVar to the container
+					container.EnvFrom = r.addSecretAsEnvFromSource(secretName)
+					//r.updateDeploymentWithLink(found,link,"Added the deploymentConfig's EnvFrom reference of the secret " + secretName)
+				}
+			}
+
 		case "Env":
-			// TODO Iterate through Env vars
-			key := link.Spec.Envs[0].Name
-			val := link.Spec.Envs[0].Value
-			found.Spec.Template.Spec.Containers[0].Env = append(found.Spec.Template.Spec.Containers[0].Env, r.addKeyValueAsEnvVar(key, val))
-			logMessage = "Added the deploymentConfig's EnvVar : " + key + ", " + val
+			// Check if Env already exists
+			// If this is the case, exit without error
+			for _, container := range found.Spec.Template.Spec.Containers {
+				var isEnvExist = false
+				for _, specEnv := range link.Spec.Envs {
+					for _, env := range container.Env {
+						if specEnv.Name == env.Name && specEnv.Value == env.Value {
+							// EnvFrom already exists for the Secret Ref
+							isEnvExist = true
+						}
+					}
+					if (!isEnvExist) {
+						// Add the Secret as EnvVar to the container
+						container.Env = append(container.Env, r.addKeyValueAsEnvVar(specEnv.Name, specEnv.Value))
+					}
+				}
+			}
 		}
-
-		// Update the DeploymentConfig of the component
-		r.update(found)
-		r.reqLogger.Info(logMessage)
-
-		// Rollout the DC
-		err = r.rolloutDeploymentConfig(link.Spec.ComponentName, link.Namespace)
-		if err != nil {
-			r.reqLogger.Info("Deployment Config rollout failed !")
-			return reconcile.Result{}, err
-		}
-
-		r.reqLogger.Info("### Added %s link's CRD component", link.Spec.ComponentName)
-		r.reqLogger.Info("### Rollout the DeploymentConfig of the '%s' component", link.Spec.ComponentName)
 	} else {
+		// TODO
         /*
         // K8s platform. We will fetch a deployment
 		d, err := kubernetes.GetDeployment(namespace, componentName, c)
@@ -177,6 +204,34 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
         */
 	}
 
+	if !reflect.DeepEqual(copy, found) {
+		if err := r.updateDeploymentWithLink(&found, link); err != nil {
+			return reconcile.Result{}, err
+		}
+	}
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", link.Name))
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileLink) updateDeploymentWithLink(dc *deploymentconfigv1.DeploymentConfig, link *v1alpha2.Link) error {
+	// Update the DeploymentConfig of the component
+	r.update(dc)
+
+	// Rollout the DC
+	err := r.rolloutDeploymentConfig(link.Spec.ComponentName, link.Namespace)
+	if err != nil {
+		r.reqLogger.Info("Deployment Config rollout failed !")
+		return err
+	}
+
+	// Update Status to value "Linked"
+	err = r.updateStatusInstance(v1alpha2.PhaseLinked, link)
+	if err != nil {
+		r.reqLogger.Info("Status update failed !")
+		return err
+	}
+
+	r.reqLogger.Info("### Added link to the component", "Name", link.Spec.ComponentName)
+	r.reqLogger.Info("### Rollout the DeploymentConfig")
+	return nil
 }
