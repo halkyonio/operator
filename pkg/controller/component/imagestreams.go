@@ -5,6 +5,7 @@ import (
 	imagev1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strings"
 )
 
@@ -22,7 +23,7 @@ func init() {
 func (r *ReconcileComponent) buildImageStream(c *v1alpha2.Component, imageName string) *imagev1.ImageStream {
 	ls := r.getAppLabels(c.Name)
 	imageSpecInfo := r.getImageInfoSpec(c, imageName)
-	ser := &imagev1.ImageStream{
+	is := &imagev1.ImageStream{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Service",
@@ -44,7 +45,9 @@ func (r *ReconcileComponent) buildImageStream(c *v1alpha2.Component, imageName s
 			},
 		},
 	}
-	return ser
+	// Set Component instance as the owner and controller
+	controllerutil.SetControllerReference(c, is, r.scheme)
+	return is
 }
 
 func (r *ReconcileComponent) generateAnnotations(name string) map[string]string{

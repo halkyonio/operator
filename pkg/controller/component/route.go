@@ -28,7 +28,7 @@ func (r *ReconcileComponent) buildRoute(c *v1alpha2.Component) *routev1.Route {
 		},
 	}
 
-	// Set MobileSecurityService instance as the owner and controller
+	// Set Component instance as the owner and controller
 	controllerutil.SetControllerReference(c, route, r.scheme)
 	return route
 }

@@ -45,7 +45,7 @@ func (r *ReconcileComponent) buildIngress(c *v1alpha2.Component) *v1beta1.Ingres
 		},
 	}
 
-	// Set MobileSecurityService instance as the owner and controller
+	// Set Component instance as the owner and controller
 	controllerutil.SetControllerReference(c, route, r.scheme)
 	return route
 }
