@@ -291,8 +291,8 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, nil
 	}
 
-	//Check If Pod Status is Ready
-	podStatus, err := r.checkPodReady(component)
+	//Update Pod Status
+	podStatus, err := r.updatePodStatus(component)
 	if err != nil {
 		return reconcile.Result{}, err
 	}

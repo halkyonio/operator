@@ -2,6 +2,7 @@ package component
 
 import (
 	"context"
+	"fmt"
 	buildv1 "github.com/openshift/api/build/v1"
 	deploymentconfigv1 "github.com/openshift/api/apps/v1"
 	imagev1 "github.com/openshift/api/image/v1"
@@ -39,17 +40,23 @@ func (r *ReconcileComponent) fetchRoute(instance *v1alpha2.Component) (*routev1.
 	}
 }
 
-//fetchPod returns the pod resource created for this instance
-func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.PodList, error) {
+//fetchPod returns the pod resource created for this instance and where label app=component name
+func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod, error) {
 	pods := &corev1.PodList{}
 	lo := &client.ListOptions{}
 	lo.InNamespace(instance.Namespace)
 	lo.MatchingLabels(map[string]string{"app": instance.Name})
 	if err := r.client.List(context.TODO(), lo, pods); err != nil {
 		r.reqLogger.Info("Pod(s) don't exist")
-		return pods, err
+		return &corev1.Pod{}, err
 	} else {
-		return pods, nil
+		// We assume that there is only one Pod containing the label app=component anem AND we return it
+		if (len(pods.Items) > 0) {
+			return &pods.Items[0], nil
+		} else {
+			err := fmt.Errorf("Failed to get The Pod created for the Component")
+			return &corev1.Pod{}, err
+		}
 	}
 }
 
@@ -57,7 +64,7 @@ func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod
 func (r *ReconcileComponent) fetchService(instance *v1alpha2.Component) (*corev1.Service, error) {
 	service := &corev1.Service{}
 	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, service); err != nil {
-		r.reqLogger.Info("Service don't exists")
+		r.reqLogger.Info("Service don't exist")
 		return service, err
 	} else {
 		return service, nil

@@ -1,6 +1,7 @@
 package v1alpha2
 
 import (
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -61,6 +62,8 @@ type ComponentSpec struct {
 type ComponentStatus struct {
 	Phase     Phase `json:"phase,omitempty"`
 	RevNumber string
+	PodName string `json:"podName"`
+	PodStatus v1.PodStatus `json:"podStatus"`
 }
 
 type Feature struct {
