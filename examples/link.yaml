@@ -5,7 +5,7 @@ metadata:
 spec:
   kind: "Env"
   name: "Link to fruit-backend-sb"
-  componentName: "fruit-client-sb"
+  componentName: "my-spring-boot"
   envs:
     - name: "OPENSHIFT_ENDPOINT_BACKEND"
       value: "http://fruit-backend-sb:8080/api/fruits"
