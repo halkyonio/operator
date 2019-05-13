@@ -9,6 +9,8 @@ spec:
     listKind: LinkList
     plural: links
     singular: link
+    categories:
+      - all
   scope: Namespaced
   version: v1alpha2
   versions:
