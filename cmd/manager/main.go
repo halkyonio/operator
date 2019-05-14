@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
-	k8sutil "github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	util "github.com/snowdrop/component-operator/pkg/util"
 	"github.com/spf13/pflag"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -56,7 +56,7 @@ func main() {
 
 	printVersion()
 
-	namespace, err := k8sutil.GetWatchNamespace()
+	namespace, err := util.GetWatchNamespace()
 	if err != nil {
 		log.Error(err,"failed to get watch namespace")
 	}

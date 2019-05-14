@@ -26,3 +26,10 @@ func (r *ReconcileService) ParametersAsMap(parameters []v1alpha2.Parameter) map[
 	}
 	return result
 }
+
+//getAppLabels returns an string map with the labels which wil be associated to the kubernetes/ocp resource which will be created and managed by this operator
+func (r *ReconcileService) GetAppLabels(name string) map[string]string {
+	return map[string]string{
+		"app": name,
+	}
+}

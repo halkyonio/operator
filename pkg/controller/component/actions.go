@@ -20,7 +20,6 @@ package component
 import (
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	"golang.org/x/net/context"
 	// v1 "k8s.io/api/core/v1"
 	// "k8s.io/apimachinery/pkg/runtime"
@@ -37,7 +36,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	// Append dev runtime's image (java, nodejs, ...)
 	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
 	// Enrich Component with k8s recommend Labels
-	component.ObjectMeta.Labels = kubernetes.PopulateK8sLabels(component, "Backend")
+	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
 	// Check if Service port exists, otherwise define it
 	if component.Spec.Port == 0 {
 		component.Spec.Port = 8080 // Add a default port if empty
