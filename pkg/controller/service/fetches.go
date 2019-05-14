@@ -30,7 +30,7 @@ func (r *ReconcileService) fetchServiceBindings(service *v1alpha2.Service) (*ser
 		APIVersion: "servicecatalog.k8s.io/v1beta1",
 	}
 	listOps := client.ListOptions{
-		Namespace:     service.ObjectMeta.Namespace,
+		Namespace: service.ObjectMeta.Namespace,
 		// LabelSelector: getLabelsSelector(component.ObjectMeta.Labels),
 	}
 	err := r.client.List(context.TODO(), &listOps, listServiceBinding)
@@ -38,4 +38,21 @@ func (r *ReconcileService) fetchServiceBindings(service *v1alpha2.Service) (*ser
 		return nil, err
 	}
 	return listServiceBinding, nil
+}
+
+func (r *ReconcileService) fetchServiceInstance(s *v1alpha2.Service) (*servicecatalog.ServiceInstanceList, error) {
+	// Retrieve ServiceInstances
+	listServiceInstance := new(servicecatalog.ServiceInstanceList)
+	listServiceInstance.TypeMeta = metav1.TypeMeta{
+		Kind:       "ServiceInstance",
+		APIVersion: "servicecatalog.k8s.io/v1beta1",
+	}
+	listOps := &client.ListOptions{
+		Namespace: s.ObjectMeta.Namespace,
+	}
+	err := r.client.List(context.TODO(), listOps, listServiceInstance)
+	if err != nil {
+		return nil, err
+	}
+	return listServiceInstance, nil
 }

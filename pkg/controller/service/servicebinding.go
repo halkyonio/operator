@@ -12,8 +12,8 @@ func (r *ReconcileService) buildServiceBuilding(s *v1alpha2.Service) *servicecat
 	ls := r.GetAppLabels(s.Name)
 	service := &servicecatalogv1.ServiceBinding{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Service",
+			APIVersion: "servicecatalog.k8s.io/v1beta1",
+			Kind:       "ServiceBinding",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name,
@@ -21,7 +21,8 @@ func (r *ReconcileService) buildServiceBuilding(s *v1alpha2.Service) *servicecat
 			Labels:    ls,
 		},
 		Spec: servicecatalogv1.ServiceBindingSpec{
-			// TODO
+			SecretName: s.Spec.SecretName,
+			ServiceInstanceRef:servicecatalogv1.LocalObjectReference{Name: s.Spec.Name},
 		},
 	}
 	// Set Component instance as the owner and controller

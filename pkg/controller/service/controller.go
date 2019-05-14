@@ -139,6 +139,11 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, nil
 	}*/
 
+    // Check if the ServiceBinding AND ServiceInstance exist
+    if _, err := r.fetchServiceBindings(service); err != nil {
+    	return reconcile.Result{}, err
+	}
+
 	// Process the Service if the status is not ....
 
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", service.Name))
