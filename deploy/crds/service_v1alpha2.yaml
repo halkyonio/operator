@@ -1,0 +1,19 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: services.component.k8s.io
+spec:
+  group: component.k8s.io
+  names:
+    kind: Service
+    listKind: ServiceList
+    plural: services
+    singular: service
+    categories:
+      - all
+  scope: Namespaced
+  version: v1alpha2
+  versions:
+  - name: v1alpha2
+    served: true
+    storage: true
