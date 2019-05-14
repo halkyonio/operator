@@ -14,23 +14,23 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 	if !r.isPodReady(podStatus) {
 		// err := fmt.Errorf("Failed to get Status = Ready for Pod created by the Component")
 		// r.reqLogger.Error(err, "One of the resources such as Pod is not yet ready")
-		r.reqLogger.Info("One of the resources such as Pod is not yet ready. Component has not been updated yet")
+		r.reqLogger.Info("One of the resources such as Pod is not yet ready/runnin. Component status will not been updated yet")
 		return nil
 	}
 
 	status := v1alpha2.PhaseReady
-	// Get a more recent version of the CR
-	component := &v1alpha2.Component{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, component)
-	if err != nil {
-		r.reqLogger.Error(err, "Failed to get the Component")
-		return err
-	}
+	if !reflect.DeepEqual(status, instance.Status.Phase) {
+		// Get a more recent version of the CR
+		component := &v1alpha2.Component{}
+		err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, component)
+		if err != nil {
+			r.reqLogger.Error(err, "Failed to get the Component")
+			return err
+		}
 
-	if !reflect.DeepEqual(status, component.Status.Phase) {
 		component.Status.Phase = status
 		//err := r.client.Status().Update(context.TODO(), instance)
-		err := r.client.Update(context.TODO(), component)
+		err = r.client.Update(context.TODO(), component)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update Status of the Component")
 			return err
