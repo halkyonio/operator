@@ -20,16 +20,12 @@ package component
 import (
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/snowdrop/component-operator/pkg/pipeline/generic"
-	"github.com/snowdrop/component-operator/pkg/pipeline/outerloop"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/rest"
 	"strconv"
 
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"github.com/snowdrop/component-operator/pkg/pipeline"
-	"github.com/snowdrop/component-operator/pkg/pipeline/servicecatalog"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -124,14 +120,6 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		config: mgr.GetConfig(),
 		scheme: mgr.GetScheme(),
 		reqLogger: log,
-		outerLoopSteps: []pipeline.Step{
-			outerloop.NewInstallStep(),
-			outerloop.NewCloneDeploymentStep(),
-			generic.NewUpdateServiceSelectorStep(),
-		},
-		serviceCatalogSteps: []pipeline.Step{
-			servicecatalog.NewServiceInstanceStep(),
-		},
 	}
 }
 
@@ -140,9 +128,6 @@ type ReconcileComponent struct {
 	config              *rest.Config
 	scheme              *runtime.Scheme
 	reqLogger           logr.Logger
-	outerLoopSteps      []pipeline.Step
-	serviceCatalogSteps []pipeline.Step
-	linkSteps           []pipeline.Step
 }
 
 //buildFactory will return the resource according to the kind defined

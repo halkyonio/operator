@@ -144,3 +144,47 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", service.Name))
 	return reconcile.Result{}, nil
 }
+
+
+// TODO
+func (r *ReconcileService) DeleteService(service v1alpha2.Service, config rest.Config, c client.Client, namespace string, scheme *runtime.Scheme) error {
+	/*// Let's retrieve the ServiceBindings to delete them first
+	list, err := listServiceBindings(&{}, c)
+	if err != nil {
+		return err
+	}
+	// Delete ServiceBinding(s) linked to the ServiceInstance
+	for _, sb := range list.Items {
+		if sb.Name == s.Name {
+			err := c.Delete(context.TODO(), &sb)
+			if err != nil {
+				return err
+			}
+			log.Infof("### Deleted serviceBinding '%s' for the service '%s'", sb.Name, s.Name)
+		}
+	}
+
+	// Retrieve ServiceInstances
+	serviceInstanceList := new(servicecatalog.ServiceInstanceList)
+	serviceInstanceList.TypeMeta = metav1.TypeMeta{
+		Kind:       "ServiceInstance",
+		APIVersion: "servicecatalog.k8s.io/v1beta1",
+	}
+	listOps := &client.ListOptions{
+		Namespace: service.ObjectMeta.Namespace,
+	}
+	err = c.List(context.TODO(), listOps, serviceInstanceList)
+	if err != nil {
+		return err
+	}
+
+	// Delete ServiceInstance(s)
+	for _, si := range serviceInstanceList.Items {
+		err := c.Delete(context.TODO(), &si)
+		if err != nil {
+			return err
+		}
+		log.Infof("### Deleted serviceInstance '%s' for the service '%s'", si.Name, s.Name)
+	}*/
+	return nil
+}

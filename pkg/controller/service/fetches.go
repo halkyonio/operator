@@ -1,7 +1,12 @@
 package service
 
 import (
+	"context"
+	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -16,4 +21,21 @@ func (r *ReconcileService) fetch(err error) (reconcile.Result, error) {
 	// Error reading the object - create the request.
 	r.reqLogger.Error(err, "Failed to get Component")
 	return reconcile.Result{}, err
+}
+
+func (r *ReconcileService) fetchServiceBindings(service *v1alpha2.Service) (*servicecatalog.ServiceBindingList, error) {
+	listServiceBinding := new(servicecatalog.ServiceBindingList)
+	listServiceBinding.TypeMeta = metav1.TypeMeta{
+		Kind:       "ServiceBinding",
+		APIVersion: "servicecatalog.k8s.io/v1beta1",
+	}
+	listOps := client.ListOptions{
+		Namespace:     service.ObjectMeta.Namespace,
+		// LabelSelector: getLabelsSelector(component.ObjectMeta.Labels),
+	}
+	err := r.client.List(context.TODO(), &listOps, listServiceBinding)
+	if err != nil {
+		return nil, err
+	}
+	return listServiceBinding, nil
 }
