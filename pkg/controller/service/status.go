@@ -34,16 +34,16 @@ func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalog.Ser
 func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase v1alpha2.Phase) error {
 	if !reflect.DeepEqual(phase, instance.Status.Phase) {
 		// Get a more recent version of the CR
-		instance := &v1alpha2.Service{}
+		service := &v1alpha2.Service{}
 		err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, instance)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to get the Service")
 			return err
 		}
 
-		instance.Status.Phase = phase
+		service.Status.Phase = phase
 		//err := r.client.Status().Update(context.TODO(), instance)
-		err = r.client.Update(context.TODO(), instance)
+		err = r.client.Update(context.TODO(), service)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update Status of the Service")
 			return err
