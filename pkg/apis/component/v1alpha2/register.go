@@ -1,11 +1,6 @@
 package v1alpha2
 
 import (
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
-	deploymentconfig "github.com/openshift/api/apps/v1"
-	build "github.com/openshift/api/build/v1"
-	image "github.com/openshift/api/image/v1"
-	route "github.com/openshift/api/route/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -20,12 +15,7 @@ var (
 	GroupName = groupName
 	// SchemeGroupVersion is the group version used to register these objects.
 	GroupVersion  = schema.GroupVersion{Group: GroupName, Version: version}
-	schemeBuilder = runtime.NewSchemeBuilder(addKnownTypes,
-		deploymentconfig.Install,
-		image.Install,
-		route.Install,
-		servicecatalogv1.AddToScheme,
-		build.Install)
+	schemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 	// Install is a function which adds this version to a scheme
 	Install = schemeBuilder.AddToScheme
 )

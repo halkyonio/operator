@@ -3,11 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
+	deploymentconfig "github.com/openshift/api/apps/v1"
+	build "github.com/openshift/api/build/v1"
+	image "github.com/openshift/api/image/v1"
+	route "github.com/openshift/api/route/v1"
+	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	util "github.com/snowdrop/component-operator/pkg/util"
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
 	"os"
 	"runtime"
@@ -73,6 +78,9 @@ func main() {
 		log.Error(err,"")
 	}
 
+	log.Info("Registering 3rd party resources")
+	registerAdditionalResources(mgr)
+
 	// Create component controller and add it to the manager
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
@@ -85,5 +93,23 @@ func main() {
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		log.Error(err, "Manager exited non-zero")
 		os.Exit(1)
+	}
+}
+
+func registerAdditionalResources(m manager.Manager) {
+	if err := servicecatalogv1.AddToScheme(m.GetScheme()); err != nil {
+		log.Error(err,"")
+	}
+	if err := route.Install(m.GetScheme()); err != nil {
+		log.Error(err,"")
+	}
+	if err := deploymentconfig.Install(m.GetScheme()); err != nil {
+		log.Error(err,"")
+	}
+	if err := build.Install(m.GetScheme()); err != nil {
+		log.Error(err,"")
+	}
+	if err := image.Install(m.GetScheme()); err != nil {
+		log.Error(err,"")
 	}
 }
