@@ -5,8 +5,7 @@ import (
 	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -24,35 +23,20 @@ func (r *ReconcileService) fetch(err error) (reconcile.Result, error) {
 }
 
 func (r *ReconcileService) fetchServiceBinding(service *v1alpha2.Service) (*servicecatalogv1.ServiceBinding, error) {
-	listServiceBinding := new(servicecatalogv1.ServiceBindingList)
-	listServiceBinding.TypeMeta = metav1.TypeMeta{
-		Kind:       "ServiceBinding",
-		APIVersion: "servicecatalog.k8s.io/v1beta1",
-	}
-	listOps := client.ListOptions{
-		Namespace: service.ObjectMeta.Namespace,
-		// LabelSelector: getLabelsSelector(component.ObjectMeta.Labels),
-	}
-	err := r.client.List(context.TODO(), &listOps, listServiceBinding)
+	serviceBinding := &servicecatalogv1.ServiceBinding{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceBinding)
 	if err != nil {
 		return nil, err
 	}
-	return &listServiceBinding.Items[0], nil
+	return serviceBinding, nil
 }
 
 func (r *ReconcileService) fetchServiceInstance(s *v1alpha2.Service) (*servicecatalogv1.ServiceInstance, error) {
 	// Retrieve ServiceInstances
-	listServiceInstance := new(servicecatalogv1.ServiceInstanceList)
-	listServiceInstance.TypeMeta = metav1.TypeMeta{
-		Kind:       "ServiceInstance",
-		APIVersion: "servicecatalog.k8s.io/v1beta1",
-	}
-	listOps := &client.ListOptions{
-		Namespace: s.ObjectMeta.Namespace,
-	}
-	err := r.client.List(context.TODO(), listOps, listServiceInstance)
+	serviceInstance := &servicecatalogv1.ServiceInstance{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: s.Namespace, Name: s.Name}, serviceInstance)
 	if err != nil {
 		return nil, err
 	}
-	return &listServiceInstance.Items[0], nil
+	return serviceInstance, nil
 }
