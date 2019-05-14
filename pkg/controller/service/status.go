@@ -3,15 +3,15 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
+	servicecatalogv1beta1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"k8s.io/apimachinery/pkg/types"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 
 //updateStatus returns error when status regards the all required resources could not be updated
-func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalog.ServiceBinding, serviceInstanceStatus *servicecatalog.ServiceInstance, instance *v1alpha2.Service) error {
+func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Service) error {
 	r.reqLogger.Info("Updating App Status for the Service")
 	if len(serviceBindingStatus.UID) < 1 && len(serviceInstanceStatus.Name) < 1 {
 		err := fmt.Errorf("Failed to get OK Status for Service")
@@ -31,19 +31,16 @@ func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalog.Ser
 }
 
 //updateStatus
-func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase v1alpha2.Phase) error {
+func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase v1alpha2.Phase, request reconcile.Request) error {
 	if !reflect.DeepEqual(phase, instance.Status.Phase) {
 		// Get a more recent version of the CR
-		service := &v1alpha2.Service{}
-		err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, instance)
+		service, err := r.fetchService(request)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to get the Service")
 			return err
 		}
 
 		service.Status.Phase = phase
-		//err := r.client.Status().Update(context.TODO(), instance)
-		err = r.client.Update(context.TODO(), service)
+		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update Status of the Service")
 			return err
@@ -54,7 +51,7 @@ func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase
 }
 
 //updateServiceBindingStatus returns error when status regards the Service Binding resource could not be updated
-func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service) (*servicecatalog.ServiceBinding, error) {
+func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service) (*servicecatalogv1beta1.ServiceBinding, error) {
 	r.reqLogger.Info("Updating ServiceBinding Status for the Service")
 	serviceBinding, err := r.fetchServiceBinding(instance)
 	if err != nil {
@@ -81,7 +78,7 @@ func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service
 }
 
 //updateServiceInstanceStatus returns error when status regards the Service Instance resource could not be updated
-func (r *ReconcileService) updateServiceInstanceStatus(instance *v1alpha2.Service) (*servicecatalog.ServiceInstance, error) {
+func (r *ReconcileService) updateServiceInstanceStatus(instance *v1alpha2.Service) (*servicecatalogv1beta1.ServiceInstance, error) {
 	r.reqLogger.Info("Updating Service Instance Status for the Service")
 	serviceInstance, err := r.fetchServiceInstance(instance)
 	if err != nil {

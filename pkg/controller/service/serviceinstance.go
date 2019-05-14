@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
+	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )

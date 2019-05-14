@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
+	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -20,6 +20,12 @@ func (r *ReconcileService) fetch(err error) (reconcile.Result, error) {
 	// Error reading the object - create the request.
 	r.reqLogger.Error(err, "Failed to get Component")
 	return reconcile.Result{}, err
+}
+
+func (r *ReconcileService) fetchService(request reconcile.Request) (*v1alpha2.Service, error){
+	service := &v1alpha2.Service{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, service)
+	return service, err
 }
 
 func (r *ReconcileService) fetchServiceBinding(service *v1alpha2.Service) (*servicecatalogv1.ServiceBinding, error) {
