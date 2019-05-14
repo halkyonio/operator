@@ -29,13 +29,12 @@ import (
 
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
-	"github.com/snowdrop/component-operator/pkg/pipeline/link"
 	"github.com/snowdrop/component-operator/pkg/pipeline/servicecatalog"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	. "github.com/snowdrop/component-operator/pkg/util/helper"
+	// . "github.com/snowdrop/component-operator/pkg/util/helper"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -133,9 +132,6 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		serviceCatalogSteps: []pipeline.Step{
 			servicecatalog.NewServiceInstanceStep(),
 		},
-		linkSteps: []pipeline.Step{
-			link.NewLinkStep(),
-		},
 	}
 }
 
@@ -194,7 +190,6 @@ func (r *ReconcileComponent) create(instance *v1alpha2.Component, kind string, e
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	r.reqLogger = log.WithValues("Namespace",request.Namespace)
-	var operation string
 
 	// Fetch the Component created, deleted or updated
 	component := &v1alpha2.Component{}
@@ -232,63 +227,6 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 			r.reqLogger.Error(err, "Innerloop creation failed")
 			return reconcile.Result{}, err
 		}
-	}
-
-	// TODO: Align the logic hereafter as we did for the inner loop
-	if component.Spec.DeploymentMode == "outerloop" {
-		for _, a := range r.outerLoopSteps {
-			if a.CanHandle(component) {
-				r.reqLogger.Info("## Invoking pipeline 'outerloop'","Action", a.Name(), "Component name", component.Name)
-				if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-					r.reqLogger.Error(err, "Outerloop creation failed")
-					return reconcile.Result{}, err
-				}
-			}
-		}
-	}
-
-	// Check if the component is a Service to be installed from the catalog
-	if component.Spec.Services != nil {
-		for _, a := range r.serviceCatalogSteps {
-			if a.CanHandle(component) {
-				r.reqLogger.Info("## Invoking pipeline 'service catalog', action '%s' on %s", a.Name(), component.Name)
-				if err := a.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-					r.reqLogger.Error(err,"Service instance, binding creation failed")
-					return reconcile.Result{}, err
-				}
-			}
-		}
-	}
-
-	// See finalizer doc for more info : https://book.kubebuilder.io/beyond_basics/using_finalizers.html
-	// If DeletionTimeStamp is not equal zero, then the resource has been marked for deletion
-	if !component.ObjectMeta.DeletionTimestamp.IsZero() {
-		// The object is being deleted
-		if ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
-			// Component has been deleted like also its dependencies
-			operation = deletionOperation
-
-			// our finalizer is present, so lets handle our external dependency
-			// Check if the component is a Service and then delete the ServiceInstance, ServiceBinding
-			// TODO: Move this code under the ServiceController !!
-			if component.Spec.Services != nil {
-				removeServiceInstanceStep := servicecatalog.RemoveServiceInstanceStep()
-				r.reqLogger.Info("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
-				//log.Infof("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
-				if err := removeServiceInstanceStep.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-					r.reqLogger.Error(err, "Removing Service Instance, binding failed")
-				}
-			}
-
-			// remove our finalizer from the list and update it.
-			component.ObjectMeta.Finalizers = RemoveString(component.ObjectMeta.Finalizers, svcFinalizerName)
-			if err := r.client.Update(context.Background(), component); err != nil {
-				return reconcile.Result{Requeue: true}, nil
-			}
-		}
-		r.reqLogger.Info("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
-		r.reqLogger.Info("***** Operation performed : %s", operation)
-		return reconcile.Result{}, nil
 	}
 
 	//Update Pod Status

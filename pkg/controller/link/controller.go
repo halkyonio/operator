@@ -89,7 +89,7 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 	}
 
 	r.reqLogger.Info("-----------------------")
-	r.reqLogger.Info("Reconciling Link  ")
+	r.reqLogger.Info("Reconciling Link")
 	r.reqLogger.Info("Status of the Link", "Status phase", link.Status.Phase)
 	r.reqLogger.Info("Creation time          ", "Creation time", link.ObjectMeta.CreationTimestamp)
 	r.reqLogger.Info("Resource version       ", "Resource version", link.ObjectMeta.ResourceVersion)

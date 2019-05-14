@@ -24,13 +24,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/pipeline"
-	. "github.com/snowdrop/component-operator/pkg/util/helper"
+	//. "github.com/snowdrop/component-operator/pkg/util/helper"
 	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
 	util "github.com/snowdrop/component-operator/pkg/util/template"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/types"
+	//"k8s.io/apimachinery/pkg/labels"
+	//"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
@@ -60,10 +60,11 @@ func (newServiceInstanceStep) CanHandle(component *v1alpha2.Component) bool {
 }
 
 func (newServiceInstanceStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return createService(*component, *config, *client, namespace, *scheme)
+	// return createService(*component, *config, *client, namespace, *scheme)
+	return nil
 }
 
-func createService(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
+/*func createService(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
 	IsServiceInstalled := false
@@ -149,7 +150,7 @@ func createService(component v1alpha2.Component, config rest.Config, c client.Cl
 	log.Infof("## Status RevNumber : %s ##",newComponent.Status.RevNumber)
 	log.Info("------------------------------------------------------")
 	return nil
-}
+}*/
 
 // BuildParameters converts a map of variable assignments to a byte encoded json document,
 // which is what the ServiceCatalog API consumes.
@@ -250,14 +251,4 @@ func listServiceBindings(component *v1alpha2.Component, c client.Client) (*servi
 		return nil, err
 	}
 	return listServiceBinding, nil
-}
-
-func getLabelsSelector(mapLabels map[string]string) labels.Selector {
-	return labels.SelectorFromSet(mapLabels)
-}
-
-func getComponentSelector() metav1.ListOptions {
-	return metav1.ListOptions{
-		LabelSelector: "app=my-spring-boot-service",
-	}
 }

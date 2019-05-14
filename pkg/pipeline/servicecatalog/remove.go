@@ -18,21 +18,16 @@ limitations under the License.
 package servicecatalog
 
 import (
-	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
-	log "github.com/sirupsen/logrus"
+	//servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
+	//log "github.com/sirupsen/logrus"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"github.com/snowdrop/component-operator/pkg/pipeline"
-	"golang.org/x/net/context"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	// "github.com/snowdrop/component-operator/pkg/pipeline"
+	//"golang.org/x/net/context"
+	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// RemoveServiceInstanceStep creates a step that handles the creation of the Service from the catalog
-func RemoveServiceInstanceStep() pipeline.Step {
-	return &removeServiceInstanceStep{}
-}
 
 type removeServiceInstanceStep struct {
 }
@@ -41,54 +36,48 @@ func (removeServiceInstanceStep) Name() string {
 	return "remove service"
 }
 
-func (removeServiceInstanceStep) CanHandle(component *v1alpha2.Component) bool {
-	return component.Status.Phase == "CreatingService"
+func (removeServiceInstanceStep) Handle(service *v1alpha2.Service, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
+	return deleteService(*service, *config, *client, namespace, scheme)
 }
 
-func (removeServiceInstanceStep) Handle(component *v1alpha2.Component, config *rest.Config, client *client.Client, namespace string, scheme *runtime.Scheme) error {
-	return deleteService(*component, *config, *client, namespace, scheme)
-}
-
-func deleteService(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme *runtime.Scheme) error {
-	for _, s := range component.Spec.Services {
-		// Let's retrieve the ServiceBindings to delete them first
-		list, err := listServiceBindings(&component, c)
-		if err != nil {
-			return err
-		}
-		// Delete ServiceBinding(s) linked to the ServiceInstance
-		for _, sb := range list.Items {
-			if sb.Name == s.Name {
-				err := c.Delete(context.TODO(), &sb)
-				if err != nil {
-					return err
-				}
-				log.Infof("### Deleted serviceBinding '%s' for the service '%s'", sb.Name, s.Name)
-			}
-		}
-
-		// Retrieve ServiceInstances
-		serviceInstanceList := new(servicecatalog.ServiceInstanceList)
-		serviceInstanceList.TypeMeta = metav1.TypeMeta{
-			Kind:       "ServiceInstance",
-			APIVersion: "servicecatalog.k8s.io/v1beta1",
-		}
-		listOps := &client.ListOptions{
-			Namespace: component.ObjectMeta.Namespace,
-		}
-		err = c.List(context.TODO(), listOps, serviceInstanceList)
-		if err != nil {
-			return err
-		}
-
-		// Delete ServiceInstance(s)
-		for _, si := range serviceInstanceList.Items {
-			err := c.Delete(context.TODO(), &si)
+func deleteService(service v1alpha2.Service, config rest.Config, c client.Client, namespace string, scheme *runtime.Scheme) error {
+	/*// Let's retrieve the ServiceBindings to delete them first
+	list, err := listServiceBindings(&{}, c)
+	if err != nil {
+		return err
+	}
+	// Delete ServiceBinding(s) linked to the ServiceInstance
+	for _, sb := range list.Items {
+		if sb.Name == s.Name {
+			err := c.Delete(context.TODO(), &sb)
 			if err != nil {
 				return err
 			}
-			log.Infof("### Deleted serviceInstance '%s' for the service '%s'", si.Name, s.Name)
+			log.Infof("### Deleted serviceBinding '%s' for the service '%s'", sb.Name, s.Name)
 		}
 	}
+
+	// Retrieve ServiceInstances
+	serviceInstanceList := new(servicecatalog.ServiceInstanceList)
+	serviceInstanceList.TypeMeta = metav1.TypeMeta{
+		Kind:       "ServiceInstance",
+		APIVersion: "servicecatalog.k8s.io/v1beta1",
+	}
+	listOps := &client.ListOptions{
+		Namespace: service.ObjectMeta.Namespace,
+	}
+	err = c.List(context.TODO(), listOps, serviceInstanceList)
+	if err != nil {
+		return err
+	}
+
+	// Delete ServiceInstance(s)
+	for _, si := range serviceInstanceList.Items {
+		err := c.Delete(context.TODO(), &si)
+		if err != nil {
+			return err
+		}
+		log.Infof("### Deleted serviceInstance '%s' for the service '%s'", si.Name, s.Name)
+	}*/
 	return nil
 }
