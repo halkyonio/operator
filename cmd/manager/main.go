@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	// servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	util "github.com/snowdrop/component-operator/pkg/util"
@@ -73,14 +72,6 @@ func main() {
 	if err := v1alpha2.Install(mgr.GetScheme()); err != nil {
 		log.Error(err,"")
 	}
-
-	/*
-	//Add ServiceCatalog scheme
-	if err := servicecatalog.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
-    */
 
 	// Create component controller and add it to the manager
 	if err := controller.AddToManager(mgr); err != nil {

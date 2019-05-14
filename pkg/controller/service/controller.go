@@ -49,14 +49,15 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	/** Watch for changes of child/secondary resources **/
 	//ServiceInstance
-/*	if err := watchServiceInstance(c); err != nil {
+	if err := watchServiceInstance(c); err != nil {
 		return err
 	}
+
 
 	//ServiceBinding
 	if err := watchServiceBinding(c); err != nil {
 		return err
-	}*/
+	}
 
 	return nil
 }
