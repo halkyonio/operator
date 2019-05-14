@@ -48,9 +48,6 @@ type ComponentSpec struct {
 	Images []Image `json:"image,omitempty"`
 	// Array of env variables containing extra/additional info to be used to configure the runtime
 	Envs []Env `json:"envs,omitempty"`
-	// List of services consumed by the runtime and created as service instance from a Service Catalog
-	// and next binded to a DeploymentConfig using a service binding
-	Services []Service `json:"services,omitempty"`
 	// The features represents a capability that it is required to have, to install to allow the component
 	// to operate with by example a Prometheus backend system to collect metrics, an OpenTracing datastore
 	// to centralize the traces/logs of the runtime, to deploy a servicemesh, ...
@@ -78,21 +75,6 @@ type Image struct {
 	Repo           string
 	Tag            string
 	DockerImage    bool
-}
-
-type Service struct {
-	Class          string      `json:"class,omitempty"`
-	Name           string      `json:"name,omitempty"`
-	Plan           string      `json:"plan,omitempty"`
-	ExternalId     string      `json:"externalid,omitempty"`
-	SecretName     string      `json:"secretname,omitempty"`
-	Parameters     []Parameter `json:"parameters,omitempty"`
-	ParametersJSon string
-}
-
-type Parameter struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
 }
 
 type Storage struct {
