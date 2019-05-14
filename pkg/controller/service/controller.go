@@ -167,7 +167,7 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	// Add the Status Service when we process the first time the Service CR
-	if service.Generation == 1 && service.Status.Phase != "" {
+	if service.Generation == 1 && service.Status.Phase == "" {
 		if err := r.updateServiceStatus(service, v1alpha2.PhaseServiceCreation); err != nil {
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{Requeue: true}, err
