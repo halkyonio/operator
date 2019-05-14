@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
+	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,8 +23,8 @@ func (r *ReconcileService) fetch(err error) (reconcile.Result, error) {
 	return reconcile.Result{}, err
 }
 
-func (r *ReconcileService) fetchServiceBindings(service *v1alpha2.Service) (*servicecatalog.ServiceBindingList, error) {
-	listServiceBinding := new(servicecatalog.ServiceBindingList)
+func (r *ReconcileService) fetchServiceBinding(service *v1alpha2.Service) (*servicecatalogv1.ServiceBinding, error) {
+	listServiceBinding := new(servicecatalogv1.ServiceBindingList)
 	listServiceBinding.TypeMeta = metav1.TypeMeta{
 		Kind:       "ServiceBinding",
 		APIVersion: "servicecatalog.k8s.io/v1beta1",
@@ -37,12 +37,12 @@ func (r *ReconcileService) fetchServiceBindings(service *v1alpha2.Service) (*ser
 	if err != nil {
 		return nil, err
 	}
-	return listServiceBinding, nil
+	return &listServiceBinding.Items[0], nil
 }
 
-func (r *ReconcileService) fetchServiceInstance(s *v1alpha2.Service) (*servicecatalog.ServiceInstanceList, error) {
+func (r *ReconcileService) fetchServiceInstance(s *v1alpha2.Service) (*servicecatalogv1.ServiceInstance, error) {
 	// Retrieve ServiceInstances
-	listServiceInstance := new(servicecatalog.ServiceInstanceList)
+	listServiceInstance := new(servicecatalogv1.ServiceInstanceList)
 	listServiceInstance.TypeMeta = metav1.TypeMeta{
 		Kind:       "ServiceInstance",
 		APIVersion: "servicecatalog.k8s.io/v1beta1",
@@ -54,5 +54,5 @@ func (r *ReconcileService) fetchServiceInstance(s *v1alpha2.Service) (*serviceca
 	if err != nil {
 		return nil, err
 	}
-	return listServiceInstance, nil
+	return &listServiceInstance.Items[0], nil
 }

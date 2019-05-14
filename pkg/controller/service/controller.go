@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/snowdrop/component-operator/pkg/util"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -19,7 +19,10 @@ import (
 )
 
 const (
-	controllerName = "service-controller"
+	controllerName   = "service-controller"
+	SERVICEINSTANCE  = "ServiceInstance"
+	SERVICEBINDING   = "ServiceBinding"
+	svcFinalizerName = "service.component.k8s.io"
 )
 
 var log = logf.Log.WithName("service.controller")
@@ -41,6 +44,17 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to primary resource Service
 	err = c.Watch(&source.Kind{Type: &v1alpha2.Service{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
+		return err
+	}
+
+	/** Watch for changes of child/secondary resources **/
+	//ServiceInstance
+	if err := watchServiceInstance(c); err != nil {
+		return err
+	}
+
+	//ServiceBinding
+	if err := watchServiceBinding(c); err != nil {
 		return err
 	}
 
@@ -75,6 +89,41 @@ func (r *ReconcileService) update(obj runtime.Object) (reconcile.Result, error) 
 	return reconcile.Result{Requeue: true}, nil
 }
 
+//buildFactory will return the resource according to the kind defined
+func (r *ReconcileService) buildFactory(instance *v1alpha2.Service, kind string) (runtime.Object, error) {
+	r.reqLogger.Info("Check "+kind, "into the namespace", instance.Namespace)
+	switch kind {
+	case SERVICEBINDING:
+		return r.buildServiceBinding(instance), nil
+	case SERVICEINSTANCE:
+		return r.buildServiceInstance(instance)
+	default:
+		msg := "Failed to recognize type of object" + kind + " into the Namespace " + instance.Namespace
+		panic(msg)
+	}
+}
+
+//Create the factory object and requeue
+func (r *ReconcileService) create(instance *v1alpha2.Service, kind string, err error) (reconcile.Result, error) {
+	obj, errBuildObject := r.buildFactory(instance, kind)
+	if errBuildObject != nil {
+		return reconcile.Result{}, errBuildObject
+	}
+	if errors.IsNotFound(err) {
+		r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
+		err = r.client.Create(context.TODO(), obj)
+		if err != nil {
+			r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
+			return reconcile.Result{}, err
+		}
+		r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
+		return reconcile.Result{Requeue: true}, nil
+	}
+	r.reqLogger.Error(err, "Failed to get", "kind", kind, "Namespace", instance.Namespace)
+	return reconcile.Result{}, err
+
+}
+
 func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	r.reqLogger = log.WithValues("Namespace", request.Namespace)
 
@@ -93,103 +142,99 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(service.ObjectMeta.Generation, 10))
 	// r.reqLogger.Info("Deletion time          ","Deletion time", Service.ObjectMeta.DeletionTimestamp)
 
-	_, err = util.IsOpenshift(r.config)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	// Add the Status Service when we process the first time the Service CR
-	if service.Status.Phase == "" && service.Generation == 1 {
-		// Update Status to value "Installing"
-/*		err = r.updateStatusInstance(v1alpha2.PhaseServiceing, Service)
-		if err != nil {
-			r.reqLogger.Info("Status update failed !")
-			return reconcile.Result{}, err
-		}*/
-	}
-
-	// See finalizer doc for more info : https://book.kubebuilder.io/beyond_basics/using_finalizers.html
-	// If DeletionTimeStamp is not equal zero, then the resource has been marked for deletion
-/*	if !component.ObjectMeta.DeletionTimestamp.IsZero() {
+	// Service has been marked for deletion or deleted
+	if !service.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is being deleted
-		if ContainsString(component.ObjectMeta.Finalizers, svcFinalizerName) {
-			// Component has been deleted like also its dependencies
-			operation = deletionOperation
-
+		if r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
 			// our finalizer is present, so lets handle our external dependency
-			// Check if the component is a Service and then delete the ServiceInstance, ServiceBinding
-			// TODO: Move this code under the ServiceController !!
-			if component.Spec.Services != nil {
-				removeServiceInstanceStep := servicecatalog.RemoveServiceInstanceStep()
-				r.reqLogger.Info("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
-				//log.Infof("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
-				if err := removeServiceInstanceStep.Handle(component, r.config, &r.client, request.Namespace, r.scheme); err != nil {
-					r.reqLogger.Error(err, "Removing Service Instance, binding failed")
+			if service.Spec.Name != "" {
+				// TODO Call action to remove
+				// r.reqLogger.Info("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
+				if err := r.DeleteService(service); err != nil {
+					r.reqLogger.Error(err, "Removing Service Instance & ServiceBinding failed")
 				}
 			}
 
 			// remove our finalizer from the list and update it.
-			component.ObjectMeta.Finalizers = RemoveString(component.ObjectMeta.Finalizers, svcFinalizerName)
-			if err := r.client.Update(context.Background(), component); err != nil {
+			service.ObjectMeta.Finalizers = r.RemoveString(service.ObjectMeta.Finalizers, svcFinalizerName)
+			if err := r.client.Update(context.Background(), service); err != nil {
 				return reconcile.Result{Requeue: true}, nil
 			}
 		}
-		r.reqLogger.Info("***** Reconciled Component %s, namespace %s", request.Name, request.Namespace)
-		r.reqLogger.Info("***** Operation performed : %s", operation)
+		r.reqLogger.Info("Reconciled Component %s, namespace %s", request.Name, request.Namespace)
 		return reconcile.Result{}, nil
-	}*/
-
-    // Check if the ServiceBinding AND ServiceInstance exist
-    if _, err := r.fetchServiceBindings(service); err != nil {
-    	return reconcile.Result{}, err
 	}
 
-	// Process the Service if the status is not ....
+	// Add the Status Service when we process the first time the Service CR
+	if service.Generation == 1 && service.Status.Phase != "" {
+		if err := r.updateServiceStatus(service, v1alpha2.PhaseServiceCreation); err != nil {
+			r.reqLogger.Info("Status update failed !")
+			return reconcile.Result{Requeue: true}, err
+		}
+	}
+
+	// Check if the ServiceInstance exists
+	if _, err := r.fetchServiceInstance(service); err != nil {
+		return r.create(service, SERVICEBINDING, err)
+	}
+
+	// Check if the ServiceBinding exists
+	if _, err := r.fetchServiceBinding(service); err != nil {
+		return r.create(service, SERVICEBINDING, err)
+	}
+
+	// Update Service object to add a k8s ObjectMeta finalizer
+	if !r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
+		service.ObjectMeta.Finalizers = append(service.ObjectMeta.Finalizers, svcFinalizerName)
+		r.update(service)
+	}
+
+	// Update Status
+	serviceBindingStatus, err := r.updateServiceBindingStatus(service)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	serviceInstanceStatus, err := r.updateServiceInstanceStatus(service)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// Update Status of the Service
+	//Update status for App
+	if err:= r.updateStatus(serviceBindingStatus, serviceInstanceStatus, service); err != nil {
+		return reconcile.Result{}, err
+	}
 
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", service.Name))
 	return reconcile.Result{}, nil
 }
 
-
-// TODO
-func (r *ReconcileService) DeleteService(service v1alpha2.Service, config rest.Config, c client.Client, namespace string, scheme *runtime.Scheme) error {
-	/*// Let's retrieve the ServiceBindings to delete them first
-	list, err := listServiceBindings(&{}, c)
+func (r *ReconcileService) DeleteService(service *v1alpha2.Service) error {
+	// Let's retrieve the ServiceBinding to delete it first
+	serviceBinding, err := r.fetchServiceBinding(service)
 	if err != nil {
 		return err
 	}
-	// Delete ServiceBinding(s) linked to the ServiceInstance
-	for _, sb := range list.Items {
-		if sb.Name == s.Name {
-			err := c.Delete(context.TODO(), &sb)
-			if err != nil {
-				return err
-			}
-			log.Infof("### Deleted serviceBinding '%s' for the service '%s'", sb.Name, s.Name)
-		}
-	}
-
-	// Retrieve ServiceInstances
-	serviceInstanceList := new(servicecatalog.ServiceInstanceList)
-	serviceInstanceList.TypeMeta = metav1.TypeMeta{
-		Kind:       "ServiceInstance",
-		APIVersion: "servicecatalog.k8s.io/v1beta1",
-	}
-	listOps := &client.ListOptions{
-		Namespace: service.ObjectMeta.Namespace,
-	}
-	err = c.List(context.TODO(), listOps, serviceInstanceList)
-	if err != nil {
-		return err
-	}
-
-	// Delete ServiceInstance(s)
-	for _, si := range serviceInstanceList.Items {
-		err := c.Delete(context.TODO(), &si)
+	// Delete ServiceBinding linked to the ServiceInstance
+	if serviceBinding.Name == service.Name {
+		err := r.client.Delete(context.TODO(), serviceBinding)
 		if err != nil {
 			return err
 		}
-		log.Infof("### Deleted serviceInstance '%s' for the service '%s'", si.Name, s.Name)
-	}*/
+		r.reqLogger.Info(fmt.Sprintf("Deleted serviceBinding '%s' for the service '%s'", serviceBinding.Name, service.Name))
+	}
+
+	serviceInstance, err := r.fetchServiceInstance(service)
+	if err != nil {
+		return err
+	}
+	// Delete the ServiceInstance
+	err = r.client.Delete(context.TODO(), serviceInstance)
+	if err != nil {
+		return err
+	}
+	r.reqLogger.Info(fmt.Sprintf("Deleted serviceInstance '%s' for the service '%s'", serviceInstance.Name, service.Name))
+
 	return nil
 }

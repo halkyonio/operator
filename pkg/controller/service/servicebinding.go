@@ -7,8 +7,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-//buildServiceInstance returns the service resource
-func (r *ReconcileService) buildServiceBuilding(s *v1alpha2.Service) *servicecatalogv1.ServiceBinding {
+//buildServiceBinding returns the service binding resource
+func (r *ReconcileService) buildServiceBinding(s *v1alpha2.Service) *servicecatalogv1.ServiceBinding {
 	ls := r.GetAppLabels(s.Name)
 	service := &servicecatalogv1.ServiceBinding{
 		TypeMeta: metav1.TypeMeta{

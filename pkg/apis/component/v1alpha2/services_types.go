@@ -1,6 +1,7 @@
 package v1alpha2
 
 import (
+	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -31,7 +32,11 @@ type ServiceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Phase     Phase `json:"phase,omitempty"`
+	Phase                 Phase `json:"phase,omitempty"`
+	ServiceBindingName    string `json:"serviceBindingName"`
+	ServiceBindingStatus  servicecatalogv1.ServiceBindingStatus`json:"serviceBindingStatus"`
+	ServiceInstanceName   string `json:"serviceInstanceName"`
+	ServiceInstanceStatus servicecatalogv1.ServiceInstanceStatus`json:"serviceInstanceStatus"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

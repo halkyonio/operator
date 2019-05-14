@@ -5,22 +5,27 @@ type Phase string
 const (
 	// ComponentKind --
 	ComponentKind string = "Component"
-	LinkKind string = "Link"
 
 	// PhaseServiceCreation --
 	PhaseServiceCreation Phase = "CreatingService"
+	PhaseServiceReady Phase = "Ready"
+
 	// PhaseBuilding --
 	PhaseBuilding Phase = "Building"
+
 	// PhaseDeploying --
 	PhaseDeploying Phase = "Deploying"
 	// PhaseDeployed --
 	PhaseDeployed Phase = "Deployed"
+
 	// PhaseReady --
 	PhaseReady Phase = "Ready"
+
 	// PhaseLinking --
 	PhaseLinking Phase = "Linking"
 	// PhaseLinking --
 	PhaseLinked Phase = "Linked"
+
 	// PhaseError --
 	PhaseError Phase = "Error"
 

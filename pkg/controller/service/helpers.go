@@ -33,3 +33,22 @@ func (r *ReconcileService) GetAppLabels(name string) map[string]string {
 		"app": name,
 	}
 }
+
+func (r *ReconcileService) ContainsString(slice []string, s string) bool {
+	for _, item := range slice {
+		if item == s {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *ReconcileService) RemoveString(slice []string, s string) (result []string) {
+	for _, item := range slice {
+		if item == s {
+			continue
+		}
+		result = append(result, item)
+	}
+	return
+}
