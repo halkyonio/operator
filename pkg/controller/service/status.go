@@ -13,7 +13,7 @@ import (
 func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Service) error {
 	if r.isServiceBindingReady(serviceBindingStatus) && r.isServiceInstanceReady(serviceInstanceStatus) {
 		r.reqLogger.Info("Updating Status of the Service to Ready")
-		status := v1alpha2.PhaseReady
+		status := v1alpha2.PhaseComponentReady
 		if !reflect.DeepEqual(status, instance.Status.Phase) {
 			instance.Status.Phase = v1alpha2.PhaseServiceReady
 			err := r.client.Status().Update(context.TODO(), instance)

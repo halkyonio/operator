@@ -29,6 +29,12 @@ func (r *ReconcileComponent) fetch(err error) (reconcile.Result, error) {
 	return reconcile.Result{}, err
 }
 
+func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha2.Component, error){
+	service := &v1alpha2.Component{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, service)
+	return service, err
+}
+
 //fetchRoute returns the Route resource created for this instance
 func (r *ReconcileComponent) fetchRoute(instance *v1alpha2.Component) (*routev1.Route, error) {
 	route := &routev1.Route{}

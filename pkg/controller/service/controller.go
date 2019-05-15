@@ -173,11 +173,12 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, nil
 	}
 
-	// Add the Status Service when we process the first time the Service CR
+	// Add the Status Service Creation when we process the first time the Service CR
+	// as we will start to create different resources
 	if service.Generation == 1 && service.Status.Phase == "" {
 		if err := r.updateServiceStatus(service, v1alpha2.PhaseServiceCreation, request); err != nil {
 			r.reqLogger.Info("Status update failed !")
-			return reconcile.Result{Requeue: true}, err
+			return reconcile.Result{}, err
 		}
 	}
 

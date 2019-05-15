@@ -196,6 +196,15 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	r.reqLogger.Info("Generation version     ","Generation version", strconv.FormatInt(component.ObjectMeta.Generation, 10))
 	// r.reqLogger.Info("Deletion time          ","Deletion time", component.ObjectMeta.DeletionTimestamp)
 
+	// Add the Status Component Creation when we process the first time the Component CR
+	// as we will start to create different resources
+	if component.Generation == 1 && component.Status.Phase == "" {
+		if err := r.updateComponentStatus(component, v1alpha2.PhaseComponentCreation, request); err != nil {
+			r.reqLogger.Info("Status update failed !")
+			return reconcile.Result{}, err
+		}
+	}
+
 	switch m := component.Spec.DeploymentMode; m {
 	case "innerloop":
 		if err := r.installInnerLoop(component, request.Namespace); err != nil {

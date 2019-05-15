@@ -6,25 +6,18 @@ const (
 	// ComponentKind --
 	ComponentKind string = "Component"
 
-	// PhaseServiceCreation --
+	// Phase Component --
+	PhaseComponentCreation Phase = "CreatingComponent"
+	PhaseComponentReady Phase = "Ready"
+	PhaseComponentBuilding Phase = "Building"
+
+	// Phase Linking --
+	PhaseLinkCreation Phase = "CreatingLink"
+	PhaseLinkReady    Phase = "Ready"
+
+	// Phase Service --
 	PhaseServiceCreation Phase = "CreatingService"
 	PhaseServiceReady Phase = "Ready"
-
-	// PhaseBuilding --
-	PhaseBuilding Phase = "Building"
-
-	// PhaseDeploying --
-	PhaseDeploying Phase = "Deploying"
-	// PhaseDeployed --
-	PhaseDeployed Phase = "Deployed"
-
-	// PhaseReady --
-	PhaseReady Phase = "Ready"
-
-	// PhaseLinking --
-	PhaseLinking Phase = "Linking"
-	// PhaseLinking --
-	PhaseLinked Phase = "Linked"
 
 	// PhaseError --
 	PhaseError Phase = "Error"

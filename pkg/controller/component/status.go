@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
 	// k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
@@ -18,7 +20,7 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 		return nil
 	}
 
-	status := v1alpha2.PhaseReady
+	status := v1alpha2.PhaseComponentReady
 	if !reflect.DeepEqual(status, instance.Status.Phase) {
 		// Get a more recent version of the CR
 		component := &v1alpha2.Component{}
@@ -37,6 +39,26 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 		}
 	}
 	r.reqLogger.Info("Updating Component status to status Ready")
+	return nil
+}
+
+//updateStatus
+func (r *ReconcileComponent) updateComponentStatus(instance *v1alpha2.Component, phase v1alpha2.Phase, request reconcile.Request) error {
+	if !reflect.DeepEqual(phase, instance.Status.Phase) {
+		// Get a more recent version of the CR
+		component, err := r.fetchComponent(request)
+		if err != nil {
+			return err
+		}
+
+		component.Status.Phase = phase
+		err = r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			r.reqLogger.Error(err, "Failed to update Status of the Service")
+			return err
+		}
+	}
+	r.reqLogger.Info("Updating Service status to status Ready")
 	return nil
 }
 
@@ -75,7 +97,6 @@ func (r *ReconcileComponent) updatePodStatus(instance *v1alpha2.Component) (*cor
 	}
 	return podStatus, nil
 }
-
 
 
 // Check if the Pod Condition is Type = Ready and Status = True

@@ -101,18 +101,18 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 		return reconcile.Result{}, err
 	}
 
-	// Add the Status Linking when we process the first time the Link CR
-	if link.Status.Phase == "" {
+	// Add the Status Link Creation when we process the first time the Link CR
+	// as we will start to create/update resources
+	if link.Generation == 1 && link.Status.Phase == "" {
 		// Update Status to value "Linking" as we will try to update the Deployment
-		err = r.updateStatusInstance(v1alpha2.PhaseLinking, link)
-		if err != nil {
+		if err := r.updateStatusInstance(v1alpha2.PhaseLinkCreation, link); err != nil {
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{}, err
 		}
 	}
 
 	// Process the Link if the status is not Linked
-	if link.Status.Phase != v1alpha2.PhaseLinked {
+	if link.Status.Phase != v1alpha2.PhaseLinkReady {
 		if (isOpenShift) {
 			// Search about the DeploymentConfig to be updated using the "Component Name"
 			found, err := r.fetchDeploymentConfig(request.Namespace, link.Spec.ComponentName)
@@ -214,7 +214,7 @@ func (r *ReconcileLink) updateDeploymentConfigWithLink(dc *deploymentconfigv1.De
 	}
 
 	// Update Status to value "Linked"
-	err = r.updateStatusInstance(v1alpha2.PhaseLinked, link)
+	err = r.updateStatusInstance(v1alpha2.PhaseLinkReady, link)
 	if err != nil {
 		r.reqLogger.Info("Status update failed !")
 		return err
@@ -230,7 +230,7 @@ func (r *ReconcileLink) updateDeploymentWithLink(d *v1beta1.Deployment, link *v1
 	r.update(d)
 
 	// Update Status to value "Linked"
-	if err := r.updateStatusInstance(v1alpha2.PhaseLinked, link); err != nil {
+	if err := r.updateStatusInstance(v1alpha2.PhaseLinkReady, link); err != nil {
 		r.reqLogger.Info("Status update failed !")
 		return err
 	}
