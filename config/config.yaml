@@ -1,3 +1,0 @@
-apiVersion: devexp.runtime.redhat.com/v1alpha1
-kind: Component
-projectName: component-operator
