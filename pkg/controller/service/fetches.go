@@ -31,18 +31,12 @@ func (r *ReconcileService) fetchService(request reconcile.Request) (*v1alpha2.Se
 func (r *ReconcileService) fetchServiceBinding(service *v1alpha2.Service) (*servicecatalogv1.ServiceBinding, error) {
 	serviceBinding := &servicecatalogv1.ServiceBinding{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceBinding)
-	if err != nil {
-		return nil, err
-	}
-	return serviceBinding, nil
+	return serviceBinding, err
 }
 
 func (r *ReconcileService) fetchServiceInstance(s *v1alpha2.Service) (*servicecatalogv1.ServiceInstance, error) {
 	// Retrieve ServiceInstances
 	serviceInstance := &servicecatalogv1.ServiceInstance{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: s.Namespace, Name: s.Name}, serviceInstance)
-	if err != nil {
-		return nil, err
-	}
-	return serviceInstance, nil
+	return serviceInstance, err
 }
