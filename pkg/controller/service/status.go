@@ -13,12 +13,12 @@ import (
 //updateStatus returns error when status regards the all required resources could not be updated
 func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Service) error {
 	r.reqLogger.Info("Updating App Status for the Service")
-	if len(serviceBindingStatus.UID) < 1 && len(serviceInstanceStatus.Name) < 1 {
-		err := fmt.Errorf("Failed to get OK Status for Service")
-		r.reqLogger.Error(err, "One of the resources are not created", "Namespace", instance.Namespace, "Name", instance.Name)
+	if !r.isServiceBindingReady(serviceBindingStatus) && !r.isServiceInstanceReady(serviceInstanceStatus) {
+		err := fmt.Errorf("Service CR is not yet Ready")
+		r.reqLogger.Info("One of the resources don't have yet their status Ready (service instance, service binding)", "Namespace", instance.Namespace, "Name", instance.Name)
 		return err
 	}
-	status:= "OK"
+	status:= v1alpha2.PhaseReady
 	if !reflect.DeepEqual(status, instance.Status.Phase) {
 		instance.Status.Phase = v1alpha2.PhaseServiceReady
 		err := r.client.Status().Update(context.TODO(), instance)
@@ -102,6 +102,24 @@ func (r *ReconcileService) updateServiceInstanceStatus(instance *v1alpha2.Servic
 		}
 	}
 	return serviceInstance, nil
+}
+
+func (r *ReconcileService) isServiceInstanceReady(serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance) bool {
+	for _, c := range serviceInstanceStatus.Status.Conditions {
+		if c.Type == servicecatalogv1beta1.ServiceInstanceConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *ReconcileService) isServiceBindingReady(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding) bool {
+	for _, c := range serviceBindingStatus.Status.Conditions {
+		if c.Type == servicecatalogv1beta1.ServiceBindingConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
+			return true
+		}
+	}
+	return false
 }
 
 
