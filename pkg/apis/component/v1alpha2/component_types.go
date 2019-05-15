@@ -22,7 +22,7 @@ type ComponentSpec struct {
 	// while the inner loop will install a pod's running a supervisord daemon used to trigger actions such as : assemble, run, ...
 	DeploymentMode string `json:"deploymentMode,omitempty"`
 	// Runtime is the framework/language used to start with a linux's container an application.
-	// It corresponds to one of the following values: spring-boot, vertx, tornthail, nodejs, python, php, ruby
+	// It corresponds to one of the following values: spring-boot, vertx, thorntail, nodejs, python, php, ruby
 	Runtime string `json:"runtime,omitempty"`
 	// RuntimeName is the name of the runtime used by the operator to configure/create the imageStream and DeploymentConfig
 	RuntimeName string
@@ -59,7 +59,7 @@ type ComponentSpec struct {
 type ComponentStatus struct {
 	Phase     Phase `json:"phase,omitempty"`
 	RevNumber string
-	PodName string `json:"podName"`
+	PodName   string       `json:"podName"`
 	PodStatus v1.PodStatus `json:"podStatus"`
 }
 
