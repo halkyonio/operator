@@ -224,13 +224,13 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	//Update Pod Status
-	podStatus, err := r.updatePodStatus(component)
+	podStatus, err := r.updatePodStatus(component,request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
 	// Update status of the Component
-	if err := r.updateStatus(podStatus, component); err != nil {
+	if err := r.updateStatus(podStatus, component, request); err != nil {
 		return reconcile.Result{}, err
 	}
 
