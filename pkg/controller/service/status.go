@@ -39,7 +39,8 @@ func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase
 		}
 
 		service.Status.Phase = phase
-		err = r.client.Status().Update(context.TODO(), instance)
+
+		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update Status of the Service")
 			return err
