@@ -15,7 +15,7 @@ func (r *ReconcileComponent) buildService(m *v1alpha2.Component) *corev1.Service
 	ser := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
-			Kind:       "Service",
+			Kind:       "Capability",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.Name,

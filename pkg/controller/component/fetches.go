@@ -70,7 +70,7 @@ func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod
 func (r *ReconcileComponent) fetchService(instance *v1alpha2.Component) (*corev1.Service, error) {
 	service := &corev1.Service{}
 	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, service); err != nil {
-		r.reqLogger.Info("Service don't exist")
+		r.reqLogger.Info("Capability don't exist")
 		return service, err
 	} else {
 		return service, nil

@@ -34,7 +34,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
-	// Check if Service port exists, otherwise define it
+	// Check if Capability port exists, otherwise define it
 	if component.Spec.Port == 0 {
 		component.Spec.Port = 8080 // Add a default port if empty
 	}
@@ -133,7 +133,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 
 	}
 
-	// Create Service if it does not exists
+	// Create Capability if it does not exists
 	if component.Spec.Port == 0 {
 		component.Spec.Port = 8080 // Add a default port if empty
 	}
@@ -276,7 +276,7 @@ func UpdateEnv(envs []v1.EnvVar, jarName string) []v1.EnvVar {
 func updateSelector(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 	componentName := component.Annotations["app.openshift.io/component-name"]
-	svc := &v1.Service{}
+	svc := &v1.Capability{}
 	svc.Labels = map[string]string{
 		"app.kubernetes.io/name": componentName,
 		"app.openshift.io/runtime": component.Spec.Runtime,
@@ -297,7 +297,7 @@ func updateSelector(component v1alpha2.Component, config rest.Config, c client.C
 	if err := c.Update(context.TODO(),svc) ; err != nil {
 		return err
 	}
-	log.Infof("### Updated Service Selector to switch to a different component.")
+	log.Infof("### Updated Capability Selector to switch to a different component.")
 	log.Info("------------------------------------------------------------------")
 	return nil
 }

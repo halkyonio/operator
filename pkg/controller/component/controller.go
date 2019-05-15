@@ -47,7 +47,7 @@ const (
 
 	DEPLOYMENT       = "Deployment"
 	DEPLOYMENTCONFIG = "DeploymentConfig"
-	SERVICE          = "Service"
+	SERVICE          = "Capability"
 	ROUTE            = "Route"
 	INGRESS          = "Ingress"
 	IMAGESTREAM      = "ImageStream"
@@ -100,7 +100,7 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	//Service
+	//Capability
 	if err := watchService(c); err != nil {
 		return err
 	}

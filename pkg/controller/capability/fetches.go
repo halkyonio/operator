@@ -1,4 +1,4 @@
-package service
+package capability
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 // Request object not found, could have been deleted after reconcile request.
 // Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-func (r *ReconcileService) fetch(err error) (reconcile.Result, error) {
+func (r *ReconcileCapability) fetch(err error) (reconcile.Result, error) {
 	if errors.IsNotFound(err) {
 		// Return and don't create
 		r.reqLogger.Info("component resource not found. Ignoring since object must be deleted")
@@ -22,19 +22,19 @@ func (r *ReconcileService) fetch(err error) (reconcile.Result, error) {
 	return reconcile.Result{}, err
 }
 
-func (r *ReconcileService) fetchService(request reconcile.Request) (*v1alpha2.Service, error){
-	service := &v1alpha2.Service{}
+func (r *ReconcileCapability) fetchService(request reconcile.Request) (*v1alpha2.Capability, error){
+	service := &v1alpha2.Capability{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, service)
 	return service, err
 }
 
-func (r *ReconcileService) fetchServiceBinding(service *v1alpha2.Service) (*servicecatalogv1.ServiceBinding, error) {
+func (r *ReconcileCapability) fetchServiceBinding(service *v1alpha2.Capability) (*servicecatalogv1.ServiceBinding, error) {
 	serviceBinding := &servicecatalogv1.ServiceBinding{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Spec.Name}, serviceBinding)
 	return serviceBinding, err
 }
 
-func (r *ReconcileService) fetchServiceInstance(service *v1alpha2.Service) (*servicecatalogv1.ServiceInstance, error) {
+func (r *ReconcileCapability) fetchServiceInstance(service *v1alpha2.Capability) (*servicecatalogv1.ServiceInstance, error) {
 	// Retrieve ServiceInstances
 	serviceInstance := &servicecatalogv1.ServiceInstance{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Spec.Name}, serviceInstance)

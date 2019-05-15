@@ -43,7 +43,7 @@ func watchBuildConfig(c controller.Controller) error {
 }
 
 //Watch for changes to secondary resources and requeue the owner Component
-//Watch Service resources created in the project/namespace
+//Watch Capability resources created in the project/namespace
 func watchService(c controller.Controller) error {
 	err := c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,

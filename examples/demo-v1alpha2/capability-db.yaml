@@ -1,7 +1,7 @@
 apiVersion: devexp.runtime.redhat.com/v1alpha2
-kind: Service
+kind: Capability
 metadata:
-  name: service-postgresql-db
+  name: postgresql-db
 spec:
   name: postgresql-db
   class: dh-postgresql-apb

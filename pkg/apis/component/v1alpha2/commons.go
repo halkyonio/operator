@@ -15,9 +15,9 @@ const (
 	PhaseLinkCreation Phase = "CreatingLink"
 	PhaseLinkReady    Phase = "Ready"
 
-	// Phase Service --
-	PhaseServiceCreation Phase = "CreatingService"
-	PhaseServiceReady Phase = "Ready"
+	// Phase Capability --
+	PhaseCapabilityCreation       = "CreatingService"
+	PhaseCapabilityReady    Phase = "Ready"
 
 	// PhaseError --
 	PhaseError Phase = "Error"

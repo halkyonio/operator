@@ -1,4 +1,4 @@
-package service
+package capability
 
 import (
 	"context"
@@ -10,34 +10,34 @@ import (
 
 
 //updateStatus returns error when status regards the all required resources could not be updated
-func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Service, request reconcile.Request) error {
+func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Capability, request reconcile.Request) error {
 	if r.isServiceBindingReady(serviceBindingStatus) && r.isServiceInstanceReady(serviceInstanceStatus) {
-		r.reqLogger.Info("Updating Status of the Service to Ready")
+		r.reqLogger.Info("Updating Status of the Capability to Ready")
 		status := v1alpha2.PhaseComponentReady
 		if !reflect.DeepEqual(status, instance.Status.Phase) {
 			// Get a more recent version of the CR
 			service, err := r.fetchService(request)
 			if err != nil {
-				r.reqLogger.Error(err, "Failed to get the Service")
+				r.reqLogger.Error(err, "Failed to get the Capability")
 				return err
 			}
 
-			service.Status.Phase = v1alpha2.PhaseServiceReady
+			service.Status.Phase = v1alpha2.PhaseCapabilityReady
 			err = r.client.Status().Update(context.TODO(), service)
 			if err != nil {
-				r.reqLogger.Error(err, "Failed to update Status for the Service App")
+				r.reqLogger.Error(err, "Failed to update Status for the Capability App")
 				return err
 			}
 		}
 		return nil
 	} else {
-		r.reqLogger.Info("Service instance or binding are not yet ready. So, we won't update the status of the Service to Ready", "Namespace", instance.Namespace, "Name", instance.Name)
+		r.reqLogger.Info("Capability instance or binding are not yet ready. So, we won't update the status of the Capability to Ready", "Namespace", instance.Namespace, "Name", instance.Name)
 		return nil
 	}
 }
 
 //updateStatus
-func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase v1alpha2.Phase, request reconcile.Request) error {
+func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability, phase v1alpha2.Phase, request reconcile.Request) error {
 	if !reflect.DeepEqual(phase, instance.Status.Phase) {
 		// Get a more recent version of the CR
 		service, err := r.fetchService(request)
@@ -49,17 +49,17 @@ func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase
 
 		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Status of the Service")
+			r.reqLogger.Error(err, "Failed to update Status of the Capability")
 			return err
 		}
 	}
-	r.reqLogger.Info("Updating Service status to status Ready")
+	r.reqLogger.Info("Updating Capability status to status Ready")
 	return nil
 }
 
-//updateServiceBindingStatus returns error when status regards the Service Binding resource could not be updated
-func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service, request reconcile.Request) (*servicecatalogv1beta1.ServiceBinding, error) {
-	r.reqLogger.Info("Updating ServiceBinding Status for the Service")
+//updateServiceBindingStatus returns error when status regards the Capability Binding resource could not be updated
+func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceBinding, error) {
+	r.reqLogger.Info("Updating ServiceBinding Status for the Capability")
 	serviceBinding, err := r.fetchServiceBinding(instance)
 	if err != nil {
 		r.reqLogger.Error(err, "Failed to get ServiceBinding for Status", "Namespace", instance.Namespace, "Name", instance.Name)
@@ -69,7 +69,7 @@ func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service
 		// Get a more recent version of the CR
 		service, err := r.fetchService(request)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to get the Service")
+			r.reqLogger.Error(err, "Failed to get the Capability")
 			return serviceBinding, err
 		}
 
@@ -78,19 +78,19 @@ func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service
 
 		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to update ServiceBinding Status for the Service")
+			r.reqLogger.Error(err, "Failed to update ServiceBinding Status for the Capability")
 			return serviceBinding, err
 		}
 	}
 	return serviceBinding, nil
 }
 
-//updateServiceInstanceStatus returns error when status regards the Service Instance resource could not be updated
-func (r *ReconcileService) updateServiceInstanceStatus(instance *v1alpha2.Service, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
-	r.reqLogger.Info("Updating Service Instance Status for the Service")
+//updateServiceInstanceStatus returns error when status regards the Capability Instance resource could not be updated
+func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
+	r.reqLogger.Info("Updating Capability Instance Status for the Capability")
 	serviceInstance, err := r.fetchServiceInstance(instance)
 	if err != nil {
-		r.reqLogger.Error(err, "Failed to get Service Instance for Status", "Namespace", instance.Namespace, "Name", instance.Name)
+		r.reqLogger.Error(err, "Failed to get Capability Instance for Status", "Namespace", instance.Namespace, "Name", instance.Name)
 		return serviceInstance, err
 	}
 	if !reflect.DeepEqual(serviceInstance.Name, instance.Status.ServiceInstanceName) || !reflect.DeepEqual(serviceInstance.Status, instance.Status.ServiceInstanceStatus) {
@@ -106,14 +106,14 @@ func (r *ReconcileService) updateServiceInstanceStatus(instance *v1alpha2.Servic
 
 		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Service Instance Status for the Service")
+			r.reqLogger.Error(err, "Failed to update Capability Instance Status for the Capability")
 			return serviceInstance, err
 		}
 	}
 	return serviceInstance, nil
 }
 
-func (r *ReconcileService) isServiceInstanceReady(serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance) bool {
+func (r *ReconcileCapability) isServiceInstanceReady(serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance) bool {
 	for _, c := range serviceInstanceStatus.Status.Conditions {
 		if c.Type == servicecatalogv1beta1.ServiceInstanceConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
 			return true
@@ -122,7 +122,7 @@ func (r *ReconcileService) isServiceInstanceReady(serviceInstanceStatus *service
 	return false
 }
 
-func (r *ReconcileService) isServiceBindingReady(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding) bool {
+func (r *ReconcileCapability) isServiceBindingReady(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding) bool {
 	for _, c := range serviceBindingStatus.Status.Conditions {
 		if c.Type == servicecatalogv1beta1.ServiceBindingConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
 			return true

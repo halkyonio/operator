@@ -1,4 +1,4 @@
-package service
+package capability
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 
 // BuildParameters converts a map of variable assignments to a byte encoded json document,
 // which is what the ServiceCatalog API consumes.
-func (r *ReconcileService) BuildParameters(params interface{}) *runtime.RawExtension {
+func (r *ReconcileCapability) BuildParameters(params interface{}) *runtime.RawExtension {
 	paramsJSON, err := json.Marshal(params)
 	if err != nil {
 		// This should never be hit because marshalling a map[string]string is pretty safe
@@ -19,7 +19,7 @@ func (r *ReconcileService) BuildParameters(params interface{}) *runtime.RawExten
 }
 
 // Convert Array of parameters to a Map
-func (r *ReconcileService) ParametersAsMap(parameters []v1alpha2.Parameter) map[string]string {
+func (r *ReconcileCapability) ParametersAsMap(parameters []v1alpha2.Parameter) map[string]string {
 	result := make(map[string]string)
 	for _, parameter := range parameters {
 		result[parameter.Name] = parameter.Value
@@ -28,13 +28,13 @@ func (r *ReconcileService) ParametersAsMap(parameters []v1alpha2.Parameter) map[
 }
 
 //getAppLabels returns an string map with the labels which wil be associated to the kubernetes/ocp resource which will be created and managed by this operator
-func (r *ReconcileService) GetAppLabels(name string) map[string]string {
+func (r *ReconcileCapability) GetAppLabels(name string) map[string]string {
 	return map[string]string{
 		"app": name,
 	}
 }
 
-func (r *ReconcileService) ContainsString(slice []string, s string) bool {
+func (r *ReconcileCapability) ContainsString(slice []string, s string) bool {
 	for _, item := range slice {
 		if item == s {
 			return true
@@ -43,7 +43,7 @@ func (r *ReconcileService) ContainsString(slice []string, s string) bool {
 	return false
 }
 
-func (r *ReconcileService) RemoveString(slice []string, s string) (result []string) {
+func (r *ReconcileCapability) RemoveString(slice []string, s string) (result []string) {
 	for _, item := range slice {
 		if item == s {
 			continue

@@ -1,4 +1,4 @@
-package service
+package capability
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 )
 
 //buildServiceInstance returns the service resource
-func (r *ReconcileService) buildServiceInstance(s *v1alpha2.Service) (*servicecatalogv1.ServiceInstance, error) {
+func (r *ReconcileCapability) buildServiceInstance(s *v1alpha2.Capability) (*servicecatalogv1.ServiceInstance, error) {
 	ls := r.GetAppLabels(s.Name)
 	serviceInstanceParameters, err := convertParametersToMap(r.ParametersAsMap(s.Spec.Parameters))
 	if err != nil {

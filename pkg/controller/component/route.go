@@ -22,7 +22,7 @@ func (r *ReconcileComponent) buildRoute(c *v1alpha2.Component) *routev1.Route {
 		},
 		Spec: routev1.RouteSpec{
 			To: routev1.RouteTargetReference{
-				Kind: "Service",
+				Kind: "Capability",
 				Name: c.Name ,
 			},
 		},

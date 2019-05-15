@@ -26,7 +26,7 @@ func (r *ReconcileComponent) buildImageStream(c *v1alpha2.Component, imageName s
 	is := &imagev1.ImageStream{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
-			Kind:       "Service",
+			Kind:       "Capability",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      imageName,

@@ -1,4 +1,4 @@
-package service
+package capability
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
@@ -8,7 +8,7 @@ import (
 )
 
 //buildServiceBinding returns the service binding resource
-func (r *ReconcileService) buildServiceBinding(s *v1alpha2.Service) *servicecatalogv1.ServiceBinding {
+func (r *ReconcileCapability) buildServiceBinding(s *v1alpha2.Capability) *servicecatalogv1.ServiceBinding {
 	ls := r.GetAppLabels(s.Name)
 	service := &servicecatalogv1.ServiceBinding{
 		TypeMeta: metav1.TypeMeta{
