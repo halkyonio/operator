@@ -15,7 +15,7 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 	if !r.isPodReady(podStatus) {
 		// err := fmt.Errorf("Failed to get Status = Ready for Pod created by the Component")
 		// r.reqLogger.Error(err, "One of the resources such as Pod is not yet ready")
-		r.reqLogger.Info("One of the resources such as Pod is not yet ready/runnin. Component status will not been updated yet")
+		r.reqLogger.Info("One of the resources such as Pod is not yet ready/running. Component status will not been updated yet")
 		return nil
 	}
 
@@ -36,8 +36,8 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 			r.reqLogger.Error(err, "Failed to update Status of the Component")
 			return err
 		}
+		r.reqLogger.Info("Updating Component status to status Ready")
 	}
-	r.reqLogger.Info("Updating Component status to status Ready")
 	return nil
 }
 
@@ -82,7 +82,7 @@ func (r *ReconcileComponent) updatePodStatus(instance *v1alpha2.Component, reque
 		component.Status.PodName = podStatus.Name
 		component.Status.PodStatus = podStatus.Status
 
-		err = r.client.Status().Update(context.TODO(), instance)
+		err = r.client.Status().Update(context.TODO(), component)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update Pod Name and Pod Status for the Component")
 			return podStatus, err
