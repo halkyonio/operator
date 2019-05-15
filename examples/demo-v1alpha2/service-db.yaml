@@ -3,16 +3,16 @@ kind: Service
 metadata:
   name: service-postgresql-db
 spec:
-  name: "postgresql-db"
-  class: "dh-postgresql-apb"
-  plan: "dev"
-  secretName: "postgresql-db"
+  name: postgresql-db
+  class: dh-postgresql-apb
+  plan: dev
+  secretName: postgresql-db
   parameters:
-    - name: "postgresql_user"
-      value: "luke"
-    - name: "postgresql_password"
-      value: "secret"
-    - name: "postgresql_database"
-      value: "my_data"
-    - name: "postgresql_version"
-      value: "9.6"
+    - name: postgresql_user
+      value: luke"
+    - name: postgresql_password
+      value: secret
+    - name: postgresql_database
+      value: my_data
+    - name: postgresql_version
+      value: 9.6
