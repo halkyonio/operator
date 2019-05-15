@@ -1,8 +1,11 @@
 package v1alpha2
 
 import (
+	"fmt"
+	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 // ComponentSpec defines the desired state of Component
@@ -23,9 +26,8 @@ type ComponentSpec struct {
 	DeploymentMode string `json:"deploymentMode,omitempty"`
 	// Runtime is the framework/language used to start with a linux's container an application.
 	// It corresponds to one of the following values: spring-boot, vertx, thorntail, nodejs, python, php, ruby
+	// It will be used to select the appropriate runtime image and logic
 	Runtime string `json:"runtime,omitempty"`
-	// RuntimeName is the name of the runtime used by the operator to configure/create the imageStream and DeploymentConfig
-	RuntimeName string
 	// Runtime's version
 	Version string `json:"version,omitempty"`
 	// To indicate if we want to expose the service out side of the cluster as a route
@@ -52,6 +54,13 @@ type ComponentSpec struct {
 	// to operate with by example a Prometheus backend system to collect metrics, an OpenTracing datastore
 	// to centralize the traces/logs of the runtime, to deploy a servicemesh, ...
 	Features []Feature `json:"features,omitempty" `
+}
+
+func (c ComponentSpec) GetImageName() string {
+	return fmt.Sprintf("dev-runtime-%s", strings.ToLower(c.Runtime))
+}
+func (c ComponentSpec) GetImageReference() string {
+	return util.GetImageReference(c.GetImageName(), c.Version)
 }
 
 // ComponentStatus defines the observed state of Component

@@ -2,8 +2,9 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"k8s.io/api/extensions/v1beta1"
+	"github.com/snowdrop/component-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -43,7 +44,7 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Dep
 							"/var/lib/supervisord/bin/supervisord",
 						},
 						Env:             *r.populatePodEnvVar(c),
-						Image:           c.Spec.RuntimeName + ":latest",
+						Image:           c.Spec.GetImageReference(),
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            c.Name,
 						Ports: []corev1.ContainerPort{{
@@ -59,7 +60,7 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Dep
 					InitContainers: []corev1.Container{{
 						Env: []corev1.EnvVar{
 							{Name: "CMDS", Value: ""}},
-						Image:                    SUPERVISOR_IMAGE_NAME + ":latest",
+						Image:                    util.GetImageReference(SUPERVISOR_IMAGE_NAME),
 						ImagePullPolicy:          corev1.PullAlways,
 						Name:                     SUPERVISOR_IMAGE_NAME,
 						TerminationMessagePath:   "dev/termination-log",

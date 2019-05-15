@@ -27,14 +27,11 @@ import (
 	// "k8s.io/client-go/rest"
 	// "sigs.k8s.io/controller-runtime/pkg/client"
 
-	util "github.com/snowdrop/component-operator/pkg/util"
-	"strings"
+	"github.com/snowdrop/component-operator/pkg/util"
 )
 
 func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, namespace string) error {
 	component.ObjectMeta.Namespace = namespace
-	// Append dev runtime's image (java, nodejs, ...)
-	component.Spec.RuntimeName = strings.Join([]string{"dev-runtime", strings.ToLower(component.Spec.Runtime)}, "-")
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
 	// Check if Service port exists, otherwise define it
@@ -54,7 +51,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		return err
 	}
 
-	if (isOpenShift) {
+	if isOpenShift {
 		// Create ImageStream if it does not exists
 		imageStreamToCreate := []string{}
 		for _, name := range r.getDevImageNames(component) {

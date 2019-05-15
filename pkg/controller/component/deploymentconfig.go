@@ -1,10 +1,11 @@
 package component
 
 import (
+	deploymentcfgv1 "github.com/openshift/api/apps/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	deploymentcfgv1 "github.com/openshift/api/apps/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -12,6 +13,8 @@ import (
 func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deploymentcfgv1.DeploymentConfig {
 	ls := r.getAppLabels(c.Name)
 	r.populateEnvVar(c)
+	runtimeImageRef := c.Spec.GetImageReference()
+	supervisorImageRef := util.GetImageReference(SUPERVISOR_IMAGE_NAME)
 	dep := &deploymentcfgv1.DeploymentConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps.openshift.io/v1",
@@ -43,7 +46,7 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 							"/var/lib/supervisord/bin/supervisord",
 						},
 						Env:             *r.populatePodEnvVar(c),
-						Image:           c.Spec.RuntimeName + ":latest",
+						Image:           runtimeImageRef,
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            c.Name,
 						Ports: []corev1.ContainerPort{{
@@ -59,11 +62,11 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 					InitContainers: []corev1.Container{{
 						Env: []corev1.EnvVar{
 							{Name: "CMDS",
-							 Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp",}},
-						Image:                    SUPERVISOR_IMAGE_NAME + ":latest",
-						ImagePullPolicy:          corev1.PullAlways,
-						Name:                     SUPERVISOR_IMAGE_NAME,
-						TerminationMessagePath:   "/" +
+								Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"}},
+						Image:           supervisorImageRef,
+						ImagePullPolicy: corev1.PullAlways,
+						Name:            SUPERVISOR_IMAGE_NAME,
+						TerminationMessagePath: "/" +
 							"dev/termination-log",
 						TerminationMessagePolicy: "File",
 						VolumeMounts: []corev1.VolumeMount{
@@ -84,14 +87,14 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 						ContainerNames: []string{
 							c.Name,
 						},
-						From: corev1.ObjectReference{Kind: "ImageStreamTag", Name: c.Spec.RuntimeName + ":latest"}}},
+						From: corev1.ObjectReference{Kind: "ImageStreamTag", Name: runtimeImageRef}}},
 				{Type: deploymentcfgv1.DeploymentTriggerOnImageChange,
 					ImageChangeParams: &deploymentcfgv1.DeploymentTriggerImageChangeParams{
 						Automatic: true,
 						ContainerNames: []string{
 							"copy-supervisord",
 						},
-						From: corev1.ObjectReference{Kind: "ImageStreamTag", Name: SUPERVISOR_IMAGE_NAME + ":latest"}}},
+						From: corev1.ObjectReference{Kind: "ImageStreamTag", Name: supervisorImageRef}}},
 			},
 		},
 	}

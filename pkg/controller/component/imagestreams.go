@@ -1,8 +1,8 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	imagev1 "github.com/openshift/api/image/v1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -38,9 +38,9 @@ func (r *ReconcileComponent) buildImageStream(c *v1alpha2.Component, imageName s
 			Tags: []imagev1.TagReference{
 				{
 					Annotations: r.generateAnnotations(imageSpecInfo.Name),
-					From:      &corev1.ObjectReference{Kind: "DockerImage", Name: imageSpecInfo.Repo},
-					Name:      imageSpecInfo.Tag,
-					Reference: true,
+					From:        &corev1.ObjectReference{Kind: "DockerImage", Name: imageSpecInfo.Repo},
+					Name:        imageSpecInfo.Tag,
+					Reference:   true,
 				},
 			},
 		},
@@ -50,8 +50,8 @@ func (r *ReconcileComponent) buildImageStream(c *v1alpha2.Component, imageName s
 	return is
 }
 
-func (r *ReconcileComponent) generateAnnotations(name string) map[string]string{
-	if ( name == SUPERVISOR_IMAGE_NAME ) {
+func (r *ReconcileComponent) generateAnnotations(name string) map[string]string {
+	if name == SUPERVISOR_IMAGE_NAME {
 		return map[string]string{"cmds": "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"}
 	} else {
 		return map[string]string{}
@@ -82,10 +82,10 @@ func (r *ReconcileComponent) getRuntimeKey(c *v1alpha2.Component) string {
 }
 
 func (r *ReconcileComponent) getImageInfoSpec(c *v1alpha2.Component, name string) *v1alpha2.Image {
-	if ( name == SUPERVISOR_IMAGE_NAME ) {
+	if name == SUPERVISOR_IMAGE_NAME {
 		return r.buildSupervisordImage()
 	} else {
-		return r.buildImage(true, c.Spec.RuntimeName, "latest", image[r.getRuntimeKey(c)], false)
+		return r.buildImage(true, c.Spec.GetImageName(), "latest", image[r.getRuntimeKey(c)], false)
 	}
 }
 
