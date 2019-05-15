@@ -15,4 +15,4 @@ spec:
     - name: postgresql_database
       value: my_data
     - name: postgresql_version
-      value: 9.6
+      value: "9.6"
