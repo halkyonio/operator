@@ -1,3 +1,3 @@
 // +k8s:deepcopy-gen=package
-// +groupName=component.k8s.io
+// +groupName=devexp.runtime.redhat.com
 package v1alpha1

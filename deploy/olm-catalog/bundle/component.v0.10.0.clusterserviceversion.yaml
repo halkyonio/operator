@@ -15,7 +15,7 @@ metadata:
           "apiVersion" : "v1",
           "kind" : "List",
           "items" : [ {
-            "apiVersion" : "component.k8s.io/v1alpha1",
+            "apiVersion" : "devexp.runtime.redhat.com/v1alpha1",
             "kind" : "Component",
             "metadata" : {
               "name" : "fruit-client-sb"
@@ -42,7 +42,7 @@ metadata:
           "apiVersion" : "v1",
           "kind" : "List",
           "items" : [ {
-            "apiVersion" : "component.k8s.io/v1alpha1",
+            "apiVersion" : "devexp.runtime.redhat.com/v1alpha1",
             "kind" : "Component",
             "metadata" : {
               "annotations" : {
@@ -127,7 +127,7 @@ spec:
 
     Simple example to install a Development pod where a Spring Boot application is deployed and can be accessed either using a kubernetes Ingress or Openshift route address
 
-        apiVersion: component.k8s.io/v1alpha1
+        apiVersion: devexp.runtime.redhat.com/v1alpha1
         kind: Component
         metadata:
           name: fruit-backend
@@ -142,7 +142,7 @@ spec:
 
     To configure a Service from the Openshift Automation Broker
 
-        apiVersion: component.k8s.io/v1alpha1
+        apiVersion: devexp.runtime.redhat.com/v1alpha1
         kind: Component
         metadata:
           name: fruit-database

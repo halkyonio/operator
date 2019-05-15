@@ -30,7 +30,7 @@ func TestTypeMetaComponent(t *testing.T) {
 	component := &v1alpha1.Component{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Component",
-			APIVersion: "component.component.k8s.io/v1alpha1",
+			APIVersion: "devexp.runtime.redhat.com/v1alpha2",
 		},
 	}
 	err := f.AddToFrameworkScheme(v1alpha1.Install, component)
@@ -49,7 +49,7 @@ func componentTest(t *testing.T, f *f.Framework, ctx *f.TestCtx) error {
 	component := &v1alpha1.Component{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Component",
-			APIVersion: "component.component.k8s.io/v1alpha1",
+			APIVersion: "devexp.runtime.redhat.com/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example-component",

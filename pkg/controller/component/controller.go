@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	svcFinalizerName  = "service.component.k8s.io"
+	svcFinalizerName  = "service.devexp.runtime.redhat.com"
 	controllerName    = "component-controller"
 	deletionOperation = "DELETION"
 	creationOperation = "CREATION"

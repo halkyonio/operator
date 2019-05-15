@@ -8,7 +8,7 @@ import (
 
 const (
 	version   = "v1alpha2"
-	groupName = "component.k8s.io"
+	groupName = "devexp.runtime.redhat.com"
 )
 
 var (

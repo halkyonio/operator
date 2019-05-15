@@ -21,7 +21,7 @@ const (
 	controllerName   = "service-controller"
 	SERVICEINSTANCE  = "ServiceInstance"
 	SERVICEBINDING   = "ServiceBinding"
-	svcFinalizerName = "service.component.k8s.io"
+	svcFinalizerName = "service.devexp.runtime.redhat.com"
 )
 
 var log = logf.Log.WithName("service.controller")
