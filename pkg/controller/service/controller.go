@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -52,7 +51,6 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err := watchServiceInstance(c); err != nil {
 		return err
 	}
-
 
 	//ServiceBinding
 	if err := watchServiceBinding(c); err != nil {
@@ -105,24 +103,19 @@ func (r *ReconcileService) buildFactory(instance *v1alpha2.Service, kind string)
 }
 
 //Create the factory object and requeue
-func (r *ReconcileService) create(instance *v1alpha2.Service, kind string, err error) (reconcile.Result, error) {
-	obj, errBuildObject := r.buildFactory(instance, kind)
-	if errBuildObject != nil {
-		return reconcile.Result{}, errBuildObject
+func (r *ReconcileService) create(instance *v1alpha2.Service, kind string) (reconcile.Result, error) {
+	obj, err := r.buildFactory(instance, kind)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
-	if errors.IsNotFound(err) {
-		r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
-		err = r.client.Create(context.TODO(), obj)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
-			return reconcile.Result{}, err
-		}
-		r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
-		return reconcile.Result{Requeue: true}, nil
+	r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
+	err = r.client.Create(context.TODO(), obj)
+	if err != nil {
+		r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
+		return reconcile.Result{}, err
 	}
-	r.reqLogger.Error(err, "Failed to get", "kind", kind, "Namespace", instance.Namespace)
-	return reconcile.Result{}, err
-
+	r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
+	return reconcile.Result{Requeue: true}, nil
 }
 
 func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -176,12 +169,12 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Check if the ServiceInstance exists
 	if _, err := r.fetchServiceInstance(service); err != nil {
-		return r.create(service, SERVICEINSTANCE, err)
+		return r.create(service, SERVICEINSTANCE)
 	}
 
 	// Check if the ServiceBinding exists
 	if _, err := r.fetchServiceBinding(service); err != nil {
-		return r.create(service, SERVICEBINDING, err)
+		return r.create(service, SERVICEBINDING)
 	}
 
 	// Update Service object to add a k8s ObjectMeta finalizer
@@ -203,7 +196,7 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Update Status of the Service
 	//Update status for App
-	if err:= r.updateStatus(serviceBindingStatus, serviceInstanceStatus, service); err != nil {
+	if err := r.updateStatus(serviceBindingStatus, serviceInstanceStatus, service); err != nil {
 		return reconcile.Result{}, err
 	}
 
