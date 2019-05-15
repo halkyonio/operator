@@ -7,5 +7,5 @@ spec:
   name: Endpoint of the fruit-backend-sb service
   componentName: fruit-client-sb
   envs:
-    - name: "OPENSHIFT_ENDPOINT_BACKEND"
-      value: "http://fruit-backend-sb:8080/api/fruits"
+  - name: OPENSHIFT_ENDPOINT_BACKEND
+    value: http://fruit-backend-sb:8080/api/fruits
