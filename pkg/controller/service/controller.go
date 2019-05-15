@@ -186,22 +186,18 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Check if the ServiceInstance exists
 	if _, err := r.fetchServiceInstance(service); err != nil {
-		/*
-		if err = r.create(service,SERVICEINSTANCE); err != nil {
+		if err = r.create2(service,SERVICEINSTANCE); err != nil {
 			return reconcile.Result{}, err
 		}
-		*/
-		return r.create(service,SERVICEINSTANCE)
+		// return r.create(service,SERVICEINSTANCE)
 	}
 
 	// Check if the ServiceBinding exists
 	if _, err := r.fetchServiceBinding(service); err != nil {
-		/*
-		if err = r.create(service,SERVICEBINDING); err != nil {
+		if err = r.create2(service,SERVICEBINDING); err != nil {
 			return reconcile.Result{}, err
 		}
-		*/
-		return r.create(service,SERVICEBINDING)
+		//return r.create(service,SERVICEBINDING)
 	}
 
 	// Update Service object to add a k8s ObjectMeta finalizer
