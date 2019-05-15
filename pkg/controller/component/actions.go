@@ -51,8 +51,9 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 
 	if isOpenShift {
 		// Create ImageStream if it does not exists
-		imageStreamToCreate := []string{}
-		for _, name := range r.getDevImageNames(component) {
+		names := r.getDevImageNames(component)
+		imageStreamToCreate := make([]string, 0, len(names))
+		for _, name := range names {
 			if _, err := r.fetchImageStream(component, name); err != nil {
 				imageStreamToCreate = append(imageStreamToCreate, name)
 			}
@@ -60,9 +61,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 
 		for _, name := range imageStreamToCreate {
 			if err := r.client.Create(context.TODO(), r.buildImageStream(component, name)); err != nil {
-				if err != nil {
-					return err
-				}
+				return err
 			}
 			r.reqLogger.Info(fmt.Sprintf("Created imagestream : %s", name))
 		}
@@ -70,9 +69,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		// Create DeploymentConfig if it does not exists
 		if _, err := r.fetchDeploymentConfig(component); err != nil {
 			if _, err := r.create(component, DEPLOYMENTCONFIG, err); err != nil {
-				if err != nil {
-					return err
-				}
+				return err
 			}
 			r.reqLogger.Info("Created deployment config")
 		}
@@ -81,9 +78,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 			// Create Route if it does not exists
 			if _, err := r.fetchRoute(component); err != nil {
 				if _, err := r.create(component, ROUTE, err); err != nil {
-					if err != nil {
-						return err
-					}
+					return err
 				}
 				r.reqLogger.Info("Create route", "Spec port", component.Spec.Port)
 			}
@@ -108,9 +103,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		if component.Spec.ExposeService {
 			if _, err := r.fetchRoute(component); err != nil {
 				if _, err := r.create(component, INGRESS, err); err != nil {
-					if err != nil {
-						return err
-					}
+					return err
 				}
 				r.reqLogger.Info("Created ingress", "Port", component.Spec.Port)
 			}
@@ -122,9 +115,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	// Create PVC if it does not exists
 	if _, err := r.fetchPVC(component); err != nil {
 		if _, err := r.create(component, PERSISTENTVOLUMECLAIM, err); err != nil {
-			if err != nil {
-				return err
-			}
+			return err
 		}
 		r.reqLogger.Info("Created pvc", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
 
@@ -136,9 +127,7 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	}
 	if _, err := r.fetchService(component); err != nil {
 		if _, err := r.create(component, SERVICE, err); err != nil {
-			if err != nil {
-				return err
-			}
+			return err
 		}
 		r.reqLogger.Info("Created service", "Spec port", component.Spec.Port)
 	}
