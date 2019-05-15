@@ -60,7 +60,9 @@ func (c ComponentSpec) GetImageName() string {
 	return fmt.Sprintf("dev-runtime-%s", strings.ToLower(c.Runtime))
 }
 func (c ComponentSpec) GetImageReference() string {
-	return util.GetImageReference(c.GetImageName(), c.Version)
+	// todo: compute image version (and potentially name) based on runtime / version
+	v := "latest"
+	return util.GetImageReference(c.GetImageName(), v)
 }
 
 // ComponentStatus defines the observed state of Component
