@@ -1,9 +1,0 @@
-apiVersion: devexp.runtime.redhat.com/v1alpha2
-kind: Component
-metadata:
-  name: fruit-client
-spec:
-  deploymentMode: innerloop
-  runtime: spring-boot # Why ? To inform the operator to use java runtime's image
-  version: 1.5.16
-  exposeService: true # Create a Route
