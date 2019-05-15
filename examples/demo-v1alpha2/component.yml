@@ -1,9 +1,9 @@
 apiVersion: component.k8s.io/v1alpha2
 kind: Component
 metadata:
-  name: my-spring-boot
+  name: fruit-client-sb
   labels:
-    app: my-spring-boot
+    app: fruit-client-sb
 spec:
   deploymentMode: innerloop
   runtime: spring-boot

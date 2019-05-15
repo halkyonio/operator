@@ -3,9 +3,9 @@ kind: Link
 metadata:
   name: link-to-fruit-backend-sb
 spec:
-  kind: "Env"
-  name: "Link to fruit-backend-sb"
-  componentName: "my-spring-boot"
+  kind: Env
+  name: Endpoint of the fruit-backend-sb service
+  componentName: fruit-client-sb
   envs:
     - name: "OPENSHIFT_ENDPOINT_BACKEND"
       value: "http://fruit-backend-sb:8080/api/fruits"
