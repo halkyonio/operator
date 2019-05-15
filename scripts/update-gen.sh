@@ -15,9 +15,10 @@ cleanup
 
 # The following solution for making code generation work with go modules is
 # borrowed and modified from https://github.com/heptio/contour/pull/1010.
+export GO111MODULE=on
 VERSION=$(go list -m all | grep k8s.io/code-generator | rev | cut -d"-" -f1 | cut -d" " -f1 | rev)
 git clone https://github.com/kubernetes/code-generator.git ${TMP_DIR}
-(cd ${TMP_DIR} && git reset --hard ${VERSION})
+(cd ${TMP_DIR} && git reset --hard ${VERSION} && go mod init)
 
 # Usage: generate-groups.sh <generators> <output-package> <apis-package> <groups-versions> ...
 #
@@ -35,9 +36,7 @@ git clone https://github.com/kubernetes/code-generator.git ${TMP_DIR}
 
 
 ${TMP_DIR}/generate-groups.sh deepcopy \
-  github.com/snowdrop/component-operator/pkg/generated \
   github.com/snowdrop/component-operator/pkg/apis \
-  "component:v1alpha2"
-#  github.com/openshift-evangelists/crd-code-generation/pkg/client github.com/openshift-evangelists/crd-code-generation/pkg/apis \
-#  example.com:v1 \
-#  --go-header-file ${SCRIPT_ROOT}/hack/custom-boilerplate.go.txt
+  github.com/snowdrop/component-operator/pkg/apis \
+  "component:v1alpha2" \
+  --go-header-file ${TMP_DIR}/hack/boilerplate.go.txt
