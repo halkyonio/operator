@@ -2,7 +2,6 @@ package util
 
 import (
 	"fmt"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"os"
@@ -47,9 +46,4 @@ func GetImageReference(imageName string, version ...string) string {
 		runtimeVersion = version[0]
 	}
 	return fmt.Sprintf("%s:%s", imageName, runtimeVersion)
-}
-
-//GetRouteName returns an string name with the name of the router
-func GetRouteName(m *v1alpha2.Component) string {
-	return ""
 }
