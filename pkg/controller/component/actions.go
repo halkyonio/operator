@@ -38,8 +38,6 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 	if component.Spec.Port == 0 {
 		component.Spec.Port = 8080 // Add a default port if empty
 	}
-	// Add the Supervisord name
-	component.Spec.SupervisordName = "copy-supervisord"
 
 	// Specify the default Storage data - value
 	component.Spec.Storage.Capacity = "1Gi"
@@ -95,7 +93,6 @@ func (r *ReconcileComponent) installInnerLoop(component *v1alpha2.Component, nam
 		if component.Spec.Port == 0 {
 			component.Spec.Port = 8080 // Add a default port if empty
 		}
-		component.Spec.SupervisordName = "copy-supervisord"
 		// Enrich Env Vars with Default values
 		r.populateEnvVar(component)
 
