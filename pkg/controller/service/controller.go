@@ -219,19 +219,19 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	// Update Status
-	serviceBindingStatus, err := r.updateServiceBindingStatus(service)
+	serviceBindingStatus, err := r.updateServiceBindingStatus(service, request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	serviceInstanceStatus, err := r.updateServiceInstanceStatus(service)
+	serviceInstanceStatus, err := r.updateServiceInstanceStatus(service, request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
 	// Update Status of the Service
 	//Update status for App
-	if err := r.updateStatus(serviceBindingStatus, serviceInstanceStatus, service); err != nil {
+	if err := r.updateStatus(serviceBindingStatus, serviceInstanceStatus, service, request); err != nil {
 		return reconcile.Result{}, err
 	}
 

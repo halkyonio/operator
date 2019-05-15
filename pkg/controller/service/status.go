@@ -10,13 +10,20 @@ import (
 
 
 //updateStatus returns error when status regards the all required resources could not be updated
-func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Service) error {
+func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Service, request reconcile.Request) error {
 	if r.isServiceBindingReady(serviceBindingStatus) && r.isServiceInstanceReady(serviceInstanceStatus) {
 		r.reqLogger.Info("Updating Status of the Service to Ready")
 		status := v1alpha2.PhaseComponentReady
 		if !reflect.DeepEqual(status, instance.Status.Phase) {
-			instance.Status.Phase = v1alpha2.PhaseServiceReady
-			err := r.client.Status().Update(context.TODO(), instance)
+			// Get a more recent version of the CR
+			service, err := r.fetchService(request)
+			if err != nil {
+				r.reqLogger.Error(err, "Failed to get the Service")
+				return err
+			}
+
+			service.Status.Phase = v1alpha2.PhaseServiceReady
+			err = r.client.Status().Update(context.TODO(), service)
 			if err != nil {
 				r.reqLogger.Error(err, "Failed to update Status for the Service App")
 				return err
@@ -51,24 +58,25 @@ func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase
 }
 
 //updateServiceBindingStatus returns error when status regards the Service Binding resource could not be updated
-func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service) (*servicecatalogv1beta1.ServiceBinding, error) {
+func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service, request reconcile.Request) (*servicecatalogv1beta1.ServiceBinding, error) {
 	r.reqLogger.Info("Updating ServiceBinding Status for the Service")
 	serviceBinding, err := r.fetchServiceBinding(instance)
 	if err != nil {
 		r.reqLogger.Error(err, "Failed to get ServiceBinding for Status", "Namespace", instance.Namespace, "Name", instance.Name)
 		return serviceBinding, err
 	}
-	if !reflect.DeepEqual(serviceBinding.Name, instance.Status.ServiceBindingName) {
-		instance.Status.ServiceBindingName = serviceBinding.Name
-		err := r.client.Status().Update(context.TODO(), instance)
+	if !reflect.DeepEqual(serviceBinding.Name, instance.Status.ServiceBindingName) || !reflect.DeepEqual(serviceBinding.Status, instance.Status.ServiceBindingStatus) {
+		// Get a more recent version of the CR
+		service, err := r.fetchService(request)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to update ServiceBinding Name Status for the Service")
+			r.reqLogger.Error(err, "Failed to get the Service")
 			return serviceBinding, err
 		}
-	}
-	if !reflect.DeepEqual(serviceBinding.Status, instance.Status.ServiceBindingStatus) {
-		instance.Status.ServiceBindingStatus = serviceBinding.Status
-		err := r.client.Status().Update(context.TODO(), instance)
+
+		service.Status.ServiceBindingName = serviceBinding.Name
+		service.Status.ServiceBindingStatus = serviceBinding.Status
+
+		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update ServiceBinding Status for the Service")
 			return serviceBinding, err
@@ -78,24 +86,25 @@ func (r *ReconcileService) updateServiceBindingStatus(instance *v1alpha2.Service
 }
 
 //updateServiceInstanceStatus returns error when status regards the Service Instance resource could not be updated
-func (r *ReconcileService) updateServiceInstanceStatus(instance *v1alpha2.Service) (*servicecatalogv1beta1.ServiceInstance, error) {
+func (r *ReconcileService) updateServiceInstanceStatus(instance *v1alpha2.Service, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
 	r.reqLogger.Info("Updating Service Instance Status for the Service")
 	serviceInstance, err := r.fetchServiceInstance(instance)
 	if err != nil {
 		r.reqLogger.Error(err, "Failed to get Service Instance for Status", "Namespace", instance.Namespace, "Name", instance.Name)
 		return serviceInstance, err
 	}
-	if !reflect.DeepEqual(serviceInstance.Name, instance.Status.ServiceInstanceName) {
-		instance.Status.ServiceInstanceName = serviceInstance.Name
-		err := r.client.Status().Update(context.TODO(), instance)
+	if !reflect.DeepEqual(serviceInstance.Name, instance.Status.ServiceInstanceName) || !reflect.DeepEqual(serviceInstance.Status, instance.Status.ServiceInstanceStatus) {
+		// Get a more recent version of the CR
+		service, err := r.fetchService(request)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Service Instance Name Status for the Service")
+			r.reqLogger.Error(err, "Failed to get the Component")
 			return serviceInstance, err
 		}
-	}
-	if !reflect.DeepEqual(serviceInstance.Status, instance.Status.ServiceInstanceStatus) {
-		instance.Status.ServiceInstanceStatus = serviceInstance.Status
-		err := r.client.Status().Update(context.TODO(), instance)
+
+		service.Status.ServiceInstanceName = serviceInstance.Name
+		service.Status.ServiceInstanceStatus = serviceInstance.Status
+
+		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update Service Instance Status for the Service")
 			return serviceInstance, err
