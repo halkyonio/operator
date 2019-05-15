@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	servicecatalogv1beta1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"reflect"
@@ -12,22 +11,22 @@ import (
 
 //updateStatus returns error when status regards the all required resources could not be updated
 func (r *ReconcileService) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Service) error {
-	r.reqLogger.Info("Updating App Status for the Service")
-	if !r.isServiceBindingReady(serviceBindingStatus) && !r.isServiceInstanceReady(serviceInstanceStatus) {
-		err := fmt.Errorf("Service CR is not yet Ready")
-		r.reqLogger.Info("One of the resources don't have yet their status Ready (service instance, service binding)", "Namespace", instance.Namespace, "Name", instance.Name)
-		return err
-	}
-	status:= v1alpha2.PhaseReady
-	if !reflect.DeepEqual(status, instance.Status.Phase) {
-		instance.Status.Phase = v1alpha2.PhaseServiceReady
-		err := r.client.Status().Update(context.TODO(), instance)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Status for the Service App")
-			return err
+	if r.isServiceBindingReady(serviceBindingStatus) && r.isServiceInstanceReady(serviceInstanceStatus) {
+		r.reqLogger.Info("Updating Status of the Service to Ready")
+		status := v1alpha2.PhaseReady
+		if !reflect.DeepEqual(status, instance.Status.Phase) {
+			instance.Status.Phase = v1alpha2.PhaseServiceReady
+			err := r.client.Status().Update(context.TODO(), instance)
+			if err != nil {
+				r.reqLogger.Error(err, "Failed to update Status for the Service App")
+				return err
+			}
 		}
+		return nil
+	} else {
+		r.reqLogger.Info("Service instance or binding are not yet ready. So, we won't update the status of the Service to Ready", "Namespace", instance.Namespace, "Name", instance.Name)
+		return nil
 	}
-	return nil
 }
 
 //updateStatus
@@ -40,7 +39,7 @@ func (r *ReconcileService) updateServiceStatus(instance *v1alpha2.Service, phase
 		}
 
 		service.Status.Phase = phase
-		err = r.client.Status().Update(context.TODO(), service)
+		err = r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to update Status of the Service")
 			return err

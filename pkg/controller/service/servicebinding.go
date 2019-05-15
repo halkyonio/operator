@@ -16,7 +16,7 @@ func (r *ReconcileService) buildServiceBinding(s *v1alpha2.Service) *servicecata
 			Kind:       "ServiceBinding",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.Name,
+			Name:      s.Spec.Name,
 			Namespace: s.Namespace,
 			Labels:    ls,
 		},

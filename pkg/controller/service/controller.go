@@ -103,7 +103,7 @@ func (r *ReconcileService) buildFactory(instance *v1alpha2.Service, kind string)
 }
 
 //Create the factory object and requeue
-func (r *ReconcileService) create(instance *v1alpha2.Service, kind string) (reconcile.Result, error) {
+/*func (r *ReconcileService) create(instance *v1alpha2.Service, kind string) (reconcile.Result, error) {
 	obj, err := r.buildFactory(instance, kind)
 	if err != nil {
 		return reconcile.Result{}, err
@@ -116,6 +116,20 @@ func (r *ReconcileService) create(instance *v1alpha2.Service, kind string) (reco
 	}
 	r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
 	return reconcile.Result{Requeue: true}, nil
+}*/
+func (r *ReconcileService) create(instance *v1alpha2.Service, kind string) error {
+	obj, err := r.buildFactory(instance, kind)
+	if err != nil {
+		return err
+	}
+	r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
+	err = r.client.Create(context.TODO(), obj)
+	if err != nil {
+		r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
+		return err
+	}
+	r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
+	return nil
 }
 
 func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -169,18 +183,25 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Check if the ServiceInstance exists
 	if _, err := r.fetchServiceInstance(service); err != nil {
-		return r.create(service, SERVICEINSTANCE)
+		if err = r.create(service,SERVICEINSTANCE); err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	// Check if the ServiceBinding exists
 	if _, err := r.fetchServiceBinding(service); err != nil {
-		return r.create(service, SERVICEBINDING)
+		if err = r.create(service,SERVICEBINDING); err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	// Update Service object to add a k8s ObjectMeta finalizer
 	if !r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
 		service.ObjectMeta.Finalizers = append(service.ObjectMeta.Finalizers, svcFinalizerName)
 		r.update(service)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	// Update Status
@@ -211,7 +232,7 @@ func (r *ReconcileService) DeleteService(service *v1alpha2.Service) error {
 		return err
 	}
 	// Delete ServiceBinding linked to the ServiceInstance
-	if serviceBinding.Name == service.Name {
+	if serviceBinding.Name == service.Spec.Name {
 		err := r.client.Delete(context.TODO(), serviceBinding)
 		if err != nil {
 			return err
