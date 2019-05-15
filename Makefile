@@ -25,7 +25,7 @@ clean:
 .PHONY: build
 build: clean
 	@echo "> Build go application"
-	go build ${BUILD_FLAGS} -o ${BIN_DIR}/${PROJECT_NAME} ${BUILD_PATH}
+	GO111MODULE=on go build ${BUILD_FLAGS} -o ${BIN_DIR}/${PROJECT_NAME} ${BUILD_PATH}
 
 .PHONY: build-linux
 build-linux: clean
