@@ -103,7 +103,7 @@ func (r *ReconcileService) buildFactory(instance *v1alpha2.Service, kind string)
 }
 
 //Create the factory object and requeue
-/*func (r *ReconcileService) create(instance *v1alpha2.Service, kind string) (reconcile.Result, error) {
+func (r *ReconcileService) create(instance *v1alpha2.Service, kind string) (reconcile.Result, error) {
 	obj, err := r.buildFactory(instance, kind)
 	if err != nil {
 		return reconcile.Result{}, err
@@ -116,8 +116,10 @@ func (r *ReconcileService) buildFactory(instance *v1alpha2.Service, kind string)
 	}
 	r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
 	return reconcile.Result{Requeue: true}, nil
-}*/
-func (r *ReconcileService) create(instance *v1alpha2.Service, kind string) error {
+}
+
+
+func (r *ReconcileService) create2(instance *v1alpha2.Service, kind string) error {
 	obj, err := r.buildFactory(instance, kind)
 	if err != nil {
 		return err
@@ -184,16 +186,22 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Check if the ServiceInstance exists
 	if _, err := r.fetchServiceInstance(service); err != nil {
+		/*
 		if err = r.create(service,SERVICEINSTANCE); err != nil {
 			return reconcile.Result{}, err
 		}
+		*/
+		return r.create(service,SERVICEINSTANCE)
 	}
 
 	// Check if the ServiceBinding exists
 	if _, err := r.fetchServiceBinding(service); err != nil {
+		/*
 		if err = r.create(service,SERVICEBINDING); err != nil {
 			return reconcile.Result{}, err
 		}
+		*/
+		return r.create(service,SERVICEBINDING)
 	}
 
 	// Update Service object to add a k8s ObjectMeta finalizer
