@@ -1,0 +1,13 @@
+apiVersion: component.k8s.io/v1alpha2
+kind: Component
+metadata:
+  name: my-spring-boot
+  labels:
+    app: my-spring-boot
+spec:
+  deploymentMode: innerloop
+  runtime: spring-boot
+  version: 1.5.16
+  envs:
+    - name: SPRING_PROFILES_ACTIVE
+      value: openshift-catalog
