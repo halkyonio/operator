@@ -60,9 +60,9 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Dep
 					InitContainers: []corev1.Container{{
 						Env: []corev1.EnvVar{
 							{Name: "CMDS", Value: ""}},
-						Image:                    util.GetImageReference(SUPERVISOR_IMAGE_NAME),
+						Image:                    util.GetImageReference(SupervisorImageName),
 						ImagePullPolicy:          corev1.PullAlways,
-						Name:                     SUPERVISOR_IMAGE_NAME,
+						Name:                     SupervisorImageName,
 						TerminationMessagePath:   "dev/termination-log",
 						TerminationMessagePolicy: "File",
 						VolumeMounts: []corev1.VolumeMount{

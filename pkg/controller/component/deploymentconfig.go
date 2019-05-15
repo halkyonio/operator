@@ -14,7 +14,7 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 	ls := r.getAppLabels(c.Name)
 	r.populateEnvVar(c)
 	runtimeImageRef := c.Spec.GetImageReference()
-	supervisorImageRef := util.GetImageReference(SUPERVISOR_IMAGE_NAME)
+	supervisorImageRef := util.GetImageReference(SupervisorImageName)
 	dep := &deploymentcfgv1.DeploymentConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps.openshift.io/v1",
@@ -65,7 +65,7 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 								Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"}},
 						Image:           supervisorImageRef,
 						ImagePullPolicy: corev1.PullAlways,
-						Name:            SUPERVISOR_IMAGE_NAME,
+						Name:            SupervisorImageName,
 						TerminationMessagePath: "/" +
 							"dev/termination-log",
 						TerminationMessagePolicy: "File",
@@ -92,7 +92,7 @@ func (r *ReconcileComponent) buildDeploymentConfig(c *v1alpha2.Component) *deplo
 					ImageChangeParams: &deploymentcfgv1.DeploymentTriggerImageChangeParams{
 						Automatic: true,
 						ContainerNames: []string{
-							"copy-supervisord",
+							SupervisorImageName,
 						},
 						From: corev1.ObjectReference{Kind: "ImageStreamTag", Name: supervisorImageRef}}},
 			},

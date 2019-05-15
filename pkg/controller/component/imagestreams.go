@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	SUPERVISOR_IMAGE_NAME = "copy-supervisord"
+	SupervisorImageName = "copy-supervisord"
 )
 
 func init() {
@@ -51,7 +51,7 @@ func (r *ReconcileComponent) buildImageStream(c *v1alpha2.Component, imageName s
 }
 
 func (r *ReconcileComponent) generateAnnotations(name string) map[string]string {
-	if name == SUPERVISOR_IMAGE_NAME {
+	if name == SupervisorImageName {
 		return map[string]string{"cmds": "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"}
 	} else {
 		return map[string]string{}
@@ -60,7 +60,7 @@ func (r *ReconcileComponent) generateAnnotations(name string) map[string]string 
 
 func (r *ReconcileComponent) getDevImageNames(c *v1alpha2.Component) []string {
 	return []string{
-		SUPERVISOR_IMAGE_NAME,
+		SupervisorImageName,
 		r.getRuntimeImageName(c),
 	}
 }
@@ -82,7 +82,7 @@ func (r *ReconcileComponent) getRuntimeKey(c *v1alpha2.Component) string {
 }
 
 func (r *ReconcileComponent) getImageInfoSpec(c *v1alpha2.Component, name string) *v1alpha2.Image {
-	if name == SUPERVISOR_IMAGE_NAME {
+	if name == SupervisorImageName {
 		return r.buildSupervisordImage()
 	} else {
 		return r.buildImage(true, c.Spec.GetImageName(), "latest", image[r.getRuntimeKey(c)], false)
@@ -90,7 +90,7 @@ func (r *ReconcileComponent) getImageInfoSpec(c *v1alpha2.Component, name string
 }
 
 func (r *ReconcileComponent) buildSupervisordImage() *v1alpha2.Image {
-	return r.buildImage(true, "copy-supervisord", "latest", image["supervisord"], true)
+	return r.buildImage(true, SupervisorImageName, "latest", image["supervisord"], true)
 }
 
 func (r *ReconcileComponent) buildImage(dockerImage bool, name string, tag string, repo string, annotationCmd bool) *v1alpha2.Image {
