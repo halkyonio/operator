@@ -198,6 +198,11 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Update Service object to add a k8s ObjectMeta finalizer
 	if !r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
+		// Get a more recent version of the CR
+		service, err := r.fetchService(request)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 		service.ObjectMeta.Finalizers = append(service.ObjectMeta.Finalizers, svcFinalizerName)
 		r.update(service)
 		if err != nil {

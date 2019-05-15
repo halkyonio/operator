@@ -34,9 +34,9 @@ func (r *ReconcileService) fetchServiceBinding(service *v1alpha2.Service) (*serv
 	return serviceBinding, err
 }
 
-func (r *ReconcileService) fetchServiceInstance(s *v1alpha2.Service) (*servicecatalogv1.ServiceInstance, error) {
+func (r *ReconcileService) fetchServiceInstance(service *v1alpha2.Service) (*servicecatalogv1.ServiceInstance, error) {
 	// Retrieve ServiceInstances
 	serviceInstance := &servicecatalogv1.ServiceInstance{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: s.Namespace, Name: s.Spec.Name}, serviceInstance)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Spec.Name}, serviceInstance)
 	return serviceInstance, err
 }
