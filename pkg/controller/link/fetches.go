@@ -3,6 +3,7 @@ package link
 import (
 	"context"
 	deploymentconfigv1 "github.com/openshift/api/apps/v1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -20,6 +21,12 @@ func (r *ReconcileLink) fetch(err error) (reconcile.Result, error) {
 	// Error reading the object - create the request.
 	r.reqLogger.Error(err, "Failed to get Component")
 	return reconcile.Result{}, err
+}
+
+func (r *ReconcileLink) fetchLink(request reconcile.Request) (*v1alpha2.Link, error){
+	link := &v1alpha2.Link{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, link)
+	return link, err
 }
 
 //fetchDeployment returns the deployment resource created for this instance

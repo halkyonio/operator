@@ -105,7 +105,7 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 	// as we will start to create/update resources
 	if link.Generation == 1 && link.Status.Phase == "" {
 		// Update Status to value "Linking" as we will try to update the Deployment
-		if err := r.updateStatusInstance(v1alpha2.PhaseLinkCreation, link); err != nil {
+		if err := r.updateStatusInstance(v1alpha2.PhaseLinkCreation, link, request); err != nil {
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{}, err
 		}
@@ -123,9 +123,9 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 			}
 
 			// Enrich the DeploymentConfig object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
-			if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers); isModified {
+			if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers, request); isModified {
 				found.Spec.Template.Spec.Containers = containers
-				if err := r.updateDeploymentConfigWithLink(found, link); err != nil {
+				if err := r.updateDeploymentConfigWithLink(found, link, request); err != nil {
 					return reconcile.Result{}, err
 				}
 			}
@@ -140,9 +140,9 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 			}
 
 			// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
-			if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers); isModified {
+			if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers, request); isModified {
 				found.Spec.Template.Spec.Containers = containers
-				if err := r.updateDeploymentWithLink(found, link); err != nil {
+				if err := r.updateDeploymentWithLink(found, link, request); err != nil {
 					return reconcile.Result{}, err
 				}
 			}
@@ -154,7 +154,7 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, containers []v1.Container) ([]v1.Container, bool) {
+func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, containers []v1.Container, request reconcile.Request) ([]v1.Container, bool) {
 	var isModified = false
 	kind := link.Spec.Kind
 	switch kind {
@@ -202,7 +202,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 	return containers, isModified
 }
 
-func (r *ReconcileLink) updateDeploymentConfigWithLink(dc *deploymentconfigv1.DeploymentConfig, link *v1alpha2.Link) error {
+func (r *ReconcileLink) updateDeploymentConfigWithLink(dc *deploymentconfigv1.DeploymentConfig, link *v1alpha2.Link, request reconcile.Request) error {
 	// Update the DeploymentConfig of the component
 	r.update(dc)
 
@@ -214,7 +214,7 @@ func (r *ReconcileLink) updateDeploymentConfigWithLink(dc *deploymentconfigv1.De
 	}
 
 	// Update Status to value "Linked"
-	err = r.updateStatusInstance(v1alpha2.PhaseLinkReady, link)
+	err = r.updateStatusInstance(v1alpha2.PhaseLinkReady, link, request)
 	if err != nil {
 		r.reqLogger.Info("Status update failed !")
 		return err
@@ -225,12 +225,12 @@ func (r *ReconcileLink) updateDeploymentConfigWithLink(dc *deploymentconfigv1.De
 	return nil
 }
 
-func (r *ReconcileLink) updateDeploymentWithLink(d *v1beta1.Deployment, link *v1alpha2.Link) error {
+func (r *ReconcileLink) updateDeploymentWithLink(d *v1beta1.Deployment, link *v1alpha2.Link, request reconcile.Request) error {
 	// Update the Deployment of the component
 	r.update(d)
 
 	// Update Status to value "Linked"
-	if err := r.updateStatusInstance(v1alpha2.PhaseLinkReady, link); err != nil {
+	if err := r.updateStatusInstance(v1alpha2.PhaseLinkReady, link, request); err != nil {
 		r.reqLogger.Info("Status update failed !")
 		return err
 	}
