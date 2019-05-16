@@ -50,7 +50,7 @@ var _ = Describe("ComponentE2E", func() {
 			Expect(componentName).To(ContainSubstring("my-spring-boot"))
 		})
 
-		It("should have deploymentconfig, service, imagestream", func() {
+		It("should have deployment, service, imagestream", func() {
 			// checking component deployed
 			componentName := runCmd("oc get cp " + compA + " -o go-template='{{.metadata.name}}'")
 			Expect(componentName).To(ContainSubstring("my-spring-boot"))

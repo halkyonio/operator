@@ -16,7 +16,7 @@ type CapabilitySpec struct {
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Info needed to create a Capability instance from the Capability Catalog
-	// and next to bind the info to a DeploymentConfig using the Capability binding/secret
+	// and next to bind the info to a Deployment using the Capability binding/secret
 	Class          string      `json:"class,omitempty"`
 	Name           string      `json:"name,omitempty"`
 	Plan           string      `json:"plan,omitempty"`

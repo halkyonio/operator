@@ -74,7 +74,7 @@ func (r *ReconcileComponent) getAppLabels(name string) map[string]string {
 	return map[string]string{
 		"app": name,
 		"component_cr": name,
-		"deploymentconfig": name,
+		"deployment": name,
 	}
 }
 
