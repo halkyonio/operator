@@ -1,8 +1,10 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	buildv1 "github.com/openshift/api/build/v1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -45,13 +47,65 @@ spec:
   - type: ConfigChange
   - imageChange: {}
     type: ImageChange
- */
+*/
 
 //buildDeployment returns the Deployment config object
 func (r *ReconcileComponent) buildBuildConfig(c *v1alpha2.Component) *buildv1.BuildConfig {
-	_ = r.getAppLabels(c.Name)
+	ls := r.getAppLabels(c.Name)
 	build := &buildv1.BuildConfig{
-
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "build.openshift.io/v1",
+			Kind:       "BuildConfig",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      c.Name,
+			Namespace: c.Namespace,
+			Labels:    ls,
+		},
+		Spec: buildv1.BuildConfigSpec{
+			CommonSpec: buildv1.CommonSpec{
+				Output: buildv1.BuildOutput{
+					To: &corev1.ObjectReference{
+						Kind: "ImageStreamTag",
+						// TODO -> Get Image Name of the Microservice
+						Name: "TODO"},
+				},
+				Source: buildv1.BuildSource{
+					Type: buildv1.BuildSourceGit,
+					Git: &buildv1.GitBuildSource{
+						// TODO -> Get k8s annotation
+						Ref: "app.openshift.io/git-ref",
+						URI: "app.openshift.io/git-uri",
+					},
+				},
+				Strategy: buildv1.BuildStrategy{
+					Type: "Source",
+					SourceStrategy: &buildv1.SourceBuildStrategy{
+						From: corev1.ObjectReference{
+							Kind: "ImageStreamTag",
+							// TODO -> Get Runtime Image => OpenJDK8
+							Name: "TODO"},
+						Env: []corev1.EnvVar{
+							// TODO
+							/*
+							   - name: MAVEN_ARGS_APPEND
+							     value: "-pl {{ index .ObjectMeta.Annotations "app.openshift.io/git-dir" }}"
+							   - name: ARTIFACT_DIR
+							     value: "{{ index .ObjectMeta.Annotations "app.openshift.io/git-dir" }}/target"
+							   - name: ARTIFACT_COPY_ARGS
+							     value: "{{ index .ObjectMeta.Annotations "app.openshift.io/artifact-copy-args" }}"
+							*/
+							{},
+							// TODO ->       incremental: true
+						},
+					},
+				}},
+			Triggers: []buildv1.BuildTriggerPolicy{
+				{Type: buildv1.GitHubWebHookBuildTriggerType,
+					GitHubWebHook: &buildv1.WebHookTrigger{Secret: "GITHUB_WEBHOOK_SECRET"},
+				},
+			},
+		},
 	}
 	// Set Component instance as the owner and controller
 	controllerutil.SetControllerReference(c, build, r.scheme)
