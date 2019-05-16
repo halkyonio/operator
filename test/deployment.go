@@ -1,4 +1,4 @@
-package kubernetes
+package test
 
 import (
 	"golang.org/x/net/context"
