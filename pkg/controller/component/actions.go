@@ -103,6 +103,7 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	return nil
 }
 
+/* DEPRECATED */
 func (r *ReconcileComponent) installDevModeOrigin(component *v1alpha2.Component, namespace string) error {
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
