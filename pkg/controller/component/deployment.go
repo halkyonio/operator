@@ -59,7 +59,8 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Dep
 					}},
 					InitContainers: []corev1.Container{{
 						Env: []corev1.EnvVar{
-							{Name: "CMDS", Value: ""}},
+							{Name: "CMDS",
+								Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"}},
 						Image:                    util.GetImageReference(SupervisorImageName),
 						ImagePullPolicy:          corev1.PullAlways,
 						Name:                     SupervisorImageName,
@@ -72,8 +73,8 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Dep
 					Volumes: []corev1.Volume{
 						{Name: "shared-data",
 							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
-						{Name: "",
-							VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: ""}}},
+						{Name: c.Spec.Storage.Name,
+							VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: c.Spec.Storage.Name}}},
 					},
 				}},
 		},
