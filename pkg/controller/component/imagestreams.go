@@ -9,10 +9,6 @@ import (
 	"strings"
 )
 
-const (
-	SupervisorImageName = "copy-supervisord"
-)
-
 func init() {
 	image["java"] = "quay.io/snowdrop/spring-boot-s2i"
 	image["nodejs"] = "nodeshift/centos7-s2i-nodejs:10.x"
