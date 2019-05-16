@@ -207,17 +207,17 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 
 	switch m := component.Spec.DeploymentMode; m {
 	case "innerloop":
-		if err := r.installInnerLoop(component, request.Namespace); err != nil {
+		if err := r.installDevMode(component, request.Namespace); err != nil {
 			r.reqLogger.Error(err, "Innerloop creation failed")
 			return reconcile.Result{}, err
 		}
 	case "outerloop":
-		if err := r.installIOuterLoop(component, request.Namespace); err != nil {
+		if err := r.installBuildMode(component, request.Namespace); err != nil {
 			r.reqLogger.Error(err, "Outerloop creation failed")
 			return reconcile.Result{}, err
 		}
 	default:
-		if err := r.installInnerLoop(component, request.Namespace); err != nil {
+		if err := r.installDevMode(component, request.Namespace); err != nil {
 			r.reqLogger.Error(err, "Innerloop creation failed")
 			return reconcile.Result{}, err
 		}
