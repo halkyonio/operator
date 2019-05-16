@@ -84,7 +84,7 @@ func (r *ReconcileCapability) update(obj runtime.Object) (reconcile.Result, erro
 		r.reqLogger.Error(err, "Failed to update spec")
 		return reconcile.Result{}, err
 	}
-	r.reqLogger.Info("Spec updated - return and create")
+	r.reqLogger.Info("Spec updated successfully")
 	return reconcile.Result{}, nil
 }
 
@@ -114,7 +114,7 @@ func (r *ReconcileCapability) create(instance *v1alpha2.Capability, kind string)
 		r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
 		return err
 	}
-	r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
+	r.reqLogger.Info("Created successfully", "kind", kind, "Namespace", instance.Namespace)
 	return nil
 }
 
@@ -166,6 +166,7 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{}, err
 		}
+		r.reqLogger.Info(fmt.Sprintf("Status is now : %s", v1alpha2.PhaseCapabilityCreation))
 	}
 
 	// Check if the ServiceInstance exists
