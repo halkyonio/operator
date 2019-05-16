@@ -43,7 +43,6 @@ require (
 	github.com/prometheus/procfs v0.0.0-20190507164030-5867b95ac084 // indirect
 	github.com/rogpeppe/go-internal v1.3.0 // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
-	github.com/shurcooL/httpfs v0.0.0-20181222201310-74dc9339e414
 	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.3 // indirect
