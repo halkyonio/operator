@@ -3,16 +3,16 @@ package component
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
+	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 //buildDeployment returns the Deployment config object
-func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Deployment {
+func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1.Deployment {
 	ls := r.getAppLabels(c.Name)
-	dep := &v1beta1.Deployment{
+	dep := &v1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "extensions/v1beta1",
 			Kind:       "Deployment",
@@ -22,9 +22,9 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *v1beta1.Dep
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
-		Spec: v1beta1.DeploymentSpec{
-			Strategy: v1beta1.DeploymentStrategy{
-				Type: v1beta1.RollingUpdateDeploymentStrategyType,
+		Spec: v1.DeploymentSpec{
+			Strategy: v1.DeploymentStrategy{
+				Type: v1.RollingUpdateDeploymentStrategyType,
 			},
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
