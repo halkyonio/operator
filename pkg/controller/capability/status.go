@@ -87,7 +87,7 @@ func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capa
 
 //updateServiceInstanceStatus returns error when status regards the Capability Instance resource could not be updated
 func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
-	r.reqLogger.Info("Updating Capability Instance Status for the Capability")
+	r.reqLogger.Info("Updating ServiceInstance Status for the Capability")
 	serviceInstance, err := r.fetchServiceInstance(instance)
 	if err != nil {
 		r.reqLogger.Error(err, "Failed to get Capability Instance for Status", "Namespace", instance.Namespace, "Name", instance.Name)
