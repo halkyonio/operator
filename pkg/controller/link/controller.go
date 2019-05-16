@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	deploymentconfigv1 "github.com/openshift/api/apps/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"github.com/snowdrop/component-operator/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -96,11 +94,6 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(link.ObjectMeta.Generation, 10))
 	// r.reqLogger.Info("Deletion time          ","Deletion time", Link.ObjectMeta.DeletionTimestamp)
 
-	isOpenShift, err := util.IsOpenshift(r.config)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
 	// Add the Status Link Creation when we process the first time the Link CR
 	// as we will start to create/update resources
 	if link.Generation == 1 && link.Status.Phase == "" {
@@ -113,40 +106,19 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 
 	// Process the Link if the status is not Linked
 	if link.Status.Phase != v1alpha2.PhaseLinkReady {
-		if (isOpenShift) {
-			// Search about the DeploymentConfig to be updated using the "Component Name"
-			found, err := r.fetchDeploymentConfig(request.Namespace, link.Spec.ComponentName)
-			if err != nil {
-				r.reqLogger.Info("Component not found")
-				// TODO Update status of the link to report the error
-				return reconcile.Result{}, nil
-			}
+		found, err := r.fetchDeployment(request.Namespace, link.Spec.ComponentName)
+		if err != nil {
+			r.reqLogger.Info("Component not found")
+			// TODO Update status of the link to report the error
+			return reconcile.Result{}, nil
+		}
 
-			// Enrich the DeploymentConfig object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
-			if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers, request); isModified {
-				found.Spec.Template.Spec.Containers = containers
-				if err := r.updateDeploymentConfigWithLink(found, link, request); err != nil {
-					return reconcile.Result{}, err
-				}
+		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
+		if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers, request); isModified {
+			found.Spec.Template.Spec.Containers = containers
+			if err := r.updateDeploymentWithLink(found, link, request); err != nil {
+				return reconcile.Result{}, err
 			}
-
-		} else {
-			//K8s platform. We will fetch a deployment
-			found, err := r.fetchDeployment(request.Namespace, link.Spec.ComponentName)
-			if err != nil {
-				r.reqLogger.Info("Component not found")
-				// TODO Update status of the link to report the error
-				return reconcile.Result{}, nil
-			}
-
-			// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
-			if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers, request); isModified {
-				found.Spec.Template.Spec.Containers = containers
-				if err := r.updateDeploymentWithLink(found, link, request); err != nil {
-					return reconcile.Result{}, err
-				}
-			}
-
 		}
 	}
 
@@ -173,7 +145,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 			}
 			if (!isEnvFromExist) {
 				// Add the Secret as EnvVar to the container
-				containers[i].EnvFrom = append(containers[i].EnvFrom,r.addSecretAsEnvFromSource(secretName))
+				containers[i].EnvFrom = append(containers[i].EnvFrom, r.addSecretAsEnvFromSource(secretName))
 				isModified = true
 			}
 		}
@@ -200,29 +172,6 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 	}
 
 	return containers, isModified
-}
-
-func (r *ReconcileLink) updateDeploymentConfigWithLink(dc *deploymentconfigv1.DeploymentConfig, link *v1alpha2.Link, request reconcile.Request) error {
-	// Update the DeploymentConfig of the component
-	r.update(dc)
-
-	// Rollout the DC
-	err := r.rolloutDeploymentConfig(link.Spec.ComponentName, link.Namespace)
-	if err != nil {
-		r.reqLogger.Info("Deployment Config rollout failed !")
-		return err
-	}
-
-	// Update Status to value "Linked"
-	err = r.updateStatusInstance(v1alpha2.PhaseLinkReady, link, request)
-	if err != nil {
-		r.reqLogger.Info("Status update failed !")
-		return err
-	}
-
-	r.reqLogger.Info("Added link to the component", "Name", link.Spec.ComponentName)
-	r.reqLogger.Info("Rollout the DeploymentConfig")
-	return nil
 }
 
 func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *v1alpha2.Link, request reconcile.Request) error {
