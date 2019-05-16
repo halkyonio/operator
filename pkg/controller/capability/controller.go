@@ -85,7 +85,7 @@ func (r *ReconcileCapability) update(obj runtime.Object) (reconcile.Result, erro
 		return reconcile.Result{}, err
 	}
 	r.reqLogger.Info("Spec updated - return and create")
-	return reconcile.Result{Requeue: true}, nil
+	return reconcile.Result{}, nil
 }
 
 //buildFactory will return the resource according to the kind defined
