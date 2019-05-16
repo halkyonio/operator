@@ -78,10 +78,10 @@ func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capa
 
 		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to update ServiceBinding Status for the Capability")
+			r.reqLogger.Error(err, "Failed to update ServiceBinding Name and Status for the Capability")
 			return serviceBinding, err
 		}
-		r.reqLogger.Info("ServiceBinding Status updated within the Capability")
+		r.reqLogger.Info("ServiceBinding Status updated for the Capability")
 	}
 	return serviceBinding, nil
 }
@@ -107,10 +107,10 @@ func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Cap
 
 		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Capability Instance Status for the Capability")
+			r.reqLogger.Error(err, "Failed to update ServiceInstance Name and Status for the Capability")
 			return serviceInstance, err
 		}
-		r.reqLogger.Info("ServiceInstance Status updated within the Capability")
+		r.reqLogger.Info("ServiceInstance Status updated for the Capability")
 	}
 	return serviceInstance, nil
 }
