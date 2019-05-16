@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"k8s.io/api/extensions/v1beta1"
 	deploymentconfigv1 "github.com/openshift/api/apps/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
@@ -225,7 +225,7 @@ func (r *ReconcileLink) updateDeploymentConfigWithLink(dc *deploymentconfigv1.De
 	return nil
 }
 
-func (r *ReconcileLink) updateDeploymentWithLink(d *v1beta1.Deployment, link *v1alpha2.Link, request reconcile.Request) error {
+func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *v1alpha2.Link, request reconcile.Request) error {
 	// Update the Deployment of the component
 	r.update(d)
 
