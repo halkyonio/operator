@@ -37,6 +37,10 @@ cross: clean
 	@echo "> Build go application cross os"
 	gox -osarch="darwin/amd64 linux/amd64" -output="${BIN_DIR}/bin/{{.OS}}-{{.Arch}}/${PROJECT_NAME}" $(BUILD_FLAGS) ${BUILD_PATH}
 
+.PHONY: gen-deepcopy
+gen-deepcopy:
+	./scripts/update-gen.sh
+
 .PHONY: assets
 assets: $(VFSGENDEV)
 	@echo ">> writing assets"
