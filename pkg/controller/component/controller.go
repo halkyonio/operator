@@ -143,7 +143,7 @@ func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind str
 	}
 }
 
-//Create the factory object and requeue
+//Create the factory object
 func (r *ReconcileComponent) create(instance *v1alpha2.Component, kind string, err error) (reconcile.Result, error) {
 	obj, errBuildObject := r.buildFactory(instance, kind)
 	if errBuildObject != nil {
@@ -156,7 +156,7 @@ func (r *ReconcileComponent) create(instance *v1alpha2.Component, kind string, e
 			r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
 			return reconcile.Result{}, err
 		}
-		r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
+		r.reqLogger.Info("Created successfully", "kind", kind, "Namespace", instance.Namespace)
 		return reconcile.Result{Requeue: true}, nil
 	}
 	r.reqLogger.Error(err, "Failed to get", "kind", kind, "Namespace", instance.Namespace)
