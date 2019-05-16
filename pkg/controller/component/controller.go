@@ -36,14 +36,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"github.com/snowdrop/component-operator/pkg/util"
 )
 
 const (
-	svcFinalizerName  = "service.devexp.runtime.redhat.com"
 	controllerName    = "component-controller"
-	deletionOperation = "DELETION"
-	creationOperation = "CREATION"
-	updateOperation   = "UPDATE"
 
 	DEPLOYMENT       = "Deployment"
 	SERVICE          = "Capability"
@@ -80,8 +77,15 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	/** Watch for changes of child/secondary resources **/
 	//BuildConfig
-	if err := watchBuildConfig(c); err != nil {
+
+	isOpenshift, err := util.IsOpenshift(mgr.GetConfig())
+	if err != nil {
 		return err
+	}
+	if (isOpenshift) {
+		if err := watchBuildConfig(c); err != nil {
+			return err
+		}
 	}
 
 	//Deployment
@@ -94,13 +98,8 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	//Capability
+	//Service
 	if err := watchService(c); err != nil {
-		return err
-	}
-
-	//Route
-	if err:= watchRoute(c); err != nil {
 		return err
 	}
 
