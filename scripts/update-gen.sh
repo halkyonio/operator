@@ -5,6 +5,11 @@ set -o nounset
 set -o pipefail
 
 TMP_DIR=$(mktemp -d)
+CURRENT_DIR=$PWD
+KIND=component
+API_VERSION=v1alpha2
+GEN_FILE=zz_generated.deepcopy.go
+GEN_FILE_PATH=${KIND}/${API_VERSION}/${GEN_FILE}
 
 cleanup() {
   rm -rf "${TMP_DIR}"
@@ -38,5 +43,7 @@ git clone https://github.com/kubernetes/code-generator.git ${TMP_DIR}
 ${TMP_DIR}/generate-groups.sh deepcopy \
   github.com/snowdrop/component-operator/pkg/apis \
   github.com/snowdrop/component-operator/pkg/apis \
-  "component:v1alpha2" \
+  ${KIND}:${API_VERSION} \
   --go-header-file ${TMP_DIR}/hack/boilerplate.go.txt
+
+cp $GOPATH/src/github.com/snowdrop/component-operator/pkg/apis/${GEN_FILE_PATH} $CURRENT_DIR/pkg/apis/${GEN_FILE_PATH}
