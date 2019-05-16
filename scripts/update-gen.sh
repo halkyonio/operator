@@ -46,4 +46,6 @@ ${TMP_DIR}/generate-groups.sh deepcopy \
   ${KIND}:${API_VERSION} \
   --go-header-file ${TMP_DIR}/hack/boilerplate.go.txt
 
-cp $GOPATH/src/github.com/snowdrop/component-operator/pkg/apis/${GEN_FILE_PATH} $CURRENT_DIR/pkg/apis/${GEN_FILE_PATH}
+# NOT NEEDED IF WE INSTALL THE PROJECT UNDER GOPATH AND THAT WE SET GO111MODULE=on
+# export GO111MODULE=on
+# cp $GOPATH/src/github.com/snowdrop/component-operator/pkg/apis/${GEN_FILE_PATH} $CURRENT_DIR/pkg/apis/${GEN_FILE_PATH}
