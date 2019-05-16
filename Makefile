@@ -11,8 +11,6 @@ GO           ?= go
 GOFMT        ?= $(GO)fmt
 GOFILES      := $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
-# go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
-VFSGENDEV   := $(GOPATH)/bin/vfsgendev
 PREFIX      ?= $(shell pwd)
 
 default: build
@@ -40,14 +38,6 @@ cross: clean
 .PHONY: gen-deepcopy
 gen-deepcopy:
 	./scripts/update-gen.sh
-
-.PHONY: assets
-assets: $(VFSGENDEV)
-	@echo ">> writing assets"
-	cd $(PREFIX)/pkg/util/template && go generate
-
-$(VFSGENDEV):
-	cd $(PREFIX)/vendor/github.com/shurcooL/vfsgen/ && go install ./cmd/vfsgendev/...
 
 .PHONY: format
 format:
