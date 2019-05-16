@@ -45,15 +45,8 @@ func (c ComponentSpec) GetImageReference() string {
 // +k8s:openapi-gen=true
 type ComponentStatus struct {
 	Phase     Phase `json:"phase,omitempty"`
-	RevNumber string
 	PodName   string       `json:"podName"`
 	PodStatus v1.PodStatus `json:"podStatus"`
-}
-
-type Feature struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Id          int    `json:"id,omitempty"`
 }
 
 type Image struct {
