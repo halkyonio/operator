@@ -2,7 +2,6 @@ package link
 
 import (
 	"context"
-	deploymentconfigv1 "github.com/openshift/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -34,17 +33,6 @@ func (r *ReconcileLink) fetchDeployment(namespace, name string) (*appsv1.Deploym
 	deployment := &appsv1.Deployment{}
 	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, deployment); err != nil {
 		r.reqLogger.Info("Deployment don't exist")
-		return deployment, err
-	} else {
-		return deployment, nil
-	}
-}
-
-//fetchDeploymentConfig returns the deployment config resource created for this instance
-func (r *ReconcileLink) fetchDeploymentConfig(namespace, name string) (*deploymentconfigv1.DeploymentConfig, error) {
-	deployment := &deploymentconfigv1.DeploymentConfig{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, deployment); err != nil {
-		r.reqLogger.Info("DeploymentConfig don't exist")
 		return deployment, err
 	} else {
 		return deployment, nil

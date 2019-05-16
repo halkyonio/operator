@@ -46,7 +46,6 @@ const (
 	updateOperation   = "UPDATE"
 
 	DEPLOYMENT       = "Deployment"
-	DEPLOYMENTCONFIG = "DeploymentConfig"
 	SERVICE          = "Capability"
 	ROUTE            = "Route"
 	INGRESS          = "Ingress"
@@ -90,11 +89,6 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	//DeploymentConfig
-	if err := watchDeploymentConfig(c); err != nil {
-		return err
-	}
-
 	//Pod
 	if err := watchPod(c); err != nil {
 		return err
@@ -134,8 +128,6 @@ type ReconcileComponent struct {
 func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind string) (runtime.Object, error) {
 	r.reqLogger.Info("Check "+kind, "into the namespace", instance.Namespace)
 	switch kind {
-	case DEPLOYMENTCONFIG:
-		return r.buildDeploymentConfig(instance), nil
 	case DEPLOYMENT:
 		return r.buildDeployment(instance), nil
 	case SERVICE:
@@ -208,17 +200,17 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	switch m := component.Spec.DeploymentMode; m {
 	case "innerloop":
 		if err := r.installDevMode(component, request.Namespace); err != nil {
-			r.reqLogger.Error(err, "Innerloop creation failed")
+			r.reqLogger.Error(err, "Dev Mode creation failed")
 			return reconcile.Result{}, err
 		}
 	case "outerloop":
 		if err := r.installBuildMode(component, request.Namespace); err != nil {
-			r.reqLogger.Error(err, "Outerloop creation failed")
+			r.reqLogger.Error(err, "Build/Prod mode creation failed")
 			return reconcile.Result{}, err
 		}
 	default:
 		if err := r.installDevMode(component, request.Namespace); err != nil {
-			r.reqLogger.Error(err, "Innerloop creation failed")
+			r.reqLogger.Error(err, "Dev Mode creation failed")
 			return reconcile.Result{}, err
 		}
 	}

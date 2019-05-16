@@ -18,9 +18,7 @@ limitations under the License.
 package component
 
 import (
-	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"golang.org/x/net/context"
 	// v1 "k8s.io/api/core/v1"
 	// "k8s.io/apimachinery/pkg/runtime"
 	// "k8s.io/apimachinery/pkg/types"
@@ -97,113 +95,6 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 				r.reqLogger.Info("Created ingress", "Port", component.Spec.Port)
 			}
 		}
-	}
-
-	r.reqLogger.Info("Deploying Component")
-	return nil
-}
-
-/* DEPRECATED */
-func (r *ReconcileComponent) installDevModeOrigin(component *v1alpha2.Component, namespace string) error {
-	component.ObjectMeta.Namespace = namespace
-	// Enrich Component with k8s recommend Labels
-	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
-	// Check if Capability port exists, otherwise define it
-	if component.Spec.Port == 0 {
-		component.Spec.Port = 8080 // Add a default port if empty
-	}
-
-	// Specify the default Storage data - value
-	component.Spec.Storage.Capacity = "1Gi"
-	component.Spec.Storage.Mode = "ReadWriteOnce"
-	component.Spec.Storage.Name = "m2-data-" + component.Name
-
-	isOpenShift, err := util.IsOpenshift(r.config)
-	if err != nil {
-		return err
-	}
-
-	if isOpenShift {
-		// Create ImageStream if it does not exists
-		names := r.getDevImageNames(component)
-		imageStreamToCreate := make([]string, 0, len(names))
-		for _, name := range names {
-			if _, err := r.fetchImageStream(component, name); err != nil {
-				imageStreamToCreate = append(imageStreamToCreate, name)
-			}
-		}
-
-		for _, name := range imageStreamToCreate {
-			if err := r.client.Create(context.TODO(), r.buildImageStream(component, name)); err != nil {
-				return err
-			}
-			r.reqLogger.Info(fmt.Sprintf("Created imagestream : %s", name))
-		}
-
-		// Create DeploymentConfig if it does not exists
-		if _, err := r.fetchDeploymentConfig(component); err != nil {
-			if _, err := r.create(component, DEPLOYMENTCONFIG, err); err != nil {
-				return err
-			}
-			r.reqLogger.Info("Created deployment config")
-		}
-
-		if component.Spec.ExposeService {
-			// Create Route if it does not exists
-			if _, err := r.fetchRoute(component); err != nil {
-				if _, err := r.create(component, ROUTE, err); err != nil {
-					return err
-				}
-				r.reqLogger.Info("Create route", "Spec port", component.Spec.Port)
-			}
-		}
-	} else {
-		// This is not an OpenShift cluster but instead a K8s platform
-		if component.Spec.Port == 0 {
-			component.Spec.Port = 8080 // Add a default port if empty
-		}
-		// Enrich Env Vars with Default values
-		r.populateEnvVar(component)
-
-		// Create Deployment if it does not exists
-		if _, err := r.fetchDeployment(component); err != nil {
-			if _, err := r.create(component, DEPLOYMENT, err); err != nil {
-				return err
-			} else {
-				r.reqLogger.Info("Created deployment")
-			}
-		}
-
-		if component.Spec.ExposeService {
-			if _, err := r.fetchRoute(component); err != nil {
-				if _, err := r.create(component, INGRESS, err); err != nil {
-					return err
-				}
-				r.reqLogger.Info("Created ingress", "Port", component.Spec.Port)
-			}
-		}
-	}
-
-	// Install common resources
-
-	// Create PVC if it does not exists
-	if _, err := r.fetchPVC(component); err != nil {
-		if _, err := r.create(component, PERSISTENTVOLUMECLAIM, err); err != nil {
-			return err
-		}
-		r.reqLogger.Info("Created pvc", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
-
-	}
-
-	// Create Capability if it does not exists
-	if component.Spec.Port == 0 {
-		component.Spec.Port = 8080 // Add a default port if empty
-	}
-	if _, err := r.fetchService(component); err != nil {
-		if _, err := r.create(component, SERVICE, err); err != nil {
-			return err
-		}
-		r.reqLogger.Info("Created service", "Spec port", component.Spec.Port)
 	}
 
 	r.reqLogger.Info("Deploying Component")

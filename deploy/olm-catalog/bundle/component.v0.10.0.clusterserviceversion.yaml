@@ -260,24 +260,12 @@ spec:
             verbs:
               - "*"
           - apiGroups:
-              - apps.openshift.io
-            resources:
-              - deploymentconfigs
-            verbs:
-              - "*"
-          - apiGroups:
               - build.openshift.io
             resources:
               - builds
               - buildconfigs
             verbs:
               - "*"
-          - apiGroups:
-              - apps.openshift.io
-            resources:
-              - deploymentconfigs/instantiate
-            verbs:
-              - "create"
           - apiGroups:
               - route.openshift.io
             resources:

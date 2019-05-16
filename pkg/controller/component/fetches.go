@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	buildv1 "github.com/openshift/api/build/v1"
-	deploymentconfigv1 "github.com/openshift/api/apps/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
@@ -107,17 +106,6 @@ func (r *ReconcileComponent) fetchDeployment(instance *v1alpha2.Component) (*v1b
 	deployment := &v1beta1.Deployment{}
 	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment); err != nil {
 		r.reqLogger.Info("Deployment don't exist")
-		return deployment, err
-	} else {
-		return deployment, nil
-	}
-}
-
-//fetchDeploymentConfig returns the deployment config resource created for this instance
-func (r *ReconcileComponent) fetchDeploymentConfig(instance *v1alpha2.Component) (*deploymentconfigv1.DeploymentConfig, error) {
-	deployment := &deploymentconfigv1.DeploymentConfig{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment); err != nil {
-		r.reqLogger.Info("DeploymentConfig don't exist")
 		return deployment, err
 	} else {
 		return deployment, nil

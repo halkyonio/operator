@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
-	deploymentconfig "github.com/openshift/api/apps/v1"
 	build "github.com/openshift/api/build/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
@@ -101,9 +100,6 @@ func registerAdditionalResources(m manager.Manager) {
 		log.Error(err,"")
 	}
 	if err := route.Install(m.GetScheme()); err != nil {
-		log.Error(err,"")
-	}
-	if err := deploymentconfig.Install(m.GetScheme()); err != nil {
 		log.Error(err,"")
 	}
 	if err := build.Install(m.GetScheme()); err != nil {
