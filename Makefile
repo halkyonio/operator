@@ -20,7 +20,7 @@ default: build
 .PHONY: clean
 clean:
 	@echo "> Remove build dir"
-	@rm -rf ./build
+	@rm -rf ./build/_output
 
 .PHONY: build
 build: clean
