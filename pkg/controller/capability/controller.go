@@ -102,24 +102,8 @@ func (r *ReconcileCapability) buildFactory(instance *v1alpha2.Capability, kind s
 	}
 }
 
-//Create the factory object and requeue
-func (r *ReconcileCapability) create(instance *v1alpha2.Capability, kind string) (reconcile.Result, error) {
-	obj, err := r.buildFactory(instance, kind)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-	r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
-	err = r.client.Create(context.TODO(), obj)
-	if err != nil {
-		r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
-		return reconcile.Result{}, err
-	}
-	r.reqLogger.Info("Created successfully - return and create", "kind", kind, "Namespace", instance.Namespace)
-	return reconcile.Result{Requeue: true}, nil
-}
-
-
-func (r *ReconcileCapability) create2(instance *v1alpha2.Capability, kind string) error {
+//Create the factory object and don't requeue
+func (r *ReconcileCapability) create(instance *v1alpha2.Capability, kind string) error {
 	obj, err := r.buildFactory(instance, kind)
 	if err != nil {
 		return err
@@ -186,18 +170,16 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 
 	// Check if the ServiceInstance exists
 	if _, err := r.fetchServiceInstance(service); err != nil {
-		if err = r.create2(service,SERVICEINSTANCE); err != nil {
+		if err = r.create(service,SERVICEINSTANCE); err != nil {
 			return reconcile.Result{}, err
 		}
-		// return r.create(service,SERVICEINSTANCE)
 	}
 
 	// Check if the ServiceBinding exists
 	if _, err := r.fetchServiceBinding(service); err != nil {
-		if err = r.create2(service,SERVICEBINDING); err != nil {
+		if err = r.create(service,SERVICEBINDING); err != nil {
 			return reconcile.Result{}, err
 		}
-		//return r.create(service,SERVICEBINDING)
 	}
 
 	// Update Capability object to add a k8s ObjectMeta finalizer
