@@ -209,7 +209,6 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	}
 
 	// Update Status of the Capability
-	//Update status for App
 	if err := r.updateStatus(serviceBindingStatus, serviceInstanceStatus, service, request); err != nil {
 		return reconcile.Result{}, err
 	}
