@@ -42,14 +42,14 @@ import (
 const (
 	controllerName    = "component-controller"
 
-	DEPLOYMENT       = "Deployment"
-	SERVICE          = "Capability"
-	ROUTE            = "Route"
-	INGRESS          = "Ingress"
-	IMAGESTREAM      = "ImageStream"
-	IMAGESTREAMLIST  = "ImageStreamList"
-	BUILDCONFIG      = "BuildConfig"
-	PERSISTENTVOLUMECLAIM      = "BuildConfig"
+	DEPLOYMENT            = "Deployment"
+	SERVICE               = "Capability"
+	ROUTE                 = "Route"
+	INGRESS               = "Ingress"
+	IMAGESTREAM           = "ImageStream"
+	IMAGESTREAMLIST       = "ImageStreamList"
+	BUILDCONFIG           = "BuildConfig"
+	PERSISTENTVOLUMECLAIM = "PersistentVolumeClaim"
 )
 
 
@@ -82,7 +82,7 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	if (isOpenshift) {
+	if isOpenshift {
 		if err := watchBuildConfig(c); err != nil {
 			return err
 		}
