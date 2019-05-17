@@ -22,10 +22,10 @@ func (r *ReconcileCapability) fetch(err error) (reconcile.Result, error) {
 	return reconcile.Result{}, err
 }
 
-func (r *ReconcileCapability) fetchService(request reconcile.Request) (*v1alpha2.Capability, error){
-	service := &v1alpha2.Capability{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, service)
-	return service, err
+func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alpha2.Capability, error){
+	cap := &v1alpha2.Capability{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, cap)
+	return cap, err
 }
 
 func (r *ReconcileCapability) fetchServiceBinding(service *v1alpha2.Capability) (*servicecatalogv1.ServiceBinding, error) {

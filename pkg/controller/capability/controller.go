@@ -186,7 +186,7 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	// Update Capability object to add a k8s ObjectMeta finalizer
 	if !r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
 		// Get a more recent version of the CR
-		service, err := r.fetchService(request)
+		service, err := r.fetchCapability(request)
 		if err != nil {
 			return reconcile.Result{}, err
 		}

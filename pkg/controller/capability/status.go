@@ -6,8 +6,8 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
-
 
 //updateStatus returns error when status regards the all required resources could not be updated
 func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Capability, request reconcile.Request) error {
@@ -16,13 +16,14 @@ func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv
 		status := v1alpha2.PhaseComponentReady
 		if !reflect.DeepEqual(status, instance.Status.Phase) {
 			// Get a more recent version of the CR
-			service, err := r.fetchService(request)
+			service, err := r.fetchCapability(request)
 			if err != nil {
 				r.reqLogger.Error(err, "Failed to get the Capability")
 				return err
 			}
 
 			service.Status.Phase = v1alpha2.PhaseCapabilityReady
+
 			err = r.client.Status().Update(context.TODO(), service)
 			if err != nil {
 				r.reqLogger.Error(err, "Failed to update Status for the Capability App")
@@ -40,7 +41,7 @@ func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv
 func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability, phase v1alpha2.Phase, request reconcile.Request) error {
 	if !reflect.DeepEqual(phase, instance.Status.Phase) {
 		// Get a more recent version of the CR
-		service, err := r.fetchService(request)
+		service, err := r.fetchCapability(request)
 		if err != nil {
 			return err
 		}
@@ -59,6 +60,16 @@ func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability,
 
 //updateServiceBindingStatus returns error when status regards the Capability Binding resource could not be updated
 func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceBinding, error) {
+	for {
+		_, err := r.fetchServiceBinding(instance)
+		if err != nil {
+			r.reqLogger.Info("Failed to get ServiceBinding. We retry till ...", "Namespace", instance.Namespace, "Name", instance.Name)
+			time.Sleep(2 * time.Second)
+		} else {
+			break
+		}
+	}
+
 	r.reqLogger.Info("Updating ServiceBinding Status for the Capability")
 	serviceBinding, err := r.fetchServiceBinding(instance)
 	if err != nil {
@@ -67,7 +78,7 @@ func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capa
 	}
 	if !reflect.DeepEqual(serviceBinding.Name, instance.Status.ServiceBindingName) || !reflect.DeepEqual(serviceBinding.Status, instance.Status.ServiceBindingStatus) {
 		// Get a more recent version of the CR
-		service, err := r.fetchService(request)
+		service, err := r.fetchCapability(request)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to get the Capability")
 			return serviceBinding, err
@@ -88,15 +99,24 @@ func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capa
 
 //updateServiceInstanceStatus returns error when status regards the Capability Instance resource could not be updated
 func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
+	for {
+		_, err := r.fetchServiceInstance(instance)
+		if err != nil {
+			r.reqLogger.Info("Failed to get Service Instance. We retry till ...", "Namespace", instance.Namespace, "Name", instance.Name)
+			time.Sleep(2 * time.Second)
+		} else {
+			break
+		}
+	}
 	r.reqLogger.Info("Updating ServiceInstance Status for the Capability")
 	serviceInstance, err := r.fetchServiceInstance(instance)
 	if err != nil {
-		r.reqLogger.Error(err, "Failed to get Capability Instance for Status", "Namespace", instance.Namespace, "Name", instance.Name)
+		r.reqLogger.Error(err, "Failed to get ServiceInstance for Status", "Namespace", instance.Namespace, "Name", instance.Name)
 		return serviceInstance, err
 	}
 	if !reflect.DeepEqual(serviceInstance.Name, instance.Status.ServiceInstanceName) || !reflect.DeepEqual(serviceInstance.Status, instance.Status.ServiceInstanceStatus) {
 		// Get a more recent version of the CR
-		service, err := r.fetchService(request)
+		service, err := r.fetchCapability(request)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to get the Component")
 			return serviceInstance, err
