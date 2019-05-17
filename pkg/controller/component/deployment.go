@@ -1,6 +1,7 @@
 package component
 
 import (
+	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/api/apps/v1"
@@ -59,13 +60,40 @@ spec:
 */
 
 const (
-	SupervisorContainerName = "copy-supervisord"
-	SupervisorImageName = "supervisord"
+	supervisorContainerName = "copy-supervisord"
+	supervisorImageId       = "supervisord"
+	latestVersionTag        = "latest"
 )
 
 //buildDeployment returns the Deployment config object
-func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *appsv1.Deployment {
+func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) (*appsv1.Deployment, error) {
 	ls := r.getAppLabels(c.Name)
+
+	// create runtime container
+	runtimeContainer, err := r.getBaseContainerFor(c)
+	if err != nil {
+		return nil, err
+	}
+	runtimeContainer.Args = []string{
+		"-c",
+		"/var/lib/supervisord/conf/supervisor.conf",
+	}
+	runtimeContainer.Command = []string{"/var/lib/supervisord/bin/supervisord"}
+	runtimeContainer.Ports = []corev1.ContainerPort{{
+		ContainerPort: c.Spec.Port,
+		Name:          "http",
+		Protocol:      "TCP",
+	}}
+	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/tmp/artifacts"})
+
+	// create the supervisor init container
+	supervisorContainer, err := r.getBaseContainerFor(r.supervisor)
+	if err != nil {
+		return nil, err
+	}
+	supervisorContainer.TerminationMessagePath = "/dev/termination-log"
+	supervisorContainer.TerminationMessagePolicy = "File"
+
 	dep := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "extensions/v1beta1",
@@ -89,49 +117,8 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *appsv1.Depl
 					Name:   c.Name,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{
-						Args: []string{
-							"-c",
-							"/var/lib/supervisord/conf/supervisor.conf",
-						},
-						Command: []string{
-							"/var/lib/supervisord/bin/supervisord",
-						},
-						Env:             *r.populatePodEnvVar(c),
-						/* TODO: To be changed
-						We can't fetch the runtime image name calculated -> dev-runtime-.... as we will use one of these images
-						according to runtime type to run supervisord + java app OR supervisord + Node
-						https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/images.go#L31-L35
-
-						image["java"] = "quay.io/snowdrop/spring-boot-s2i"
-						image["nodejs"] = "nodeshift/centos7-s2i-nodejs:10.x"
-						*/
-						Image: "quay.io/snowdrop/spring-boot-s2i:latest",
-						ImagePullPolicy: corev1.PullAlways,
-						Name:            c.Name,
-						Ports: []corev1.ContainerPort{{
-							ContainerPort: c.Spec.Port,
-							Name:          "http",
-							Protocol:      "TCP",
-						}},
-						VolumeMounts: []corev1.VolumeMount{
-							{Name: "shared-data", MountPath: "/var/lib/supervisord"},
-							{Name: c.Spec.Storage.Name, MountPath: "/tmp/artifacts"},
-						},
-					}},
-					InitContainers: []corev1.Container{{
-						Env: []corev1.EnvVar{
-							{Name: "CMDS",
-								Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i/assemble;build:/deployments/buildapp"}},
-						Image:                    util.GetImageReference(SupervisorImageName),
-						ImagePullPolicy:          corev1.PullAlways,
-						Name:                     SupervisorContainerName,
-						TerminationMessagePath:   "/dev/termination-log",
-						TerminationMessagePolicy: "File",
-						VolumeMounts: []corev1.VolumeMount{
-							{Name: "shared-data", MountPath: "/var/lib/supervisord"},
-						},
-					}},
+					Containers:     []corev1.Container{runtimeContainer},
+					InitContainers: []corev1.Container{supervisorContainer},
 					Volumes: []corev1.Volume{
 						{Name: "shared-data",
 							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
@@ -144,5 +131,58 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) *appsv1.Depl
 
 	// Set Component instance as the owner and controller
 	controllerutil.SetControllerReference(c, dep, r.scheme)
-	return dep
+	return dep, nil
+}
+
+func (r *ReconcileComponent) getBaseContainerFor(component *v1alpha2.Component) (corev1.Container, error) {
+	runtimeImage, err := r.getImageReference(component.Spec)
+	if err != nil {
+		return corev1.Container{}, err
+	}
+
+	container := corev1.Container{
+		Env:             r.populatePodEnvVar(component.Spec),
+		Image:           runtimeImage,
+		ImagePullPolicy: corev1.PullAlways,
+		Name:            component.Name,
+		VolumeMounts: []corev1.VolumeMount{
+			{Name: "shared-data", MountPath: "/var/lib/supervisord"},
+		},
+	}
+	return container, nil
+}
+
+func (r *ReconcileComponent) getImageInfo(component v1alpha2.ComponentSpec) (imageInfo, error) {
+	image, ok := r.runtimeImages[component.Runtime]
+	if !ok {
+		return imageInfo{}, fmt.Errorf("unknown image identifier: %s", component.Runtime)
+	}
+	return image, nil
+}
+
+func (r *ReconcileComponent) getImageReference(component v1alpha2.ComponentSpec) (string, error) {
+	image, err := r.getImageInfo(component)
+	if err != nil {
+		return "", err
+	}
+
+	// todo: compute image version based on runtime version if needed
+	v := latestVersionTag
+
+	return util.GetImageReference(image.registryRef, v), nil
+}
+
+func (r *ReconcileComponent) populatePodEnvVar(component v1alpha2.ComponentSpec) []corev1.EnvVar {
+	tmpEnvVar, err := r.getEnvAsMap(component)
+	if err != nil {
+		panic(err)
+	}
+
+	// Convert Map to Slice
+	newEnvVars := make([]corev1.EnvVar, 0, len(tmpEnvVar))
+	for k, v := range tmpEnvVar {
+		newEnvVars = append(newEnvVars, corev1.EnvVar{Name: k, Value: v})
+	}
+
+	return newEnvVars
 }

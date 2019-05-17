@@ -22,6 +22,7 @@ import (
 	"github.com/go-logr/logr"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"strconv"
 
@@ -30,17 +31,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	// . "github.com/snowdrop/component-operator/pkg/util/helper"
+	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"github.com/snowdrop/component-operator/pkg/util"
 )
 
 const (
-	controllerName    = "component-controller"
+	controllerName = "component-controller"
 
 	DEPLOYMENT            = "Deployment"
 	SERVICE               = "Capability"
@@ -51,7 +51,6 @@ const (
 	BUILDCONFIG           = "BuildConfig"
 	PERSISTENTVOLUMECLAIM = "PersistentVolumeClaim"
 )
-
 
 var log = logf.Log.WithName("component.controller")
 
@@ -108,19 +107,67 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
+	// todo: make this configurable
+	images := make(map[string]imageInfo, 7)
+	defaultEnvVar := make(map[string]string, 7)
+	defaultEnvVar["JAVA_APP_DIR"] = "/deployment"
+	defaultEnvVar["JAVA_DEBUG"] = "false"
+	defaultEnvVar["JAVA_DEBUG_PORT"] = "5005"
+	defaultEnvVar["JAVA_APP_JAR"] = "app.jar"
+	images["spring-boot"] = imageInfo{
+		registryRef: "quay.io/snowdrop/spring-boot-s2i",
+		defaultEnv:  defaultEnvVar,
+	}
+	images["vert.x"] = imageInfo{
+		registryRef: "quay.io/snowdrop/spring-boot-s2i",
+		defaultEnv:  defaultEnvVar,
+	}
+	images["thorntail"] = imageInfo{
+		registryRef: "quay.io/snowdrop/spring-boot-s2i",
+		defaultEnv:  defaultEnvVar,
+	}
+	images["nodejs"] = imageInfo{registryRef: "nodeshift/centos7-s2i-nodejs"}
+	images[supervisorImageId] = imageInfo{registryRef: "quay.io/snowdrop/supervisord"}
+
+	supervisor := v1alpha2.Component{
+		ObjectMeta: v1.ObjectMeta{
+			Name: supervisorContainerName,
+		},
+		Spec: v1alpha2.ComponentSpec{
+			Runtime: supervisorImageId,
+			Version: latestVersionTag,
+			Envs: []v1alpha2.Env{
+				{
+					Name: "CMDS",
+					Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i" +
+						"/assemble;build:/deployments/buildapp",
+				},
+			},
+		},
+	}
+
 	return &ReconcileComponent{
-		client: mgr.GetClient(),
-		config: mgr.GetConfig(),
-		scheme: mgr.GetScheme(),
-		reqLogger: log,
+		client:        mgr.GetClient(),
+		config:        mgr.GetConfig(),
+		scheme:        mgr.GetScheme(),
+		reqLogger:     log,
+		runtimeImages: images,
+		supervisor:    &supervisor,
 	}
 }
 
+type imageInfo struct {
+	registryRef string
+	defaultEnv  map[string]string
+}
+
 type ReconcileComponent struct {
-	client              client.Client
-	config              *rest.Config
-	scheme              *runtime.Scheme
-	reqLogger           logr.Logger
+	client        client.Client
+	config        *rest.Config
+	scheme        *runtime.Scheme
+	reqLogger     logr.Logger
+	runtimeImages map[string]imageInfo
+	supervisor    *v1alpha2.Component
 }
 
 //buildFactory will return the resource according to the kind defined
@@ -128,7 +175,7 @@ func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind str
 	r.reqLogger.Info("Check "+kind, "into the namespace", instance.Namespace)
 	switch kind {
 	case DEPLOYMENT:
-		return r.buildDeployment(instance), nil
+		return r.buildDeployment(instance)
 	case SERVICE:
 		return r.buildService(instance), nil
 	case ROUTE:
@@ -165,7 +212,7 @@ func (r *ReconcileComponent) create(instance *v1alpha2.Component, kind string, e
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	r.reqLogger = log.WithValues("Namespace",request.Namespace)
+	r.reqLogger = log.WithValues("Namespace", request.Namespace)
 
 	// Fetch the Component created, deleted or updated
 	component := &v1alpha2.Component{}
@@ -181,10 +228,10 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 
 	r.reqLogger.Info("-----------------------")
 	r.reqLogger.Info("Reconciling Component  ")
-	r.reqLogger.Info("Status of the component","Status phase", component.Status.Phase)
-	r.reqLogger.Info("Creation time          ","Creation time", component.ObjectMeta.CreationTimestamp)
-	r.reqLogger.Info("Resource version       ","Resource version", component.ObjectMeta.ResourceVersion)
-	r.reqLogger.Info("Generation version     ","Generation version", strconv.FormatInt(component.ObjectMeta.Generation, 10))
+	r.reqLogger.Info("Status of the component", "Status phase", component.Status.Phase)
+	r.reqLogger.Info("Creation time          ", "Creation time", component.ObjectMeta.CreationTimestamp)
+	r.reqLogger.Info("Resource version       ", "Resource version", component.ObjectMeta.ResourceVersion)
+	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(component.ObjectMeta.Generation, 10))
 	// r.reqLogger.Info("Deletion time          ","Deletion time", component.ObjectMeta.DeletionTimestamp)
 
 	// Add the Status Component Creation when we process the first time the Component CR
@@ -215,7 +262,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	//Update Pod Status
-	podStatus, err := r.updatePodStatus(component,request)
+	podStatus, err := r.updatePodStatus(component, request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -225,6 +272,6 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s",component.Name))
+	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", component.Name))
 	return reconcile.Result{}, nil
 }

@@ -1,11 +1,8 @@
 package v1alpha2
 
 import (
-	"fmt"
-	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 // ComponentSpec defines the desired state of Component
@@ -32,29 +29,12 @@ type ComponentSpec struct {
 	Envs []Env `json:"envs,omitempty"`
 }
 
-func (c ComponentSpec) GetImageName() string {
-	return fmt.Sprintf("dev-runtime-%s", strings.ToLower(c.Runtime))
-}
-func (c ComponentSpec) GetImageReference() string {
-	// todo: compute image version (and potentially name) based on runtime / version
-	v := "latest"
-	return util.GetImageReference(c.GetImageName(), v)
-}
-
 // ComponentStatus defines the observed state of Component
 // +k8s:openapi-gen=true
 type ComponentStatus struct {
-	Phase     Phase `json:"phase,omitempty"`
+	Phase     Phase        `json:"phase,omitempty"`
 	PodName   string       `json:"podName"`
 	PodStatus v1.PodStatus `json:"podStatus"`
-}
-
-type Image struct {
-	Name           string
-	AnnotationCmds bool
-	Repo           string
-	Tag            string
-	DockerImage    bool
 }
 
 type Storage struct {

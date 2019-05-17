@@ -11,8 +11,6 @@ const (
 	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
 	// which is the namespace that the pod is currently running in.
 	WatchNamespaceEnvVar = "WATCH_NAMESPACE"
-	// imageRegistryName specifies where images need to be looked for
-	imageRegistryName = "quay.io/snowdrop"
 )
 
 func IsOpenshift(kubeconfig *rest.Config) (bool, error) {
@@ -47,5 +45,5 @@ func GetImageReference(imageName string, version ...string) string {
 	if len(version) == 1 && len(version[0]) > 0 {
 		runtimeVersion = version[0]
 	}
-	return fmt.Sprintf("%s/%s:%s", imageRegistryName, imageName, runtimeVersion)
+	return fmt.Sprintf("%s:%s", imageName, runtimeVersion)
 }
