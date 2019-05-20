@@ -90,16 +90,17 @@ func main() {
 }
 
 func registerAdditionalResources(m manager.Manager) {
-	if err := servicecatalogv1.AddToScheme(m.GetScheme()); err != nil {
+	scheme := m.GetScheme()
+	if err := servicecatalogv1.AddToScheme(scheme); err != nil {
 		log.Error(err, "")
 	}
-	if err := route.Install(m.GetScheme()); err != nil {
+	if err := route.Install(scheme); err != nil {
 		log.Error(err, "")
 	}
-	if err := build.Install(m.GetScheme()); err != nil {
+	if err := build.Install(scheme); err != nil {
 		log.Error(err, "")
 	}
-	if err := image.Install(m.GetScheme()); err != nil {
+	if err := image.Install(scheme); err != nil {
 		log.Error(err, "")
 	}
 }
