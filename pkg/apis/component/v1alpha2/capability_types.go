@@ -26,17 +26,37 @@ type CapabilitySpec struct {
 	ParametersJSon string
 }
 
+type CapabilityPhase string
+
+const (
+	// CapabilityPending means the capability has been accepted by the system, but it is still being processed. This includes time
+	// being instantiated.
+	CapabilityPending CapabilityPhase = "Pending"
+	// CapabilityRunning means the capability has been instantiated to a node and all of its dependencies are available. The
+	// capability is able to process requests.
+	CapabilityRunning CapabilityPhase = "Running"
+	// CapabilitySucceeded means that the capability and its dependencies ran to successful completion
+	// with a container exit code of 0, and the system is not going to restart any of these containers.
+	CapabilitySucceeded CapabilityPhase = "Succeeded"
+	// CapabilityFailed means that the capability and its dependencies have terminated, and at least one container has
+	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
+	CapabilityFailed CapabilityPhase = "Failed"
+	// CapabilityUnknown means that for some reason the state of the capability could not be obtained, typically due
+	// to an error in communicating with the host of the capability.
+	CapabilityUnknown CapabilityPhase = "Unknown"
+)
+
 // CapabilityStatus defines the observed state of Capability
 // +k8s:openapi-gen=true
 type CapabilityStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Phase                 Phase `json:"phase,omitempty"`
-	ServiceBindingName    string `json:"serviceBindingName"`
-	ServiceBindingStatus  servicecatalogv1.ServiceBindingStatus`json:"serviceBindingStatus"`
-	ServiceInstanceName   string `json:"serviceInstanceName"`
-	ServiceInstanceStatus servicecatalogv1.ServiceInstanceStatus`json:"serviceInstanceStatus"`
+	Phase                 CapabilityPhase                        `json:"phase,omitempty"`
+	ServiceBindingName    string                                 `json:"serviceBindingName"`
+	ServiceBindingStatus  servicecatalogv1.ServiceBindingStatus  `json:"serviceBindingStatus"`
+	ServiceInstanceName   string                                 `json:"serviceInstanceName"`
+	ServiceInstanceStatus servicecatalogv1.ServiceInstanceStatus `json:"serviceInstanceStatus"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

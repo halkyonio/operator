@@ -2,6 +2,7 @@ package capability
 
 import (
 	"context"
+	"fmt"
 	servicecatalogv1beta1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"reflect"
@@ -12,9 +13,9 @@ import (
 //updateStatus returns error when status regards the all required resources could not be updated
 func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Capability, request reconcile.Request) error {
 	if r.isServiceBindingReady(serviceBindingStatus) && r.isServiceInstanceReady(serviceInstanceStatus) {
-		r.reqLogger.Info("Updating Status of the Capability to Ready")
-		status := v1alpha2.PhaseComponentReady
-		if !reflect.DeepEqual(status, instance.Status.Phase) {
+		r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", v1alpha2.CapabilityRunning))
+
+		if v1alpha2.CapabilityRunning != instance.Status.Phase {
 			// Get a more recent version of the CR
 			service, err := r.fetchCapability(request)
 			if err != nil {
@@ -22,7 +23,7 @@ func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv
 				return err
 			}
 
-			service.Status.Phase = v1alpha2.PhaseCapabilityReady
+			service.Status.Phase = v1alpha2.CapabilityRunning
 
 			err = r.client.Status().Update(context.TODO(), service)
 			if err != nil {
@@ -38,7 +39,7 @@ func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv
 }
 
 //updateStatus
-func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability, phase v1alpha2.Phase, request reconcile.Request) error {
+func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability, phase v1alpha2.CapabilityPhase, request reconcile.Request) error {
 	if !reflect.DeepEqual(phase, instance.Status.Phase) {
 		// Get a more recent version of the CR
 		service, err := r.fetchCapability(request)
@@ -54,7 +55,7 @@ func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability,
 			return err
 		}
 	}
-	r.reqLogger.Info("Updating Capability status to status Ready")
+	r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", phase))
 	return nil
 }
 
@@ -152,5 +153,3 @@ func (r *ReconcileCapability) isServiceBindingReady(serviceBindingStatus *servic
 	}
 	return false
 }
-
-

@@ -29,12 +29,32 @@ type ComponentSpec struct {
 	Envs []Env `json:"envs,omitempty"`
 }
 
+type ComponentPhase string
+
+const (
+	// ComponentPending means the component has been accepted by the system, but it is still being processed. This includes time
+	// before being bound to a node, as well as time spent pulling images onto the host, building and wiring capabilities.
+	ComponentPending ComponentPhase = "Pending"
+	// ComponentRunning means the component has been bound to a node and all of its dependencies are available. The component is
+	// able to process requests.
+	ComponentRunning ComponentPhase = "Running"
+	// ComponentSucceeded means that the component and its dependencies ran to successful completion
+	// with a container exit code of 0, and the system is not going to restart any of these containers.
+	ComponentSucceeded ComponentPhase = "Succeeded"
+	// ComponentFailed means that the component and its dependencies have terminated, and at least one container has
+	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
+	ComponentFailed ComponentPhase = "Failed"
+	// ComponentUnknown means that for some reason the state of the component could not be obtained, typically due
+	// to an error in communicating with the host of the component.
+	ComponentUnknown ComponentPhase = "Unknown"
+)
+
 // ComponentStatus defines the observed state of Component
 // +k8s:openapi-gen=true
 type ComponentStatus struct {
-	Phase     Phase        `json:"phase,omitempty"`
-	PodName   string       `json:"podName"`
-	PodStatus v1.PodStatus `json:"podStatus"`
+	Phase     ComponentPhase `json:"phase,omitempty"`
+	PodName   string         `json:"podName"`
+	PodStatus v1.PodStatus   `json:"podStatus"`
 }
 
 type Storage struct {

@@ -162,23 +162,23 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	// Add the Status Capability Creation when we process the first time the Capability CR
 	// as we will start to create different resources
 	if service.Generation == 1 && service.Status.Phase == "" {
-		if err := r.updateServiceStatus(service, v1alpha2.PhaseCapabilityCreation, request); err != nil {
+		if err := r.updateServiceStatus(service, v1alpha2.CapabilityPending, request); err != nil {
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{}, err
 		}
-		r.reqLogger.Info(fmt.Sprintf("Status is now : %s", v1alpha2.PhaseCapabilityCreation))
+		r.reqLogger.Info(fmt.Sprintf("Status is now : %s", v1alpha2.CapabilityPending))
 	}
 
 	// Check if the ServiceInstance exists
 	if _, err := r.fetchServiceInstance(service); err != nil {
-		if err = r.create(service,SERVICEINSTANCE); err != nil {
+		if err = r.create(service, SERVICEINSTANCE); err != nil {
 			return reconcile.Result{}, err
 		}
 	}
 
 	// Check if the ServiceBinding exists
 	if _, err := r.fetchServiceBinding(service); err != nil {
-		if err = r.create(service,SERVICEBINDING); err != nil {
+		if err = r.create(service, SERVICEBINDING); err != nil {
 			return reconcile.Result{}, err
 		}
 	}

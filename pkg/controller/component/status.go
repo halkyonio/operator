@@ -20,8 +20,7 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 		return nil
 	}
 
-	status := v1alpha2.PhaseComponentReady
-	if !reflect.DeepEqual(status, instance.Status.Phase) {
+	if instance.Status.Phase != v1alpha2.ComponentRunning {
 		// Get a more recent version of the CR
 		component, err := r.fetchComponent(request)
 		if err != nil {
@@ -29,7 +28,7 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 			return err
 		}
 
-		component.Status.Phase = status
+		component.Status.Phase = v1alpha2.ComponentRunning
 		// Update the CR
 
 		err = r.client.Status().Update(context.TODO(), component)
@@ -37,13 +36,13 @@ func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alp
 			r.reqLogger.Error(err, "Failed to update Status of the Component")
 			return err
 		}
-		r.reqLogger.Info("Updating Component status to status Ready")
+		r.reqLogger.Info(fmt.Sprintf("Updating Component status to status %v", component.Status.Phase))
 	}
 	return nil
 }
 
 //updateStatus
-func (r *ReconcileComponent) updateComponentStatus(instance *v1alpha2.Component, phase v1alpha2.Phase, request reconcile.Request) error {
+func (r *ReconcileComponent) updateComponentStatus(instance *v1alpha2.Component, phase v1alpha2.ComponentPhase, request reconcile.Request) error {
 	if !reflect.DeepEqual(phase, instance.Status.Phase) {
 		// Get a more recent version of the CR
 		component, err := r.fetchComponent(request)

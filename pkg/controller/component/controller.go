@@ -237,7 +237,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	// Add the Status Component Creation when we process the first time the Component CR
 	// as we will start to create different resources
 	if component.Generation == 1 && component.Status.Phase == "" {
-		if err := r.updateComponentStatus(component, v1alpha2.PhaseComponentCreation, request); err != nil {
+		if err := r.updateComponentStatus(component, v1alpha2.ComponentPending, request); err != nil {
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{}, err
 		}

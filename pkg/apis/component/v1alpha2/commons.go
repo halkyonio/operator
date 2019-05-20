@@ -1,26 +1,8 @@
 package v1alpha2
 
-type Phase string
-
 const (
 	// ComponentKind --
 	ComponentKind string = "Component"
-
-	// Phase Component --
-	PhaseComponentCreation Phase = "CreatingComponent"
-	PhaseComponentReady Phase = "Ready"
-	PhaseComponentBuilding Phase = "Building"
-
-	// Phase Linking --
-	PhaseLinkCreation Phase = "CreatingLink"
-	PhaseLinkReady    Phase = "Ready"
-
-	// Phase Capability --
-	PhaseCapabilityCreation       = "CreatingService"
-	PhaseCapabilityReady    Phase = "Ready"
-
-	// PhaseError --
-	PhaseError Phase = "Error"
 
 	// See https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/
 	NameLabelKey           = "app.kubernetes.io/name"

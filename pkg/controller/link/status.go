@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func (r *ReconcileLink) updateStatusInstance(status v1alpha2.Phase, instance *v1alpha2.Link, request reconcile.Request) error {
-	if !reflect.DeepEqual(status, instance.Status.Phase) {
+func (r *ReconcileLink) updateStatusInstance(status v1alpha2.LinkPhase, instance *v1alpha2.Link, request reconcile.Request) error {
+	if status != instance.Status.Phase {
 		r.reqLogger.Info("Updating App Status for the Link")
 		// Get a more recent version of the CR
 		link, err := r.fetchLink(request)

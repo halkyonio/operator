@@ -98,14 +98,14 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 	// as we will start to create/update resources
 	if link.Generation == 1 && link.Status.Phase == "" {
 		// Update Status to value "Linking" as we will try to update the Deployment
-		if err := r.updateStatusInstance(v1alpha2.PhaseLinkCreation, link, request); err != nil {
+		if err := r.updateStatusInstance(v1alpha2.LinkPending, link, request); err != nil {
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{}, err
 		}
 	}
 
 	// Process the Link if the status is not Linked
-	if link.Status.Phase != v1alpha2.PhaseLinkReady {
+	if link.Status.Phase != v1alpha2.LinkReady {
 		found, err := r.fetchDeployment(request.Namespace, link.Spec.ComponentName)
 		if err != nil {
 			r.reqLogger.Info("Component not found")
@@ -143,7 +143,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 					isEnvFromExist = true
 				}
 			}
-			if (!isEnvFromExist) {
+			if !isEnvFromExist {
 				// Add the Secret as EnvVar to the container
 				containers[i].EnvFrom = append(containers[i].EnvFrom, r.addSecretAsEnvFromSource(secretName))
 				isModified = true
@@ -162,7 +162,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 						isEnvExist = true
 					}
 				}
-				if (!isEnvExist) {
+				if !isEnvExist {
 					// Add the Secret as EnvVar to the container
 					containers[i].Env = append(containers[i].Env, r.addKeyValueAsEnvVar(specEnv.Name, specEnv.Value))
 					isModified = true
@@ -179,7 +179,7 @@ func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *v1a
 	r.update(d)
 
 	// Update Status to value "Linked"
-	if err := r.updateStatusInstance(v1alpha2.PhaseLinkReady, link, request); err != nil {
+	if err := r.updateStatusInstance(v1alpha2.LinkReady, link, request); err != nil {
 		r.reqLogger.Info("Status update failed !")
 		return err
 	}
