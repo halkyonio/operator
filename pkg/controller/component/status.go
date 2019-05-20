@@ -2,6 +2,7 @@ package component
 
 import (
 	"context"
+	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -58,7 +59,7 @@ func (r *ReconcileComponent) updateComponentStatus(instance *v1alpha2.Component,
 			return err
 		}
 	}
-	r.reqLogger.Info("Updating Component status to status Ready")
+	r.reqLogger.Info(fmt.Sprintf("Updating Component status to status %v", phase))
 	return nil
 }
 
