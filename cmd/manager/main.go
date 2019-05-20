@@ -11,7 +11,6 @@ import (
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
-	util "github.com/snowdrop/component-operator/pkg/util"
 	"github.com/spf13/pflag"
 	"os"
 	"runtime"
@@ -23,7 +22,7 @@ import (
 )
 
 var (
-	Version = "Unset"
+	Version   = "Unset"
 	GitCommit = "HEAD"
 )
 
@@ -60,21 +59,16 @@ func main() {
 
 	printVersion()
 
-	namespace, err := util.GetWatchNamespace()
-	if err != nil {
-		log.Error(err,"failed to get watch namespace")
-	}
-
 	// Create a new Cmd to provide shared dependencies and start components
-	mgr, err := manager.New(config.GetConfigOrDie(), manager.Options{Namespace: namespace})
+	mgr, err := manager.New(config.GetConfigOrDie(), manager.Options{})
 	if err != nil {
-		log.Error(err,"")
+		log.Error(err, "")
 	}
 
 	// Setup Scheme for all resources
 	log.Info("Registering Components")
 	if err := v1alpha2.Install(mgr.GetScheme()); err != nil {
-		log.Error(err,"")
+		log.Error(err, "")
 	}
 
 	log.Info("Registering 3rd party resources")
@@ -97,15 +91,15 @@ func main() {
 
 func registerAdditionalResources(m manager.Manager) {
 	if err := servicecatalogv1.AddToScheme(m.GetScheme()); err != nil {
-		log.Error(err,"")
+		log.Error(err, "")
 	}
 	if err := route.Install(m.GetScheme()); err != nil {
-		log.Error(err,"")
+		log.Error(err, "")
 	}
 	if err := build.Install(m.GetScheme()); err != nil {
-		log.Error(err,"")
+		log.Error(err, "")
 	}
 	if err := image.Install(m.GetScheme()); err != nil {
-		log.Error(err,"")
+		log.Error(err, "")
 	}
 }

@@ -4,13 +4,6 @@ import (
 	"fmt"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
-	"os"
-)
-
-const (
-	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-	// which is the namespace that the pod is currently running in.
-	WatchNamespaceEnvVar = "WATCH_NAMESPACE"
 )
 
 func IsOpenshift(kubeconfig *rest.Config) (bool, error) {
@@ -29,15 +22,6 @@ func IsOpenshift(kubeconfig *rest.Config) (bool, error) {
 		}
 	}
 	return false, nil
-}
-
-// GetWatchNamespace returns the namespace the operator should be watching for changes
-func GetWatchNamespace() (string, error) {
-	ns, found := os.LookupEnv(WatchNamespaceEnvVar)
-	if !found {
-		return "", fmt.Errorf("%s must be set", WatchNamespaceEnvVar)
-	}
-	return ns, nil
 }
 
 func GetImageReference(imageName string, version ...string) string {
