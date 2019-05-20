@@ -1,0 +1,13 @@
+apiVersion: devexp.runtime.redhat.com/v1alpha2
+kind: Component
+metadata:
+  name: fruit-client-sb
+  labels:
+    app: fruit-client-sb
+spec:
+  deploymentMode: outerloop
+  runtime: spring-boot
+  version: 1.5.16
+  envs:
+    - name: SPRING_PROFILES_ACTIVE
+      value: openshift-catalog
