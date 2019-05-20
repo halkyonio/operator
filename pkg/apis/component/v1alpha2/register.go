@@ -33,3 +33,9 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	metav1.AddToGroupVersion(scheme, GroupVersion)
 	return nil
 }
+
+func GetParameterCodec() runtime.ParameterCodec {
+	scheme := runtime.NewScheme()
+	addKnownTypes(scheme)
+	return runtime.NewParameterCodec(scheme)
+}
