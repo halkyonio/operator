@@ -34,8 +34,12 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	return nil
 }
 
-func GetParameterCodec() runtime.ParameterCodec {
+func GetScheme() *runtime.Scheme {
 	scheme := runtime.NewScheme()
 	addKnownTypes(scheme)
-	return runtime.NewParameterCodec(scheme)
+	return scheme
+}
+
+func GetParameterCodec() runtime.ParameterCodec {
+	return runtime.NewParameterCodec(GetScheme())
 }
