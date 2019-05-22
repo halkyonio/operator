@@ -67,6 +67,7 @@ type Storage struct {
 
 // Component is the Schema for the components API
 // +k8s:openapi-gen=true
+// +genclient
 type Component struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

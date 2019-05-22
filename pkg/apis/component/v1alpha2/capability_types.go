@@ -63,6 +63,7 @@ type CapabilityStatus struct {
 
 // Capability is the Schema for the Services API
 // +k8s:openapi-gen=true
+// +genclient
 type Capability struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

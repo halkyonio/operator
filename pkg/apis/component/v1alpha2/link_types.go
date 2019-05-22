@@ -48,6 +48,7 @@ type LinkStatus struct {
 
 // Link is the Schema for the links API
 // +k8s:openapi-gen=true
+// +genclient
 type Link struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
