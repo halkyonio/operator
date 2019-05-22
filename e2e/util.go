@@ -59,7 +59,7 @@ func crudClient() client.Client {
 func springBootComponent(name, ns string) *v1alpha2.Component {
 	return &v1alpha2.Component{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha2.GroupVersion.String(),
+			APIVersion: v1alpha2.SchemeGroupVersion.String(),
 			Kind:       v1alpha2.ComponentKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
@@ -129,8 +129,8 @@ func addClientHeader(req *http.Request) {
 }
 
 func Unzip(src, dest string) error {
-	log.Debugf("Src file : %s",src)
-	log.Debugf("Dest file : %s",dest)
+	log.Debugf("Src file : %s", src)
+	log.Debugf("Dest file : %s", dest)
 	r, err := zip.OpenReader(src)
 	log.Debugf("Create OpenReader for zipfile")
 	if err != nil {
@@ -139,7 +139,7 @@ func Unzip(src, dest string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		log.Debugf("Open file : %s",f.Name)
+		log.Debugf("Open file : %s", f.Name)
 		rc, err := f.Open()
 		if err != nil {
 			return err
@@ -193,7 +193,7 @@ func runMavenBuild(buildDir string) error {
 	log.Infof("running maven package: %v", cmd.Args)
 	if err := cmd.Run(); err != nil {
 		//log.Debugf("Maven cmd : %s",cmd.Stdout)
-		return errors.Wrap(err,"Error occured during mvn package execution")
+		return errors.Wrap(err, "Error occured during mvn package execution")
 	}
 	log.Info("Maven build completed successfully")
 	return nil

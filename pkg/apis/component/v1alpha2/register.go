@@ -14,15 +14,15 @@ const (
 var (
 	GroupName = groupName
 	// SchemeGroupVersion is the group version used to register these objects.
-	GroupVersion  = schema.GroupVersion{Group: GroupName, Version: version}
-	schemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
+	SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: version}
+	schemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
 	// Install is a function which adds this version to a scheme
 	Install = schemeBuilder.AddToScheme
 )
 
 // Adds the list of known types to api.Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
-	scheme.AddKnownTypes(GroupVersion,
+	scheme.AddKnownTypes(SchemeGroupVersion,
 		&Component{},
 		&ComponentList{},
 		&Link{},
@@ -30,7 +30,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&Capability{},
 		&CapabilityList{},
 	)
-	metav1.AddToGroupVersion(scheme, GroupVersion)
+	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil
 }
 
