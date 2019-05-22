@@ -35,8 +35,8 @@ cross: clean
 	@echo "> Build go application cross os"
 	gox -osarch="darwin/amd64 linux/amd64" -output="${BIN_DIR}/{{.OS}}-{{.Arch}}/${PROJECT_NAME}" $(BUILD_FLAGS) ${BUILD_PATH}
 
-.PHONY: gen-deepcopy
-gen-deepcopy:
+.PHONY: generate-api
+generate-api:
 	./scripts/update-gen.sh
 
 .PHONY: format
