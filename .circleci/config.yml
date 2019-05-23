@@ -41,7 +41,6 @@ jobs:
           go get golang.org/x/lint/golint
           curl -L https://raw.githubusercontent.com/kubernetes-sigs/kubebuilder/master/scripts/install.sh | sh -
           export PATH=$PATH:/usr/local/kubebuilder/bin
-          make assets
           make build
           make test
           make cross
@@ -70,7 +69,6 @@ jobs:
           go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
           go get github.com/mitchellh/gox
           VERSION=master
-          make assets
           make build-linux
           docker build -t component-operator:${VERSION} -f build/Dockerfile .
           TAG_ID=$(docker images -q component-operator:${VERSION})
@@ -185,7 +183,6 @@ jobs:
             go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
             go get github.com/mitchellh/gox
 
-            make assets
             make build-linux
             
             docker build -t component-operator:${VERSION} -f deploy/docker/Dockerfile .
