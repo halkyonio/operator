@@ -16,8 +16,8 @@ var (
 	// SchemeGroupVersion is the group version used to register these objects.
 	SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: version}
 	schemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
-	// Install is a function which adds this version to a scheme
-	Install = schemeBuilder.AddToScheme
+	// AddToScheme is a function which adds this version to a scheme
+	AddToScheme = schemeBuilder.AddToScheme
 )
 
 // Adds the list of known types to api.Scheme.

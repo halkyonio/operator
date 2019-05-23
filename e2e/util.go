@@ -43,7 +43,7 @@ func crudClient() client.Client {
 	// Register the core k8s types
 	k8sscheme.AddToScheme(scheme)
 	// Register custom resource type
-	v1alpha2.Install(scheme)
+	v1alpha2.AddToScheme(scheme)
 
 	kubeconfig, err := config.GetConfig()
 	if err != nil {
