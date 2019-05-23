@@ -108,9 +108,9 @@ func (r *ReconcileComponent) buildBuildConfig(c *v1alpha2.Component) (*buildv1.B
 					GitHubWebHook: &buildv1.WebHookTrigger{Secret: "GITHUB_WEBHOOK_SECRET"},
 				},
 			},
-		},
+		},g
 	}
 	// Set Component instance as the owner and controller
 	controllerutil.SetControllerReference(c, build, r.scheme)
-	return build
+	return build, nil
 }
