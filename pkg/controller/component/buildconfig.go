@@ -50,8 +50,12 @@ spec:
 */
 
 //buildDeployment returns the Deployment config object
-func (r *ReconcileComponent) buildBuildConfig(c *v1alpha2.Component) *buildv1.BuildConfig {
+func (r *ReconcileComponent) buildBuildConfig(c *v1alpha2.Component) (*buildv1.BuildConfig, error) {
 	ls := r.getAppLabels(c.Name)
+    buildImage, err:= r.getImageReference(c.Spec)
+    if err != nil {
+		return nil, err
+	}
 	build := &buildv1.BuildConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "build.openshift.io/v1",
@@ -82,9 +86,8 @@ func (r *ReconcileComponent) buildBuildConfig(c *v1alpha2.Component) *buildv1.Bu
 					Type: "Source",
 					SourceStrategy: &buildv1.SourceBuildStrategy{
 						From: corev1.ObjectReference{
-							Kind: "ImageStreamTag",
-							// TODO -> Get Runtime Image => OpenJDK8
-							Name: "TODO"},
+							Kind: "DockerImage",
+							Name: buildImage},
 						Env: []corev1.EnvVar{
 							// TODO
 							/*
