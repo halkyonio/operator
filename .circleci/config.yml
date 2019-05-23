@@ -11,7 +11,9 @@ orbs:
 executors:
   go-executor:
     docker:
-    - image: circleci/golang:1.11
+    - image: circleci/golang:1.12
+      environment:
+        GO111MODULE: "ON"
     working_directory: /go/src/github.com/snowdrop/component-operator
 
 jobs:
@@ -24,7 +26,9 @@ jobs:
   build:
     # executor: go-executor
     docker:
-    - image: circleci/golang:1.11
+    - image: circleci/golang:1.12
+      environment:
+        GO111MODULE: "ON"
     working_directory: /go/src/github.com/snowdrop/component-operator
 
     steps:
@@ -50,7 +54,9 @@ jobs:
   # - Create the docker image of the operator and publish it on quay
   docker-image:
     docker:
-    - image: circleci/golang:1.11
+    - image: circleci/golang:1.12
+      environment:
+        GO111MODULE: "ON"
     working_directory: /go/src/github.com/snowdrop/component-operator
 
     steps:
@@ -115,6 +121,7 @@ jobs:
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/examples/component.yml
           sleep 30s
           cd ${GO_PATH_FIRST}/${PROJECT_PATH}
+          export GO111MODULE="on"
           go get github.com/onsi/ginkgo
           go get github.com/onsi/gomega
           go test -v ./e2e -ginkgo.v
@@ -122,7 +129,9 @@ jobs:
   # Creates a github release and pushes all the assets
   release:
     docker:
-      - image: circleci/golang:1.11
+      - image: circleci/golang:1.12
+        environment:
+          GO111MODULE: "ON"
     working_directory: /go/src/github.com/snowdrop/component-operator
 
     steps:
@@ -131,6 +140,7 @@ jobs:
     - run:
         name: Install gox
         command: |
+          export GO111MODULE="on"
           go get github.com/mitchellh/gox
 
     - run:
@@ -154,7 +164,9 @@ jobs:
   # Creates a docker image from a github release
   docker-image-release:
     docker:
-      - image: circleci/golang:1.11
+      - image: circleci/golang:1.12
+        environment:
+          GO111MODULE: "ON"
     working_directory: /go/src/github.com/snowdrop/component-operator
 
     steps:
@@ -168,6 +180,7 @@ jobs:
           if [[ "${CIRCLE_TAG}" =~ ${tagRE} ]]; then
             VERSION=${BASH_REMATCH[1]}
 
+            export GO111MODULE="on"
             go get github.com/shurcooL/vfsgen
             go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
             go get github.com/mitchellh/gox
