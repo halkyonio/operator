@@ -126,6 +126,8 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		registryRef: "quay.io/snowdrop/spring-boot-s2i",
 		defaultEnv:  defaultEnvVar,
 	}
+	// References images
+	images["openjdk8"] = imageInfo{registryRef: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"}
 	images["nodejs"] = imageInfo{registryRef: "nodeshift/centos7-s2i-nodejs"}
 	images[supervisorImageId] = imageInfo{registryRef: "quay.io/snowdrop/supervisord"}
 
@@ -184,6 +186,8 @@ func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind str
 		return r.buildRoute(instance), nil
 	case PERSISTENTVOLUMECLAIM:
 		return r.buildPVC(instance), nil
+	case BUILDCONFIG:
+		return r.buildBuildConfig(instance)
 	default:
 		msg := "Failed to recognize type of object" + kind + " into the Namespace " + instance.Namespace
 		panic(msg)
