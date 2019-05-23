@@ -40,7 +40,7 @@ git clone https://github.com/kubernetes/code-generator.git ${TMP_DIR}
 #   generate-groups.sh deepcopy,client github.com/example/project/pkg/client github.com/example/project/pkg/apis "foo:v1 bar:v1alpha1,v1beta1"
 
 
-${TMP_DIR}/generate-groups.sh all \
+${TMP_DIR}/generate-groups.sh deepcopy,client \
   github.com/snowdrop/component-operator/pkg/apis \
   github.com/snowdrop/component-operator/pkg/apis \
   ${KIND}:${API_VERSION} \
