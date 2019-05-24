@@ -109,7 +109,6 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 					},
 					Args:    []string{
 						"push",
-						"--layers",
 						"--tls-verify=${inputs.params.verifyTLS}",
 						"${outputs.resources.image.url}",
 					},
