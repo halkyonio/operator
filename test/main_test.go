@@ -3,13 +3,12 @@
 package test
 
 import (
-	goctx "context"
+	"context"
 	"fmt"
 	"k8s.io/apimachinery/pkg/types"
 
 	f "github.com/operator-framework/operator-sdk/pkg/test"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha1"
-	"github.com/snowdrop/component-operator/pkg/util/kubernetes"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 	"time"
@@ -27,13 +26,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestTypeMetaComponent(t *testing.T) {
-	component := &v1alpha1.Component{
+	component := &v1alpha2.Component{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Component",
 			APIVersion: "devexp.runtime.redhat.com/v1alpha2",
 		},
 	}
-	err := f.AddToFrameworkScheme(v1alpha1.Install, component)
+	err := f.AddToFrameworkScheme(v1alpha2.AddToScheme, component)
 	if err != nil {
 		t.Fatalf("failed to add custom resource scheme to framework: %v", err)
 	}
@@ -46,27 +45,27 @@ func componentTest(t *testing.T, f *f.Framework, ctx *f.TestCtx) error {
 	}
 
 	// Create Component CRD
-	component := &v1alpha1.Component{
+	component := &v1alpha2.Component{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Component",
-			APIVersion: "devexp.runtime.redhat.com/v1alpha1",
+			APIVersion: "devexp.runtime.redhat.com/v1alpha2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example-component",
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.ComponentSpec{
-			Name: "my-component",
+		Spec: v1alpha2.ComponentSpec{
+			Runtime: "Spring Boot",
 		},
 	}
 
 	// use TestCtx's create helper to create the object and add a cleanup function for the new object
-	err = f.Client.Create(goctx.TODO(), component, nil)
+	err = f.Client.Create(context.TODO(), component, nil)
 	if err != nil {
 		return err
 	}
 
-	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "example-component", Namespace: namespace}, component)
+	err = f.Client.Get(context.TODO(), types.NamespacedName{Name: "example-component", Namespace: namespace}, component)
 	if err != nil {
 		return err
 	}
@@ -91,7 +90,7 @@ func TestComponentCRD(t *testing.T) {
 	f := f.Global
 
 	// wait for component-operator to be ready
-	err = kubernetes.WaitForDeployment(t, f.KubeClient, namespace, "component-operator", 1, retryInterval, timeout)
+	err = WaitForDeployment(t, f.KubeClient, namespace, "component-operator", 1, retryInterval, timeout)
 	if err != nil {
 		t.Fatal(err)
 	}
