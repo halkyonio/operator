@@ -57,7 +57,7 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(c *v1alpha2.Component) (
 								{
 									Name: "url",
 									// OCP, OKD
-									Value: "docker-registry.default.svc.cluster.local:5000/demo/spring-boot-example",
+									Value: dockerImageURL(c),
 									// Kubernetes
 									// Value: "kube-registry.kube-system.svc:5000/demo/spring-boot-example",
 								},
@@ -72,4 +72,8 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(c *v1alpha2.Component) (
 	// Set Component instance as the owner and controller
 	controllerutil.SetControllerReference(c, taskRun, r.scheme)
 	return taskRun, nil
+}
+
+func dockerImageURL(c *v1alpha2.Component) string {
+	return "docker-registry.default.svc.cluster.local:5000/" + c.Namespace + "/spring-boot-example"
 }
