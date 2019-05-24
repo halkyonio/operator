@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/beorn7/perks v1.0.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
+	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
@@ -24,6 +25,7 @@ require (
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.6 // indirect
+	github.com/knative/pkg v0.0.0-20190409220258-28cfa161499b // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kubernetes-incubator/service-catalog v0.1.39
 	github.com/markbates/inflect v1.0.4 // indirect
@@ -47,6 +49,7 @@ require (
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.3 // indirect
 	github.com/spf13/pflag v1.0.3
+	github.com/tektoncd/pipeline v0.3.1
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
