@@ -56,8 +56,10 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(c *v1alpha2.Component) (
 							Params: []v1alpha1.Param{
 								{
 									Name: "url",
-									// OCP, OKD --> value: docker-registry.default.svc.cluster.local:5000/demo/spring-boot-example
-									Value: "kube-registry.kube-system.svc:5000/demo/spring-boot-example",
+									// OCP, OKD
+									Value: "docker-registry.default.svc.cluster.local:5000/demo/spring-boot-example",
+									// Kubernetes
+									// Value: "kube-registry.kube-system.svc:5000/demo/spring-boot-example",
 								},
 							},
 						},

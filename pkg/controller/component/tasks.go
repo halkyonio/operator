@@ -13,15 +13,6 @@ const (
 	serviceAccountName    = "build-bot"
 )
 
-var (
-	gitInputs = &v1alpha1.Inputs{
-		Resources: []v1alpha1.TaskResource{{
-			Name: "gitspace",
-			Type: "git",
-		}},
-	}
-)
-
 func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1alpha1.Task, error) {
 	task := &v1alpha1.Task{
 		TypeMeta: metav1.TypeMeta{
