@@ -10,6 +10,7 @@ import (
 
 const (
 	taskS2iBuildahPusName = "s2i-buildah-push"
+	serviceAccountName    = "build-bot"
 )
 
 var (
@@ -61,13 +62,19 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 						"--image-scripts-url",
 						"image:///usr/local/s2i"},
 					WorkingDir:   "/sources",
-					VolumeMounts: []corev1.VolumeMount{{MountPath: "/sources", Name: "generatedsources"}},
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							MountPath: "/sources",
+							Name: "generatedsources"},
+					    },
 				},
 				// Build a Container image using the dockerfile created previously
 				{
 					Name:    "build",
 					Image:   "quay.io/openshift-pipeline/buildah:testing",
-					Command: []string{"buildah"},
+					Command: []string{
+						"buildah",
+					},
 					Args: []string{
 						"bud",
 						"--layers",
@@ -78,11 +85,18 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 						"${outputs.resources.image.url}",
 						"/sources"},
 					VolumeMounts: []corev1.VolumeMount{
-						{MountPath: "/var/lib/containers", Name: "libcontainers"},
-						{MountPath: "/sources", Name: "/sources"},
+						{
+							Name: "libcontainers",
+							MountPath: "/var/lib/containers",
+
+						},
+						{
+							Name: "generatedsources",
+							MountPath: "/sources",
+						},
 					},
 					SecurityContext: &corev1.SecurityContext{
-						Privileged: new(bool),
+						Privileged: newBoolPtr(true),
 					},
 				},
 				// Push the image created to quay.io using as credentials the secret mounted within
@@ -90,13 +104,22 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 				{
 					Name:    "push",
 					Image:   "quay.io/openshift-pipeline/buildah:testing",
-					Command: []string{"buildah"},
-					Args:    []string{"push", "--layers", "--tls-verify=${inputs.params.verifyTLS}", "${outputs.resources.image.url}"},
+					Command: []string{
+						"buildah",
+					},
+					Args:    []string{
+						"push",
+						"--layers",
+						"--tls-verify=${inputs.params.verifyTLS}",
+						"${outputs.resources.image.url}",
+					},
 					VolumeMounts: []corev1.VolumeMount{
-						{MountPath: "/var/lib/containers", Name: "libcontainers"},
+						{
+							MountPath: "/var/lib/containers",
+							Name: "libcontainers"},
 					},
 					SecurityContext: &corev1.SecurityContext{
-						Privileged: new(bool),
+					 	Privileged: newBoolPtr(true),
 					},
 				},
 			},
@@ -120,4 +143,8 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 	// Set Component instance as the owner and controller
 	controllerutil.SetControllerReference(c, task, r.scheme)
 	return task, nil
+}
+
+func newBoolPtr(b bool) *bool {
+	return &b
 }

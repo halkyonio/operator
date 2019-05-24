@@ -41,8 +41,8 @@ kind: Component
 metadata:
   name: spring-boot-demo
 spec:
-  # Strategy used by the operator to install the kubernetes resources as DevMode = innerloop or BuidMode = outerloop
-  deploymentMode: innerloop 
+  # Strategy used by the operator to install the kubernetes resources as DevMode = dev or BuidMode = outerloop
+  deploymentMode: dev 
   # Runtime type that the operator will map with a docker image (java, node, ...)
   runtime: spring-boot
   version: 1.5.16
@@ -54,7 +54,7 @@ spec:
 ```
 
 When this `Custom resource` will be processed by the Kukernetes Api Server and published, then the `Component operator` will be notified and will execute different operations to create : 
-- For the `runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push a `uber jar` file compiled locally, 
+- For the `runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/dev/install.go#L56) and where we can push a `uber jar` file compiled locally, 
 - A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
 - `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
 
@@ -91,10 +91,10 @@ When this `Custom resource` will be processed by the Kukernetes Api Server and p
     name: my-spring-boot
   spec:
     runtime: spring-boot
-    deploymentMode: innerloop" | oc apply -f -
+    deploymentMode: dev" | oc apply -f -
   ```
 
-- Check if the `operator` has created the following kubernetes resources, part of the `innerloop` deployment mode
+- Check if the `operator` has created the following kubernetes resources, part of the `dev` deployment mode
   ```bash
   oc get all,pvc,component
   NAME                         READY     STATUS    RESTARTS   AGE

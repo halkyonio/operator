@@ -18,24 +18,30 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(c *v1alpha2.Component) (
 			Name:      taskS2iBuildahPusName,
 		},
 		Spec: v1alpha1.TaskRunSpec{
-			ServiceAccount: "build-bot",
+			ServiceAccount: serviceAccountName,
 			TaskRef: &v1alpha1.TaskRef{
 				Name: taskS2iBuildahPusName,
 			},
 			Inputs: v1alpha1.TaskRunInputs{
 				Params: []v1alpha1.Param{
 					{Name: "baseImage", Value: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"},
-					{Name: "baseImage", Value: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"},
-					{Name: "baseImage", Value: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"},
+					{Name: "verifyTLS", Value: "false"},
+					{Name: "contextFolder", Value: "/workspace"},
 				},
 				Resources: []v1alpha1.TaskResourceBinding{
 					{
-						Name: "baseImage",
+						Name: "workspace-git",
 						ResourceSpec: &v1alpha1.PipelineResourceSpec{
 							Type: "git",
 							Params: []v1alpha1.Param{
-								{Name: "revision", Value: "2.1.3-2"},
-								{Name: "url", Value: "https://github.com/snowdrop/rest-http-example"},
+								{
+									Name: "revision",
+									Value: "2.1.3-2",
+								},
+								{
+									Name: "url",
+									Value: "https://github.com/snowdrop/rest-http-example",
+								},
 							},
 						},
 					},
@@ -48,7 +54,11 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(c *v1alpha2.Component) (
 						ResourceSpec: &v1alpha1.PipelineResourceSpec{
 							Type: "image",
 							Params: []v1alpha1.Param{
-								{Name: "url", Value: "quay.io/snowdrop/spring-boot-example"},
+								{
+									Name: "url",
+									// OCP, OKD --> value: docker-registry.default.svc.cluster.local:5000/demo/spring-boot-example
+									Value: "kube-registry.kube-system.svc:5000/demo/spring-boot-example",
+								},
 							},
 						},
 					},

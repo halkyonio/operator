@@ -5,7 +5,7 @@ metadata:
   labels:
     app: my-spring-boot
 spec:
-  deploymentMode: innerloop
+  deploymentMode: dev
   runtime: spring-boot
   version: 1.5.16
   envs:

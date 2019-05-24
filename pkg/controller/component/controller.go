@@ -31,7 +31,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -43,12 +42,12 @@ const (
 	controllerName = "component-controller"
 
 	DEPLOYMENT            = "Deployment"
-	SERVICE               = "Capability"
+	SERVICE               = "Service"
+	SERVICEACCOUNT        = "ServiceAccount"
 	ROUTE                 = "Route"
 	INGRESS               = "Ingress"
-	IMAGESTREAM           = "ImageStream"
-	IMAGESTREAMLIST       = "ImageStreamList"
-	BUILDCONFIG           = "BuildConfig"
+	TASK         		  = "Task"
+	TASKRUN         	  = "TaskRun"
 	PERSISTENTVOLUMECLAIM = "PersistentVolumeClaim"
 )
 
@@ -75,18 +74,6 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	/** Watch for changes of child/secondary resources **/
-	//BuildConfig
-
-	isOpenshift, err := util.IsOpenshift(mgr.GetConfig())
-	if err != nil {
-		return err
-	}
-	if isOpenshift {
-		if err := watchBuildConfig(c); err != nil {
-			return err
-		}
-	}
-
 	//Deployment
 	if err := watchDeployment(c); err != nil {
 		return err
@@ -180,16 +167,20 @@ func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind str
 		return r.buildDeployment(instance)
 	case SERVICE:
 		return r.buildService(instance), nil
+	case SERVICEACCOUNT:
+		return r.buildServiceAccount(instance), nil
 	case ROUTE:
 		return r.buildRoute(instance), nil
 	case INGRESS:
 		return r.buildRoute(instance), nil
 	case PERSISTENTVOLUMECLAIM:
 		return r.buildPVC(instance), nil
-	case BUILDCONFIG:
-		return r.buildBuildConfig(instance)
+	case TASK:
+		return r.buildTaskS2iBuildahPush(instance)
+	case TASKRUN:
+		return r.buildTaskRunS2iBuildahPush(instance)
 	default:
-		msg := "Failed to recognize type of object" + kind + " into the Namespace " + instance.Namespace
+		msg := "Failed to recognize type of object " + kind + " into the Namespace " + instance.Namespace
 		panic(msg)
 	}
 }
@@ -248,12 +239,12 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	switch m := component.Spec.DeploymentMode; m {
-	case "innerloop":
+	case "dev":
 		if err := r.installDevMode(component, request.Namespace); err != nil {
 			r.reqLogger.Error(err, "Dev Mode creation failed")
 			return reconcile.Result{}, err
 		}
-	case "outerloop":
+	case "build":
 		if err := r.installBuildMode(component, request.Namespace); err != nil {
 			r.reqLogger.Error(err, "Build/Prod mode creation failed")
 			return reconcile.Result{}, err

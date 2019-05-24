@@ -29,9 +29,30 @@ import (
 
 func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) error {
 
-	// Create BuildConfig if it does not exists
-	if _, err := r.fetchBuildConfig(component); err != nil {
-		if _, err := r.create(component, BUILDCONFIG, err); err != nil {
+	// Create Task s2i Buildah Push if it does not exists
+	if _, err := r.fetchTaskS2iBuildPush(component); err != nil {
+		if _, err := r.create(component, TASK, err); err != nil {
+			return err
+		} else {
+			r.reqLogger.Info("Created Task - s2i Buildah Push")
+		}
+	}
+
+	// Create ServiceAccount used by the Task's pod if it does not exists
+	if _, err := r.fetchServiceAccount(component); err != nil {
+		if _, err := r.create(component, SERVICEACCOUNT, err); err != nil {
+			return err
+		} else {
+			r.reqLogger.Info("Created Service Account for TaskRun's pod")
+		}
+	}
+
+	// Change the status to mention that Build will start
+
+
+	// Create the TaskRun in order to trigger the build
+	if _, err := r.fetchTaskRunS2iBuildPush(component); err != nil {
+		if _, err := r.create(component, TASKRUN, err); err != nil {
 			return err
 		} else {
 			r.reqLogger.Info("Created BuildConfig")

@@ -3,10 +3,10 @@ package component
 import (
 	"context"
 	"fmt"
-	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -112,14 +112,36 @@ func (r *ReconcileComponent) fetchDeployment(instance *v1alpha2.Component) (*v1b
 	}
 }
 
-//fetchBuildConfig returns the build config resource created for this instance
-func (r *ReconcileComponent) fetchBuildConfig(instance *v1alpha2.Component) (*buildv1.BuildConfig, error) {
-	build := &buildv1.BuildConfig{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, build); err != nil {
-		r.reqLogger.Info("BuildConfig don't exist")
-		return build, err
+//fetchServiceAccount returns the service resource created for this instance
+func (r *ReconcileComponent) fetchServiceAccount(instance *v1alpha2.Component) (*corev1.ServiceAccount, error) {
+	serviceaccount := &corev1.ServiceAccount{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: serviceAccountName, Namespace: instance.Namespace}, serviceaccount); err != nil {
+		r.reqLogger.Info("ServiceAccount don't exist")
+		return serviceaccount, err
 	} else {
-		return build, nil
+		return serviceaccount, nil
+	}
+}
+
+//fetchTaskS2IBuildPush returns the build config resource created for this instance
+func (r *ReconcileComponent) fetchTaskS2iBuildPush(instance *v1alpha2.Component) (*tektonv1.Task, error) {
+	task := &tektonv1.Task{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: taskS2iBuildahPusName, Namespace: instance.Namespace}, task); err != nil {
+		r.reqLogger.Info("Task s2i Buildah Push don't exist")
+		return task, err
+	} else {
+		return task, nil
+	}
+}
+
+//fetchTaskRunS2IBuildPush returns the build config resource created for this instance
+func (r *ReconcileComponent) fetchTaskRunS2iBuildPush(instance *v1alpha2.Component) (*tektonv1.TaskRun, error) {
+	taskRun := &tektonv1.TaskRun{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: taskS2iBuildahPusName, Namespace: instance.Namespace}, taskRun); err != nil {
+		r.reqLogger.Info("Task s2i Buildah Push don't exist")
+		return taskRun, err
+	} else {
+		return taskRun, nil
 	}
 }
 

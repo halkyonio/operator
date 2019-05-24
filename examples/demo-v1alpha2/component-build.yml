@@ -5,7 +5,7 @@ metadata:
   labels:
     app: fruit-client-sb
 spec:
-  deploymentMode: outerloop
+  deploymentMode: build
   runtime: spring-boot
   version: 1.5.16
   envs:

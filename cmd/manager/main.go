@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
-	build "github.com/openshift/api/build/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -12,6 +11,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/spf13/pflag"
+	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"os"
 	"runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -97,7 +97,7 @@ func registerAdditionalResources(m manager.Manager) {
 	if err := route.Install(scheme); err != nil {
 		log.Error(err, "")
 	}
-	if err := build.Install(scheme); err != nil {
+	if err := tektonv1.AddToScheme(scheme); err != nil {
 		log.Error(err, "")
 	}
 	if err := image.Install(scheme); err != nil {

@@ -21,7 +21,7 @@ metadata:
               "name" : "fruit-client-sb"
             },
             "spec" : {
-              "deploymentMode" : "innerloop",
+              "deploymentMode" : "dev",
               "runtime" : "spring-boot",
               "version" : "1.5.15.RELEASE",
               "exposeService" : true,
@@ -62,7 +62,7 @@ metadata:
               "name" : "fruit-backend-sb"
             },
             "spec" : {
-              "deploymentMode" : "innerloop",
+              "deploymentMode" : "dev",
               "runtime" : "spring-boot",
               "version" : "1.5.15.RELEASE",
               "exposeService" : true,
@@ -119,7 +119,7 @@ spec:
     [Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha1/component_types.go#L11).
 
     When the CRD resource is consumed by the Kuke Api Server, then the `Component operator` will execute different operations to create :
-    - For the `runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push a `uber jar` file compiled locally,
+    - For the `runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/dev/install.go#L56) and where we can push a `uber jar` file compiled locally,
     - A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
     - `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
 
@@ -132,7 +132,7 @@ spec:
         metadata:
           name: fruit-backend
         spec:
-          deploymentMode: innerloop
+          deploymentMode: dev
           runtime: springboot
           version: 2.1.3
           exposeService: true
