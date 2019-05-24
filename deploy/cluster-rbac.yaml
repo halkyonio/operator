@@ -4,7 +4,7 @@ metadata:
   name: component-operator
 rules:
 - apiGroups:
-  - component.k8s.io
+  - devexp.runtime.redhat.com
   resources:
   - "*"
   verbs:

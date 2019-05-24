@@ -182,7 +182,7 @@ spec:
   customresourcedefinitions:
     owned:
     - kind: Component
-      name: components.component.k8s.io
+      name: components.devexp.runtime.redhat.com
       version: v1alpha1
       description: Component CRD
       displayName: Component CRD to compose applications on k8s, openshift
@@ -227,7 +227,7 @@ spec:
       clusterPermissions:
       - rules:
           - apiGroups:
-              - component.k8s.io
+              - devexp.runtime.redhat.com
             resources:
               - "*"
             verbs:
