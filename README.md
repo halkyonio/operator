@@ -26,7 +26,7 @@ Table of Contents
 The purpose of this project is to develop a Kubernetes `Custom Resource Definition` called `Component CRD` and [Kubernetes Operator](https://goo.gl/D8iE2K) able to install a Microservice Application such as `Spring Boot` on a cloud platform: `Kubernetes` or `OpenShift`
 or to deploy a Service using the help of Service Broker Catalog.
 
-The CRD contains `METADATA` information about the framework/language to be used to either :
+The CRD contains `METADATA` information about the framework/language to be used to either:
 - Configure the strategy that we want to adopt to code and install the application: `Development mode` or `Building/Prod mode`
 - Select the container image to be used to launch the application: java for `Spring Boot, Eclipse Vert.x, Thorntail`; node for `nodejs` 
 - Configure the microservice in order to inject `env var, secret, ...`
@@ -41,24 +41,24 @@ kind: Component
 metadata:
   name: spring-boot-demo
 spec:
-  # Strategy used by the operator to install the kubernetes resources as DevMode = dev or BuidMode = outerloop
-  deploymentMode: dev 
+  # Strategy used by the operator to install the Kubernetes resources as DevMode = dev or BuildMode = outerloop
+  deploymentMode: dev
   # Runtime type that the operator will map with a docker image (java, node, ...)
   runtime: spring-boot
   version: 1.5.16
-  # To been able to create a Kubernetes Ingress resource OR Openshift Route
+  # To been able to create a Kubernetes Ingress resource OR OpenShift Route
   exposeService: true
   envs:
     - name: SPRING_PROFILES_ACTIVE
       value: openshift-catalog
 ```
 
-When this `Custom resource` will be processed by the Kukernetes Api Server and published, then the `Component operator` will be notified and will execute different operations to create : 
-- For the `runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/dev/install.go#L56) and where we can push a `uber jar` file compiled locally, 
+When this `Custom resource` will be processed by the Kubernetes API Server and published, then the `Component operator` will be notified and will execute different operations to create:
+- For the `runtime` a development's pod running a `supervisor's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/dev/install.go#L56) and where we can push a `uber jar` file compiled locally, 
 - A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
 - `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
 
-**Remark** : The `Component` Operator can be deployed on `Kubernetes >= 1.11` or `OpenShift >= 3.11`.
+**Remark**: The `Component` Operator can be deployed on `Kubernetes >= 1.11` or `OpenShift >= 3.11`.
 
 ## For the users
 
@@ -70,7 +70,7 @@ When this `Custom resource` will be processed by the Kukernetes Api Server and p
   $ oc new-project component-operator
   ```
 
-- Deploy the resources : service account, rbac and crd definition
+- Deploy the resources: service account, rbac and crd definition
   ```bash
   $ oc create -f deploy/sa.yaml
   $ oc create -f deploy/rbac.yaml
@@ -160,7 +160,7 @@ In order to switch between the 2 modes, execute the following operations:
      app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
   ``` 
   
-  **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
+  **Remark**: When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
   
 - Patch the component when it has been deployed to switch from the `inner` to the `outer` deployment mode
   
@@ -208,10 +208,10 @@ Instructions followed to create the Component's CRD, operator using the `operato
   ```
   using the following parameters 
 
-  Name of the folder to be created : `component-operator`
-  Api Group Name   : `component.k8s.io`
-  Api Version      : `v1alpha2`
-  Kind of Resource : `Component` 
+  - Name of the folder to be created : `component-operator`
+  - Api Group Name   : `component.k8s.io`
+  - Api Version      : `v1alpha2`
+  - Kind of Resource : `Component`
 
 - Build and push the `component-operator` image to `quai.io`s registry
   ```bash
@@ -309,7 +309,7 @@ Next, subscribe to the `operator` by clicking on the button `install` of the `Co
 ![install operator](img/install-operator.png)
 ![subscribe operator](img/create-subscription.png)
 
-Wait a few moment and check if the pod of the operator has been created under the `openshift-operators` namespace.
+Wait a few moments and check if the pod of the operator has been created under the `openshift-operators` namespace.
 
     oc get -n openshift-operators pods
     NAME                                  READY     STATUS    RESTARTS   AGE
@@ -452,7 +452,7 @@ oc logs -n operators pod/component-operator-59cf6cf54-xk8mx
 
 ### How to install okd 3.11 using the OCP resources
 
-**Remark** : The OCP yaml resources are used to install olm, marketplace on ocp under `openshift-marketplace` and `openshift-operators` namespaces. They correspond or should correspond to what is deployed
+**Remark**: The OCP yaml resources are used to install olm, marketplace on ocp under `openshift-marketplace` and `openshift-operators` namespaces. They correspond or should correspond to what is deployed
 on OCP4 - AWS.
 
 Create an `oc cluster up` 3.11  and add `cluster-admin` role to the `admin` user
