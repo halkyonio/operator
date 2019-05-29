@@ -3,7 +3,6 @@ package component
 import (
 	"context"
 	"fmt"
-	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
@@ -73,31 +72,6 @@ func (r *ReconcileComponent) fetchService(instance *v1alpha2.Component) (*corev1
 		return service, err
 	} else {
 		return service, nil
-	}
-}
-
-//fetchImageStream returns the image stream resources created for this instance
-func (r *ReconcileComponent) fetchImageStream(instance *v1alpha2.Component, imageName string) (*imagev1.ImageStream, error) {
-	is := &imagev1.ImageStream{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: imageName, Namespace: instance.Namespace}, is); err != nil {
-		r.reqLogger.Info("Imagestream don't exist")
-		return is, err
-	} else {
-		return is, nil
-	}
-}
-
-//fetchImageStreamList returns the image stream resources created for this instance
-func (r *ReconcileComponent) fetchImageStreamList(instance *v1alpha2.Component) (*imagev1.ImageStreamList, error) {
-	l := &imagev1.ImageStreamList{}
-	lo := &client.ListOptions{}
-	lo.InNamespace(instance.Namespace)
-	lo.MatchingLabels(map[string]string{"app": instance.Name})
-	if err := r.client.List(context.TODO(), lo, l); err != nil {
-		r.reqLogger.Info("Imagestream don't exist")
-		return l, err
-	} else {
-		return l, nil
 	}
 }
 
