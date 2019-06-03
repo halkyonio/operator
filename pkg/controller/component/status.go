@@ -5,90 +5,74 @@ import (
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	// k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"reflect"
 )
 
-//updateStatus
-func (r *ReconcileComponent) updateStatus(podStatus *corev1.Pod, instance *v1alpha2.Component, request reconcile.Request) error {
-	if !r.isPodReady(podStatus) {
-		// err := fmt.Errorf("Failed to get Status = Ready for Pod created by the Component")
-		// r.reqLogger.Error(err, "One of the resources such as Pod is not yet ready")
-		r.reqLogger.Info("One of the resources such as Pod is not yet ready/running. Component status will not been updated yet")
+func (r *ReconcileComponent) setErrorStatus(instance *v1alpha2.Component, err error) {
+	instance.Status.Phase = v1alpha2.ComponentFailed
+	r.updateStatusWithMessage(instance, err.Error())
+}
+
+func (r *ReconcileComponent) updateStatusWithMessage(instance *v1alpha2.Component, msg string) {
+	// fetch latest version to avoid optimistic lock error
+	component, err := r.fetchLatestVersion(instance)
+	if err != nil {
+		r.reqLogger.Error(err, "failed to fetch latest version of component "+instance.Name)
+	}
+
+	component.Status.Phase = instance.Status.Phase
+	if len(msg) > 0 {
+		component.Status.Message = msg
+	}
+
+	err = r.client.Status().Update(context.TODO(), component)
+	if err != nil {
+		r.reqLogger.Error(err, "failed to update status for component "+component.Name)
+	}
+}
+
+func (r *ReconcileComponent) updateStatus(instance *v1alpha2.Component, phase v1alpha2.ComponentPhase) error {
+	// Get a more recent version of the CR
+	component, err := r.fetchLatestVersion(instance)
+	if err != nil {
+		return err
+	}
+
+	r.reqLogger.Info("updating component status")
+	pod, err := r.fetchPod(instance)
+	if err != nil || !r.isPodReady(pod) {
+		msg := fmt.Sprintf("pod is not ready for component '%s' in namespace '%s'", instance.Name, instance.Namespace)
+		r.reqLogger.Info(msg)
+		instance.Status.Phase = v1alpha2.ComponentPending
+		r.updateStatusWithMessage(instance, msg)
 		return nil
 	}
 
-	if instance.Status.Phase != v1alpha2.ComponentRunning {
-		// Get a more recent version of the CR
-		component, err := r.fetchComponent(request)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to get the Component")
-			return err
-		}
-
-		component.Status.Phase = v1alpha2.ComponentRunning
-		// Update the CR
-
-		err = r.client.Status().Update(context.TODO(), component)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Status of the Component")
-			return err
-		}
-		r.reqLogger.Info(fmt.Sprintf("Updating Component status to status %v", component.Status.Phase))
+	if pod.Name != instance.Status.PodName || !reflect.DeepEqual(pod.Status, instance.Status.PodStatus) {
+		component.Status.PodName = pod.Name
+		component.Status.PodStatus = pod.Status
 	}
-	return nil
-}
 
-//updateStatus
-func (r *ReconcileComponent) updateComponentStatus(instance *v1alpha2.Component, phase v1alpha2.ComponentPhase, request reconcile.Request) error {
-	if !reflect.DeepEqual(phase, instance.Status.Phase) {
-		// Get a more recent version of the CR
-		component, err := r.fetchComponent(request)
-		if err != nil {
-			return err
-		}
-
+	if phase != instance.Status.Phase {
 		component.Status.Phase = phase
-
-		err = r.client.Status().Update(context.TODO(), component)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Status of the Component")
-			return err
-		}
 	}
-	r.reqLogger.Info(fmt.Sprintf("Updating Component status to status %v", phase))
+
+	r.updateStatusWithMessage(component, "")
 	return nil
 }
 
-//updatePodStatus returns an error when when the Pod resource could not be updated
-func (r *ReconcileComponent) updatePodStatus(instance *v1alpha2.Component, request reconcile.Request) (*corev1.Pod, error) {
-	r.reqLogger.Info("Updating pod Status for the Component")
-	podStatus, err := r.fetchPod(instance)
+func (r *ReconcileComponent) fetchLatestVersion(instance *v1alpha2.Component) (*v1alpha2.Component, error) {
+	component, err := r.fetchComponent(reconcile.Request{
+		NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace},
+	})
 	if err != nil {
-		r.reqLogger.Info("No pod already exists for", "Component.Namespace", instance.Namespace, "Component.Name", instance.Name)
-		return podStatus, nil
+		r.reqLogger.Error(err, "failed to get the Component")
+		return nil, err
 	}
-
-	if !reflect.DeepEqual(podStatus.Name, instance.Status.PodName) || !reflect.DeepEqual(podStatus.Status, instance.Status.PodStatus) {
-		// Get a more recent version of the CR
-		component, err := r.fetchComponent(request)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to get the Component")
-			return podStatus, err
-		}
-
-		component.Status.PodName = podStatus.Name
-		component.Status.PodStatus = podStatus.Status
-
-		err = r.client.Status().Update(context.TODO(), component)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Pod Name and Pod Status for the Component")
-			return podStatus, err
-		}
-	}
-	return podStatus, nil
+	return component, nil
 }
 
 // Check if the Pod Condition is Type = Ready and Status = True

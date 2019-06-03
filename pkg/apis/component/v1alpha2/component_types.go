@@ -35,6 +35,8 @@ const (
 	// ComponentPending means the component has been accepted by the system, but it is still being processed. This includes time
 	// before being bound to a node, as well as time spent pulling images onto the host, building and wiring capabilities.
 	ComponentPending ComponentPhase = "Pending"
+	// ComponentReady means the component is ready to accept code pushes
+	ComponentReady ComponentPhase = "Ready"
 	// ComponentRunning means the component has been bound to a node and all of its dependencies are available. The component is
 	// able to process requests.
 	ComponentRunning ComponentPhase = "Running"

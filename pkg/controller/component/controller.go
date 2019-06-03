@@ -46,8 +46,8 @@ const (
 	SERVICEACCOUNT        = "ServiceAccount"
 	ROUTE                 = "Route"
 	INGRESS               = "Ingress"
-	TASK         		  = "Task"
-	TASKRUN         	  = "TaskRun"
+	TASK                  = "Task"
+	TASKRUN               = "TaskRun"
 	PERSISTENTVOLUMECLAIM = "PersistentVolumeClaim"
 )
 
@@ -232,41 +232,29 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	// Add the Status Component Creation when we process the first time the Component CR
 	// as we will start to create different resources
 	if component.Generation == 1 && component.Status.Phase == "" {
-		if err := r.updateComponentStatus(component, v1alpha2.ComponentPending, request); err != nil {
+		if err := r.updateStatus(component, v1alpha2.ComponentPending); err != nil {
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{}, err
 		}
 	}
 
-	switch m := component.Spec.DeploymentMode; m {
-	case "dev":
-		if err := r.installDevMode(component, request.Namespace); err != nil {
-			r.reqLogger.Error(err, "Dev Mode creation failed")
-			return reconcile.Result{}, err
-		}
-	case "build":
-		if err := r.installBuildMode(component, request.Namespace); err != nil {
-			r.reqLogger.Error(err, "Build/Prod mode creation failed")
-			return reconcile.Result{}, err
-		}
-	default:
-		if err := r.installDevMode(component, request.Namespace); err != nil {
-			r.reqLogger.Error(err, "Dev Mode creation failed")
-			return reconcile.Result{}, err
-		}
-	}
-
-	//Update Pod Status
-	podStatus, err := r.updatePodStatus(component, request)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	// Update status of the Component
-	if err := r.updateStatus(podStatus, component, request); err != nil {
-		return reconcile.Result{}, err
+	installFn := r.installDevMode
+	if "build" == component.Spec.DeploymentMode {
+		installFn = r.installBuildMode
 	}
 
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", component.Name))
-	return reconcile.Result{}, nil
+	return r.installAndUpdateStatus(component, request, installFn)
+}
+
+type installFnType func(component *v1alpha2.Component, namespace string) error
+
+func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Component, request reconcile.Request, install installFnType) (reconcile.Result, error) {
+	if err := install(component, request.Namespace); err != nil {
+		r.reqLogger.Error(err, "failed to install "+component.Spec.DeploymentMode+" mode")
+		r.setErrorStatus(component, err)
+		return reconcile.Result{}, err
+	}
+
+	return reconcile.Result{}, r.updateStatus(component, v1alpha2.ComponentReady)
 }
