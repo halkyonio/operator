@@ -1,10 +1,10 @@
 package component
 
 import (
+	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	routev1 "github.com/openshift/api/route/v1"
 )
 
 //buildRoute returns the route resource
@@ -22,8 +22,8 @@ func (r *ReconcileComponent) buildRoute(c *v1alpha2.Component) *routev1.Route {
 		},
 		Spec: routev1.RouteSpec{
 			To: routev1.RouteTargetReference{
-				Kind: "Capability",
-				Name: c.Name ,
+				Kind: "Service",
+				Name: c.Name,
 			},
 		},
 	}
