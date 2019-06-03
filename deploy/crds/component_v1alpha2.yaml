@@ -45,3 +45,6 @@ spec:
   - name: Status
     type: string
     JSONPath: .status.phase
+  - name: Message
+    type: string
+    JSONPath: .status.message

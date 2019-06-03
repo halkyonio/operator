@@ -55,6 +55,7 @@ type ComponentStatus struct {
 	Phase     ComponentPhase `json:"phase,omitempty"`
 	PodName   string         `json:"podName"`
 	PodStatus v1.PodStatus   `json:"podStatus"`
+	Message   string         `json:"message"`
 }
 
 type Storage struct {
