@@ -3,8 +3,12 @@ module github.com/snowdrop/component-operator
 go 1.12
 
 require (
+	github.com/Azure/azure-sdk-for-go v30.0.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.1.0 // indirect
+	github.com/Azure/go-autorest/autorest/to v0.2.0 // indirect
+	github.com/Azure/go-autorest/autorest/validation v0.1.0 // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
+	github.com/aws/aws-sdk-go v1.19.41 // indirect
 	github.com/beorn7/perks v1.0.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
@@ -15,6 +19,7 @@ require (
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/google/btree v1.0.0 // indirect
+	github.com/google/go-containerregistry v0.0.0-20190531175139-2687bd5ba651 // indirect
 	github.com/google/gofuzz v1.0.0 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
@@ -34,7 +39,6 @@ require (
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/openshift/api v0.0.0-20190322043348-8741ff068a47
-	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/operator-framework/operator-sdk v0.7.0
 	github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -69,12 +73,13 @@ require (
 	k8s.io/apiextensions-apiserver v0.0.0-20181126155829-0cd23ebeb688 // indirect
 	k8s.io/apimachinery v0.0.0-20181126123746-eddba98df674
 	k8s.io/client-go v0.0.0-20181126152608-d082d5923d3c
-	k8s.io/code-generator v0.0.0-20190311093542-50b561225d70
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/helm v2.13.1+incompatible // indirect
 	k8s.io/klog v0.3.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20190502190224-411b2483e503 // indirect
+	k8s.io/kubernetes v1.14.2 // indirect
 	sigs.k8s.io/controller-runtime v0.1.9
 	sigs.k8s.io/controller-tools v0.1.10 // indirect
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
+	sigs.k8s.io/yaml v1.1.0 // indirect
 )
