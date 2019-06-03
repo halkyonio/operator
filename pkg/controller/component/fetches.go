@@ -27,7 +27,7 @@ func (r *ReconcileComponent) fetch(err error) (reconcile.Result, error) {
 	return reconcile.Result{}, err
 }
 
-func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha2.Component, error){
+func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha2.Component, error) {
 	component := &v1alpha2.Component{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
 	return component, err
@@ -54,11 +54,11 @@ func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod
 		r.reqLogger.Info("Pod(s) don't exist")
 		return &corev1.Pod{}, err
 	} else {
-		// We assume that there is only one Pod containing the label app=component anem AND we return it
-		if (len(pods.Items) > 0) {
+		// We assume that there is only one Pod containing the label app=component name AND we return it
+		if len(pods.Items) > 0 {
 			return &pods.Items[0], nil
 		} else {
-			err := fmt.Errorf("Failed to get The Pod created for the Component")
+			err := fmt.Errorf("failed to get pod created for the component")
 			return &corev1.Pod{}, err
 		}
 	}
