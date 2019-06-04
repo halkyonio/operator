@@ -69,7 +69,7 @@ jobs:
   okd-test:
     machine: true
     steps:
-    - checkout
+    - checkout "component-operator-project"
     - openshift/launch_openshift_311
     - run:
         name: Deploy the operator
@@ -93,7 +93,7 @@ jobs:
           echo "${GO_PATH_FIRST}"
           PROJECT_PATH=src/github.com/snowdrop/component-operator
           mkdir -p ${GO_PATH_FIRST}/${PROJECT_PATH}
-          cp -R ${CIRCLE_WORKING_DIRECTORY}/* ${GO_PATH_FIRST}/${PROJECT_PATH}
+          cp -R ${CIRCLE_WORKING_DIRECTORY}/component-operator-project/* ${GO_PATH_FIRST}/${PROJECT_PATH}
 
     - run:
         name: Perform E2E tests
