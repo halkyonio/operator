@@ -64,7 +64,7 @@ jobs:
   # Steps
   # - Checkout the git project
   # - Download and start okd, kubectl tools
-  # - Launch okd, grand cluster admin role to the admin user
+  # - Launch okd, grant cluster admin role to the admin user
   # - Deploy the operator
   okd-test:
     machine: true
