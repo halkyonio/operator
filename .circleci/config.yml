@@ -69,33 +69,28 @@ jobs:
   okd-test:
     machine: true
     steps:
-    - checkout:
-        path: "component-operator-project"
+#    - checkout:
+#        path: "component-operator-project"
     - openshift/launch_openshift_311
+    - run:
+        name: Install go and retrieve project code
+        command: |
+          GO_VERSION=1.12.5
+          sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
+          curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go"${GO_VERSION}".linux-amd64.tar.gz
+          go get -u github.com/snowdrop/component-operator
     - run:
         name: Deploy the operator
         command: |
-          sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
-          curl -O https://dl.google.com/go/go1.12.5.linux-amd64.tar.gz
-          sudo tar -C /usr/local -xzf go1.12.5.linux-amd64.tar.gz
           oc login -u admin -p admin
           oc new-project component-operator
+          ls "${CIRCLE_WORKING_DIRECTORY}"
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/sa.yaml
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-rbac.yaml
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component_v1alpha2.yaml
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/examples/operator.yaml
-
-    - run:
-        name: Copy cloned project under GOPATH to let go to use project's vendor folder
-        command: |
-          CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
-          GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
-          echo "${GO_PATH_FIRST}"
-          PROJECT_PATH=src/github.com/snowdrop/component-operator
-          mkdir -p ${GO_PATH_FIRST}/${PROJECT_PATH}
-          cp -R ${CIRCLE_WORKING_DIRECTORY}/component-operator-project/* ${GO_PATH_FIRST}/${PROJECT_PATH}
-
     - run:
         name: Perform E2E tests
         command: |
