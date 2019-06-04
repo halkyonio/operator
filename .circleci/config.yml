@@ -69,12 +69,14 @@ jobs:
   okd-test:
     machine: true
     steps:
-#    - checkout:
-#        path: "component-operator-project"
+    - checkout:
+        path: "component-operator-project"
     - run:
         name: Install go and retrieve project code
         command: |
-          go get -d github.com/snowdrop/component-operator
+          ls -la $HOME
+          ls -la $GOPATH/src/
+          exit 1
 #          GO_VERSION=1.12.5
 #          sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
 #          curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
