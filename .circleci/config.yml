@@ -75,7 +75,7 @@ jobs:
         name: Install go and retrieve project code
         command: |
           ls -la $HOME
-          ls -la $GOPATH/src/
+          echo $GOPATH
           exit 1
 #          GO_VERSION=1.12.5
 #          sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
