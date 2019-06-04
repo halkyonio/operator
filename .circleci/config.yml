@@ -69,7 +69,8 @@ jobs:
   okd-test:
     machine: true
     steps:
-    - checkout "component-operator-project"
+    - checkout:
+        path: "component-operator-project"
     - openshift/launch_openshift_311
     - run:
         name: Deploy the operator
