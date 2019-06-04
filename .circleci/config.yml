@@ -73,7 +73,6 @@ jobs:
     - run:
         name: Install go and retrieve project code
         command: |
-          ls -la $HOME/project
           GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
           PROJECT_PATH=src/github.com/snowdrop/component-operator
           mkdir -p "${GO_PATH_FIRST}/${PROJECT_PATH}"
@@ -88,7 +87,6 @@ jobs:
         command: |
           oc login -u admin -p admin
           oc new-project component-operator
-          ls "${CIRCLE_WORKING_DIRECTORY}"
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/sa.yaml
           oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-rbac.yaml
