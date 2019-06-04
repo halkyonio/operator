@@ -23,8 +23,6 @@ spec:
           - component-operator
           imagePullPolicy: Always
           env:
-            - name: WATCH_NAMESPACE
-              value:
             - name: POD_NAME
               valueFrom:
                 fieldRef:
