@@ -31,11 +31,6 @@ jobs:
     - run:
         name: Build go operator
         command: |
-          go get github.com/shurcooL/vfsgen
-          go get github.com/mitchellh/gox
-          go get golang.org/x/lint/golint
-          curl -L https://raw.githubusercontent.com/kubernetes-sigs/kubebuilder/master/scripts/install.sh | sh -
-          export PATH=$PATH:/usr/local/kubebuilder/bin
           make build
           make test
           make cross
@@ -56,9 +51,6 @@ jobs:
     - run:
         name: Build go operator and generate docker image
         command: |
-          go get github.com/shurcooL/vfsgen
-          go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
-          go get github.com/mitchellh/gox
           VERSION=master
           make build-linux
           docker build -t component-operator:${VERSION} -f build/Dockerfile .
@@ -160,11 +152,6 @@ jobs:
           tagRE='release-(.*)'
           if [[ "${CIRCLE_TAG}" =~ ${tagRE} ]]; then
             VERSION=${BASH_REMATCH[1]}
-
-            export GO111MODULE="on"
-            go get github.com/shurcooL/vfsgen
-            go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
-            go get github.com/mitchellh/gox
 
             make build-linux
             
