@@ -77,7 +77,7 @@ jobs:
           GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
           PROJECT_PATH=src/github.com/snowdrop/component-operator
           mkdir -p "${GO_PATH_FIRST}/${PROJECT_PATH}"
-          mv project/* ${GO_PATH_FIRST}/${PROJECT_PATH}
+          cp -R project/* ${GO_PATH_FIRST}/${PROJECT_PATH}
           GO_VERSION=1.12.5
           sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
           curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
