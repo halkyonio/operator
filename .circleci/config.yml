@@ -79,7 +79,7 @@ jobs:
           sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
           curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf go"${GO_VERSION}".linux-amd64.tar.gz
-          go get -u github.com/snowdrop/component-operator
+          go get github.com/snowdrop/component-operator
     - run:
         name: Deploy the operator
         command: |
