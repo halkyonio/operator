@@ -72,18 +72,16 @@ jobs:
 #    - checkout:
 #        path: "component-operator-project"
     - run:
-      name: Install go and retrieve project code
-      command: |
-        which go
-        ls -la "$(which go)"
-        go version
-        go get github.com/snowdrop/component-operator
-
-#            GO_VERSION=1.12.5
-#            sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
-#            curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
-#            sudo tar -C /usr/local -xzf go"${GO_VERSION}".linux-amd64.tar.gz
-
+        name: Install go and retrieve project code
+        command: |
+          which go
+          ls -la "$(which go)"
+          go version
+          go get github.com/snowdrop/component-operator
+#          GO_VERSION=1.12.5
+#          sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
+#          curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
+#          sudo tar -C /usr/local -xzf go"${GO_VERSION}".linux-amd64.tar.gz
     - openshift/launch_openshift_311
     - run:
         name: Deploy the operator
