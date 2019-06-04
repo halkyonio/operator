@@ -37,6 +37,7 @@ cross: clean
 
 .PHONY: generate-api
 generate-api:
+	@echo "> Updating generated code"
 	./scripts/update-gen.sh
 
 .PHONY: format
