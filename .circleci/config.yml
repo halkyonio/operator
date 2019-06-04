@@ -69,20 +69,19 @@ jobs:
   okd-test:
     machine: true
     steps:
-    - checkout:
-        path: "$HOME/component-operator"
+    - checkout
     - run:
         name: Install go and retrieve project code
         command: |
           ls -la $HOME
           GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
           PROJECT_PATH=src/github.com/snowdrop/component-operator
-          mv component-operator/* ${GO_PATH_FIRST}/${PROJECT_PATH}
-          exit 1
-#          GO_VERSION=1.12.5
-#          sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
-#          curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
-#          sudo tar -C /usr/local -xzf go"${GO_VERSION}".linux-amd64.tar.gz
+          mkdir -p "${GO_PATH_FIRST}/${PROJECT_PATH}"
+          mv project/* ${GO_PATH_FIRST}/${PROJECT_PATH}
+          GO_VERSION=1.12.5
+          sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
+          curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go"${GO_VERSION}".linux-amd64.tar.gz
     - openshift/launch_openshift_311
     - run:
         name: Deploy the operator
