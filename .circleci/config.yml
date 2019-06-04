@@ -10,10 +10,10 @@ orbs:
 
 executors:
   go-executor:
+    environment:
+      GO111MODULE: "on"
     docker:
-    - image: circleci/golang:1.12
-      environment:
-        GO111MODULE: "on"
+      - image: circleci/golang:1.12.5
     working_directory: /go/src/github.com/snowdrop/component-operator
 
 jobs:
@@ -24,12 +24,7 @@ jobs:
   # - Build the go operator
   # - Execute local tests using kubebuilder envtests which runs locally a Kube API and etcd servers
   build:
-    # executor: go-executor
-    docker:
-    - image: circleci/golang:1.12
-      environment:
-        GO111MODULE: "on"
-    working_directory: /go/src/github.com/snowdrop/component-operator
+    executor: go-executor
 
     steps:
     - checkout
@@ -52,11 +47,7 @@ jobs:
   # - Build the go operator
   # - Create the docker image of the operator and publish it on quay
   docker-image:
-    docker:
-    - image: circleci/golang:1.12
-      environment:
-        GO111MODULE: "on"
-    working_directory: /go/src/github.com/snowdrop/component-operator
+    executor: go-executor
 
     steps:
     - checkout
@@ -126,11 +117,7 @@ jobs:
 
   # Creates a github release and pushes all the assets
   release:
-    docker:
-      - image: circleci/golang:1.12
-        environment:
-          GO111MODULE: "on"
-    working_directory: /go/src/github.com/snowdrop/component-operator
+    executor: go-executor
 
     steps:
     - checkout
@@ -161,11 +148,7 @@ jobs:
 
   # Creates a docker image from a github release
   docker-image-release:
-    docker:
-      - image: circleci/golang:1.12
-        environment:
-          GO111MODULE: "on"
-    working_directory: /go/src/github.com/snowdrop/component-operator
+    executor: go-executor
 
     steps:
     - checkout
