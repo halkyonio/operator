@@ -58,6 +58,7 @@ jobs:
           docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
           docker login quay.io -u="${QUAY_ROBOT_USER}" -p="${QUAY_ROBOT_TOKEN}"
           docker push quay.io/snowdrop/component-operator:${VERSION}
+          docker push quay.io/snowdrop/component-operator:latest
 
   # Steps
   # - Checkout the git project
