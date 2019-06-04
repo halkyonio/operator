@@ -88,7 +88,10 @@ jobs:
     - run:
         name: Copy cloned project under GOPATH to let go to use project's vendor folder
         command: |
+          echo "before ${CIRCLE_WORKING_DIRECTORY}"
+          echo "home: ${HOME}"
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
+          echo "after ${CIRCLE_WORKING_DIRECTORY}"
           GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
           PROJECT_PATH=src/github.com/snowdrop/component-operator
           mkdir -p ${GO_PATH_FIRST}/${PROJECT_PATH}
