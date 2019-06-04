@@ -15,7 +15,7 @@ spec:
       serviceAccountName: component-operator
       containers:
         - name: component-operator
-          image: quay.io/snowdrop/component-operator:master
+          image: quay.io/snowdrop/component-operator:latest
           ports:
           - containerPort: 60000
             name: metrics
