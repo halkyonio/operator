@@ -5,11 +5,8 @@ set -o nounset
 set -o pipefail
 
 TMP_DIR=$(mktemp -d)
-CURRENT_DIR=$PWD
 KIND=component
 API_VERSION=v1alpha2
-GEN_FILE=zz_generated.deepcopy.go
-GEN_FILE_PATH=${KIND}/${API_VERSION}/${GEN_FILE}
 
 cleanup() {
   rm -rf "${TMP_DIR}"
@@ -22,8 +19,9 @@ cleanup
 # borrowed and modified from https://github.com/heptio/contour/pull/1010.
 export GO111MODULE=on
 VERSION=$(go list -m all | grep k8s.io/code-generator | rev | cut -d"-" -f1 | cut -d" " -f1 | rev)
-git clone https://github.com/kubernetes/code-generator.git ${TMP_DIR}
-(cd ${TMP_DIR} && git reset --hard ${VERSION} && go mod init)
+echo "Using ${VERSION} of k8s code generator"
+git clone https://github.com/kubernetes/code-generator.git "${TMP_DIR}"
+(cd "${TMP_DIR}" && git reset --hard "${VERSION}" && go mod init)
 
 # Usage: generate-groups.sh <generators> <output-package> <apis-package> <groups-versions> ...
 #
@@ -40,12 +38,13 @@ git clone https://github.com/kubernetes/code-generator.git ${TMP_DIR}
 #   generate-groups.sh deepcopy,client github.com/example/project/pkg/client github.com/example/project/pkg/apis "foo:v1 bar:v1alpha1,v1beta1"
 
 
-${TMP_DIR}/generate-groups.sh deepcopy,client \
+"${TMP_DIR}"/generate-groups.sh deepcopy,client \
   github.com/snowdrop/component-operator/pkg/apis \
   github.com/snowdrop/component-operator/pkg/apis \
   ${KIND}:${API_VERSION} \
-  --go-header-file ${TMP_DIR}/hack/boilerplate.go.txt
+  --go-header-file "${TMP_DIR}"/hack/boilerplate.go.txt
 
 # NOT NEEDED IF WE INSTALL THE PROJECT UNDER GOPATH AND THAT WE SET GO111MODULE=on
 # export GO111MODULE=on
+# GEN_FILE_PATH=${KIND}/${API_VERSION}/${GEN_FILE}
 # cp $GOPATH/src/github.com/snowdrop/component-operator/pkg/apis/${GEN_FILE_PATH} $CURRENT_DIR/pkg/apis/${GEN_FILE_PATH}
