@@ -88,7 +88,7 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 			}
 		} else {
 			// Create an Ingress resource
-			if _, err := r.fetchRoute(component); err != nil {
+			if _, err := r.fetchIngress(component); err != nil {
 				if _, err := r.create(component, INGRESS, err); err != nil {
 					return err
 				}

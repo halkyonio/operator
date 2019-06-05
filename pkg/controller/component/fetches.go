@@ -44,6 +44,17 @@ func (r *ReconcileComponent) fetchRoute(instance *v1alpha2.Component) (*routev1.
 	}
 }
 
+//fetchIngress returns the k8s Ingress resource created for this instance
+func (r *ReconcileComponent) fetchIngress(instance *v1alpha2.Component) (*v1beta1.Ingress, error) {
+	ingress := &v1beta1.Ingress{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, ingress); err != nil {
+		r.reqLogger.Info("Ingress route don't exist")
+		return ingress, err
+	} else {
+		return ingress, nil
+	}
+}
+
 //fetchPod returns the pod resource created for this instance and where label app=component name
 func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod, error) {
 	pods := &corev1.PodList{}
