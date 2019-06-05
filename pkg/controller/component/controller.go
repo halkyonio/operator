@@ -172,7 +172,7 @@ func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind str
 	case ROUTE:
 		return r.buildRoute(instance), nil
 	case INGRESS:
-		return r.buildRoute(instance), nil
+		return r.buildIngress(instance), nil
 	case PERSISTENTVOLUMECLAIM:
 		return r.buildPVC(instance), nil
 	case TASK:
