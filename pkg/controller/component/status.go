@@ -24,9 +24,7 @@ func (r *ReconcileComponent) updateStatusWithMessage(instance *v1alpha2.Componen
 	}
 
 	component.Status.Phase = instance.Status.Phase
-	if len(msg) > 0 {
-		component.Status.Message = msg
-	}
+	component.Status.Message = msg
 
 	err = r.client.Status().Update(context.TODO(), component)
 	if err != nil {
