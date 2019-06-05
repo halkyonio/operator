@@ -2,10 +2,10 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	v1beta1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
 )
 
 //buildIngress returns the Ingress resource
@@ -13,8 +13,8 @@ func (r *ReconcileComponent) buildIngress(c *v1alpha2.Component) *v1beta1.Ingres
 	ls := r.getAppLabels(c.Name)
 	route := &v1beta1.Ingress{
 		TypeMeta: v1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Route",
+			APIVersion: "networking.k8s.io/v1beta1",
+			Kind:       "Ingress",
 		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      c.Name,
