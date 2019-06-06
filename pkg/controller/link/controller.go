@@ -110,7 +110,7 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 		if err != nil {
 			r.reqLogger.Info("Component not found")
 			// TODO Update status of the link to report the error
-			return reconcile.Result{}, nil
+			return reconcile.Result{Requeue:true}, nil
 		}
 
 		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
