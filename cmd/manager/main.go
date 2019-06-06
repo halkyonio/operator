@@ -70,6 +70,7 @@ func main() {
 	options := manager.Options{}
 	if found {
 		options.Namespace = namespace
+		log.Info("watching namespace " + namespace)
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
@@ -92,8 +93,6 @@ func main() {
 		log.Error(err, "")
 		os.Exit(1)
 	}
-
-	log.Info("Starting the Cmd.")
 
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
