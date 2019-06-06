@@ -14,7 +14,7 @@ where `VERSION` corresponds to a string starting with the prefix `release-` and 
 Example
 
 ```bash
-./script/tag_release_manually.sh  aaaabbbbcccccdddddeeeeeffff release-0.0.1
+./scripts/tag_release_manually.sh  aaaabbbbcccccdddddeeeeeffff release-0.0.1
 ```
 
 This will cause `CircleCI` to perform a build/release and will create a GitHub release named `0.0.x`
@@ -29,14 +29,14 @@ which is published on `quay.io`.
 
 When the process terminates, the temporary release and tag created under GitHub (`release-0.0.1` in the example above) are automatically deleted using
 
-`./script/delete_release_manually.sh GITHUB_API_TOKEN VERSION`
+`./scripts/delete_release_manually.sh GITHUB_API_TOKEN VERSION`
 
 If for whatever reason you want to delete a tag/release manually, here is an example:
 
 Example
 
 ```bash
-./script/delete_release_manually.sh aaaabbbbcccccdddddeeeeeffff release-0.0.1
+./scripts/delete_release_manually.sh aaaabbbbcccccdddddeeeeeffff release-0.0.1
 ```
 
    
