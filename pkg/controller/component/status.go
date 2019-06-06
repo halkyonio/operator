@@ -18,17 +18,19 @@ func (r *ReconcileComponent) setErrorStatus(instance *v1alpha2.Component, err er
 
 func (r *ReconcileComponent) updateStatusWithMessage(instance *v1alpha2.Component, msg string) {
 	// fetch latest version to avoid optimistic lock error
-	component, err := r.fetchLatestVersion(instance)
+	current, err := r.fetchLatestVersion(instance)
 	if err != nil {
 		r.reqLogger.Error(err, "failed to fetch latest version of component "+instance.Name)
 	}
 
-	component.Status.Phase = instance.Status.Phase
-	component.Status.Message = msg
+	current.Status.PodName = instance.Status.PodName
+	current.Status.PodStatus = instance.Status.PodStatus
+	current.Status.Phase = instance.Status.Phase
+	current.Status.Message = msg
 
-	err = r.client.Status().Update(context.TODO(), component)
+	err = r.client.Status().Update(context.TODO(), current)
 	if err != nil {
-		r.reqLogger.Error(err, "failed to update status for component "+component.Name)
+		r.reqLogger.Error(err, "failed to update status for component "+current.Name)
 	}
 }
 
