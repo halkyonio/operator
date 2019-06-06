@@ -155,7 +155,7 @@ jobs:
 
             make build-linux
             
-            docker build -t component-operator:${VERSION} -f deploy/docker/Dockerfile .
+            docker build -t component-operator:${VERSION} -f build/Dockerfile .
             TAG_ID=$(docker images -q component-operator:${VERSION})
             docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
             docker tag ${TAG_ID} quay.io/snowdrop/component-operator:latest
