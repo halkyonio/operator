@@ -140,7 +140,7 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	if !service.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is being deleted
 		if r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
-			// our finalizer is present, so lets handle our external dependency
+			// our finalizer is present, so let's handle our external dependency
 			if service.Spec.Name != "" {
 				// TODO Call action to remove
 				// r.reqLogger.Info("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
@@ -155,7 +155,7 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 				return reconcile.Result{Requeue: true}, nil
 			}
 		}
-		r.reqLogger.Info("Reconciled Component %s, namespace %s", request.Name, request.Namespace)
+		r.reqLogger.Info(fmt.Sprintf("Deleted capability %s, namespace %s", request.Name, request.Namespace))
 		return reconcile.Result{}, nil
 	}
 
