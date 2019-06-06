@@ -28,6 +28,12 @@ rules:
   verbs:
   - get
 - apiGroups:
+    - extensions
+  resources:
+    - deployments
+  verbs:
+    - "*"
+- apiGroups:
   - apps
   resources:
   - deployments
