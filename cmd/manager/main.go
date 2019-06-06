@@ -21,6 +21,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
 
+const (
+	// WatchNamespaceEnvVar holds the name of the env variable containing the name of the namespace to watch for components
+	// If left empty, the operator will watch all namespaces
+	WatchNamespaceEnvVar = "WATCH_NAMESPACE"
+)
+
 var (
 	Version   = "Unset"
 	GitCommit = "HEAD"
@@ -59,8 +65,15 @@ func main() {
 
 	printVersion()
 
+	// check if we want to watch a single namespace
+	namespace, found := os.LookupEnv(WatchNamespaceEnvVar)
+	options := manager.Options{}
+	if found {
+		options.Namespace = namespace
+	}
+
 	// Create a new Cmd to provide shared dependencies and start components
-	mgr, err := manager.New(config.GetConfigOrDie(), manager.Options{})
+	mgr, err := manager.New(config.GetConfigOrDie(), options)
 	if err != nil {
 		log.Error(err, "")
 	}
