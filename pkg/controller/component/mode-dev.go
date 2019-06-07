@@ -18,6 +18,7 @@ limitations under the License.
 package component
 
 import (
+	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -64,7 +65,7 @@ func (r *ReconcileComponent) isTargetClusterRunningOpenShift() bool {
 	return *r.onOpenShift
 }
 
-func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, namespace string) error {
+func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, namespace string) (bool, error) {
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
@@ -73,61 +74,46 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 		component.Spec.Port = 8080 // Add a default port if empty
 	}
 
-	// Specify the default Storage data - value
-	component.Spec.Storage.Capacity = "1Gi"
-	component.Spec.Storage.Mode = "ReadWriteOnce"
-	component.Spec.Storage.Name = "m2-data-" + component.Name
-
 	// Enrich Env Vars with Default values
 	r.populateEnvVar(component)
 
-	// Install common resources
-
 	// Create PVC if it does not exists
-	if _, err := r.fetchPVC(component); err != nil {
-		if _, err := r.create(component, PERSISTENTVOLUMECLAIM, err); err != nil {
-			return err
-		}
-		r.reqLogger.Info("Created pvc", "Name", component.Spec.Storage.Name, "Capacity", component.Spec.Storage.Capacity, "Mode", component.Spec.Storage.Mode)
-
+	hasChanges := newFalse()
+	if e := r.createAndCheckForChanges(component, &corev1.PersistentVolumeClaim{}, hasChanges); e != nil {
+		return false, e
 	}
 
 	// Create Deployment if it does not exists
-	if _, err := r.fetchDeployment(component); err != nil {
-		if _, err := r.create(component, DEPLOYMENT, err); err != nil {
-			return err
-		} else {
-			r.reqLogger.Info("Created deployment")
-		}
+	if e := r.createAndCheckForChanges(component, &appsv1.Deployment{}, hasChanges); e != nil {
+		return false, e
 	}
 
-	if _, err := r.fetchService(component); err != nil {
-		if _, err := r.create(component, SERVICE, err); err != nil {
-			return err
-		}
-		r.reqLogger.Info("Created service", "Spec port", component.Spec.Port)
+	if e := r.createAndCheckForChanges(component, &corev1.Service{}, hasChanges); e != nil {
+		return false, e
 	}
 
 	if component.Spec.ExposeService {
 		if r.isTargetClusterRunningOpenShift() {
 			// Create an OpenShift Route
-			if _, err := r.fetchRoute(component); err != nil {
-				if _, err := r.create(component, ROUTE, err); err != nil {
-					return err
-				}
-				r.reqLogger.Info("Create route", "Spec port", component.Spec.Port)
+			if e := r.createAndCheckForChanges(component, &routev1.Route{}, hasChanges); e != nil {
+				return false, e
 			}
 		} else {
 			// Create an Ingress resource
-			if _, err := r.fetchIngress(component); err != nil {
-				if _, err := r.create(component, INGRESS, err); err != nil {
-					return err
-				}
-				r.reqLogger.Info("Created ingress", "Port", component.Spec.Port)
+			if e := r.createAndCheckForChanges(component, &v1beta1.Ingress{}, hasChanges); e != nil {
+				return false, e
 			}
 		}
 	}
 
-	r.reqLogger.Info("Deploying Component")
+	return *hasChanges, nil
+}
+
+func (r *ReconcileComponent) createAndCheckForChanges(component *v1alpha2.Component, kind runtime.Object, hasChanges *bool) error {
+	created, err := r.createIfNeeded(component, kind)
+	if err != nil {
+		return err
+	}
+	*hasChanges = created || *hasChanges
 	return nil
 }

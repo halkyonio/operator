@@ -20,17 +20,23 @@ package component
 import (
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"golang.org/x/net/context"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	"strconv"
-
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strconv"
 
+	routev1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -40,15 +46,6 @@ import (
 
 const (
 	controllerName = "component-controller"
-
-	DEPLOYMENT            = "Deployment"
-	SERVICE               = "Service"
-	SERVICEACCOUNT        = "ServiceAccount"
-	ROUTE                 = "Route"
-	INGRESS               = "Ingress"
-	TASK                  = "Task"
-	TASKRUN               = "TaskRun"
-	PERSISTENTVOLUMECLAIM = "PersistentVolumeClaim"
 )
 
 var log = logf.Log.WithName("component.controller")
@@ -135,13 +132,47 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		},
 	}
 
-	return &ReconcileComponent{
-		client:        mgr.GetClient(),
-		config:        mgr.GetConfig(),
-		scheme:        mgr.GetScheme(),
-		reqLogger:     log,
-		runtimeImages: images,
-		supervisor:    &supervisor,
+	r := &ReconcileComponent{
+		client:             mgr.GetClient(),
+		config:             mgr.GetConfig(),
+		scheme:             mgr.GetScheme(),
+		reqLogger:          log,
+		runtimeImages:      images,
+		supervisor:         &supervisor,
+		dependentResources: make(map[string]dependentResource, 11),
+	}
+
+	r.addDependentResource(&corev1.PersistentVolumeClaim{}, r.buildPVC, func(c *v1alpha2.Component) string {
+		specified := c.Spec.Storage.Name
+		if len(specified) > 0 {
+			return specified
+		}
+		return "m2-data-" + c.Name
+	})
+	r.addDependentResource(&appsv1.Deployment{}, r.buildDeployment, defaultNamer)
+	r.addDependentResource(&corev1.Service{}, r.buildService, defaultNamer)
+	r.addDependentResource(&corev1.ServiceAccount{}, r.buildServiceAccount, func(c *v1alpha2.Component) string {
+		return serviceAccountName
+	})
+	r.addDependentResource(&routev1.Route{}, r.buildRoute, defaultNamer)
+	r.addDependentResource(&v1beta1.Ingress{}, r.buildIngress, defaultNamer)
+	taskNamer := func(c *v1alpha2.Component) string {
+		return taskS2iBuildahPusName
+	}
+	r.addDependentResource(&v1alpha1.Task{}, r.buildTaskS2iBuildahPush, taskNamer)
+	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, taskNamer)
+
+	return r
+}
+
+func (r *ReconcileComponent) addDependentResource(res runtime.Object, buildFn builder, nameFn namer) {
+	key, kind := getKeyAndKindFor(res)
+	r.dependentResources[key] = dependentResource{
+		build:     buildFn,
+		name:      nameFn,
+		prototype: res,
+		fetch:     r.genericFetcher,
+		kind:      kind,
 	}
 }
 
@@ -150,61 +181,82 @@ type imageInfo struct {
 	defaultEnv  map[string]string
 }
 
-type ReconcileComponent struct {
-	client        client.Client
-	config        *rest.Config
-	scheme        *runtime.Scheme
-	reqLogger     logr.Logger
-	runtimeImages map[string]imageInfo
-	supervisor    *v1alpha2.Component
-	onOpenShift   *bool
+var defaultNamer namer = func(component *v1alpha2.Component) string {
+	return component.Name
 }
 
-//buildFactory will return the resource according to the kind defined
-func (r *ReconcileComponent) buildFactory(instance *v1alpha2.Component, kind string) (runtime.Object, error) {
-	r.reqLogger.Info("Check "+kind, "into the namespace", instance.Namespace)
-	switch kind {
-	case DEPLOYMENT:
-		return r.buildDeployment(instance)
-	case SERVICE:
-		return r.buildService(instance), nil
-	case SERVICEACCOUNT:
-		return r.buildServiceAccount(instance), nil
-	case ROUTE:
-		return r.buildRoute(instance), nil
-	case INGRESS:
-		return r.buildIngress(instance), nil
-	case PERSISTENTVOLUMECLAIM:
-		return r.buildPVC(instance), nil
-	case TASK:
-		return r.buildTaskS2iBuildahPush(instance)
-	case TASKRUN:
-		return r.buildTaskRunS2iBuildahPush(instance)
-	default:
-		msg := "Failed to recognize type of object " + kind + " into the Namespace " + instance.Namespace
-		panic(msg)
+type namer func(*v1alpha2.Component) string
+type builder func(dependentResource, *v1alpha2.Component) (runtime.Object, error)
+type fetcher func(dependentResource, *v1alpha2.Component) (runtime.Object, error)
+
+func (r *ReconcileComponent) genericFetcher(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
+	into := res.prototype.DeepCopyObject()
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: res.name(c), Namespace: c.Namespace}, into); err != nil {
+		r.reqLogger.Info(res.kind + " doesn't exist")
+		return nil, err
 	}
+	return into, nil
+}
+
+type dependentResource struct {
+	name      namer
+	build     builder
+	fetch     fetcher
+	prototype runtime.Object
+	kind      string
+}
+
+type ReconcileComponent struct {
+	client             client.Client
+	config             *rest.Config
+	scheme             *runtime.Scheme
+	reqLogger          logr.Logger
+	runtimeImages      map[string]imageInfo
+	supervisor         *v1alpha2.Component
+	onOpenShift        *bool
+	dependentResources map[string]dependentResource
 }
 
 //Create the factory object
-func (r *ReconcileComponent) create(instance *v1alpha2.Component, kind string, err error) (reconcile.Result, error) {
-	obj, errBuildObject := r.buildFactory(instance, kind)
-	if errBuildObject != nil {
-		return reconcile.Result{}, errBuildObject
+func (r *ReconcileComponent) createIfNeeded(instance *v1alpha2.Component, resourceType runtime.Object) (bool, error) {
+	key, kind := getKeyAndKindFor(resourceType)
+	resource, ok := r.dependentResources[key]
+	if !ok {
+		return false, fmt.Errorf("unknown dependent type %s", kind)
 	}
-	if errors.IsNotFound(err) {
-		r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
-		err = r.client.Create(context.TODO(), obj)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
-			return reconcile.Result{}, err
-		}
-		r.reqLogger.Info("Created successfully", "kind", kind, "Namespace", instance.Namespace)
-		return reconcile.Result{Requeue: true}, nil
-	}
-	r.reqLogger.Error(err, "Failed to get", "kind", kind, "Namespace", instance.Namespace)
-	return reconcile.Result{}, err
 
+	if _, err := resource.fetch(resource, instance); err != nil {
+		// create the object
+		obj, errBuildObject := resource.build(resource, instance)
+		if errBuildObject != nil {
+			return false, errBuildObject
+		}
+		if errors.IsNotFound(err) {
+			r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
+			err = r.client.Create(context.TODO(), obj)
+			if err != nil {
+				r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
+				return false, err
+			}
+			r.reqLogger.Info("Created successfully", "kind", kind, "Namespace", instance.Namespace)
+			return true, nil
+		}
+		r.reqLogger.Error(err, "Failed to get", "kind", kind, "Namespace", instance.Namespace)
+		return false, err
+	} else {
+		return false, nil
+	}
+}
+
+func getKeyAndKindFor(resourceType runtime.Object) (key string, kind string) {
+	t := reflect.TypeOf(resourceType)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	pkg := t.PkgPath()
+	kind = t.Name()
+	key = pkg + "/" + kind
+	return
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -248,10 +300,12 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	return r.installAndUpdateStatus(component, request, installFn)
 }
 
-type installFnType func(component *v1alpha2.Component, namespace string) error
+type installFnType func(component *v1alpha2.Component, namespace string) (bool, error)
 
 func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Component, request reconcile.Request, install installFnType) (reconcile.Result, error) {
-	if err := install(component, request.Namespace); err != nil {
+	// todo: check install return value and decide on whether to requeue or not
+	_, err := install(component, request.Namespace)
+	if err != nil {
 		r.reqLogger.Error(err, "failed to install "+component.Spec.DeploymentMode+" mode")
 		r.setErrorStatus(component, err)
 		return reconcile.Result{}, err

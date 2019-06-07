@@ -5,6 +5,7 @@ import (
 	v1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -13,7 +14,7 @@ const (
 	serviceAccountName    = "build-bot"
 )
 
-func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1alpha1.Task, error) {
+func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
 	task := &v1alpha1.Task{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "tekton.dev/v1alpha1",
@@ -21,7 +22,7 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
-			Name:      taskS2iBuildahPusName,
+			Name:      res.name(c),
 		},
 		Spec: v1alpha1.TaskSpec{
 			Inputs: &v1alpha1.Inputs{
@@ -52,17 +53,17 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 						"${outputs.resources.image.url}",
 						"--image-scripts-url",
 						"image:///usr/local/s2i"},
-					WorkingDir:   "/sources",
+					WorkingDir: "/sources",
 					VolumeMounts: []corev1.VolumeMount{
 						{
 							MountPath: "/sources",
-							Name: "generatedsources"},
-					    },
+							Name:      "generatedsources"},
+					},
 				},
 				// Build a Container image using the dockerfile created previously
 				{
-					Name:    "build",
-					Image:   "quay.io/openshift-pipeline/buildah:testing",
+					Name:  "build",
+					Image: "quay.io/openshift-pipeline/buildah:testing",
 					Command: []string{
 						"buildah",
 					},
@@ -77,12 +78,11 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 						"/sources"},
 					VolumeMounts: []corev1.VolumeMount{
 						{
-							Name: "libcontainers",
+							Name:      "libcontainers",
 							MountPath: "/var/lib/containers",
-
 						},
 						{
-							Name: "generatedsources",
+							Name:      "generatedsources",
 							MountPath: "/sources",
 						},
 					},
@@ -93,12 +93,12 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 				// Push the image created to quay.io using as credentials the secret mounted within
 				// the service account
 				{
-					Name:    "push",
-					Image:   "quay.io/openshift-pipeline/buildah:testing",
+					Name:  "push",
+					Image: "quay.io/openshift-pipeline/buildah:testing",
 					Command: []string{
 						"buildah",
 					},
-					Args:    []string{
+					Args: []string{
 						"push",
 						"--tls-verify=${inputs.params.verifyTLS}",
 						"${outputs.resources.image.url}",
@@ -106,10 +106,10 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(c *v1alpha2.Component) (*v1
 					VolumeMounts: []corev1.VolumeMount{
 						{
 							MountPath: "/var/lib/containers",
-							Name: "libcontainers"},
+							Name:      "libcontainers"},
 					},
 					SecurityContext: &corev1.SecurityContext{
-					 	Privileged: newBoolPtr(true),
+						Privileged: newBoolPtr(true),
 					},
 				},
 			},

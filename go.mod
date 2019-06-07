@@ -79,7 +79,7 @@ require (
 	k8s.io/helm v2.13.1+incompatible // indirect
 	k8s.io/klog v0.3.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20190502190224-411b2483e503 // indirect
-	k8s.io/kubernetes v1.14.2 // indirect
+	k8s.io/kubernetes v1.14.2
 	sigs.k8s.io/controller-runtime v0.1.9
 	sigs.k8s.io/controller-tools v0.1.10 // indirect
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect

@@ -2,6 +2,7 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	corev1 "k8s.io/api/core/v1"
@@ -10,7 +11,7 @@ import (
 )
 
 //buildService returns the service resource
-func (r *ReconcileComponent) buildService(m *v1alpha2.Component) *corev1.Service {
+func (r *ReconcileComponent) buildService(res dependentResource, m *v1alpha2.Component) (runtime.Object, error) {
 	ls := r.getAppLabels(m.Name)
 	ser := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -18,7 +19,7 @@ func (r *ReconcileComponent) buildService(m *v1alpha2.Component) *corev1.Service
 			Kind:       "Service",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name,
+			Name:      res.name(m),
 			Namespace: m.Namespace,
 			Labels:    ls,
 		},
@@ -38,6 +39,5 @@ func (r *ReconcileComponent) buildService(m *v1alpha2.Component) *corev1.Service
 		},
 	}
 	// Set Component instance as the owner and controller
-	controllerutil.SetControllerReference(m, ser, r.scheme)
-	return ser
+	return ser, controllerutil.SetControllerReference(m, ser, r.scheme)
 }

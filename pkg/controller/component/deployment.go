@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -66,7 +67,7 @@ const (
 )
 
 //buildDeployment returns the Deployment config object
-func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) (*appsv1.Deployment, error) {
+func (r *ReconcileComponent) buildDeployment(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
 	ls := r.getAppLabels(c.Name)
 
 	// create runtime container
@@ -100,7 +101,7 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) (*appsv1.Dep
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.Name,
+			Name:      res.name(c),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
@@ -130,8 +131,7 @@ func (r *ReconcileComponent) buildDeployment(c *v1alpha2.Component) (*appsv1.Dep
 	}
 
 	// Set Component instance as the owner and controller
-	controllerutil.SetControllerReference(c, dep, r.scheme)
-	return dep, nil
+	return dep, controllerutil.SetControllerReference(c, dep, r.scheme)
 }
 
 func (r *ReconcileComponent) getBaseContainerFor(component *v1alpha2.Component) (corev1.Container, error) {

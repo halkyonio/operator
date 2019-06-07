@@ -19,48 +19,30 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-
-	// v1 "k8s.io/api/core/v1"
-	// "k8s.io/apimachinery/pkg/runtime"
-	// "k8s.io/apimachinery/pkg/types"
-	// "k8s.io/client-go/rest"
-	// "sigs.k8s.io/controller-runtime/pkg/client"
+	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	v1 "k8s.io/api/core/v1"
 )
 
-
-func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) error {
-
+func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (bool, error) {
 	// Create Task s2i Buildah Push if it does not exists
-	if _, err := r.fetchTaskS2iBuildPush(component); err != nil {
-		if _, err := r.create(component, TASK, err); err != nil {
-			return err
-		} else {
-			r.reqLogger.Info("Created Task - s2i Buildah Push")
-		}
+	hasChanges := newFalse()
+	if e := r.createAndCheckForChanges(component, &pipeline.Task{}, hasChanges); e != nil {
+		return false, e
 	}
 
 	// Create ServiceAccount used by the Task's pod if it does not exists
-	if _, err := r.fetchServiceAccount(component); err != nil {
-		if _, err := r.create(component, SERVICEACCOUNT, err); err != nil {
-			return err
-		} else {
-			r.reqLogger.Info("Created Service Account for TaskRun's pod")
-		}
+	if e := r.createAndCheckForChanges(component, &v1.ServiceAccount{}, hasChanges); e != nil {
+		return false, e
 	}
 
 	// Change the status to mention that Build will start
 
-
 	// Create the TaskRun in order to trigger the build
-	if _, err := r.fetchTaskRunS2iBuildPush(component); err != nil {
-		if _, err := r.create(component, TASKRUN, err); err != nil {
-			return err
-		} else {
-			r.reqLogger.Info("Created BuildConfig")
-		}
+	if e := r.createAndCheckForChanges(component, &pipeline.TaskRun{}, hasChanges); e != nil {
+		return false, e
 	}
 
-	return nil
+	return *hasChanges, nil
 }
 
 /*

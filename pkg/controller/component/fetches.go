@@ -3,13 +3,9 @@ package component
 import (
 	"context"
 	"fmt"
-	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -33,28 +29,6 @@ func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha
 	return component, err
 }
 
-//fetchRoute returns the Route resource created for this instance
-func (r *ReconcileComponent) fetchRoute(instance *v1alpha2.Component) (*routev1.Route, error) {
-	route := &routev1.Route{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, route); err != nil {
-		r.reqLogger.Info("Route don't exist")
-		return route, err
-	} else {
-		return route, nil
-	}
-}
-
-//fetchIngress returns the k8s Ingress resource created for this instance
-func (r *ReconcileComponent) fetchIngress(instance *v1alpha2.Component) (*v1beta1.Ingress, error) {
-	ingress := &v1beta1.Ingress{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, ingress); err != nil {
-		r.reqLogger.Info("Ingress route don't exist")
-		return ingress, err
-	} else {
-		return ingress, nil
-	}
-}
-
 //fetchPod returns the pod resource created for this instance and where label app=component name
 func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod, error) {
 	pods := &corev1.PodList{}
@@ -72,71 +46,5 @@ func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod
 			err := fmt.Errorf("failed to get pod created for the component")
 			return &corev1.Pod{}, err
 		}
-	}
-}
-
-//fetchService returns the service resource created for this instance
-func (r *ReconcileComponent) fetchService(instance *v1alpha2.Component) (*corev1.Service, error) {
-	service := &corev1.Service{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, service); err != nil {
-		r.reqLogger.Info("Capability don't exist")
-		return service, err
-	} else {
-		return service, nil
-	}
-}
-
-//fetchDeployment returns the deployment resource created for this instance
-func (r *ReconcileComponent) fetchDeployment(instance *v1alpha2.Component) (*v1beta1.Deployment, error) {
-	deployment := &v1beta1.Deployment{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment); err != nil {
-		r.reqLogger.Info("Deployment don't exist")
-		return deployment, err
-	} else {
-		return deployment, nil
-	}
-}
-
-//fetchServiceAccount returns the service resource created for this instance
-func (r *ReconcileComponent) fetchServiceAccount(instance *v1alpha2.Component) (*corev1.ServiceAccount, error) {
-	serviceaccount := &corev1.ServiceAccount{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: serviceAccountName, Namespace: instance.Namespace}, serviceaccount); err != nil {
-		r.reqLogger.Info("ServiceAccount don't exist")
-		return serviceaccount, err
-	} else {
-		return serviceaccount, nil
-	}
-}
-
-//fetchTaskS2IBuildPush returns the build config resource created for this instance
-func (r *ReconcileComponent) fetchTaskS2iBuildPush(instance *v1alpha2.Component) (*tektonv1.Task, error) {
-	task := &tektonv1.Task{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: taskS2iBuildahPusName, Namespace: instance.Namespace}, task); err != nil {
-		r.reqLogger.Info("Task s2i Buildah Push don't exist")
-		return task, err
-	} else {
-		return task, nil
-	}
-}
-
-//fetchTaskRunS2IBuildPush returns the build config resource created for this instance
-func (r *ReconcileComponent) fetchTaskRunS2iBuildPush(instance *v1alpha2.Component) (*tektonv1.TaskRun, error) {
-	taskRun := &tektonv1.TaskRun{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: taskS2iBuildahPusName, Namespace: instance.Namespace}, taskRun); err != nil {
-		r.reqLogger.Info("Task s2i Buildah Push don't exist")
-		return taskRun, err
-	} else {
-		return taskRun, nil
-	}
-}
-
-//fetchPVC returns the PVC resource created for this instance
-func (r *ReconcileComponent) fetchPVC(instance *v1alpha2.Component) (*corev1.PersistentVolumeClaim, error) {
-	pvc := &corev1.PersistentVolumeClaim{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: "m2-data-" + instance.Name, Namespace: instance.Namespace}, pvc); err != nil {
-		r.reqLogger.Info("PVC don't exist")
-		return pvc, err
-	} else {
-		return pvc, nil
 	}
 }

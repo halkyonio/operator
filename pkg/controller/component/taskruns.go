@@ -4,10 +4,11 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	v1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(c *v1alpha2.Component) (*v1alpha1.TaskRun, error) {
+func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
 	taskRun := &v1alpha1.TaskRun{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "tekton.dev/v1alpha1",
@@ -15,7 +16,7 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(c *v1alpha2.Component) (
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
-			Name:      taskS2iBuildahPusName,
+			Name:      res.name(c),
 		},
 		Spec: v1alpha1.TaskRunSpec{
 			ServiceAccount: serviceAccountName,
@@ -35,11 +36,11 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(c *v1alpha2.Component) (
 							Type: "git",
 							Params: []v1alpha1.Param{
 								{
-									Name: "revision",
+									Name:  "revision",
 									Value: "2.1.3-2",
 								},
 								{
-									Name: "url",
+									Name:  "url",
 									Value: "https://github.com/snowdrop/rest-http-example",
 								},
 							},
