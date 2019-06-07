@@ -232,16 +232,15 @@ func (r *ReconcileComponent) createIfNeeded(instance *v1alpha2.Component, resour
 			return false, errBuildObject
 		}
 		if errors.IsNotFound(err) {
-			r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
 			err = r.client.Create(context.TODO(), obj)
 			if err != nil {
-				r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
+				r.reqLogger.Error(err, "Failed to create new ", "kind", kind)
 				return false, err
 			}
-			r.reqLogger.Info("Created successfully", "kind", kind, "Namespace", instance.Namespace)
+			r.reqLogger.Info("Created successfully", "kind", kind)
 			return true, nil
 		}
-		r.reqLogger.Error(err, "Failed to get", "kind", kind, "Namespace", instance.Namespace)
+		r.reqLogger.Error(err, "Failed to get", "kind", kind)
 		return false, err
 	} else {
 		return false, nil
@@ -260,7 +259,7 @@ func getKeyAndKindFor(resourceType runtime.Object) (key string, kind string) {
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	r.reqLogger = log.WithValues("Namespace", request.Namespace)
+	r.reqLogger = log.WithValues("namespace", request.Namespace)
 
 	// Fetch the Component created, deleted or updated
 	component := &v1alpha2.Component{}
