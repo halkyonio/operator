@@ -157,6 +157,7 @@ type ReconcileComponent struct {
 	reqLogger     logr.Logger
 	runtimeImages map[string]imageInfo
 	supervisor    *v1alpha2.Component
+	onOpenShift   *bool
 }
 
 //buildFactory will return the resource according to the kind defined
