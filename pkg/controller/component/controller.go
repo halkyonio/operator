@@ -20,6 +20,7 @@ package component
 import (
 	"fmt"
 	"github.com/go-logr/logr"
+	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"golang.org/x/net/context"
@@ -28,20 +29,17 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-	"strconv"
-
-	routev1 "github.com/openshift/api/route/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const (
@@ -273,13 +271,10 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	r.reqLogger.Info("-----------------------")
-	r.reqLogger.Info("Reconciling Component  ")
-	r.reqLogger.Info("Status of the component", "Status phase", component.Status.Phase)
-	r.reqLogger.Info("Creation time          ", "Creation time", component.ObjectMeta.CreationTimestamp)
-	r.reqLogger.Info("Resource version       ", "Resource version", component.ObjectMeta.ResourceVersion)
-	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(component.ObjectMeta.Generation, 10))
-	// r.reqLogger.Info("Deletion time          ","Deletion time", component.ObjectMeta.DeletionTimestamp)
+	r.reqLogger.Info("==> Reconciling Component  ",
+		"name", component.Name,
+		"status", component.Status.Phase,
+		"created", component.ObjectMeta.CreationTimestamp)
 
 	// Add the Status Component Creation when we process the first time the Component CR
 	// as we will start to create different resources
@@ -295,8 +290,9 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		installFn = r.installBuildMode
 	}
 
-	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", component.Name))
-	return r.installAndUpdateStatus(component, request, installFn)
+	result, err := r.installAndUpdateStatus(component, request, installFn)
+	r.reqLogger.Info("<== Reconciled Component", "name", component.Name)
+	return result, err
 }
 
 type installFnType func(component *v1alpha2.Component, namespace string) (bool, error)
