@@ -303,13 +303,12 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 type installFnType func(component *v1alpha2.Component, namespace string) (bool, error)
 
 func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Component, request reconcile.Request, install installFnType) (reconcile.Result, error) {
-	// todo: check install return value and decide on whether to requeue or not
-	_, err := install(component, request.Namespace)
+	changed, err := install(component, request.Namespace)
 	if err != nil {
 		r.reqLogger.Error(err, "failed to install "+component.Spec.DeploymentMode+" mode")
 		r.setErrorStatus(component, err)
 		return reconcile.Result{}, err
 	}
 
-	return reconcile.Result{}, r.updateStatus(component, v1alpha2.ComponentReady)
+	return reconcile.Result{Requeue: changed}, r.updateStatus(component, v1alpha2.ComponentReady)
 }
