@@ -5,6 +5,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type DeploymentMode string
+
+const (
+	Dev   DeploymentMode = "dev"
+	Build DeploymentMode = "build"
+)
+
 // ComponentSpec defines the desired state of Component
 // +k8s:openapi-gen=true
 type ComponentSpec struct {
@@ -12,7 +19,7 @@ type ComponentSpec struct {
 	// and next to create a pod. 2 strategies are currently supported; inner and outer loop
 	// where outer loop refers to a build of the code and the packaging of the application into a container's image
 	// while the inner loop will install a pod's running a supervisord daemon used to trigger actions such as : assemble, run, ...
-	DeploymentMode string `json:"deploymentMode,omitempty"`
+	DeploymentMode DeploymentMode `json:"deploymentMode,omitempty"`
 	// Runtime is the framework/language used to start with a linux's container an application.
 	// It corresponds to one of the following values: spring-boot, vertx, thorntail, nodejs, python, php, ruby
 	// It will be used to select the appropriate runtime image and logic

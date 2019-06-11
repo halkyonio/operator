@@ -286,7 +286,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	installFn := r.installDevMode
-	if "build" == component.Spec.DeploymentMode {
+	if v1alpha2.Build == component.Spec.DeploymentMode {
 		installFn = r.installBuildMode
 	}
 
@@ -300,7 +300,7 @@ type installFnType func(component *v1alpha2.Component, namespace string) (bool, 
 func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Component, request reconcile.Request, install installFnType) (reconcile.Result, error) {
 	changed, err := install(component, request.Namespace)
 	if err != nil {
-		r.reqLogger.Error(err, "failed to install "+component.Spec.DeploymentMode+" mode")
+		r.reqLogger.Error(err, fmt.Sprintf("failed to install %s mode", component.Spec.DeploymentMode))
 		r.setErrorStatus(component, err)
 		return reconcile.Result{}, err
 	}

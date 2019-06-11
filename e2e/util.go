@@ -67,7 +67,7 @@ func springBootComponent(name, ns string) *v1alpha2.Component {
 			Namespace: ns,
 		},
 		Spec: v1alpha2.ComponentSpec{
-			DeploymentMode: "dev",
+			DeploymentMode: v1alpha2.Dev,
 			Runtime:        "spring-boot",
 		},
 	}
