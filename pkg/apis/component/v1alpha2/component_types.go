@@ -37,7 +37,8 @@ type ComponentSpec struct {
 	// Storage allows to specify the capacity and mode of the volume to be mounted for the pod
 	Storage Storage `json:"storage,omitempty"`
 	// Array of env variables containing extra/additional info to be used to configure the runtime
-	Envs []Env `json:"envs,omitempty"`
+	Envs     []Env  `json:"envs,omitempty"`
+	Revision string `json:"revision,omitempty"`
 }
 
 type ComponentPhase string

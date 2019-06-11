@@ -52,3 +52,6 @@ spec:
   - name: Message
     type: string
     JSONPath: .status.message
+  - name: Revision
+    type: string
+    JSONPath: .spec.revision
