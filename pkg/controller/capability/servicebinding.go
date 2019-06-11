@@ -16,7 +16,7 @@ func (r *ReconcileCapability) buildServiceBinding(s *v1alpha2.Capability) *servi
 			Kind:       "ServiceBinding",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.Spec.Name,
+			Name:      s.Name,
 			Namespace: s.Namespace,
 			Labels:    ls,
 		},

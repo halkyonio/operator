@@ -24,7 +24,7 @@ func (r *ReconcileCapability) buildServiceInstance(s *v1alpha2.Capability) (*ser
 			Kind:       "ServiceInstance",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.Spec.Name,
+			Name:      s.Name,
 			Namespace: s.Namespace,
 			Labels:    ls,
 		},
