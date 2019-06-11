@@ -7,6 +7,10 @@ import (
 
 type DeploymentMode string
 
+func (dm DeploymentMode) String() string {
+	return string(dm)
+}
+
 const (
 	Dev   DeploymentMode = "dev"
 	Build DeploymentMode = "build"
@@ -37,6 +41,10 @@ type ComponentSpec struct {
 }
 
 type ComponentPhase string
+
+func (cp ComponentPhase) String() string {
+	return string(cp)
+}
 
 const (
 	// ComponentPending means the component has been accepted by the system, but it is still being processed. This includes time
