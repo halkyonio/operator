@@ -22,7 +22,7 @@ func (r *ReconcileCapability) buildServiceBinding(s *v1alpha2.Capability) *servi
 		},
 		Spec: servicecatalogv1.ServiceBindingSpec{
 			SecretName: s.Spec.SecretName,
-			ServiceInstanceRef:servicecatalogv1.LocalObjectReference{Name: s.Spec.Name},
+			ServiceInstanceRef:servicecatalogv1.LocalObjectReference{Name: s.Name},
 		},
 	}
 	// Set Component instance as the owner and controller
