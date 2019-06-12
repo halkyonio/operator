@@ -21,6 +21,9 @@ spec:
             name: metrics
           command:
           - component-operator
+          args:
+            - --zap-encoder
+            - $(ZAP_ENCODER)
           imagePullPolicy: Always
           env:
             - name: POD_NAME
@@ -29,3 +32,5 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "component-operator"
+            - name: ZAP_ENCODER
+              value: "console"
