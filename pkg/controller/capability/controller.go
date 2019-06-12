@@ -141,7 +141,7 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 		// The object is being deleted
 		if r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
 			// our finalizer is present, so let's handle our external dependency
-			if service.Spec.Name != "" {
+			if service.Name != "" {
 				// TODO Call action to remove
 				// r.reqLogger.Info("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
 				if err := r.DeleteService(service); err != nil {
@@ -224,7 +224,7 @@ func (r *ReconcileCapability) DeleteService(service *v1alpha2.Capability) error 
 		return err
 	}
 	// Delete ServiceBinding linked to the ServiceInstance
-	if serviceBinding.Name == service.Spec.Name {
+	if serviceBinding.Name == service.Name {
 		err := r.client.Delete(context.TODO(), serviceBinding)
 		if err != nil {
 			return err
