@@ -2,8 +2,8 @@ package link
 
 import (
 	"context"
-	appsv1 "k8s.io/api/apps/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -22,7 +22,7 @@ func (r *ReconcileLink) fetch(err error) (reconcile.Result, error) {
 	return reconcile.Result{}, err
 }
 
-func (r *ReconcileLink) fetchLink(request reconcile.Request) (*v1alpha2.Link, error){
+func (r *ReconcileLink) fetchLink(request reconcile.Request) (*v1alpha2.Link, error) {
 	link := &v1alpha2.Link{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, link)
 	return link, err
@@ -32,7 +32,7 @@ func (r *ReconcileLink) fetchLink(request reconcile.Request) (*v1alpha2.Link, er
 func (r *ReconcileLink) fetchDeployment(namespace, name string) (*appsv1.Deployment, error) {
 	deployment := &appsv1.Deployment{}
 	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, deployment); err != nil {
-		r.reqLogger.Info("Deployment don't exist","Name",name)
+		r.reqLogger.Info("Deployment doesn't exist", "Name", name)
 		return deployment, err
 	} else {
 		return deployment, nil
