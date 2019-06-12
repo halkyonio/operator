@@ -1,7 +1,6 @@
 package v1alpha2
 
 import (
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -70,10 +69,9 @@ const (
 // ComponentStatus defines the observed state of Component
 // +k8s:openapi-gen=true
 type ComponentStatus struct {
-	Phase     ComponentPhase `json:"phase,omitempty"`
-	PodName   string         `json:"podName"`
-	PodStatus v1.PodStatus   `json:"podStatus"`
-	Message   string         `json:"message"`
+	Phase   ComponentPhase `json:"phase,omitempty"`
+	PodName string         `json:"podName,omitempty"`
+	Message string         `json:"message,omitempty"`
 }
 
 type Storage struct {

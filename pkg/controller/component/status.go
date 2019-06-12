@@ -7,8 +7,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"reflect"
 )
 
 func (r *ReconcileComponent) setErrorStatus(instance *v1alpha2.Component, err error) {
@@ -24,7 +22,6 @@ func (r *ReconcileComponent) updateStatusWithMessage(instance *v1alpha2.Componen
 	}
 
 	current.Status.PodName = instance.Status.PodName
-	current.Status.PodStatus = instance.Status.PodStatus
 	current.Status.Phase = instance.Status.Phase
 	current.Status.Message = msg
 
@@ -51,9 +48,8 @@ func (r *ReconcileComponent) updateStatus(instance *v1alpha2.Component, phase v1
 		return nil
 	}
 
-	if pod.Name != instance.Status.PodName || !reflect.DeepEqual(pod.Status, instance.Status.PodStatus) {
+	if pod.Name != instance.Status.PodName {
 		component.Status.PodName = pod.Name
-		component.Status.PodStatus = pod.Status
 	}
 
 	if phase != instance.Status.Phase {
