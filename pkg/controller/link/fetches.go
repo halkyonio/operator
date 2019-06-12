@@ -32,7 +32,7 @@ func (r *ReconcileLink) fetchLink(request reconcile.Request) (*v1alpha2.Link, er
 func (r *ReconcileLink) fetchDeployment(namespace, name string) (*appsv1.Deployment, error) {
 	deployment := &appsv1.Deployment{}
 	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, deployment); err != nil {
-		r.reqLogger.Info("Deployment don't exist")
+		r.reqLogger.Info("Deployment don't exist","Name",name)
 		return deployment, err
 	} else {
 		return deployment, nil
