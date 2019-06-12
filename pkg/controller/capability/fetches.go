@@ -30,13 +30,13 @@ func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alp
 
 func (r *ReconcileCapability) fetchServiceBinding(service *v1alpha2.Capability) (*servicecatalogv1.ServiceBinding, error) {
 	serviceBinding := &servicecatalogv1.ServiceBinding{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Spec.Name}, serviceBinding)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceBinding)
 	return serviceBinding, err
 }
 
 func (r *ReconcileCapability) fetchServiceInstance(service *v1alpha2.Capability) (*servicecatalogv1.ServiceInstance, error) {
 	// Retrieve ServiceInstances
 	serviceInstance := &servicecatalogv1.ServiceInstance{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Spec.Name}, serviceInstance)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceInstance)
 	return serviceInstance, err
 }
