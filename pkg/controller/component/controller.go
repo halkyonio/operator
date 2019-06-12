@@ -271,7 +271,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	r.reqLogger.Info("==> Reconciling Component  ",
+	r.reqLogger.Info("==> Reconciling Component",
 		"name", component.Name,
 		"status", component.Status.Phase,
 		"created", component.ObjectMeta.CreationTimestamp)

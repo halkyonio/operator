@@ -11,16 +11,22 @@ import (
 
 func (r *ReconcileComponent) setErrorStatus(instance *v1alpha2.Component, err error) {
 	instance.Status.Phase = v1alpha2.ComponentFailed
-	r.updateStatusWithMessage(instance, err.Error())
+	r.updateStatusWithMessage(instance, err.Error(), true)
 }
 
-func (r *ReconcileComponent) updateStatusWithMessage(instance *v1alpha2.Component, msg string) {
+func (r *ReconcileComponent) updateStatusWithMessage(instance *v1alpha2.Component, msg string, fetch bool) {
 	// fetch latest version to avoid optimistic lock error
-	current, err := r.fetchLatestVersion(instance)
-	if err != nil {
-		r.reqLogger.Error(err, "failed to fetch latest version of component "+instance.Name)
+	current := instance
+	var err error
+	if fetch {
+		current, err = r.fetchLatestVersion(instance)
+		if err != nil {
+			r.reqLogger.Error(err, "failed to fetch latest version of component "+instance.Name)
+		}
 	}
 
+	r.reqLogger.Info("updating component status",
+		"phase", instance.Status.Phase, "podName", instance.Status.PodName, "message", msg)
 	current.Status.PodName = instance.Status.PodName
 	current.Status.Phase = instance.Status.Phase
 	current.Status.Message = msg
@@ -38,25 +44,20 @@ func (r *ReconcileComponent) updateStatus(instance *v1alpha2.Component, phase v1
 		return err
 	}
 
-	r.reqLogger.Info("updating component status")
-	pod, err := r.fetchPod(instance)
+	pod, err := r.fetchPod(component)
 	if err != nil || !r.isPodReady(pod) {
-		msg := fmt.Sprintf("pod is not ready for component '%s' in namespace '%s'", instance.Name, instance.Namespace)
+		msg := fmt.Sprintf("pod is not ready for component '%s' in namespace '%s'", component.Name, component.Namespace)
 		r.reqLogger.Info(msg)
-		instance.Status.Phase = v1alpha2.ComponentPending
-		r.updateStatusWithMessage(instance, msg)
+		component.Status.Phase = v1alpha2.ComponentPending
+		r.updateStatusWithMessage(component, msg, false)
 		return nil
 	}
 
-	if pod.Name != instance.Status.PodName {
+	if pod.Name != instance.Status.PodName || phase != instance.Status.Phase {
 		component.Status.PodName = pod.Name
-	}
-
-	if phase != instance.Status.Phase {
 		component.Status.Phase = phase
+		r.updateStatusWithMessage(component, "", false)
 	}
-
-	r.updateStatusWithMessage(component, "")
 	return nil
 }
 
