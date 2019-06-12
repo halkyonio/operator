@@ -117,7 +117,9 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 		if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers, request); isModified {
 			found.Spec.Template.Spec.Containers = containers
 			if err := r.updateDeploymentWithLink(found, link, request); err != nil {
-				return reconcile.Result{}, err
+				// As it could be possible that we can't update the Deployment as it has been modified by another
+				// process, then we will requeue
+				return reconcile.Result{Requeue:true}, err
 			}
 		}
 	}
