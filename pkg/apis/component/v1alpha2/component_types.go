@@ -11,8 +11,8 @@ func (dm DeploymentMode) String() string {
 }
 
 const (
-	Dev   DeploymentMode = "dev"
-	Build DeploymentMode = "build"
+	DevDeploymentMode   DeploymentMode = "dev"
+	BuildDeploymentMode DeploymentMode = "build"
 )
 
 // ComponentSpec defines the desired state of Component

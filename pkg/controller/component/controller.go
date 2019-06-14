@@ -286,7 +286,7 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	installFn := r.installDevMode
-	if v1alpha2.Build == component.Spec.DeploymentMode {
+	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
 		installFn = r.installBuildMode
 	}
 
