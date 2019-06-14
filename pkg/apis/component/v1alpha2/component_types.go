@@ -38,6 +38,8 @@ type ComponentSpec struct {
 	// Array of env variables containing extra/additional info to be used to configure the runtime
 	Envs     []Env  `json:"envs,omitempty"`
 	Revision string `json:"revision,omitempty"`
+	// Build configuration used to execute a TekTon Build task
+	BuildConfig BuildConfig  `json:"buildConfig,omitempty"`
 }
 
 type ComponentPhase string

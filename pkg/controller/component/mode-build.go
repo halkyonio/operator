@@ -35,7 +35,7 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 		return false, e
 	}
 
-	// Change the status to mention that Build will start
+	// TODO: oChange the status to mention that Build will start
 
 	// Create the TaskRun in order to trigger the build
 	if e := r.createAndCheckForChanges(component, &pipeline.TaskRun{}, hasChanges); e != nil {

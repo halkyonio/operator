@@ -24,3 +24,15 @@ type Parameter struct {
 	Name  string `json:"name,omitempty"`
 	Value string `json:"value,omitempty"`
 }
+
+type BuildConfig struct {
+	// URL is the Http or Web address of the Git repo to be cloned from the platforms such as : github, bitbucket, gitlab, ...
+	// The syntax of the URL is : HTTPS://<git_server>/<git_org>/project.git
+	URL string `json:"url"`
+	// Ref is the git reference of the repo.
+	// Optional. By default it is equal to "master".
+	Ref string `json:"ref"`
+	// ContextDir is a path to a subfolder in the repo. It could correspond to a maven module.
+	// Optional. By default, it is equal to "."
+	ContextDir string `json:"contextDir,omitempty"`
+}

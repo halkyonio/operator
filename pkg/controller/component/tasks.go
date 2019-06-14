@@ -32,7 +32,7 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 					TargetPath: "/",
 				}},
 				Params: []v1alpha1.TaskParam{
-					{Name: "verifyTLS", Default: "true", Description: "Verify registry certificates"},
+					{Name: "verifyTLS", Default: "false", Description: "Verify registry certificates"},
 					{Name: "contextFolder", Default: ".", Description: "the path of the context to build"},
 					{Name: "baseImage", Description: "s2i base image"},
 				}},
@@ -46,7 +46,7 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 				// # Generate a Dockerfile using the s2i tool
 				{
 					Name:  "generate",
-					Image: "quay.io/openshift-pipeline/s2i-buildah:latest",
+					Image: "quay.io/openshift-pipeline/s2i-buildah",
 					Args: []string{
 						"${inputs.params.contextFolder}",
 						"${inputs.params.baseImage}",
@@ -63,7 +63,7 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 				// Build a Container image using the dockerfile created previously
 				{
 					Name:  "build",
-					Image: "quay.io/openshift-pipeline/buildah:testing",
+					Image: "quay.io/openshift-pipeline/buildah",
 					Command: []string{
 						"buildah",
 					},
@@ -94,7 +94,7 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 				// the service account
 				{
 					Name:  "push",
-					Image: "quay.io/openshift-pipeline/buildah:testing",
+					Image: "quay.io/openshift-pipeline/buildah",
 					Command: []string{
 						"buildah",
 					},
@@ -102,6 +102,7 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 						"push",
 						"--tls-verify=${inputs.params.verifyTLS}",
 						"${outputs.resources.image.url}",
+						"docker://${outputs.resources.image.url}",
 					},
 					VolumeMounts: []corev1.VolumeMount{
 						{
