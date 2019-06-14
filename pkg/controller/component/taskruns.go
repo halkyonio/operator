@@ -37,11 +37,11 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c
 							Params: []v1alpha1.Param{
 								{
 									Name:  "revision",
-									Value: "2.1.3-2",
+									Value: c.Spec.BuildConfig.Ref,
 								},
 								{
 									Name:  "url",
-									Value: "https://github.com/snowdrop/rest-http-example",
+									Value: c.Spec.BuildConfig.URL,
 								},
 							},
 						},
