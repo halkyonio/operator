@@ -7,16 +7,27 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type LinkKind string
+
+const (
+	SecretLinkKind LinkKind = "Secret"
+	EnvLinkKind    LinkKind = "Env"
+)
+
+func (l LinkKind) String() string {
+	return string(l)
+}
+
 // LinkSpec defines the desired state of Link
 // +k8s:openapi-gen=true
 type LinkSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Name          string `json:"name,omitempty"`
-	ComponentName string `json:"componentName"`
-	Kind          string `json:"kind,omitempty"`
-	Ref           string `json:"ref,omitempty"`
+	Name          string   `json:"name,omitempty"`
+	ComponentName string   `json:"componentName"`
+	Kind          LinkKind `json:"kind,omitempty"`
+	Ref           string   `json:"ref,omitempty"`
 	// Array of env variables containing extra/additional info to be used to configure the runtime
 	Envs []Env `json:"envs,omitempty"`
 }

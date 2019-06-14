@@ -110,7 +110,7 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 		if err != nil {
 			r.reqLogger.Info("Component not found")
 			// TODO Update status of the link to report the error
-			return reconcile.Result{Requeue:true}, nil
+			return reconcile.Result{Requeue: true}, nil
 		}
 
 		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
@@ -119,7 +119,7 @@ func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, 
 			if err := r.updateDeploymentWithLink(found, link, request); err != nil {
 				// As it could be possible that we can't update the Deployment as it has been modified by another
 				// process, then we will requeue
-				return reconcile.Result{Requeue:true}, err
+				return reconcile.Result{Requeue: true}, err
 			}
 		}
 	}
@@ -132,7 +132,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 	var isModified = false
 	kind := link.Spec.Kind
 	switch kind {
-	case "Secret":
+	case v1alpha2.SecretLinkKind:
 		secretName := link.Spec.Ref
 
 		// Check if EnvFrom already exists
@@ -152,7 +152,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 			}
 		}
 
-	case "Env":
+	case v1alpha2.EnvLinkKind:
 		// Check if Env already exists
 		// If this is the case, exit without error
 		for i := 0; i < len(containers); i++ {
