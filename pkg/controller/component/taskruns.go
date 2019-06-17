@@ -26,8 +26,8 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c
 			Inputs: v1alpha1.TaskRunInputs{
 				Params: []v1alpha1.Param{
 					{Name: "baseImage", Value: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"},
-					{Name: "verifyTLS", Value: "false"},
 					{Name: "contextFolder", Value: "/workspace"},
+					{Name: "verifyTLS", Value: "false"},
 				},
 				Resources: []v1alpha1.TaskResourceBinding{
 					{

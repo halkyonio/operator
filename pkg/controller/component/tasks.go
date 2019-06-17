@@ -32,9 +32,9 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 					TargetPath: "/",
 				}},
 				Params: []v1alpha1.TaskParam{
-					{Name: "verifyTLS", Default: "false", Description: "Verify registry certificates"},
-					{Name: "contextFolder", Default: ".", Description: "the path of the context to build"},
 					{Name: "baseImage", Description: "s2i base image"},
+					{Name: "contextFolder", Default: ".", Description: "the path of the context to build"},
+					{Name: "verifyTLS", Default: "false", Description: "Verify registry certificates"},
 				}},
 			Outputs: &v1alpha1.Outputs{
 				Resources: []v1alpha1.TaskResource{{
