@@ -63,24 +63,28 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Component
-	err = c.Watch(&source.Kind{Type: &v1alpha2.Component{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
+	if err = c.Watch(&source.Kind{Type: &v1alpha2.Component{}}, &handler.EnqueueRequestForObject{}); err != nil {
 		return err
 	}
 
 	/** Watch for changes of child/secondary resources **/
-	//Deployment
-	if err := watchDeployment(c); err != nil {
+	owner := &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &v1alpha2.Component{},
+	}
+	if err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, owner); err != nil {
 		return err
 	}
 
-	//Pod
-	if err := watchPod(c); err != nil {
+	if err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, owner); err != nil {
 		return err
 	}
 
-	//Service
-	if err := watchService(c); err != nil {
+	if err = c.Watch(&source.Kind{Type: &corev1.Service{}}, owner); err != nil {
+		return err
+	}
+
+	if err = c.Watch(&source.Kind{Type: &routev1.Route{}}, owner); err != nil {
 		return err
 	}
 
