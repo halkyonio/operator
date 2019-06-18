@@ -286,7 +286,9 @@ func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	installFn := r.installDevMode
+	r.setInitialStatus(component, v1alpha2.ComponentPending)
 	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
+		r.setInitialStatus(component, v1alpha2.ComponentBuilding)
 		installFn = r.installBuildMode
 	}
 
@@ -306,4 +308,14 @@ func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Componen
 	}
 
 	return reconcile.Result{Requeue: changed}, r.updateStatus(component, v1alpha2.ComponentReady)
+}
+
+func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, phase v1alpha2.ComponentPhase) error {
+	if component.Generation == 1 && component.Status.Phase == "" {
+		if err := r.updateStatus(component, phase); err != nil {
+			r.reqLogger.Info("Status update failed !")
+			return err
+		}
+	}
+	return nil
 }

@@ -66,6 +66,8 @@ const (
 	// ComponentUnknown means that for some reason the state of the component could not be obtained, typically due
 	// to an error in communicating with the host of the component.
 	ComponentUnknown ComponentPhase = "Unknown"
+	// ComponentBuilding means that the Build mode has been configured and that a build task is running
+	ComponentBuilding ComponentPhase = "Building"
 )
 
 // ComponentStatus defines the observed state of Component
