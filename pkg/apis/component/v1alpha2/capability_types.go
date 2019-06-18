@@ -18,7 +18,6 @@ type CapabilitySpec struct {
 	// Info needed to create a Capability instance from the Capability Catalog
 	// and next to bind the info to a Deployment using the Capability binding/secret
 	Class          string      `json:"class,omitempty"`
-	Name           string      `json:"name,omitempty"`
 	Plan           string      `json:"plan,omitempty"`
 	ExternalId     string      `json:"externalid,omitempty"`
 	SecretName     string      `json:"secretname,omitempty"`
