@@ -14,8 +14,13 @@ import (
 func (r *ReconcileComponent) createBuildDeployment(c *v1alpha2.Component) (runtime.Object, error) {
 	ls := r.getAppLabels(c.Name)
 
-	// create runtime container
-	runtimeContainer, err := r.getBaseContainerFor(c)
+	// Check if Service port exists, otherwise define it
+	if c.Spec.Port == 0 {
+		c.Spec.Port = 8080 // Add a default port if empty
+	}
+
+	// create runtime container using built image (= created by the Tekton build task)
+	runtimeContainer, err := r.getRuntimeContainerFor(c)
 	if err != nil {
 		return nil, err
 	}
@@ -24,8 +29,6 @@ func (r *ReconcileComponent) createBuildDeployment(c *v1alpha2.Component) (runti
 		Name:          "http",
 		Protocol:      "TCP",
 	}}
-	runtimeContainer.Image = r.dockerImageURL(c)
-	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/tmp/artifacts"})
 
 	dep := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -51,16 +54,20 @@ func (r *ReconcileComponent) createBuildDeployment(c *v1alpha2.Component) (runti
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{runtimeContainer},
-					Volumes:    []corev1.Volume{
-						{Name: "shared-data",
-							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
-						{Name: c.Spec.Storage.Name,
-							VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: c.Spec.Storage.Name}}},
-					},
 				}},
 		},
 	}
 
 	// Set Component instance as the owner and controller
 	return dep, controllerutil.SetControllerReference(c, dep, r.scheme)
+}
+
+func (r *ReconcileComponent) getRuntimeContainerFor(component *v1alpha2.Component) (corev1.Container, error) {
+	container := corev1.Container{
+		Env:             r.populatePodEnvVar(component.Spec),
+		Image:           r.dockerImageURL(component),
+		ImagePullPolicy: corev1.PullAlways,
+		Name:            component.Name,
+	}
+	return container, nil
 }

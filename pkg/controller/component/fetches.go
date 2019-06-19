@@ -32,9 +32,15 @@ func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha
 	return component, err
 }
 
-func (r *ReconcileComponent) fetchDeployment(c *v1alpha2.Component) (*appsv1.Deployment, error) {
+func (r *ReconcileComponent) fetchService(c *v1alpha2.Component) (*corev1.Service, error) {
+	service := &corev1.Service{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, service)
+	return service, err
+}
+
+func (r *ReconcileComponent) fetchDeployment(namespace, name string) (*appsv1.Deployment, error) {
 	deployment := &appsv1.Deployment{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, deployment)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, deployment)
 	return deployment, err
 }
 

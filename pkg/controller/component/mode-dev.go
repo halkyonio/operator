@@ -69,7 +69,7 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
-	// Check if Capability port exists, otherwise define it
+	// Check if Service port exists, otherwise define it
 	if component.Spec.Port == 0 {
 		component.Spec.Port = 8080 // Add a default port if empty
 	}
