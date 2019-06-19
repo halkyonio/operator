@@ -151,7 +151,7 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		}
 		return "m2-data-" + c.Name
 	})
-	r.addDependentResource(&appsv1.Deployment{}, r.buildDeployment, defaultNamer)
+	r.addDependentResource(&appsv1.Deployment{}, r.buildDevDeployment, defaultNamer)
 	r.addDependentResource(&corev1.Service{}, r.buildService, defaultNamer)
 	r.addDependentResource(&corev1.ServiceAccount{}, r.buildServiceAccount, func(c *v1alpha2.Component) string {
 		return serviceAccountName
