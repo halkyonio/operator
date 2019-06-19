@@ -14,7 +14,7 @@ spec:
   deploymentMode: build
   buildConfig:
     url: https://github.com/snowdrop/component-operator-demo/
-    ref: 0.0.1
+    ref: 0.0.2
     moduleDirName: fruit-client-sb
   runtime: spring-boot
   version: 2.1.3

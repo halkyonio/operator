@@ -18,9 +18,14 @@ limitations under the License.
 package component
 
 import (
+	"context"
+	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (bool, error) {
@@ -35,67 +40,66 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 		return false, e
 	}
 
-	// TODO: oChange the status to mention that Build will start
-
 	// Create the TaskRun in order to trigger the build
 	if e := r.createAndCheckForChanges(component, &pipeline.TaskRun{}, hasChanges); e != nil {
+		return false, e
+	}
+
+
+	if e := r.createDeploymentForBuildMode(component, hasChanges); e != nil {
+		return false, e
+	}
+
+	if e := r.updateServiceSelector(component, hasChanges); e != nil {
 		return false, e
 	}
 
 	return *hasChanges, nil
 }
 
-/*
-func cloneDeploymentLoop(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
-	component.ObjectMeta.Namespace = namespace
+func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Component, hasChanges *bool) error {
 
-	isOpenshift, err := kubernetes.DetectOpenShift(&config)
-	if err != nil {
-		return err
+	// Fetch the Dev Deployment created within the current namespace
+	deployment := &appsv1.Deployment{}
+	key, kind := getKeyAndKindFor(deployment)
+	resource, ok := r.dependentResources[key]
+	if !ok {
+		return fmt.Errorf("unknown dependent type %s", kind)
 	}
 
-	if isOpenshift {
-		tmpl, ok := util.Templates["outerloop/deploymentconfig"]
-		if ok {
-			originalcomponentName := component.Name
-
-			// Populate the DC using template
-			component.Name = component.Name + "-build"
-			r, err := ParseTemplateToRuntimeObject(tmpl,&component)
-			obj, err := kubernetes.RuntimeObjectFromUnstructured(r)
-			if err != nil {
-				return err
-			}
-
-			// Fetch DC
-			dc := obj.(*deploymentconfig.DeploymentConfig)
-			found, err := openshift.GetDeploymentConfig(namespace, originalcomponentName, c)
-			if err != nil {
-				log.Info("### DeploymentConfig not found")
-				return err
-			}
-			containerFound := &found.Spec.Template.Spec.Containers[0]
-			container := &dc.Spec.Template.Spec.Containers[0]
-			container.Env = containerFound.Env
-			container.EnvFrom = containerFound.EnvFrom
-			container.Env = UpdateEnv(container.Env, component.Annotations["app.openshift.io/java-app-jar"])
-			dc.Namespace = found.Namespace
-			controllerutil.SetControllerReference(&component, dc, &scheme)
-
-			err = c.Create(context.TODO(),dc)
-			if err != nil {
-				log.Info("### DeploymentConfig build creation failed")
-				return err
-			}
-			log.Infof("### Created Build Deployment Config.")
-		}
+	obj, e := resource.fetch(resource, component)
+	if e != nil {
+		return fmt.Errorf("dev deployment don't exist %s", resource.name)
 	}
-	log.Info("## Pipeline 'outerloop' ended ##")
-	log.Info("------------------------------------------------------")
+
+	// Cast obj runtime.Object to its Deployment Type
+	devDeployment := obj.(*appsv1.Deployment)
+
+	// Create new Deployment using info collected from the Dev Deployment
+	obj, e = r.createBuildDeployment(component)
+	if e != nil {
+		return fmt.Errorf("build deployment can't be created")
+	}
+	buildDeployment := obj.(*appsv1.Deployment)
+	buildDeployment.Name = component.Name + "-build"
+
+	devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
+	buildContainer := &buildDeployment.Spec.Template.Spec.Containers[0]
+	buildContainer.Env = devContainer.Env
+	buildContainer.EnvFrom = devContainer.EnvFrom
+	buildContainer.Env = r.UpdateEnv(buildContainer.Env, component.Annotations["app.openshift.io/java-app-jar"])
+	buildDeployment.Namespace = devDeployment.Namespace
+	controllerutil.SetControllerReference(component, buildDeployment, r.scheme)
+
+	// create the object
+	e = r.client.Create(context.TODO(), buildDeployment)
+	if e != nil {
+		return fmt.Errorf("Failed to create new Build Deployment")
+	}
 	return nil
 }
 
-func UpdateEnv(envs []v1.EnvVar, jarName string) []v1.EnvVar {
+func (r *ReconcileComponent) UpdateEnv(envs []v1.EnvVar, jarName string) []v1.EnvVar {
 	newEnvs := []v1.EnvVar{}
 	for _, s := range envs {
 		if s.Name == "JAVA_APP_JAR" {
@@ -107,20 +111,19 @@ func UpdateEnv(envs []v1.EnvVar, jarName string) []v1.EnvVar {
 	return newEnvs
 }
 
-func updateSelector(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
-	component.ObjectMeta.Namespace = namespace
+func (r *ReconcileComponent) updateServiceSelector(component *v1alpha2.Component, hasChanges *bool) error {
 	componentName := component.Annotations["app.openshift.io/component-name"]
-	svc := &v1.Capability{}
+	svc := &v1.Service{}
 	svc.Labels = map[string]string{
-		"app.kubernetes.io/name": componentName,
+		"app.kubernetes.io/name":   componentName,
 		"app.openshift.io/runtime": component.Spec.Runtime,
 	}
-	if err := c.Get(context.TODO(), types.NamespacedName{Name: componentName, Namespace: namespace}, svc); err != nil {
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: componentName, Namespace: component.Namespace}, svc); err != nil {
 		return err
 	}
 
 	var nameApp string
-	if component.Spec.DeploymentMode == "outerloop" {
+	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
 		nameApp = componentName + "-build"
 	} else {
 		nameApp = componentName
@@ -128,11 +131,9 @@ func updateSelector(component v1alpha2.Component, config rest.Config, c client.C
 	svc.Spec.Selector = map[string]string{
 		"app": nameApp,
 	}
-	if err := c.Update(context.TODO(),svc) ; err != nil {
+	if err := r.client.Update(context.TODO(), svc); err != nil {
 		return err
 	}
-	log.Infof("### Updated Capability Selector to switch to a different component.")
-	log.Info("------------------------------------------------------------------")
+	log.Info("### Updated Capability Selector to switch to a different component.")
 	return nil
 }
-*/

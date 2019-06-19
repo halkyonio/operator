@@ -12,62 +12,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-/*
-DC of build config
-
-apiVersion: apps.openshift.io/v1
-kind: DeploymentConfig
-metadata:
-  labels:
-    app: {{.Name}}{{ range $key, $value := .ObjectMeta.Labels }}
-    {{ $key }}: {{ $value }}{{ end }}
-  name: {{.Name}}
-spec:
-  replicas: 1
-  selector:
-    app: {{.Name}}
-    deploymentconfig: {{.Name}}
-  strategy:
-    type: Rolling
-  template:
-    metadata:
-      labels:
-        app: {{.Name}}{{ range $key, $value := .ObjectMeta.Labels }}
-        {{ $key }}: {{ $value }}{{ end }}
-        deploymentconfig: {{.Name}}
-      name: {{.Name}}
-    spec:
-      containers:
-      - env:
-        {{ range .Spec.Envs }}
-        - name: {{.Name}}
-          value: {{.Value}}
-        {{end}}
-        image: {{ index .ObjectMeta.Annotations "app.openshift.io/runtime-image" }}
-        name: {{.Name}}
-        ports:
-        - containerPort: {{.Spec.Port}}
-          protocol: TCP
-  triggers:
-  - type: ImageChange
-    imageChangeParams:
-      automatic: true
-      containerNames:
-      - {{.Name}}
-      from:
-        kind: ImageStreamTag
-        name: {{ index .ObjectMeta.Annotations "app.openshift.io/runtime-image" }}:latest
-
-*/
-
 const (
 	supervisorContainerName = "copy-supervisord"
 	supervisorImageId       = "supervisord"
 	latestVersionTag        = "latest"
 )
 
-//buildDeployment returns the Deployment config object
-func (r *ReconcileComponent) buildDeployment(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
+//buildDevDeployment returns the Deployment config object
+func (r *ReconcileComponent) buildDevDeployment(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
 	ls := r.getAppLabels(c.Name)
 
 	// create runtime container
