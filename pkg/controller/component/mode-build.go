@@ -46,63 +46,6 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 }
 
 /*
-func installOuterLoop(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
-	log.Info("Install BuildConfig ...")
-	component.ObjectMeta.Namespace = namespace
-
-	isOpenshift, err := kubernetes.DetectOpenShift(&config)
-	if err != nil {
-		return err
-	}
-
-	if isOpenshift {
-		tmpl, ok := util.Templates["outerloop/imagestream"]
-		if ok {
-			// Check if an ImageStream already exists
-			is, err := fetchImageStream(c, &component)
-			if err != nil {
-				err = kubernetes.CreateResource(tmpl, &component, c, &scheme)
-				if err != nil {
-					return err
-				}
-				log.Infof("### Created ImageStream used as target image to run the application")
-			} else {
-				log.Infof("### Image stream already exists %s",is.Name)
-			}
-		}
-
-		tmpl, ok = util.Templates["outerloop/buildconfig"]
-		if ok {
-			// Check if a BuildConfig already exists
-			bc, err := fetchBuildConfig(c, &component)
-			if err != nil {
-				err := kubernetes.CreateResource(tmpl, &component, c, &scheme)
-				if err != nil {
-					return err
-				}
-				log.Infof("### Created Buildconfig")
-			} else {
-				log.Infof("### BuildConfig already exists: %s",bc.Name)
-			}
-		}
-	}
-	return nil
-}
-
-func fetchBuildConfig(c client.Client, component *v1alpha2.Component) (*build.BuildConfig, error) {
-	log.Info("## Checking if the BuilConfig already exists")
-	buildConfig := &build.BuildConfig{}
-	err := c.Get(context.TODO(), types.NamespacedName{Name: component.Name, Namespace: component.Namespace}, buildConfig)
-	return buildConfig, err
-}
-
-func fetchImageStream(c client.Client, component *v1alpha2.Component) (*image.ImageStream, error) {
-	log.Info("## Checking if the ImageStream already exists")
-	is := &image.ImageStream{}
-	err := c.Get(context.TODO(), types.NamespacedName{Name: component.Name, Namespace: component.Namespace}, is)
-	return is, err
-}
-
 func cloneDeploymentLoop(component v1alpha2.Component, config rest.Config, c client.Client, namespace string, scheme runtime.Scheme) error {
 	component.ObjectMeta.Namespace = namespace
 
