@@ -6,8 +6,10 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	tektonv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 )
 
 // Request object not found, could have been deleted after reconcile request.
@@ -27,6 +29,12 @@ func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha
 	component := &v1alpha2.Component{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
 	return component, err
+}
+
+func (r *ReconcileComponent) fetchTaskRun(c *v1alpha2.Component) (*tektonv1alpha1.TaskRun, error) {
+	taskRun := &tektonv1alpha1.TaskRun{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, taskRun)
+	return taskRun, err
 }
 
 //fetchPod returns the pod resource created for this instance and where label app=component name

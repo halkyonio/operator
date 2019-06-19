@@ -7,6 +7,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"github.com/knative/pkg/apis"
+	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 )
 
 func (r *ReconcileComponent) setErrorStatus(instance *v1alpha2.Component, err error) {
@@ -44,19 +46,36 @@ func (r *ReconcileComponent) updateStatus(instance *v1alpha2.Component, phase v1
 		return err
 	}
 
-	pod, err := r.fetchPod(component)
-	if err != nil || !r.isPodReady(pod) {
-		msg := fmt.Sprintf("pod is not ready for component '%s' in namespace '%s'", component.Name, component.Namespace)
-		r.reqLogger.Info(msg)
-		component.Status.Phase = v1alpha2.ComponentPending
-		r.updateStatusWithMessage(component, msg, false)
-		return nil
-	}
+	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
+		taskRun, err := r.fetchTaskRun(component)
+		if err != nil || !r.isBuildSucceed(taskRun) {
+			msg := fmt.Sprintf("taskRun job is not ready for component '%s' in namespace '%s'", component.Name, component.Namespace)
+			r.reqLogger.Info(msg)
+			component.Status.Phase = v1alpha2.ComponentPending
+			r.updateStatusWithMessage(component, msg, false)
+			return nil
+		}
 
-	if pod.Name != instance.Status.PodName || phase != instance.Status.Phase {
-		component.Status.PodName = pod.Name
-		component.Status.Phase = phase
-		r.updateStatusWithMessage(component, "", false)
+		if taskRun.Name != instance.Status.PodName || phase != instance.Status.Phase {
+			component.Status.PodName = taskRun.Name
+			component.Status.Phase = phase
+			r.updateStatusWithMessage(component, "", false)
+		}
+	} else {
+		pod, err := r.fetchPod(component)
+		if err != nil || !r.isPodReady(pod) {
+			msg := fmt.Sprintf("pod is not ready for component '%s' in namespace '%s'", component.Name, component.Namespace)
+			r.reqLogger.Info(msg)
+			component.Status.Phase = v1alpha2.ComponentPending
+			r.updateStatusWithMessage(component, msg, false)
+			return nil
+		}
+
+		if pod.Name != instance.Status.PodName || phase != instance.Status.Phase {
+			component.Status.PodName = pod.Name
+			component.Status.Phase = phase
+			r.updateStatusWithMessage(component, "", false)
+		}
 	}
 	return nil
 }
@@ -76,6 +95,16 @@ func (r *ReconcileComponent) fetchLatestVersion(instance *v1alpha2.Component) (*
 func (r *ReconcileComponent) isPodReady(pod *corev1.Pod) bool {
 	for _, c := range pod.Status.Conditions {
 		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
+			return true
+		}
+	}
+	return false
+}
+
+// Check if the TaskRun Condition is Type = SUCCEEDED and Status = True
+func (r *ReconcileComponent) isBuildSucceed(taskRun *taskRunv1alpha1.TaskRun) bool {
+	for _, c := range taskRun.Status.Conditions {
+		if c.Type == apis.ConditionSucceeded && c.Status == corev1.ConditionTrue {
 			return true
 		}
 	}

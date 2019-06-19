@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	taskS2iBuildahPusName = "s2i-buildah-push"
-	serviceAccountName    = "build-bot"
+	taskS2iBuildahPushName = "s2i-buildah-push"
+	serviceAccountName     = "build-bot"
 )
 
 func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {

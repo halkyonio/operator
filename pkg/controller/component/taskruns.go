@@ -19,12 +19,11 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c
 			Namespace: c.Namespace,
 			Name:      res.name(c),
 			Labels:    ls,
-
 		},
 		Spec: v1alpha1.TaskRunSpec{
 			ServiceAccount: serviceAccountName,
 			TaskRef: &v1alpha1.TaskRef{
-				Name: taskS2iBuildahPusName,
+				Name: taskS2iBuildahPushName,
 			},
 			Inputs: v1alpha1.TaskRunInputs{
 				Params: []v1alpha1.Param{

@@ -159,10 +159,10 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 	r.addDependentResource(&routev1.Route{}, r.buildRoute, defaultNamer)
 	r.addDependentResource(&v1beta1.Ingress{}, r.buildIngress, defaultNamer)
 	taskNamer := func(c *v1alpha2.Component) string {
-		return taskS2iBuildahPusName
+		return taskS2iBuildahPushName
 	}
 	r.addDependentResource(&v1alpha1.Task{}, r.buildTaskS2iBuildahPush, taskNamer)
-	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, taskNamer)
+	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, defaultNamer)
 
 	return r
 }

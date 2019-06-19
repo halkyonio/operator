@@ -30,7 +30,7 @@ require (
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.6 // indirect
-	github.com/knative/pkg v0.0.0-20190409220258-28cfa161499b // indirect
+	github.com/knative/pkg v0.0.0-20190409220258-28cfa161499b
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kubernetes-incubator/service-catalog v0.1.39
 	github.com/markbates/inflect v1.0.4 // indirect
