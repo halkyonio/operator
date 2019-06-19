@@ -74,7 +74,7 @@ When this `Custom resource` will be processed by the Kubernetes API Server and p
   ```bash
   $ oc create -f deploy/sa.yaml
   $ oc create -f deploy/rbac.yaml
-  $ oc create -f deploy/crds/component-v1alpha2.yaml
+  $ oc create -f deploy/crds/component_v1alpha2.yaml
   ```
 
 - Start the Operator locally using the `Main` go file
