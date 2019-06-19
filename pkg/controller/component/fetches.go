@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	appsv1 "k8s.io/api/apps/v1"
 	tektonv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 )
 
@@ -29,6 +30,12 @@ func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha
 	component := &v1alpha2.Component{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, component)
 	return component, err
+}
+
+func (r *ReconcileComponent) fetchDeployment(c *v1alpha2.Component) (*appsv1.Deployment, error) {
+	deployment := &appsv1.Deployment{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, deployment)
+	return deployment, err
 }
 
 func (r *ReconcileComponent) fetchTaskRun(c *v1alpha2.Component) (*tektonv1alpha1.TaskRun, error) {
