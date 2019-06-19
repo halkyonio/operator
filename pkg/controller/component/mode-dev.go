@@ -109,6 +109,11 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	return *hasChanges, nil
 }
 
+func (r *ReconcileComponent) deleteDevMode(component *v1alpha2.Component, namespace string) error {
+	// todo
+	return nil
+}
+
 func (r *ReconcileComponent) createAndCheckForChanges(component *v1alpha2.Component, kind runtime.Object, hasChanges *bool) error {
 	created, err := r.createIfNeeded(component, kind)
 	if err != nil {

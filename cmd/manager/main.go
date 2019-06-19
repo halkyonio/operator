@@ -89,6 +89,7 @@ func main() {
 	registerAdditionalResources(mgr)
 
 	// Create component controller and add it to the manager
+
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)

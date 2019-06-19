@@ -19,9 +19,9 @@ package component
 
 import (
 	"fmt"
-	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	controller2 "github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
@@ -31,64 +31,13 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
-
-const (
-	controllerName = "component-controller"
-)
-
-var log = logf.Log.WithName("component.controller")
-
-// New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
-func New(mgr manager.Manager) error {
-	return Add(mgr, NewReconciler(mgr))
-}
-
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func Add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to primary resource Component
-	if err = c.Watch(&source.Kind{Type: &v1alpha2.Component{}}, &handler.EnqueueRequestForObject{}); err != nil {
-		return err
-	}
-
-	/** Watch for changes of child/secondary resources **/
-	owner := &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &v1alpha2.Component{},
-	}
-	if err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, owner); err != nil {
-		return err
-	}
-
-	if err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, owner); err != nil {
-		return err
-	}
-
-	if err = c.Watch(&source.Kind{Type: &corev1.Service{}}, owner); err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // newReconciler returns a new reconcile.Reconciler
-func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
+func (r *ReconcileComponent) InitAndRegisterWith(mgr manager.Manager) {
 	// todo: make this configurable
 	images := make(map[string]imageInfo, 7)
 	defaultEnvVar := make(map[string]string, 7)
@@ -127,15 +76,10 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		},
 	}
 
-	r := &ReconcileComponent{
-		client:             mgr.GetClient(),
-		config:             mgr.GetConfig(),
-		scheme:             mgr.GetScheme(),
-		reqLogger:          log,
-		runtimeImages:      images,
-		supervisor:         &supervisor,
-		dependentResources: make(map[string]dependentResource, 11),
-	}
+	r.runtimeImages = images
+	r.supervisor = &supervisor
+	r.dependentResources = make(map[string]dependentResource, 11)
+	r.ReconcilerHelper = controller2.NewHelper(r, mgr)
 
 	r.addDependentResource(&corev1.PersistentVolumeClaim{}, r.buildPVC, func(c *v1alpha2.Component) string {
 		specified := c.Spec.Storage.Name
@@ -162,8 +106,6 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 	}
 	r.addDependentResource(&v1alpha1.Task{}, r.buildTaskS2iBuildahPush, taskNamer)
 	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, defaultNamer)
-
-	return r
 }
 
 func (r *ReconcileComponent) addDependentResource(res runtime.Object, buildFn builder, nameFn namer) {
@@ -209,8 +151,8 @@ type updater func(runtime.Object, dependentResource, *v1alpha2.Component) (bool,
 
 func (r *ReconcileComponent) genericFetcher(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
 	into := res.prototype.DeepCopyObject()
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: res.name(c), Namespace: c.Namespace}, into); err != nil {
-		r.reqLogger.Info(res.kind + " doesn't exist")
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: res.name(c), Namespace: c.Namespace}, into); err != nil {
+		r.ReqLogger.Info(res.kind + " doesn't exist")
 		return nil, err
 	}
 	return into, nil
@@ -227,14 +169,76 @@ type dependentResource struct {
 }
 
 type ReconcileComponent struct {
-	client             client.Client
-	config             *rest.Config
-	scheme             *runtime.Scheme
-	reqLogger          logr.Logger
+	controller2.ReconcilerHelper
 	runtimeImages      map[string]imageInfo
 	supervisor         *v1alpha2.Component
 	onOpenShift        *bool
 	dependentResources map[string]dependentResource
+}
+
+func (r *ReconcileComponent) PrimaryResourceName() string {
+	return "component"
+}
+
+func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
+	return new(v1alpha2.Component)
+}
+
+func (r *ReconcileComponent) SecondaryResourceTypes() []runtime.Object {
+	return []runtime.Object{
+		&corev1.Pod{},
+		&appsv1.Deployment{},
+		&corev1.Service{},
+		&routev1.Route{},
+	}
+}
+
+func (r *ReconcileComponent) IsPrimaryResourceValid(object runtime.Object) bool {
+	// todo: implement
+	return true
+}
+
+func (ReconcileComponent) asComponent(object runtime.Object) *v1alpha2.Component {
+	return object.(*v1alpha2.Component)
+}
+
+func (r *ReconcileComponent) ResourceMetadata(object runtime.Object) controller2.ResourceMetadata {
+	component := r.asComponent(object)
+	return controller2.ResourceMetadata{
+		Name:         component.Name,
+		Status:       component.Status.Phase.String(),
+		Created:      component.ObjectMeta.CreationTimestamp,
+		ShouldDelete: !component.ObjectMeta.DeletionTimestamp.IsZero(),
+	}
+}
+
+func (r *ReconcileComponent) Delete(object runtime.Object) error {
+	// todo: implement
+	return nil
+}
+
+func (r *ReconcileComponent) CreateOrUpdate(object runtime.Object) (bool, error) {
+	component := r.asComponent(object)
+	installFn := r.installDevMode
+	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
+		installFn = r.installBuildMode
+	}
+	return installFn(component, component.Namespace)
+}
+
+func (r *ReconcileComponent) SetErrorStatus(object runtime.Object, e error) {
+	r.setErrorStatus(r.asComponent(object), e)
+}
+
+func (r *ReconcileComponent) SetSuccessStatus(object runtime.Object) {
+	err := r.updateStatus(r.asComponent(object), v1alpha2.ComponentReady)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (r *ReconcileComponent) Helper() controller2.ReconcilerHelper {
+	return r.ReconcilerHelper
 }
 
 //Create the factory object
@@ -253,15 +257,15 @@ func (r *ReconcileComponent) createIfNeeded(instance *v1alpha2.Component, resour
 			return false, errBuildObject
 		}
 		if errors.IsNotFound(err) {
-			err = r.client.Create(context.TODO(), obj)
+			err = r.Client.Create(context.TODO(), obj)
 			if err != nil {
-				r.reqLogger.Error(err, "Failed to create new ", "kind", kind)
+				r.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
 				return false, err
 			}
-			r.reqLogger.Info("Created successfully", "kind", kind)
+			r.ReqLogger.Info("Created successfully", "kind", kind)
 			return true, nil
 		}
-		r.reqLogger.Error(err, "Failed to get", "kind", kind)
+		r.ReqLogger.Error(err, "Failed to get", "kind", kind)
 		return false, err
 	} else {
 		// if the resource defined an updater, use it to try to update the resource
@@ -284,44 +288,7 @@ func getKeyAndKindFor(resourceType runtime.Object) (key string, kind string) {
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	r.reqLogger = log.WithValues("namespace", request.Namespace)
-
-	// Fetch the Component created, deleted or updated
-	component := &v1alpha2.Component{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, component)
-	if err != nil {
-		return r.fetch(err)
-	}
-
-	//TODO : add Check/Validate spec content
-	if !r.hasMandatorySpecs(component) {
-		return reconcile.Result{Requeue: true}, nil
-	}
-
-	r.reqLogger.Info("==> Reconciling Component",
-		"name", component.Name,
-		"status", component.Status.Phase,
-		"created", component.ObjectMeta.CreationTimestamp)
-
-	// Add the Status Component Creation when we process the first time the Component CR
-	// as we will start to create different resources
-	if component.Generation == 1 && component.Status.Phase == "" {
-		if err := r.updateStatus(component, v1alpha2.ComponentPending); err != nil {
-			r.reqLogger.Info("Status update failed !")
-			return reconcile.Result{}, err
-		}
-	}
-
-	installFn := r.installDevMode
-	r.setInitialStatus(component, v1alpha2.ComponentPending)
-	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
-		r.setInitialStatus(component, v1alpha2.ComponentBuilding)
-		installFn = r.installBuildMode
-	}
-
-	result, err := r.installAndUpdateStatus(component, request, installFn)
-	r.reqLogger.Info("<== Reconciled Component", "name", component.Name)
-	return result, err
+	return controller2.NewGenericReconciler(r).Reconcile(request)
 }
 
 type installFnType func(component *v1alpha2.Component, namespace string) (bool, error)
@@ -329,7 +296,7 @@ type installFnType func(component *v1alpha2.Component, namespace string) (bool, 
 func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Component, request reconcile.Request, install installFnType) (reconcile.Result, error) {
 	changed, err := install(component, request.Namespace)
 	if err != nil {
-		r.reqLogger.Error(err, fmt.Sprintf("failed to install %s mode", component.Spec.DeploymentMode))
+		r.ReqLogger.Error(err, fmt.Sprintf("failed to install %s mode", component.Spec.DeploymentMode))
 		r.setErrorStatus(component, err)
 		return reconcile.Result{}, err
 	}
@@ -340,7 +307,7 @@ func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Componen
 func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, phase v1alpha2.ComponentPhase) error {
 	if component.Generation == 1 && component.Status.Phase == "" {
 		if err := r.updateStatus(component, phase); err != nil {
-			r.reqLogger.Info("Status update failed !")
+			r.ReqLogger.Info("Status update failed !")
 			return err
 		}
 	}
