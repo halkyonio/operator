@@ -55,7 +55,7 @@ func (r *ReconcileComponent) getAppLabels(name string) map[string]string {
 //getBuildLabels returns a string map with the Build labels which wil be associated to the kubernetes/ocp resource created and managed by this operator
 func (r *ReconcileComponent) getBuildLabels(name string) map[string]string {
 	return map[string]string{
-		"build":          name,
+		"build":        name,
 		"component_cr": name,
 	}
 }
