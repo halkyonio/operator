@@ -43,12 +43,20 @@ func (r *ReconcileComponent) populateEnvVar(component *v1alpha2.Component) {
 	component.Spec.Envs = newEnvVars
 }
 
-//getAppLabels returns an string map with the labels which wil be associated to the kubernetes/ocp resource which will be created and managed by this operator
+//getAppLabels returns a string map with the Application labels which will be associated to the kubernetes/ocp resource created and managed by this operator
 func (r *ReconcileComponent) getAppLabels(name string) map[string]string {
 	return map[string]string{
 		"app":          name,
 		"component_cr": name,
 		"deployment":   name,
+	}
+}
+
+//getBuildLabels returns a string map with the Build labels which wil be associated to the kubernetes/ocp resource created and managed by this operator
+func (r *ReconcileComponent) getBuildLabels(name string) map[string]string {
+	return map[string]string{
+		"build":          name,
+		"component_cr": name,
 	}
 }
 

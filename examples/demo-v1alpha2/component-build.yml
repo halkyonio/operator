@@ -15,9 +15,9 @@ spec:
   buildConfig:
     url: https://github.com/snowdrop/component-operator-demo/
     ref: 0.0.1
-    moduleDirName: fruit-backend-sb
+    moduleDirName: fruit-client-sb
   runtime: spring-boot
   version: 2.1.3
   envs:
-    - name: SPRING_PROFILES_ACTIVE
-      value: openshift-catalog
+  - name: SPRING_PROFILES_ACTIVE
+    value: openshift-catalog
