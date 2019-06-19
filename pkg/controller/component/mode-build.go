@@ -45,8 +45,6 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 		return false, e
 	}
 
-	// TODO: Review this logic in order to support to switch from Dev To Build otherwise this code
-	// is failing as no Dev Deployment has been installed previously
 	if e := r.createDeploymentForBuildMode(component, hasChanges); e != nil {
 		return false, e
 	}
@@ -60,42 +58,36 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 
 func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Component, hasChanges *bool) error {
 
-	// Fetch the Dev Deployment created within the current namespace
-	deployment := &appsv1.Deployment{}
-	key, kind := getKeyAndKindFor(deployment)
-	resource, ok := r.dependentResources[key]
-	if !ok {
-		return fmt.Errorf("unknown dependent type %s", kind)
-	}
+	// TODO : Review the logic maybe to check if the Deplpyment resource already exists when Deployment strategy = build
 
-	obj, e := resource.fetch(resource, component)
+	// Create a new Deployment resource using the Deployment object to be used for a container to be created using a
+	// container image
+	obj, e := r.createBuildDeployment(component)
 	if e != nil {
-		return fmt.Errorf("dev deployment don't exist %s", resource.name)
+		return fmt.Errorf("deployment for the runtime container can't be created")
 	}
 
-	// Cast obj runtime.Object to its Deployment Type
-	devDeployment := obj.(*appsv1.Deployment)
-
-	// Create new Deployment using info collected from the Dev Deployment
-	obj, e = r.createBuildDeployment(component)
-	if e != nil {
-		return fmt.Errorf("build deployment can't be created")
-	}
 	buildDeployment := obj.(*appsv1.Deployment)
 	buildDeployment.Name = component.Name + "-build"
-
-	devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
-	buildContainer := &buildDeployment.Spec.Template.Spec.Containers[0]
-	buildContainer.Env = devContainer.Env
-	buildContainer.EnvFrom = devContainer.EnvFrom
-	buildContainer.Env = r.UpdateEnv(buildContainer.Env, component.Annotations["app.openshift.io/java-app-jar"])
-	buildDeployment.Namespace = devDeployment.Namespace
+	buildDeployment.Namespace = component.Namespace
 	controllerutil.SetControllerReference(component, buildDeployment, r.scheme)
 
-	// create the object
+	// We will check if a Dev Deployment exists.
+	// If this is the case, then that means that we are switching from dev to build mode
+	// and we will enrich the deployment resource of the runtime container
+	devDeployment, e := r.fetchDeployment(component)
+	if e == nil {
+		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
+		buildContainer := &buildDeployment.Spec.Template.Spec.Containers[0]
+		buildContainer.Env = devContainer.Env
+		buildContainer.EnvFrom = devContainer.EnvFrom
+		buildContainer.Env = r.UpdateEnv(buildContainer.Env, component.Annotations["app.openshift.io/java-app-jar"])
+	}
+
+	// Create the Deployment object
 	e = r.client.Create(context.TODO(), buildDeployment)
 	if e != nil {
-		return fmt.Errorf("Failed to create new Build Deployment")
+		return fmt.Errorf("Failed to create new deployment for the runtime container")
 	}
 	return nil
 }
