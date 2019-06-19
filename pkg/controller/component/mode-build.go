@@ -24,7 +24,6 @@ import (
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -58,13 +57,15 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 
 func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Component, hasChanges *bool) error {
 
-	// TODO : Review the logic maybe to check if the Deplpyment resource already exists when Deployment strategy = build
+	if _, e := r.fetchDeployment(component.Namespace, component.Name + "-build"); e == nil {
+		return fmt.Errorf("Deployment object already exist for the runtime container.")
+	}
 
-	// Create a new Deployment resource using the Deployment object to be used for a container to be created using a
-	// container image
+	// Create a new Deployment resource for a runtime container where the pod is created using a
+	// docker image
 	obj, e := r.createBuildDeployment(component)
 	if e != nil {
-		return fmt.Errorf("deployment for the runtime container can't be created")
+		return fmt.Errorf("Deployment for the runtime container can't be created.")
 	}
 
 	buildDeployment := obj.(*appsv1.Deployment)
@@ -75,7 +76,7 @@ func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Co
 	// We will check if a Dev Deployment exists.
 	// If this is the case, then that means that we are switching from dev to build mode
 	// and we will enrich the deployment resource of the runtime container
-	devDeployment, e := r.fetchDeployment(component)
+	devDeployment, e := r.fetchDeployment(component.Namespace, component.Name)
 	if e == nil {
 		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
 		buildContainer := &buildDeployment.Spec.Template.Spec.Containers[0]
@@ -87,7 +88,7 @@ func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Co
 	// Create the Deployment object
 	e = r.client.Create(context.TODO(), buildDeployment)
 	if e != nil {
-		return fmt.Errorf("Failed to create new deployment for the runtime container")
+		return fmt.Errorf("Failed to create new deployment for the runtime container, %s",e.Error())
 	}
 	return nil
 }
@@ -105,28 +106,32 @@ func (r *ReconcileComponent) UpdateEnv(envs []v1.EnvVar, jarName string) []v1.En
 }
 
 func (r *ReconcileComponent) updateServiceSelector(component *v1alpha2.Component, hasChanges *bool) error {
-	componentName := component.Annotations["app.openshift.io/component-name"]
-	svc := &v1.Service{}
-	svc.Labels = map[string]string{
-		"app.kubernetes.io/name":   componentName,
-		"app.openshift.io/runtime": component.Spec.Runtime,
-	}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Name: componentName, Namespace: component.Namespace}, svc); err != nil {
-		return err
-	}
 
 	var nameApp string
+
 	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
-		nameApp = componentName + "-build"
+		nameApp = component.Name + "-build"
 	} else {
-		nameApp = componentName
+		nameApp = component.Name
 	}
-	svc.Spec.Selector = map[string]string{
-		"app": nameApp,
+
+	if svc, e := r.fetchService(component); e != nil {
+		// Service don't exist. So will create it
+		svc.Labels = r.getAppLabels(component.Name)
+		svc.Spec.Selector = map[string]string{
+			"app": nameApp,
+		}
+		controllerutil.SetControllerReference(component, svc, r.scheme)
+		if err := r.client.Create(context.TODO(), svc); err != nil {
+			return err
+		}
+	} else {
+		svc.Spec.Selector = map[string]string{
+			"app": nameApp,
+		}
+		if err := r.client.Update(context.TODO(), svc); err != nil {
+			return err
+		}
 	}
-	if err := r.client.Update(context.TODO(), svc); err != nil {
-		return err
-	}
-	log.Info("### Updated Capability Selector to switch to a different component.")
 	return nil
 }

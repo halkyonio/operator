@@ -79,3 +79,7 @@ func (r *ReconcileComponent) PopulateK8sLabels(component *v1alpha2.Component, co
 func (r *ReconcileComponent) dockerImageURL(c *v1alpha2.Component) string {
 	return "docker-registry.default.svc.cluster.local:5000/" + c.Namespace + "/" + c.Name
 }
+
+func (r *ReconcileComponent) imageStreamName(c *v1alpha2.Component) string {
+	return c.Name + ":latest"
+}
