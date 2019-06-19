@@ -10,7 +10,9 @@ type BuildConfig struct {
 	// Ref is the git reference of the repo.
 	// Optional. By default it is equal to "master".
 	Ref string `json:"ref"`
-	// ContextDir is a path to a subfolder in the repo. It could correspond to a maven module.
+	// module is the name of the subfolder or directory in the repo to be used to perform a maven or gradle build.
 	// Optional. By default, it is equal to "."
-	ContextDir string `json:"contextDir,omitempty"`
+	ModuleDirName string `json:"moduleDirName,omitempty"`
+	// Container image to be used as Base or From to build the final image
+	BaseImage string `json:baseImage,omitempty`
 }

@@ -13,8 +13,9 @@ metadata:
 spec:
   deploymentMode: build
   buildConfig:
-    url: https://github.com/snowdrop/rest-http-example
-    ref: 2.1.3-2
+    url: https://github.com/snowdrop/component-operator-demo/
+    ref: 0.0.1
+    moduleDirName: fruit-backend-sb
   runtime: spring-boot
   version: 2.1.3
   envs:
