@@ -24,6 +24,7 @@ func (r *ReconcileComponent) createBuildDeployment(c *v1alpha2.Component) (runti
 		Name:          "http",
 		Protocol:      "TCP",
 	}}
+	runtimeContainer.Image = r.dockerImageURL(c)
 	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/tmp/artifacts"})
 
 	dep := &appsv1.Deployment{
