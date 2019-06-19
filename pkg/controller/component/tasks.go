@@ -26,15 +26,19 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 		},
 		Spec: v1alpha1.TaskSpec{
 			Inputs: &v1alpha1.Inputs{
+				// This input corresponds to a pre-task step as the project will be cloned
+				// under by default the following directory : /workspace/{resource-name}
+				// Resource name has been defined to git hereafter
 				Resources: []v1alpha1.TaskResource{{
-					Name:       "workspace-git",
+					Name:       "git",
 					Type:       "git",
-					TargetPath: "/",
 				}},
 				Params: []v1alpha1.TaskParam{
-					{Name: "baseImage", Description: "s2i base image"},
-					{Name: "contextFolder", Default: ".", Description: "the path of the context to build"},
+					{Name: "baseImage", Default: "quay.io/snowdrop/spring-boot-maven-s2i", Description: "S2i base image"},
+					{Name: "contextPath", Default:".", Description:"The location of the path to run s2i from"},
+					{Name: "moduleDirName", Default: ".", Description: "The name of the directory containing the project (maven, ...) to be compiled"},
 					{Name: "verifyTLS", Default: "false", Description: "Verify registry certificates"},
+					{Name: "workspacePath", Default: "/workspace/git",Description: "Git path where project is cloned"},
 				}},
 			Outputs: &v1alpha1.Outputs{
 				Resources: []v1alpha1.TaskResource{{
@@ -48,12 +52,16 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 					Name:  "generate",
 					Image: "quay.io/openshift-pipeline/s2i-buildah",
 					Args: []string{
-						"${inputs.params.contextFolder}",
+						"${inputs.params.contextPath}",
 						"${inputs.params.baseImage}",
-						"${outputs.resources.image.url}",
+						"--as-dockerfile",
+						"/sources/Dockerfile.gen",
 						"--image-scripts-url",
-						"image:///usr/local/s2i"},
-					WorkingDir: "/sources",
+						"image:///usr/local/s2i",
+						"--env",
+						"MAVEN_ARGS_APPEND=-pl ${inputs.params.moduleDirName}",
+					},
+					WorkingDir: "${inputs.params.workspacePath}",
 					VolumeMounts: []corev1.VolumeMount{
 						{
 							MountPath: "/sources",
@@ -64,18 +72,19 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 				{
 					Name:  "build",
 					Image: "quay.io/openshift-pipeline/buildah",
+					WorkingDir: "/sources",
 					Command: []string{
 						"buildah",
 					},
 					Args: []string{
 						"bud",
-						"--layers",
 						"--tls-verify=${inputs.params.verifyTLS}",
+						"--layers",
 						"-f",
-						"Dockerfile",
+						"/sources/Dockerfile.gen",
 						"-t",
 						"${outputs.resources.image.url}",
-						"/sources"},
+						"."},
 					VolumeMounts: []corev1.VolumeMount{
 						{
 							Name:      "libcontainers",

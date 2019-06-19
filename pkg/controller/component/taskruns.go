@@ -25,13 +25,14 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c
 			},
 			Inputs: v1alpha1.TaskRunInputs{
 				Params: []v1alpha1.Param{
-					{Name: "baseImage", Value: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"},
-					{Name: "contextFolder", Value: "/workspace"},
-					{Name: "verifyTLS", Value: "false"},
+					// See description of the parameters within the Tasks
+					// We only override parameters here. Defaults are defined within the Tasks
+					//{Name: "baseImage", Value: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"},
+					{Name: "moduleDirName", Value: c.Spec.BuildConfig.ModuleDirName},
 				},
 				Resources: []v1alpha1.TaskResourceBinding{
 					{
-						Name: "workspace-git",
+						Name: "git",
 						ResourceSpec: &v1alpha1.PipelineResourceSpec{
 							Type: "git",
 							Params: []v1alpha1.Param{
