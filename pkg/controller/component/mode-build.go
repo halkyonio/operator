@@ -45,7 +45,8 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 		return false, e
 	}
 
-
+	// TODO: Review this logic in order to support to switch from Dev To Build otherwise this code
+	// is failing as no Dev Deployment has been installed previously
 	if e := r.createDeploymentForBuildMode(component, hasChanges); e != nil {
 		return false, e
 	}
