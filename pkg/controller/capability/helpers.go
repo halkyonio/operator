@@ -14,7 +14,7 @@ func (r *ReconcileCapability) BuildParameters(params interface{}) *runtime.RawEx
 	if err != nil {
 		// This should never be hit because marshalling a map[string]string is pretty safe
 		// I'd rather throw a panic then force handling of an error that I don't think is possible.
-		r.reqLogger.Error(err,"unable to marshal the request parameters")
+		r.ReqLogger.Error(err, "unable to marshal the request parameters")
 	}
 	return &runtime.RawExtension{Raw: paramsJSON}
 }

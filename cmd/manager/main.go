@@ -9,6 +9,7 @@ import (
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
+	"github.com/snowdrop/component-operator/pkg/controller/capability"
 	"github.com/snowdrop/component-operator/pkg/controller/component"
 	"github.com/spf13/pflag"
 	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
@@ -91,6 +92,10 @@ func main() {
 
 	// Create component controller and add it to the manager
 	if err := controller.RegisterNewReconciler(component.NewComponentReconciler(mgr), mgr); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+	if err := controller.RegisterNewReconciler(capability.NewCapabilityReconciler(mgr), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}

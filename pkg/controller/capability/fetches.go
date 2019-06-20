@@ -15,17 +15,17 @@ import (
 func (r *ReconcileCapability) fetch(err error) (reconcile.Result, error) {
 	if errors.IsNotFound(err) {
 		// Return and don't create
-		r.reqLogger.Info("component resource not found. Ignoring since object must be deleted")
+		r.ReqLogger.Info("component resource not found. Ignoring since object must be deleted")
 		return reconcile.Result{}, nil
 	}
 	// Error reading the object - create the request.
-	r.reqLogger.Error(err, "Failed to get Component")
+	r.ReqLogger.Error(err, "Failed to get Component")
 	return reconcile.Result{}, err
 }
 
-func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alpha2.Capability, error){
+func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alpha2.Capability, error) {
 	cap := &v1alpha2.Capability{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, cap)
+	err := r.Client.Get(context.TODO(), request.NamespacedName, cap)
 	return cap, err
 }
 
@@ -33,13 +33,13 @@ func (r *ReconcileCapability) fetchSecret(c *v1alpha2.Capability) (*v1.Secret, e
 	paramsMap := r.ParametersAsMap(c.Spec.Parameters)
 	// Retrieve Secret
 	secret := &v1.Secret{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: c.Namespace, Name: r.SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME])}, secret)
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: c.Namespace, Name: r.SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME])}, secret)
 	return secret, err
 }
 
 func (r *ReconcileCapability) fetchKubeDBPostgres(c *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
 	// Retrieve Postgres DB CRD
 	postgres := &kubedbv1.Postgres{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: c.Namespace, Name: c.Name}, postgres)
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: c.Namespace, Name: c.Name}, postgres)
 	return postgres, err
 }
