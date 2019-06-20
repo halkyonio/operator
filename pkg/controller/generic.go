@@ -30,7 +30,7 @@ type ReconcilerFactory interface {
 	SecondaryResourceTypes() []runtime.Object
 	IsPrimaryResourceValid(object runtime.Object) bool
 	ResourceMetadata(object runtime.Object) ResourceMetadata
-	Delete(object runtime.Object) error
+	Delete(object runtime.Object) (bool, error)
 	CreateOrUpdate(object runtime.Object) (bool, error)
 	SetErrorStatus(object runtime.Object, e error)
 	SetSuccessStatus(object runtime.Object)
@@ -78,8 +78,8 @@ func (g *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 		"created", metadata.Created)
 
 	if metadata.ShouldDelete {
-		err := g.Delete(resource)
-		return reconcile.Result{}, err
+		requeue, err := g.Delete(resource)
+		return reconcile.Result{Requeue: requeue}, err
 	}
 
 	changed, err := g.CreateOrUpdate(resource)
