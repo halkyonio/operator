@@ -11,24 +11,38 @@ import (
 )
 
 //createBuildDeployment returns the Deployment config object to be used for deployment using a container image build by Tekton
-func (r *ReconcileComponent) createBuildDeployment(c *v1alpha2.Component) (runtime.Object, error) {
+func (r *ReconcileComponent) createBuildDeployment(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
 	ls := r.getAppLabels(c.Name)
-
-	// Check if Service port exists, otherwise define it
-	if c.Spec.Port == 0 {
-		c.Spec.Port = 8080 // Add a default port if empty
-	}
 
 	// create runtime container using built image (= created by the Tekton build task)
 	runtimeContainer, err := r.getRuntimeContainerFor(c)
 	if err != nil {
 		return nil, err
 	}
-	runtimeContainer.Ports = []corev1.ContainerPort{{
-		ContainerPort: c.Spec.Port,
-		Name:          "http",
-		Protocol:      "TCP",
-	}}
+	// We will check if a Dev Deployment exists.
+	// If this is the case, then that means that we are switching from dev to build mode
+	// and we will enrich the deployment resource of the runtime container
+	// create a "dev" version of the component to be able to check if the dev deployment exists
+	devComp := c.DeepCopyObject().(*v1alpha2.Component)
+	object, err := res.fetch(res, devComp)
+	if err == nil {
+		devDeployment := object.(*appsv1.Deployment)
+		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
+		runtimeContainer.Env = devContainer.Env
+		runtimeContainer.EnvFrom = devContainer.EnvFrom
+		runtimeContainer.Env = updateEnv(runtimeContainer.Env, c.Annotations["app.openshift.io/java-app-jar"])
+		runtimeContainer.Ports = devContainer.Ports
+	} else {
+		// Check if Service port exists, otherwise define it
+		if c.Spec.Port == 0 {
+			c.Spec.Port = 8080 // Add a default port if empty
+		}
+		runtimeContainer.Ports = []corev1.ContainerPort{{
+			ContainerPort: c.Spec.Port,
+			Name:          "http",
+			Protocol:      "TCP",
+		}}
+	}
 
 	dep := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -36,7 +50,7 @@ func (r *ReconcileComponent) createBuildDeployment(c *v1alpha2.Component) (runti
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.Name,
+			Name:      res.name(c),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
@@ -70,4 +84,16 @@ func (r *ReconcileComponent) getRuntimeContainerFor(component *v1alpha2.Componen
 		Name:            component.Name,
 	}
 	return container, nil
+}
+
+func updateEnv(envs []corev1.EnvVar, jarName string) []corev1.EnvVar {
+	newEnvs := []corev1.EnvVar{}
+	for _, s := range envs {
+		if s.Name == "JAVA_APP_JAR" {
+			newEnvs = append(newEnvs, corev1.EnvVar{Name: s.Name, Value: jarName})
+		} else {
+			newEnvs = append(newEnvs, s)
+		}
+	}
+	return newEnvs
 }

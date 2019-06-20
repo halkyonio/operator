@@ -147,7 +147,18 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 		}
 		return "m2-data-" + c.Name
 	})
-	r.addDependentResource(&appsv1.Deployment{}, r.buildDevDeployment, defaultNamer)
+	r.addDependentResource(&appsv1.Deployment{},
+		func(res dependentResource, c *v1alpha2.Component) (object runtime.Object, e error) {
+			if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
+				return r.createBuildDeployment(res, c)
+			}
+			return r.buildDevDeployment(res, c)
+		}, func(c *v1alpha2.Component) string {
+			if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
+				return buildNamer(c)
+			}
+			return defaultNamer(c)
+		})
 	r.addDependentResource(&corev1.Service{}, r.buildService, defaultNamer)
 	r.addDependentResource(&corev1.ServiceAccount{}, r.buildServiceAccount, func(c *v1alpha2.Component) string {
 		return serviceAccountName
@@ -181,6 +192,9 @@ type imageInfo struct {
 
 var defaultNamer namer = func(component *v1alpha2.Component) string {
 	return component.Name
+}
+var buildNamer namer = func(component *v1alpha2.Component) string {
+	return defaultNamer(component) + "-build"
 }
 
 type namer func(*v1alpha2.Component) string
