@@ -13,8 +13,11 @@ metadata:
 spec:
   deploymentMode: build
   buildConfig:
-    url: https://github.com/snowdrop/rest-http-example.git
-    ref: 2.1.3-2
-    moduleDirName: .
+    url: https://github.com/snowdrop/component-operator-demo/
+    ref: 0.0.2
+    moduleDirName: fruit-client-sb
   runtime: spring-boot
   version: 2.1.3
+  envs:
+  - name: SPRING_PROFILES_ACTIVE
+    value: openshift-catalog
