@@ -66,7 +66,7 @@ func (r *ReconcileComponent) updateServiceSelector(object runtime.Object, res de
 	name := res.labelsName(component)
 	if svc.Spec.Selector["app"] != name {
 		svc.Spec.Selector["app"] = name
-		if err := r.client.Update(context.TODO(), svc); err != nil {
+		if err := r.Client.Update(context.TODO(), svc); err != nil {
 			return false, fmt.Errorf("couldn't update service '%s' selector", svc.Name)
 		}
 		return true, nil
