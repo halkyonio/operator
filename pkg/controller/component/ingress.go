@@ -47,5 +47,5 @@ func (r *ReconcileComponent) buildIngress(res dependentResource, c *v1alpha2.Com
 	}
 
 	// Set Component instance as the owner and controller
-	return route, controllerutil.SetControllerReference(c, route, r.scheme)
+	return route, controllerutil.SetControllerReference(c, route, r.Scheme)
 }

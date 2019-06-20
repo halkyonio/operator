@@ -30,5 +30,5 @@ func (r *ReconcileComponent) buildRoute(res dependentResource, c *v1alpha2.Compo
 	}
 
 	// Set Component instance as the owner and controller
-	return route, controllerutil.SetControllerReference(c, route, r.scheme)
+	return route, controllerutil.SetControllerReference(c, route, r.Scheme)
 }

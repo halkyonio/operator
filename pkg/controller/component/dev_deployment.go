@@ -83,7 +83,7 @@ func (r *ReconcileComponent) buildDevDeployment(res dependentResource, c *v1alph
 	}
 
 	// Set Component instance as the owner and controller
-	return dep, controllerutil.SetControllerReference(c, dep, r.scheme)
+	return dep, controllerutil.SetControllerReference(c, dep, r.Scheme)
 }
 
 func (r *ReconcileComponent) getBaseContainerFor(component *v1alpha2.Component) (corev1.Container, error) {
