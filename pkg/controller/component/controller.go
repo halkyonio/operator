@@ -37,7 +37,7 @@ import (
 )
 
 // newReconciler returns a new reconcile.Reconciler
-func (r *ReconcileComponent) InitAndRegisterWith(mgr manager.Manager) {
+func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	// todo: make this configurable
 	images := make(map[string]imageInfo, 7)
 	defaultEnvVar := make(map[string]string, 7)
@@ -75,9 +75,11 @@ func (r *ReconcileComponent) InitAndRegisterWith(mgr manager.Manager) {
 		},
 	}
 
-	r.runtimeImages = images
-	r.supervisor = &supervisor
-	r.dependentResources = make(map[string]dependentResource, 11)
+	r := &ReconcileComponent{
+		runtimeImages:      images,
+		supervisor:         &supervisor,
+		dependentResources: make(map[string]dependentResource, 11),
+	}
 	r.ReconcilerHelper = controller2.NewHelper(r, mgr)
 
 	r.addDependentResource(&corev1.PersistentVolumeClaim{}, r.buildPVC, func(c *v1alpha2.Component) string {
@@ -105,6 +107,8 @@ func (r *ReconcileComponent) InitAndRegisterWith(mgr manager.Manager) {
 	}
 	r.addDependentResource(&v1alpha1.Task{}, r.buildTaskS2iBuildahPush, taskNamer)
 	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, defaultNamer)
+
+	return r
 }
 
 func (r *ReconcileComponent) addDependentResource(res runtime.Object, buildFn builder, nameFn namer) {
@@ -306,7 +310,7 @@ func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Componen
 func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, phase v1alpha2.ComponentPhase) error {
 	if component.Generation == 1 && component.Status.Phase == "" {
 		if err := r.updateStatus(component, phase); err != nil {
-			r.reqLogger.Info("Status update failed !")
+			r.ReqLogger.Info("Status update failed !")
 			return err
 		}
 	}
