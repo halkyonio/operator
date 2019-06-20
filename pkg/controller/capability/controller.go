@@ -3,18 +3,13 @@ package capability
 import (
 	"context"
 	"fmt"
-	"github.com/go-logr/logr"
+	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	controller2 "github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-	"strconv"
 )
 
 const (
@@ -24,73 +19,171 @@ const (
 	svcFinalizerName = "capability.devexp.runtime.redhat.com"
 )
 
-var log = logf.Log.WithName("capability.controller")
-
-// New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
-func New(mgr manager.Manager) error {
-	return Add(mgr, NewReconciler(mgr))
-}
-
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func Add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to primary resource Capability
-	err = c.Watch(&source.Kind{Type: &v1alpha2.Capability{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-
-	/** Watch for changes of child/secondary resources **/
-	//ServiceInstance
-	if err := watchServiceInstance(c); err != nil {
-		return err
-	}
-
-	//ServiceBinding
-	if err := watchServiceBinding(c); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// newReconciler returns a new reconcile.Reconciler
-func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileCapability{
-		client:    mgr.GetClient(),
-		config:    mgr.GetConfig(),
-		scheme:    mgr.GetScheme(),
-		reqLogger: log,
-	}
+func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
+	r := &ReconcileCapability{}
+	r.ReconcilerHelper = controller2.NewHelper(r, mgr)
+	return r
 }
 
 type ReconcileCapability struct {
-	client    client.Client
-	config    *rest.Config
-	scheme    *runtime.Scheme
-	reqLogger logr.Logger
+	controller2.ReconcilerHelper
+}
+
+func (r *ReconcileCapability) PrimaryResourceName() string {
+	return "capability"
+}
+
+func (r *ReconcileCapability) PrimaryResourceType() runtime.Object {
+	return new(v1alpha2.Capability)
+}
+
+func (r *ReconcileCapability) SecondaryResourceTypes() []runtime.Object {
+	return []runtime.Object{
+		&servicecatalogv1.ServiceInstance{},
+		&servicecatalogv1.ServiceBinding{},
+	}
+}
+
+func (ReconcileCapability) asCapability(object runtime.Object) *v1alpha2.Capability {
+	return object.(*v1alpha2.Capability)
+}
+
+func (r *ReconcileCapability) IsPrimaryResourceValid(object runtime.Object) bool {
+	// todo: implement
+	return true
+}
+
+func (r *ReconcileCapability) ResourceMetadata(object runtime.Object) controller2.ResourceMetadata {
+	capability := r.asCapability(object)
+	return controller2.ResourceMetadata{
+		Name:         capability.Name,
+		Status:       capability.Status.Phase.String(),
+		Created:      capability.ObjectMeta.CreationTimestamp,
+		ShouldDelete: !capability.ObjectMeta.DeletionTimestamp.IsZero(),
+	}
+}
+
+func (r *ReconcileCapability) Delete(object runtime.Object) (bool, error) {
+	// todo: implement
+	service := r.asCapability(object)
+	// The object is being deleted
+	if r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
+		// our finalizer is present, so let's handle our external dependency
+		if service.Name != "" {
+			// TODO Call action to remove
+			// r.ReqLogger.Info("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
+			if err := r.DeleteService(service); err != nil {
+				r.ReqLogger.Error(err, "Removing Capability Instance & ServiceBinding failed")
+			}
+		}
+
+		// remove our finalizer from the list and update it.
+		service.ObjectMeta.Finalizers = r.RemoveString(service.ObjectMeta.Finalizers, svcFinalizerName)
+		if err := r.Client.Update(context.Background(), service); err != nil {
+			return true, err
+		}
+	}
+	r.ReqLogger.Info(fmt.Sprintf("Deleted capability %s, namespace %s", service.Name, service.Namespace))
+	return false, nil
+}
+
+func (r *ReconcileCapability) CreateOrUpdate(object runtime.Object) (bool, error) {
+	service := r.asCapability(object)
+	request := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: service.Namespace,
+			Name:      service.Name,
+		},
+	}
+
+	// Add the Status Capability Creation when we process the first time the Capability CR
+	// as we will start to create different resources
+	if service.Generation == 1 && service.Status.Phase == "" {
+		if err := r.updateServiceStatus(service, v1alpha2.CapabilityPending, request); err != nil {
+			r.ReqLogger.Info("Status update failed !")
+			return false, err
+		}
+		r.ReqLogger.Info(fmt.Sprintf("Status is now : %s", v1alpha2.CapabilityPending))
+	}
+
+	// Check if the ServiceInstance exists
+	if _, err := r.fetchServiceInstance(service); err != nil {
+		if err = r.create(service, SERVICEINSTANCE); err != nil {
+			return false, err
+		}
+	}
+
+	// Check if the ServiceBinding exists
+	if _, err := r.fetchServiceBinding(service); err != nil {
+		if err = r.create(service, SERVICEBINDING); err != nil {
+			return false, err
+		}
+	}
+
+	// Update Capability object to add a k8s ObjectMeta finalizer
+	if !r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
+		// Get a more recent version of the CR
+		service, err := r.fetchCapability(request)
+		if err != nil {
+			return false, err
+		}
+		service.ObjectMeta.Finalizers = append(service.ObjectMeta.Finalizers, svcFinalizerName)
+		_, err = r.update(service)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	return false, nil
+}
+
+func (r *ReconcileCapability) SetErrorStatus(object runtime.Object, e error) {
+	panic("implement me")
+}
+
+func (r *ReconcileCapability) SetSuccessStatus(object runtime.Object) {
+	service := r.asCapability(object)
+	request := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: service.Namespace,
+			Name:      service.Name,
+		},
+	}
+
+	serviceBindingStatus, err := r.updateServiceBindingStatus(service, request)
+	if err != nil {
+		panic(err)
+	}
+
+	serviceInstanceStatus, err := r.updateServiceInstanceStatus(service, request)
+	if err != nil {
+		panic(err)
+	}
+
+	// Update Status of the Capability
+	if err := r.updateStatus(serviceBindingStatus, serviceInstanceStatus, service, request); err != nil {
+		panic(err)
+	}
+}
+
+func (r *ReconcileCapability) Helper() controller2.ReconcilerHelper {
+	return r.ReconcilerHelper
 }
 
 //Update the factory object and requeue
 func (r *ReconcileCapability) update(obj runtime.Object) (reconcile.Result, error) {
-	err := r.client.Update(context.TODO(), obj)
+	err := r.Client.Update(context.TODO(), obj)
 	if err != nil {
-		r.reqLogger.Error(err, "Failed to update spec")
+		r.ReqLogger.Error(err, "Failed to update spec")
 		return reconcile.Result{}, err
 	}
-	r.reqLogger.Info("Spec updated successfully")
+	r.ReqLogger.Info("Spec updated successfully")
 	return reconcile.Result{}, nil
 }
 
 //buildFactory will return the resource according to the kind defined
 func (r *ReconcileCapability) buildFactory(instance *v1alpha2.Capability, kind string) (runtime.Object, error) {
-	r.reqLogger.Info("Check "+kind, "into the namespace", instance.Namespace)
+	r.ReqLogger.Info("Check "+kind, "into the namespace", instance.Namespace)
 	switch kind {
 	case SERVICEBINDING:
 		return r.buildServiceBinding(instance), nil
@@ -108,113 +201,18 @@ func (r *ReconcileCapability) create(instance *v1alpha2.Capability, kind string)
 	if err != nil {
 		return err
 	}
-	r.reqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
-	err = r.client.Create(context.TODO(), obj)
+	r.ReqLogger.Info("Creating a new ", "kind", kind, "Namespace", instance.Namespace)
+	err = r.Client.Create(context.TODO(), obj)
 	if err != nil {
-		r.reqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
+		r.ReqLogger.Error(err, "Failed to create new ", "kind", kind, "Namespace", instance.Namespace)
 		return err
 	}
-	r.reqLogger.Info("Created successfully", "kind", kind, "Namespace", instance.Namespace)
+	r.ReqLogger.Info("Created successfully", "kind", kind, "Namespace", instance.Namespace)
 	return nil
 }
 
 func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	r.reqLogger = log.WithValues("Namespace", request.Namespace)
-
-	// Fetch the Capability created, deleted or updated
-	service := &v1alpha2.Capability{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, service)
-	if err != nil {
-		return r.fetch(err)
-	}
-
-	r.reqLogger.Info("-----------------------")
-	r.reqLogger.Info("Reconciling Capability")
-	r.reqLogger.Info("Status of the Capability", "Status phase", service.Status.Phase)
-	r.reqLogger.Info("Creation time          ", "Creation time", service.ObjectMeta.CreationTimestamp)
-	r.reqLogger.Info("Resource version       ", "Resource version", service.ObjectMeta.ResourceVersion)
-	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(service.ObjectMeta.Generation, 10))
-	// r.reqLogger.Info("Deletion time          ","Deletion time", Capability.ObjectMeta.DeletionTimestamp)
-
-	// Capability has been marked for deletion or deleted
-	if !service.ObjectMeta.DeletionTimestamp.IsZero() {
-		// The object is being deleted
-		if r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
-			// our finalizer is present, so let's handle our external dependency
-			if service.Name != "" {
-				// TODO Call action to remove
-				// r.reqLogger.Info("## Invoking'service catalog', action '%s' on %s", "delete", component.Name)
-				if err := r.DeleteService(service); err != nil {
-					r.reqLogger.Error(err, "Removing Capability Instance & ServiceBinding failed")
-				}
-			}
-
-			// remove our finalizer from the list and update it.
-			service.ObjectMeta.Finalizers = r.RemoveString(service.ObjectMeta.Finalizers, svcFinalizerName)
-			if err := r.client.Update(context.Background(), service); err != nil {
-				return reconcile.Result{Requeue: true}, nil
-			}
-		}
-		r.reqLogger.Info(fmt.Sprintf("Deleted capability %s, namespace %s", request.Name, request.Namespace))
-		return reconcile.Result{}, nil
-	}
-
-	// Add the Status Capability Creation when we process the first time the Capability CR
-	// as we will start to create different resources
-	if service.Generation == 1 && service.Status.Phase == "" {
-		if err := r.updateServiceStatus(service, v1alpha2.CapabilityPending, request); err != nil {
-			r.reqLogger.Info("Status update failed !")
-			return reconcile.Result{}, err
-		}
-		r.reqLogger.Info(fmt.Sprintf("Status is now : %s", v1alpha2.CapabilityPending))
-	}
-
-	// Check if the ServiceInstance exists
-	if _, err := r.fetchServiceInstance(service); err != nil {
-		if err = r.create(service, SERVICEINSTANCE); err != nil {
-			return reconcile.Result{}, err
-		}
-	}
-
-	// Check if the ServiceBinding exists
-	if _, err := r.fetchServiceBinding(service); err != nil {
-		if err = r.create(service, SERVICEBINDING); err != nil {
-			return reconcile.Result{}, err
-		}
-	}
-
-	// Update Capability object to add a k8s ObjectMeta finalizer
-	if !r.ContainsString(service.ObjectMeta.Finalizers, svcFinalizerName) {
-		// Get a more recent version of the CR
-		service, err := r.fetchCapability(request)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		service.ObjectMeta.Finalizers = append(service.ObjectMeta.Finalizers, svcFinalizerName)
-		r.update(service)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	}
-
-	// Update Status
-	serviceBindingStatus, err := r.updateServiceBindingStatus(service, request)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	serviceInstanceStatus, err := r.updateServiceInstanceStatus(service, request)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	// Update Status of the Capability
-	if err := r.updateStatus(serviceBindingStatus, serviceInstanceStatus, service, request); err != nil {
-		return reconcile.Result{}, err
-	}
-
-	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", service.Name))
-	return reconcile.Result{}, nil
+	return controller2.NewGenericReconciler(r).Reconcile(request)
 }
 
 func (r *ReconcileCapability) DeleteService(service *v1alpha2.Capability) error {
@@ -225,11 +223,11 @@ func (r *ReconcileCapability) DeleteService(service *v1alpha2.Capability) error 
 	}
 	// Delete ServiceBinding linked to the ServiceInstance
 	if serviceBinding.Name == service.Name {
-		err := r.client.Delete(context.TODO(), serviceBinding)
+		err := r.Client.Delete(context.TODO(), serviceBinding)
 		if err != nil {
 			return err
 		}
-		r.reqLogger.Info(fmt.Sprintf("Deleted serviceBinding '%s' for the service '%s'", serviceBinding.Name, service.Name))
+		r.ReqLogger.Info(fmt.Sprintf("Deleted serviceBinding '%s' for the service '%s'", serviceBinding.Name, service.Name))
 	}
 
 	serviceInstance, err := r.fetchServiceInstance(service)
@@ -237,11 +235,11 @@ func (r *ReconcileCapability) DeleteService(service *v1alpha2.Capability) error 
 		return err
 	}
 	// Delete the ServiceInstance
-	err = r.client.Delete(context.TODO(), serviceInstance)
+	err = r.Client.Delete(context.TODO(), serviceInstance)
 	if err != nil {
 		return err
 	}
-	r.reqLogger.Info(fmt.Sprintf("Deleted serviceInstance '%s' for the service '%s'", serviceInstance.Name, service.Name))
+	r.ReqLogger.Info(fmt.Sprintf("Deleted serviceInstance '%s' for the service '%s'", serviceInstance.Name, service.Name))
 
 	return nil
 }

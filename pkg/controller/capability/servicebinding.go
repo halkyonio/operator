@@ -1,9 +1,9 @@
 package capability
 
 import (
+	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -21,11 +21,11 @@ func (r *ReconcileCapability) buildServiceBinding(s *v1alpha2.Capability) *servi
 			Labels:    ls,
 		},
 		Spec: servicecatalogv1.ServiceBindingSpec{
-			SecretName: s.Spec.SecretName,
-			ServiceInstanceRef:servicecatalogv1.LocalObjectReference{Name: s.Name},
+			SecretName:         s.Spec.SecretName,
+			ServiceInstanceRef: servicecatalogv1.LocalObjectReference{Name: s.Name},
 		},
 	}
 	// Set Component instance as the owner and controller
-	controllerutil.SetControllerReference(s, service, r.scheme)
+	controllerutil.SetControllerReference(s, service, r.Scheme)
 	return service
 }

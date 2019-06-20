@@ -14,29 +14,29 @@ import (
 func (r *ReconcileCapability) fetch(err error) (reconcile.Result, error) {
 	if errors.IsNotFound(err) {
 		// Return and don't create
-		r.reqLogger.Info("component resource not found. Ignoring since object must be deleted")
+		r.ReqLogger.Info("component resource not found. Ignoring since object must be deleted")
 		return reconcile.Result{}, nil
 	}
 	// Error reading the object - create the request.
-	r.reqLogger.Error(err, "Failed to get Component")
+	r.ReqLogger.Error(err, "Failed to get Component")
 	return reconcile.Result{}, err
 }
 
-func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alpha2.Capability, error){
+func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alpha2.Capability, error) {
 	cap := &v1alpha2.Capability{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, cap)
+	err := r.Client.Get(context.TODO(), request.NamespacedName, cap)
 	return cap, err
 }
 
 func (r *ReconcileCapability) fetchServiceBinding(service *v1alpha2.Capability) (*servicecatalogv1.ServiceBinding, error) {
 	serviceBinding := &servicecatalogv1.ServiceBinding{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceBinding)
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceBinding)
 	return serviceBinding, err
 }
 
 func (r *ReconcileCapability) fetchServiceInstance(service *v1alpha2.Capability) (*servicecatalogv1.ServiceInstance, error) {
 	// Retrieve ServiceInstances
 	serviceInstance := &servicecatalogv1.ServiceInstance{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceInstance)
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceInstance)
 	return serviceInstance, err
 }

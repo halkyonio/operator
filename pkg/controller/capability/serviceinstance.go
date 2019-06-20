@@ -2,10 +2,10 @@ package capability
 
 import (
 	"encoding/json"
+	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/pkg/errors"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -32,13 +32,13 @@ func (r *ReconcileCapability) buildServiceInstance(s *v1alpha2.Capability) (*ser
 			// TODO
 			PlanReference: servicecatalogv1.PlanReference{
 				ClusterServiceClassExternalName: s.Spec.Class,
-				ClusterServicePlanExternalName: s.Spec.Plan,
+				ClusterServicePlanExternalName:  s.Spec.Plan,
 			},
 			Parameters: serviceInstanceParameters,
 		},
 	}
 	// Set Component instance as the owner and controller
-	controllerutil.SetControllerReference(s, service, r.scheme)
+	controllerutil.SetControllerReference(s, service, r.Scheme)
 	return service, nil
 }
 
