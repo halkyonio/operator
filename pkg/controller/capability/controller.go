@@ -31,16 +31,12 @@ const (
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
 	r := &ReconcileCapability{}
-	r.ReconcilerHelper = controller2.NewHelper(r, mgr)
+	r.ReconcilerHelper = controller2.NewHelper(r.PrimaryResourceType(), mgr)
 	return r
 }
 
 type ReconcileCapability struct {
 	controller2.ReconcilerHelper
-}
-
-func (r *ReconcileCapability) PrimaryResourceName() string {
-	return "capability"
 }
 
 func (r *ReconcileCapability) PrimaryResourceType() runtime.Object {
