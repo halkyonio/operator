@@ -25,7 +25,6 @@ type ResourceMetadata struct {
 }
 
 type ReconcilerFactory interface {
-	InitAndRegisterWith(manager.Manager)
 	PrimaryResourceName() string
 	PrimaryResourceType() runtime.Object
 	SecondaryResourceTypes() []runtime.Object
