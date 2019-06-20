@@ -27,6 +27,10 @@ type CapabilitySpec struct {
 
 type CapabilityPhase string
 
+func (c CapabilityPhase) String() string {
+	return string(c)
+}
+
 const (
 	// CapabilityPending means the capability has been accepted by the system, but it is still being processed. This includes time
 	// being instantiated.
