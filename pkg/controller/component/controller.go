@@ -153,13 +153,8 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 				return r.createBuildDeployment(res, c)
 			}
 			return r.buildDevDeployment(res, c)
-		}, func(c *v1alpha2.Component) string {
-			if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
-				return buildNamer(c)
-			}
-			return defaultNamer(c)
-		})
-	r.addDependentResource(&corev1.Service{}, r.buildService, defaultNamer)
+		}, buildOrDevNamer)
+	r.addDependentResourceFull(&corev1.Service{}, r.buildService, defaultNamer, buildOrDevNamer, r.updateServiceSelector)
 	r.addDependentResource(&corev1.ServiceAccount{}, r.buildServiceAccount, func(c *v1alpha2.Component) string {
 		return serviceAccountName
 	})
@@ -201,6 +196,12 @@ var defaultNamer namer = func(component *v1alpha2.Component) string {
 }
 var buildNamer namer = func(component *v1alpha2.Component) string {
 	return defaultNamer(component) + "-build"
+}
+var buildOrDevNamer = func(c *v1alpha2.Component) string {
+	if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
+		return buildNamer(c)
+	}
+	return defaultNamer(c)
 }
 
 type namer func(*v1alpha2.Component) string
