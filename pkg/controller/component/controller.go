@@ -175,13 +175,19 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 }
 
 func (r *ReconcileComponent) addDependentResource(res runtime.Object, buildFn builder, nameFn namer) {
+	r.addDependentResourceFull(res, buildFn, nameFn, nil, nil)
+}
+
+func (r *ReconcileComponent) addDependentResourceFull(res runtime.Object, buildFn builder, nameFn namer, labelsNameFn labelsNamer, updateFn updater) {
 	key, kind := getKeyAndKindFor(res)
 	r.dependentResources[key] = dependentResource{
-		build:     buildFn,
-		name:      nameFn,
-		prototype: res,
-		fetch:     r.genericFetcher,
-		kind:      kind,
+		build:      buildFn,
+		labelsName: labelsNameFn,
+		update:     updateFn,
+		name:       nameFn,
+		prototype:  res,
+		fetch:      r.genericFetcher,
+		kind:       kind,
 	}
 }
 
@@ -198,8 +204,10 @@ var buildNamer namer = func(component *v1alpha2.Component) string {
 }
 
 type namer func(*v1alpha2.Component) string
+type labelsNamer func(*v1alpha2.Component) string
 type builder func(dependentResource, *v1alpha2.Component) (runtime.Object, error)
 type fetcher func(dependentResource, *v1alpha2.Component) (runtime.Object, error)
+type updater func(runtime.Object, dependentResource, *v1alpha2.Component) (bool, error)
 
 func (r *ReconcileComponent) genericFetcher(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
 	into := res.prototype.DeepCopyObject()
@@ -211,11 +219,13 @@ func (r *ReconcileComponent) genericFetcher(res dependentResource, c *v1alpha2.C
 }
 
 type dependentResource struct {
-	name      namer
-	build     builder
-	fetch     fetcher
-	prototype runtime.Object
-	kind      string
+	name       namer
+	labelsName labelsNamer
+	build      builder
+	fetch      fetcher
+	update     updater
+	prototype  runtime.Object
+	kind       string
 }
 
 type ReconcileComponent struct {
@@ -237,7 +247,8 @@ func (r *ReconcileComponent) createIfNeeded(instance *v1alpha2.Component, resour
 		return false, fmt.Errorf("unknown dependent type %s", kind)
 	}
 
-	if _, err := resource.fetch(resource, instance); err != nil {
+	res, err := resource.fetch(resource, instance)
+	if err != nil {
 		// create the object
 		obj, errBuildObject := resource.build(resource, instance)
 		if errBuildObject != nil {
@@ -255,6 +266,10 @@ func (r *ReconcileComponent) createIfNeeded(instance *v1alpha2.Component, resour
 		r.reqLogger.Error(err, "Failed to get", "kind", kind)
 		return false, err
 	} else {
+		// if the resource defined an updater, use it to try to update the resource
+		if resource.update != nil {
+			return resource.update(res, resource, instance)
+		}
 		return false, nil
 	}
 }
