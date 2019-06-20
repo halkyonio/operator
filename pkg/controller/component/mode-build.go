@@ -118,13 +118,9 @@ func (r *ReconcileComponent) updateServiceSelector(component *v1alpha2.Component
 
 	if svc, e := r.fetchService(component); e != nil {
 		// Service don't exist. So will create it
-		svc := &corev1.Service{}
-		obj, e := r.buildService(dependentResource{prototype: svc}, component)
+		obj, e := r.buildService(dependentResource{prototype: &corev1.Service{},name:defaultNamer}, component)
 		if e != nil {
 			svc := obj.(*corev1.Service)
-			svc.Name = component.Name
-			svc.Namespace = component.Namespace
-			svc.Labels = r.getAppLabels(component.Name)
 			svc.Spec.Selector = map[string]string{
 				"app": nameApp,
 			}
