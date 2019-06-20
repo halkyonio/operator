@@ -25,7 +25,6 @@ type ResourceMetadata struct {
 }
 
 type ReconcilerFactory interface {
-	PrimaryResourceName() string
 	PrimaryResourceType() runtime.Object
 	SecondaryResourceTypes() []runtime.Object
 	IsPrimaryResourceValid(object runtime.Object) bool
@@ -54,7 +53,7 @@ func (g *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	// Fetch the primary resource
 	resource := g.PrimaryResourceType()
-	typeName := g.PrimaryResourceName()
+	typeName := resource.GetObjectKind().GroupVersionKind().Kind
 	err := g.Client.Get(context.TODO(), request.NamespacedName, resource)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -103,12 +102,12 @@ func NewGenericReconciler(rf ReconcilerFactory) *GenericReconciler {
 	return reconciler
 }
 
-func NewHelper(rf ReconcilerFactory, mgr manager.Manager) ReconcilerHelper {
+func NewHelper(resourceType runtime.Object, mgr manager.Manager) ReconcilerHelper {
 	helper := ReconcilerHelper{
 		Client:    mgr.GetClient(),
 		Config:    mgr.GetConfig(),
 		Scheme:    mgr.GetScheme(),
-		ReqLogger: logf.Log.WithName(controllerNameFor(rf)),
+		ReqLogger: logf.Log.WithName(controllerNameFor(resourceType)),
 	}
 	return helper
 }
@@ -116,21 +115,23 @@ func NewHelper(rf ReconcilerFactory, mgr manager.Manager) ReconcilerHelper {
 func RegisterNewReconciler(factory ReconcilerFactory, mgr manager.Manager) error {
 	r := NewGenericReconciler(factory)
 
+	resourceType := factory.PrimaryResourceType()
+
 	// Create a new controller
-	c, err := controller.New(controllerNameFor(factory), mgr, controller.Options{Reconciler: r})
+	c, err := controller.New(controllerNameFor(resourceType), mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
 
 	// Watch for changes to primary resource
-	if err = c.Watch(&source.Kind{Type: factory.PrimaryResourceType()}, &handler.EnqueueRequestForObject{}); err != nil {
+	if err = c.Watch(&source.Kind{Type: resourceType}, &handler.EnqueueRequestForObject{}); err != nil {
 		return err
 	}
 
 	// Watch for changes of child/secondary resources
 	owner := &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    factory.PrimaryResourceType(),
+		OwnerType:    resourceType,
 	}
 
 	for _, t := range factory.SecondaryResourceTypes() {
@@ -142,6 +143,6 @@ func RegisterNewReconciler(factory ReconcilerFactory, mgr manager.Manager) error
 	return nil
 }
 
-func controllerNameFor(factory ReconcilerFactory) string {
-	return factory.PrimaryResourceName() + "-controller"
+func controllerNameFor(resource runtime.Object) string {
+	return resource.GetObjectKind().GroupVersionKind().Kind + "-controller"
 }
