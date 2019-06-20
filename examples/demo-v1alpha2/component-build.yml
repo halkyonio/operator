@@ -7,9 +7,9 @@
 apiVersion: devexp.runtime.redhat.com/v1alpha2
 kind: Component
 metadata:
-  name: fruit-client-sb
+  name: http-rest-sb
   labels:
-    app: fruit-client-sb
+    app: http-rest-sb
 spec:
   deploymentMode: build
   buildConfig:
