@@ -93,7 +93,13 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	r.addDependentResource(&appsv1.Deployment{},
 		func(res dependentResource, c *v1alpha2.Component) (object runtime.Object, e error) {
 			if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
+				if err := r.setInitialStatus(c, v1alpha2.ComponentBuilding); err != nil {
+					return nil, err
+				}
 				return r.createBuildDeployment(res, c)
+			}
+			if err := r.setInitialStatus(c, v1alpha2.ComponentPending); err != nil {
+				return nil, err
 			}
 			return r.buildDevDeployment(res, c)
 		}, buildOrDevNamer)
