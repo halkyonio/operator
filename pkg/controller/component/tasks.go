@@ -37,7 +37,7 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 					{Name: "baseImage", Default: "quay.io/snowdrop/spring-boot-maven-s2i", Description: "S2i base image"},
 					{Name: "contextPath", Default:".", Description:"The location of the path to run s2i from"},
 					{Name: "moduleDirName", Default: ".", Description: "The name of the directory containing the project (maven, ...) to be compiled"},
-					{Name: "verifyTLS", Default: "true", Description: "Verify registry certificates"},
+					{Name: "verifyTLS", Default: "false", Description: "Verify registry certificates"},
 					{Name: "workspacePath", Default: "/workspace/git",Description: "Git path where project is cloned"},
 				}},
 			Outputs: &v1alpha1.Outputs{
@@ -60,6 +60,12 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 						"image:///usr/local/s2i",
 						"--env",
 						"MAVEN_ARGS_APPEND=-pl ${inputs.params.moduleDirName}",
+/*						"--env",
+						"ARTIFACT_COPY_ARGS='*.jar'",*/
+						"--env",
+						"MAVEN_S2I_ARTIFACT_DIRS=${inputs.params.moduleDirName}/target",
+						"--env",
+						"S2I_SOURCE_DEPLOYMENTS_FILTER=*.jar",
 					},
 					WorkingDir: "${inputs.params.workspacePath}",
 					VolumeMounts: []corev1.VolumeMount{

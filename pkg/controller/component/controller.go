@@ -96,10 +96,7 @@ func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 	// todo: make this configurable
 	images := make(map[string]imageInfo, 7)
 	defaultEnvVar := make(map[string]string, 7)
-	defaultEnvVar["JAVA_APP_DIR"] = "/deployment"
-	defaultEnvVar["JAVA_DEBUG"] = "false"
-	defaultEnvVar["JAVA_DEBUG_PORT"] = "5005"
-	defaultEnvVar["JAVA_APP_JAR"] = "app.jar"
+	defaultEnvVar["JAVA_APP_JAR"] = "*.jar"
 	images["spring-boot"] = imageInfo{
 		registryRef: "quay.io/snowdrop/spring-boot-s2i",
 		defaultEnv:  defaultEnvVar,
