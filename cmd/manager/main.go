@@ -90,8 +90,10 @@ func main() {
 	registerAdditionalResources(mgr)
 
 	// Create component controller and add it to the manager
-
-	err = controller.RegisterNewReconciler(component.NewComponentReconciler(mgr), mgr)
+	if err := controller.RegisterNewReconciler(component.NewComponentReconciler(mgr), mgr); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
