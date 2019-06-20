@@ -28,7 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -197,13 +196,9 @@ func (r *ReconcileComponent) createIfNeeded(instance *v1alpha2.Component, resour
 }
 
 func getKeyAndKindFor(resourceType runtime.Object) (key string, kind string) {
-	t := reflect.TypeOf(resourceType)
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	pkg := t.PkgPath()
-	kind = t.Name()
-	key = pkg + "/" + kind
+	gvk := resourceType.GetObjectKind().GroupVersionKind()
+	key = gvk.String()
+	kind = gvk.Kind
 	return
 }
 
