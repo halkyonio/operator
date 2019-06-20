@@ -134,9 +134,9 @@ func (r *ReconcileComponent) ResourceMetadata(object runtime.Object) controller2
 	}
 }
 
-func (r *ReconcileComponent) Delete(object runtime.Object) error {
+func (r *ReconcileComponent) Delete(object runtime.Object) (bool, error) {
 	// todo: implement
-	return nil
+	return false, nil
 }
 
 func (r *ReconcileComponent) CreateOrUpdate(object runtime.Object) (bool, error) {
