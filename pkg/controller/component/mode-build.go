@@ -23,7 +23,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -35,7 +35,7 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 	}
 
 	// Create ServiceAccount used by the Task's pod if it does not exists
-	if e := r.createAndCheckForChanges(component, &v1.ServiceAccount{}, hasChanges); e != nil {
+	if e := r.createAndCheckForChanges(component, &corev1.ServiceAccount{}, hasChanges); e != nil {
 		return false, e
 	}
 
@@ -94,11 +94,11 @@ func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Co
 	return nil
 }
 
-func (r *ReconcileComponent) UpdateEnv(envs []v1.EnvVar, jarName string) []v1.EnvVar {
-	newEnvs := []v1.EnvVar{}
+func (r *ReconcileComponent) UpdateEnv(envs []corev1.EnvVar, jarName string) []corev1.EnvVar {
+	newEnvs := []corev1.EnvVar{}
 	for _, s := range envs {
 		if s.Name == "JAVA_APP_JAR" {
-			newEnvs = append(newEnvs, v1.EnvVar{Name: s.Name, Value: jarName})
+			newEnvs = append(newEnvs, corev1.EnvVar{Name: s.Name, Value: jarName})
 		} else {
 			newEnvs = append(newEnvs, s)
 		}
@@ -118,11 +118,19 @@ func (r *ReconcileComponent) updateServiceSelector(component *v1alpha2.Component
 
 	if svc, e := r.fetchService(component); e != nil {
 		// Service don't exist. So will create it
-		svc.Labels = r.getAppLabels(component.Name)
-		svc.Spec.Selector = map[string]string{
-			"app": nameApp,
+		svc := &corev1.Service{}
+		obj, e := r.buildService(dependentResource{prototype: svc}, component)
+		if e != nil {
+			svc := obj.(*corev1.Service)
+			svc.Name = component.Name
+			svc.Namespace = component.Namespace
+			svc.Labels = r.getAppLabels(component.Name)
+			svc.Spec.Selector = map[string]string{
+				"app": nameApp,
+			}
+		} else {
+			return e
 		}
-		controllerutil.SetControllerReference(component, svc, r.scheme)
 		if err := r.client.Create(context.TODO(), svc); err != nil {
 			return err
 		}
