@@ -10,7 +10,7 @@ import (
 
 //buildRoute returns the route resource
 func (r *ReconcileComponent) buildRoute(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
+	ls := getAppLabels(c.Name)
 	route := &routev1.Route{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",

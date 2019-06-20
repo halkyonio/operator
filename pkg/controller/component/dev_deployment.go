@@ -20,7 +20,7 @@ const (
 
 //buildDevDeployment returns the Deployment config object
 func (r *ReconcileComponent) buildDevDeployment(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
+	ls := getAppLabels(c.Name)
 
 	// create runtime container
 	runtimeContainer, err := r.getBaseContainerFor(c)

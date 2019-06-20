@@ -12,7 +12,7 @@ import (
 
 //buildService returns the service resource
 func (r *ReconcileComponent) buildService(res dependentResource, m *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(res.labelsName(m))
+	ls := getAppLabels(res.labelsName(m))
 	ser := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",

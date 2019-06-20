@@ -9,7 +9,7 @@ import (
 )
 
 func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getBuildLabels(c.Name)
+	ls := getBuildLabels(c.Name)
 	taskRun := &v1alpha1.TaskRun{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "tekton.dev/v1alpha1",

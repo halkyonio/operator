@@ -12,7 +12,7 @@ import (
 
 //createBuildDeployment returns the Deployment config object to be used for deployment using a container image build by Tekton
 func (r *ReconcileComponent) createBuildDeployment(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
+	ls := getAppLabels(c.Name)
 
 	// create runtime container using built image (= created by the Tekton build task)
 	runtimeContainer, err := r.getRuntimeContainerFor(c)

@@ -11,7 +11,7 @@ import (
 
 //buildIngress returns the Ingress resource
 func (r *ReconcileComponent) buildIngress(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
+	ls := getAppLabels(c.Name)
 	route := &v1beta1.Ingress{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.k8s.io/v1beta1",
