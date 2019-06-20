@@ -11,7 +11,7 @@ import (
 
 //buildServiceAccount returns the service resource
 func (r *ReconcileComponent) buildServiceAccount(res dependentResource, m *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(m.Name)
+	ls := getAppLabels(m.Name)
 	sa := &corev1.ServiceAccount{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",

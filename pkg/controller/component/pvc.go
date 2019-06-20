@@ -12,7 +12,7 @@ import (
 
 //buildPVC returns the PVC resource
 func (r *ReconcileComponent) buildPVC(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
+	ls := getAppLabels(c.Name)
 	name := res.name(c)
 	pvc := &corev1.PersistentVolumeClaim{
 		TypeMeta: metav1.TypeMeta{
