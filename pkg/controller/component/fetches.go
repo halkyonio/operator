@@ -33,7 +33,7 @@ func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha
 
 func (r *ReconcileComponent) fetchTaskRun(c *v1alpha2.Component) (*tektonv1alpha1.TaskRun, error) {
 	taskRun := &tektonv1alpha1.TaskRun{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, taskRun)
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, taskRun)
 	return taskRun, err
 }
 
