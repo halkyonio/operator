@@ -40,7 +40,7 @@ func (r *ReconcileComponent) buildPVC(res dependentResource, c *v1alpha2.Compone
 	c.Spec.Storage.Name = name
 
 	// Set Component instance as the owner and controller
-	return pvc, controllerutil.SetControllerReference(c, pvc, r.scheme)
+	return pvc, controllerutil.SetControllerReference(c, pvc, r.Scheme)
 }
 
 func getCapacity(c *v1alpha2.Component) resource.Quantity {

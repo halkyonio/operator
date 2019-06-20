@@ -17,17 +17,17 @@ import (
 func (r *ReconcileComponent) fetch(err error) (reconcile.Result, error) {
 	if errors.IsNotFound(err) {
 		// Return and don't create
-		r.reqLogger.Info("component resource not found. Ignoring since object must be deleted")
+		r.ReqLogger.Info("component resource not found. Ignoring since object must be deleted")
 		return reconcile.Result{}, nil
 	}
 	// Error reading the object - create the request.
-	r.reqLogger.Error(err, "Failed to get Component")
+	r.ReqLogger.Error(err, "Failed to get Component")
 	return reconcile.Result{}, err
 }
 
 func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha2.Component, error) {
 	component := &v1alpha2.Component{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, component)
+	err := r.Client.Get(context.TODO(), request.NamespacedName, component)
 	return component, err
 }
 
@@ -43,8 +43,8 @@ func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod
 	lo := &client.ListOptions{}
 	lo.InNamespace(instance.Namespace)
 	lo.MatchingLabels(map[string]string{"app": instance.Name})
-	if err := r.client.List(context.TODO(), lo, pods); err != nil {
-		r.reqLogger.Info("Pod(s) don't exist")
+	if err := r.Client.List(context.TODO(), lo, pods); err != nil {
+		r.ReqLogger.Info("Pod(s) don't exist")
 		return &corev1.Pod{}, err
 	} else {
 		// We assume that there is only one Pod containing the label app=component name AND we return it

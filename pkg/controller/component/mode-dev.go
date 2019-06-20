@@ -40,7 +40,7 @@ func newFalse() *bool {
 
 func (r *ReconcileComponent) isTargetClusterRunningOpenShift() bool {
 	if r.onOpenShift == nil {
-		discoveryClient, err := discovery.NewDiscoveryClientForConfig(r.config)
+		discoveryClient, err := discovery.NewDiscoveryClientForConfig(r.Config)
 		if err != nil {
 			panic(err)
 		}

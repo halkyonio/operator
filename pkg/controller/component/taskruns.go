@@ -74,6 +74,6 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c
 	}
 
 	// Set Component instance as the owner and controller
-	controllerutil.SetControllerReference(c, taskRun, r.scheme)
+	controllerutil.SetControllerReference(c, taskRun, r.Scheme)
 	return taskRun, nil
 }

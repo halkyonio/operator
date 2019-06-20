@@ -39,5 +39,5 @@ func (r *ReconcileComponent) buildService(res dependentResource, m *v1alpha2.Com
 		},
 	}
 	// Set Component instance as the owner and controller
-	return ser, controllerutil.SetControllerReference(m, ser, r.scheme)
+	return ser, controllerutil.SetControllerReference(m, ser, r.Scheme)
 }
