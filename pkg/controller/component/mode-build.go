@@ -58,7 +58,8 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Component, hasChanges *bool) error {
 
 	if _, e := r.fetchDeployment(component.Namespace, component.Name + "-build"); e == nil {
-		return fmt.Errorf("Deployment object already exist for the runtime container.")
+		r.reqLogger.Info("Deployment object already exist for the runtime container.")
+		return nil
 	}
 
 	// Create a new Deployment resource for a runtime container where the pod is created using a
@@ -70,7 +71,6 @@ func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Co
 
 	buildDeployment := obj.(*appsv1.Deployment)
 	buildDeployment.Name = component.Name + "-build"
-	buildDeployment.Namespace = component.Namespace
 	controllerutil.SetControllerReference(component, buildDeployment, r.scheme)
 
 	// We will check if a Dev Deployment exists.
@@ -90,6 +90,7 @@ func (r *ReconcileComponent) createDeploymentForBuildMode(component *v1alpha2.Co
 	if e != nil {
 		return fmt.Errorf("Failed to create new deployment for the runtime container, %s",e.Error())
 	}
+	*hasChanges = true
 	return nil
 }
 
@@ -133,5 +134,6 @@ func (r *ReconcileComponent) updateServiceSelector(component *v1alpha2.Component
 			return err
 		}
 	}
+	*hasChanges = true
 	return nil
 }
