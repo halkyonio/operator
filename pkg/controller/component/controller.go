@@ -235,9 +235,12 @@ func (r *ReconcileComponent) SetErrorStatus(object runtime.Object, e error) {
 }
 
 func (r *ReconcileComponent) SetSuccessStatus(object runtime.Object) {
-	err := r.updateStatus(r.asComponent(object), v1alpha2.ComponentReady)
-	if err != nil {
-		panic(err)
+	component := r.asComponent(object)
+	if component.Status.Phase != v1alpha2.ComponentReady {
+		err := r.updateStatus(component, v1alpha2.ComponentReady)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 

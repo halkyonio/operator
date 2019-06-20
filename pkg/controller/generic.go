@@ -90,9 +90,7 @@ func (g *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	g.ReqLogger.Info("<== Reconciled "+typeName, "name", metadata.Name)
-	if changed {
-		g.SetSuccessStatus(resource)
-	}
+	g.SetSuccessStatus(resource)
 	return reconcile.Result{Requeue: changed}, nil
 }
 
