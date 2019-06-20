@@ -3,12 +3,12 @@ package component
 import (
 	"context"
 	"fmt"
+	"github.com/knative/pkg/apis"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"github.com/knative/pkg/apis"
-	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 )
 
 func (r *ReconcileComponent) setErrorStatus(instance *v1alpha2.Component, err error) {
@@ -49,13 +49,11 @@ func (r *ReconcileComponent) updateStatus(instance *v1alpha2.Component, phase v1
 	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
 		taskRun, err := r.fetchTaskRun(component)
 		if err != nil || !r.isBuildSucceed(taskRun) {
-			msg := fmt.Sprintf("taskRun job is not ready for component '%s' in namespace '%s'", component.Name, component.Namespace)
-			r.reqLogger.Info(msg)
-			component.Status.Phase = v1alpha2.ComponentPending
-			r.updateStatusWithMessage(component, msg, false)
+			r.makePending("taskRun job", component)
 			return nil
 		}
 
+		// todo: remove? what is this needed for?
 		if taskRun.Name != instance.Status.PodName || phase != instance.Status.Phase {
 			component.Status.PodName = taskRun.Name
 			component.Status.Phase = phase
@@ -64,10 +62,7 @@ func (r *ReconcileComponent) updateStatus(instance *v1alpha2.Component, phase v1
 	} else {
 		pod, err := r.fetchPod(component)
 		if err != nil || !r.isPodReady(pod) {
-			msg := fmt.Sprintf("pod is not ready for component '%s' in namespace '%s'", component.Name, component.Namespace)
-			r.reqLogger.Info(msg)
-			component.Status.Phase = v1alpha2.ComponentPending
-			r.updateStatusWithMessage(component, msg, false)
+			r.makePending("pod", component)
 			return nil
 		}
 
@@ -78,6 +73,13 @@ func (r *ReconcileComponent) updateStatus(instance *v1alpha2.Component, phase v1
 		}
 	}
 	return nil
+}
+
+func (r *ReconcileComponent) makePending(dependencyName string, component *v1alpha2.Component) {
+	msg := fmt.Sprintf(dependencyName+" is not ready for component '%s' in namespace '%s'", component.Name, component.Namespace)
+	r.reqLogger.Info(msg)
+	component.Status.Phase = v1alpha2.ComponentPending
+	r.updateStatusWithMessage(component, msg, false)
 }
 
 func (r *ReconcileComponent) fetchLatestVersion(instance *v1alpha2.Component) (*v1alpha2.Component, error) {
