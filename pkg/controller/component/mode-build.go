@@ -19,10 +19,13 @@ package component
 
 import (
 	"context"
+	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 )
 
 func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (bool, error) {
@@ -46,45 +49,28 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 		return false, e
 	}
 
-	if e := r.updateServiceSelector(component, hasChanges); e != nil {
+	if e := r.createAndCheckForChanges(component, &corev1.Service{}, hasChanges); e != nil {
 		return false, e
 	}
 
 	return *hasChanges, nil
 }
 
-func (r *ReconcileComponent) updateServiceSelector(component *v1alpha2.Component, hasChanges *bool) error {
-
-	var nameApp string
-
-	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
-		nameApp = component.Name + "-build"
-	} else {
-		nameApp = component.Name
+func (r *ReconcileComponent) updateServiceSelector(object runtime.Object, res dependentResource, component *v1alpha2.Component) (bool, error) {
+	svc, ok := object.(*corev1.Service)
+	if !ok {
+		return false, fmt.Errorf("updateServiceSelector only works on Service instances, got '%s'", reflect.TypeOf(object).Elem().Name())
 	}
 
-	if svc, e := r.fetchService(component); e != nil {
-		// Service don't exist. So will create it
-		obj, e := r.buildService(dependentResource{prototype: &corev1.Service{}, name: defaultNamer}, component)
-		if e != nil {
-			svc := obj.(*corev1.Service)
-			svc.Spec.Selector = map[string]string{
-				"app": nameApp,
-			}
-		} else {
-			return e
-		}
-		if err := r.client.Create(context.TODO(), svc); err != nil {
-			return err
-		}
-	} else {
-		svc.Spec.Selector = map[string]string{
-			"app": nameApp,
-		}
+	// update the service selector if needed
+	name := res.labelsName(component)
+	if svc.Spec.Selector["app"] != name {
+		svc.Spec.Selector["app"] = name
 		if err := r.client.Update(context.TODO(), svc); err != nil {
-			return err
+			return false, fmt.Errorf("couldn't update service '%s' selector", svc.Name)
 		}
+		return true, nil
 	}
-	*hasChanges = true
-	return nil
+
+	return false, nil
 }
