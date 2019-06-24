@@ -4,13 +4,77 @@ import (
 	"context"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
+
+type DependentResource interface {
+	Prototype() runtime.Object
+	PrototypeAsObject() v1.Object
+	Name(runtime.Object) string
+	Build(runtime.Object) (runtime.Object, error)
+	Fetch(object runtime.Object) (runtime.Object, error)
+	Namespace(object runtime.Object) string
+}
+
+type DependentResourceLabelNamer interface {
+	LabelNameFrom(runtime.Object) string
+}
+
+type BaseDependentResource struct {
+	prototype runtime.Object
+	controller.ReconcilerHelper
+}
+
+func NewDependentResource(resourceType runtime.Object, mgr manager.Manager) BaseDependentResource {
+	return BaseDependentResource{
+		prototype:        resourceType,
+		ReconcilerHelper: controller.NewHelper(resourceType, mgr),
+	}
+}
+
+func KeyFor(resource DependentResource) string {
+	return resource.Prototype().GetObjectKind().GroupVersionKind().String()
+}
+func (b BaseDependentResource) Prototype() runtime.Object {
+	return b.prototype
+}
+
+func (b BaseDependentResource) PrototypeAsObject() v1.Object {
+	return b.prototype.(v1.Object) // should be castable
+}
+
+func (b BaseDependentResource) Namespace(object runtime.Object) string {
+	return asComponent(object).Namespace
+}
+
+func (b BaseDependentResource) Name(object runtime.Object) string {
+	return asComponent(object).Name
+}
+
+func (b BaseDependentResource) Build(object runtime.Object) (runtime.Object, error) {
+	panic("implement me")
+}
+
+func (b BaseDependentResource) Fetch(c runtime.Object) (runtime.Object, error) {
+	into := b.prototype.DeepCopyObject()
+	if err := b.Client.Get(context.TODO(), types.NamespacedName{Name: b.Name(c), Namespace: b.Namespace(c)}, into); err != nil {
+		b.ReqLogger.Info(c.GetObjectKind().GroupVersionKind().Kind + " doesn't exist")
+		return nil, err
+	}
+	return into, nil
+}
+
+func asComponent(c runtime.Object) *v1alpha2.Component {
+	return c.(*v1alpha2.Component)
+}
 
 type namer func(*v1alpha2.Component) string
 type labelsNamer func(*v1alpha2.Component) string
@@ -65,6 +129,16 @@ func (r *ReconcileComponent) addDependentResourceFull(res runtime.Object, buildF
 		fetch:      r.genericFetcher,
 		kind:       kind,
 	}
+}
+
+func (r *ReconcileComponent) initDependentResources2(mgr manager.Manager) {
+	r.addDependentResource2(newPVC(mgr))
+	r.addDependentResource2(newService(mgr))
+	r.addDependentResource2(newServiceAccount(mgr))
+}
+
+func (r *ReconcileComponent) addDependentResource2(resource DependentResource) {
+	r.depRes[KeyFor(resource)] = resource
 }
 
 func (r *ReconcileComponent) initDependentResources() {

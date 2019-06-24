@@ -78,7 +78,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	}
 	r.ReconcilerHelper = controller2.NewHelper(r.PrimaryResourceType(), mgr)
 
-	r.initDependentResources()
+	r.initDependentResources2(mgr)
 
 	return r
 }
@@ -94,6 +94,7 @@ type ReconcileComponent struct {
 	supervisor         *v1alpha2.Component
 	onOpenShift        *bool
 	dependentResources map[string]dependentResource
+	depRes             map[string]DependentResource
 }
 
 func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
