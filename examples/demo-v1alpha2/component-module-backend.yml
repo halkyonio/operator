@@ -24,7 +24,7 @@ spec:
     - name: DB_HOST
       value: my-postgres.demo-db
     - name: DB_PORT
-      value: 5432
+      value: "5432"
     - name: DB_NAME
       value: my-postgres
     - name: DB_USER
