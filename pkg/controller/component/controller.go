@@ -84,10 +84,6 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	if err = c.Watch(&source.Kind{Type: &routev1.Route{}}, owner); err != nil {
-		return err
-	}
-
 	return nil
 }
 
