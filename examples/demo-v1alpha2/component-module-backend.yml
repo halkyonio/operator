@@ -13,7 +13,7 @@ metadata:
 spec:
   deploymentMode: build
   buildConfig:
-    url: https://github.com/snowdrop/component-operator-demo/
+    url: https://github.com/snowdrop/component-operator-demo.git
     ref: master
     moduleDirName: fruit-backend-sb
   runtime: spring-boot
@@ -22,11 +22,11 @@ spec:
   - name: SPRING_PROFILES_ACTIVE
     value: postgresql-kubedb
   - name: DB_HOST
-    value: my-postgres.demo-db
+    value: my-postgres.demo
   - name: DB_PORT
     value: "5432"
   - name: DB_NAME
-    value: my-postgres
+    value: my-database
   - name: DB_USER
     value: admin
   - name: DB_PASSWORD
