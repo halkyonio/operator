@@ -81,7 +81,7 @@ func main() {
 
 	// Setup Scheme for all resources
 	log.Info("Registering Components")
-	if err := v1alpha2.AddToScheme(mgr.GetScheme()); err != nil {
+    if err := v1alpha2.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 	}
 

@@ -11,8 +11,8 @@ import (
 )
 
 //updateStatus returns error when status regards the all required resources could not be updated
-func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Capability, request reconcile.Request) error {
-	if r.isServiceBindingReady(serviceBindingStatus) && r.isServiceInstanceReady(serviceInstanceStatus) {
+func (r *ReconcileCapability) updateStatus(serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Capability, request reconcile.Request) error {
+	if r.isServiceInstanceReady(serviceInstanceStatus) {
 		r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", v1alpha2.CapabilityRunning))
 
 		if v1alpha2.CapabilityRunning != instance.Status.Phase {
@@ -99,7 +99,7 @@ func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capa
 }
 
 //updateServiceInstanceStatus returns error when status regards the Capability Instance resource could not be updated
-func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
+/*func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
 	for {
 		_, err := r.fetchServiceInstance(instance)
 		if err != nil {
@@ -134,7 +134,7 @@ func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Cap
 		r.reqLogger.Info("ServiceInstance Status updated for the Capability")
 	}
 	return serviceInstance, nil
-}
+}*/
 
 func (r *ReconcileCapability) isServiceInstanceReady(serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance) bool {
 	for _, c := range serviceInstanceStatus.Status.Conditions {

@@ -32,6 +32,7 @@ require (
 	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/knative/pkg v0.0.0-20190409220258-28cfa161499b
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/kubedb/apimachinery v0.0.0-20190506191700-871d6b5d30ee
 	github.com/kubernetes-incubator/service-catalog v0.1.39
 	github.com/markbates/inflect v1.0.4 // indirect
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
@@ -70,7 +71,9 @@ require (
 	google.golang.org/genproto v0.0.0-20190508193815-b515fa19cec8 // indirect
 	google.golang.org/grpc v1.20.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
+	//kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061
 	k8s.io/api v0.0.0-20181126151915-b503174bad59
+	//k8s.io/api v0.0.0-20190503110853-61630f889b3c
 	k8s.io/apiextensions-apiserver v0.0.0-20181126155829-0cd23ebeb688 // indirect
 	k8s.io/apimachinery v0.0.0-20181126123746-eddba98df674
 	k8s.io/client-go v0.0.0-20181126152608-d082d5923d3c
