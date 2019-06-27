@@ -135,7 +135,7 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	// Add the Status Capability Creation when we process the first time the Capability CR
 	// as we will start to create different resources
 	if service.Generation == 1 && service.Status.Phase == "" {
-		if err := r.updateServiceStatus(service, v1alpha2.CapabilityPending, request); err != nil {
+		if err := r.updateCapabilityStatus(service, v1alpha2.CapabilityPending, request); err != nil {
 			r.reqLogger.Info("Status update failed !")
 			return reconcile.Result{}, err
 		}
@@ -157,16 +157,16 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	}
 
 
-	// Update Status
-/*	serviceInstanceStatus, err := r.updateServiceInstanceStatus(service, request)
+	// Update KubeDB Status
+ 	kubeDbStatus, err := r.updateKubeDBStatus(service, request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
 	// Update Status of the Capability
-	if err := r.updateStatus(serviceInstanceStatus, service, request); err != nil {
+	if err := r.updateStatus(kubeDbStatus, service, request); err != nil {
 		return reconcile.Result{}, err
-	}*/
+	}
 
 	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", service.Name))
 	return reconcile.Result{}, nil

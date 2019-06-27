@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 //updateStatus returns error when status regards the all required resources could not be updated
-func (r *ReconcileCapability) updateStatus(instance *v1alpha2.Capability, request reconcile.Request) error {
-	if r.isServiceInstanceReady() {
+func (r *ReconcileCapability) updateStatus(p *kubedbv1.Postgres ,instance *v1alpha2.Capability, request reconcile.Request) error {
+	if r.isServiceInstanceReady(p.Status) {
 		r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", v1alpha2.CapabilityReady))
 
 		if v1alpha2.CapabilityReady != instance.Status.Phase {
@@ -37,7 +39,7 @@ func (r *ReconcileCapability) updateStatus(instance *v1alpha2.Capability, reques
 }
 
 //updateStatus
-func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability, phase v1alpha2.CapabilityPhase, request reconcile.Request) error {
+func (r *ReconcileCapability) updateCapabilityStatus(instance *v1alpha2.Capability, phase v1alpha2.CapabilityPhase, request reconcile.Request) error {
 	if !reflect.DeepEqual(phase, instance.Status.Phase) {
 		// Get a more recent version of the CR
 		service, err := r.fetchCapability(request)
@@ -57,88 +59,48 @@ func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability,
 	return nil
 }
 
-//updateServiceBindingStatus returns error when status regards the Capability Binding resource could not be updated
-/*func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceBinding, error) {
+func (r *ReconcileCapability) updateKubeDBStatus(c *v1alpha2.Capability, request reconcile.Request) (*kubedbv1.Postgres, error) {
 	for {
-		_, err := r.fetchServiceBinding(instance)
+		_, err := r.fetchPostgres(c)
 		if err != nil {
-			r.reqLogger.Info("Failed to get ServiceBinding. We retry till ...", "Namespace", instance.Namespace, "Name", instance.Name)
+			r.reqLogger.Info("Failed to get KubeDB Postgres. We retry till ...", "Namespace", c.Namespace, "Name", c.Name)
 			time.Sleep(2 * time.Second)
 		} else {
 			break
 		}
 	}
 
-	r.reqLogger.Info("Updating ServiceBinding Status for the Capability")
-	serviceBinding, err := r.fetchServiceBinding(instance)
+	r.reqLogger.Info("Updating KubeDB Postgres Status for the Capability")
+	postgresDB, err := r.fetchPostgres(c)
 	if err != nil {
-		r.reqLogger.Error(err, "Failed to get ServiceBinding for Status", "Namespace", instance.Namespace, "Name", instance.Name)
-		return serviceBinding, err
+		r.reqLogger.Error(err, "Failed to get KubeDB Postgres for Status", "Namespace", c.Namespace, "Name", c.Name)
+		return postgresDB, err
 	}
-	if !reflect.DeepEqual(serviceBinding.Name, instance.Status.ServiceBindingName) || !reflect.DeepEqual(serviceBinding.Status, instance.Status.ServiceBindingStatus) {
+	if !reflect.DeepEqual(postgresDB.Name, c.Status.DatabaseName) || !reflect.DeepEqual(postgresDB.Status, c.Status.DatabaseStatus) {
 		// Get a more recent version of the CR
 		service, err := r.fetchCapability(request)
 		if err != nil {
 			r.reqLogger.Error(err, "Failed to get the Capability")
-			return serviceBinding, err
+			return postgresDB, err
 		}
 
-		service.Status.ServiceBindingName = serviceBinding.Name
-		service.Status.ServiceBindingStatus = serviceBinding.Status
+		service.Status.DatabaseName = postgresDB.Name
+		service.Status.DatabaseStatus = postgresDB.Status.Reason
 
 		err = r.client.Status().Update(context.TODO(), service)
 		if err != nil {
-			r.reqLogger.Error(err, "Failed to update ServiceBinding Name and Status for the Capability")
-			return serviceBinding, err
+			r.reqLogger.Error(err, "Failed to update postgresDB Name and Status for the Capability")
+			return postgresDB, err
 		}
-		r.reqLogger.Info("ServiceBinding Status updated for the Capability")
+		r.reqLogger.Info("postgresDB Status updated for the Capability")
 	}
-	return serviceBinding, nil
+	return postgresDB, nil
 }
-*/
-//updateServiceInstanceStatus returns error when status regards the Capability Instance resource could not be updated
-/*func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
-	for {
-		_, err := r.fetchServiceInstance(instance)
-		if err != nil {
-			r.reqLogger.Info("Failed to get Service Instance. We retry till ...", "Namespace", instance.Namespace, "Name", instance.Name)
-			time.Sleep(2 * time.Second)
-		} else {
-			break
-		}
-	}
-	r.reqLogger.Info("Updating ServiceInstance Status for the Capability")
-	serviceInstance, err := r.fetchServiceInstance(instance)
-	if err != nil {
-		r.reqLogger.Error(err, "Failed to get ServiceInstance for Status", "Namespace", instance.Namespace, "Name", instance.Name)
-		return serviceInstance, err
-	}
-	if !reflect.DeepEqual(serviceInstance.Name, instance.Status.ServiceInstanceName) || !reflect.DeepEqual(serviceInstance.Status, instance.Status.ServiceInstanceStatus) {
-		// Get a more recent version of the CR
-		service, err := r.fetchCapability(request)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to get the Component")
-			return serviceInstance, err
-		}
 
-		service.Status.ServiceInstanceName = serviceInstance.Name
-		service.Status.ServiceInstanceStatus = serviceInstance.Status
-
-		err = r.client.Status().Update(context.TODO(), service)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update ServiceInstance Name and Status for the Capability")
-			return serviceInstance, err
-		}
-		r.reqLogger.Info("ServiceInstance Status updated for the Capability")
-	}
-	return serviceInstance, nil
-}*/
-
-func (r *ReconcileCapability) isServiceInstanceReady() bool {
-/*	for _, c := range serviceInstanceStatus.Status.Conditions {
-		if c.Type == servicecatalogv1beta1.ServiceInstanceConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
+func (r *ReconcileCapability) isServiceInstanceReady(p kubedbv1.PostgresStatus) bool {
+		if p.Phase == kubedbv1.DatabasePhaseRunning {
 			return true
+		} else {
+			return false
 		}
-	}*/
-	return false
 }
