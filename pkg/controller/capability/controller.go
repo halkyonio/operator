@@ -90,7 +90,7 @@ func (r *ReconcileCapability) buildFactory(instance *v1alpha2.Capability, kind s
 	case SECRET:
 		return r.buildSecret(instance)
 	case PG_DATABASE:
-		return r.buildKubeDbPostgres(instance)
+		return r.buildKubeDBPostgres(instance)
 	default:
 		msg := "Failed to recognize type of object" + kind + " into the Namespace " + instance.Namespace
 		panic(msg)

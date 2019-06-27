@@ -3,25 +3,23 @@ package capability
 import (
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	apps "k8s.io/api/apps/v1"
+	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubernetes/pkg/apis/apps"
-	"k8s.io/kubernetes/pkg/apis/core"
 	ofst "kmodules.xyz/offshoot-api/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
-
-/*
-spec:
-  podTemplate:
-    spec:
-      env:
-      - name: POSTGRES_DB
-        value: my-database
-*/
-
 //buildSecret returns the secret resource
-func (r *ReconcileCapability) buildKubeDbPostgres(c *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
+func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
 	ls := r.GetAppLabels(c.Name)
+
+	//postgresRes := schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
+/*	postgres := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "apps/v1",
+		},
+	}*/
+
 	postgres := &kubedbv1.Postgres{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -44,7 +42,12 @@ func (r *ReconcileCapability) buildKubeDbPostgres(c *v1alpha2.Capability) (*kube
 			},
 			StorageType:       kubedbv1.StorageTypeEphemeral,
 			TerminationPolicy: kubedbv1.TerminationPolicyDelete,
-			PodTemplate: ofst.PodTemplateSpec{
+			PodTemplate: ofst.PodTemplateSpec {
+				Spec:ofst.PodSpec{
+					Env: []core.EnvVar{
+						{Name:PG_DATABASE, Value: "my-database"},
+					},
+				},
 			},
 		},
 	}
