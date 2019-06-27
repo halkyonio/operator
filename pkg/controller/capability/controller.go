@@ -20,11 +20,12 @@ import (
 const (
 	controllerName   = "service-controller"
 	SECRET           = "Secret"
-	PG_DATABASE         = "Postgres"
-	svcFinalizerName = "capability.devexp.runtime.redhat.com"
+	PG_DATABASE      = "Postgres"
 )
 
-var log = logf.Log.WithName("capability.controller")
+var (
+	log              = logf.Log.WithName("capability.controller")
+)
 
 // New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -47,10 +48,10 @@ func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	/** Watch for changes of child/secondary resources **/
-	//KubeDB
-	/*	if err := watchServiceInstance(c); err != nil {
+	// KubeDB Postgres
+	if err := watchPostgresDB(c); err != nil {
 		return err
-	}*/
+	}
 
 	return nil
 }
@@ -129,7 +130,6 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	r.reqLogger.Info("Creation time          ", "Creation time", service.ObjectMeta.CreationTimestamp)
 	r.reqLogger.Info("Resource version       ", "Resource version", service.ObjectMeta.ResourceVersion)
 	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(service.ObjectMeta.Generation, 10))
-	// r.reqLogger.Info("Deletion time          ","Deletion time", Capability.ObjectMeta.DeletionTimestamp)
 
 
 	// Add the Status Capability Creation when we process the first time the Capability CR
@@ -142,9 +142,16 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 		r.reqLogger.Info(fmt.Sprintf("Status is now : %s", v1alpha2.CapabilityPending))
 	}
 
-	// Check if the ServiceInstance exists
+	// Check if the Secret exists
 	if _, err := r.fetchSecret(service); err != nil {
 		if err = r.create(service, SECRET); err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	// Check if the KubeDB - Postgres exists
+	if _, err := r.fetchPostgres(service); err != nil {
+		if err = r.create(service, PG_DATABASE); err != nil {
 			return reconcile.Result{}, err
 		}
 	}

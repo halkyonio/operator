@@ -8,6 +8,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.2.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.1.0 // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
+	github.com/appscode/go v0.0.0-20190424183524-60025f1135c9
 	github.com/aws/aws-sdk-go v1.19.41 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/go-logr/logr v0.1.0
@@ -19,7 +20,6 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365 // indirect
 	github.com/knative/pkg v0.0.0-20190409220258-28cfa161499b
 	github.com/kubedb/apimachinery v0.0.0-20190506191700-871d6b5d30ee
-	github.com/kubernetes-incubator/service-catalog v0.1.43
 	github.com/markbates/inflect v1.0.4 // indirect
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/onsi/ginkgo v1.8.0

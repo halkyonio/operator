@@ -2,7 +2,7 @@ package capability
 
 import (
 	"context"
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
+	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -29,15 +29,16 @@ func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alp
 	return cap, err
 }
 
-func (r *ReconcileCapability) fetchServiceBinding(service *v1alpha2.Capability) (*servicecatalogv1.ServiceBinding, error) {
-	serviceBinding := &servicecatalogv1.ServiceBinding{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceBinding)
-	return serviceBinding, err
-}
-
 func (r *ReconcileCapability) fetchSecret(service *v1alpha2.Capability) (*v1.Secret, error) {
 	// Retrieve Secret
 	secret := &v1.Secret{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, secret)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: r.SetDefaultSecretNameIfEmpty(service.Spec.SecretName)}, secret)
 	return secret, err
+}
+
+func (r *ReconcileCapability) fetchPostgres(service *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
+	// Retrieve Postgres DB CRD
+	postgres := &kubedbv1.Postgres{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, postgres)
+	return postgres, err
 }

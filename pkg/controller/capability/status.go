@@ -3,19 +3,17 @@ package capability
 import (
 	"context"
 	"fmt"
-	servicecatalogv1beta1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
 //updateStatus returns error when status regards the all required resources could not be updated
-func (r *ReconcileCapability) updateStatus(serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Capability, request reconcile.Request) error {
-	if r.isServiceInstanceReady(serviceInstanceStatus) {
-		r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", v1alpha2.CapabilityRunning))
+func (r *ReconcileCapability) updateStatus(instance *v1alpha2.Capability, request reconcile.Request) error {
+	if r.isServiceInstanceReady() {
+		r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", v1alpha2.CapabilityReady))
 
-		if v1alpha2.CapabilityRunning != instance.Status.Phase {
+		if v1alpha2.CapabilityReady != instance.Status.Phase {
 			// Get a more recent version of the CR
 			service, err := r.fetchCapability(request)
 			if err != nil {
@@ -23,7 +21,7 @@ func (r *ReconcileCapability) updateStatus(serviceInstanceStatus *servicecatalog
 				return err
 			}
 
-			service.Status.Phase = v1alpha2.CapabilityRunning
+			service.Status.Phase = v1alpha2.CapabilityReady
 
 			err = r.client.Status().Update(context.TODO(), service)
 			if err != nil {
@@ -33,7 +31,7 @@ func (r *ReconcileCapability) updateStatus(serviceInstanceStatus *servicecatalog
 		}
 		return nil
 	} else {
-		r.reqLogger.Info("Capability instance or binding are not yet ready. So, we won't update the status of the Capability to Ready", "Namespace", instance.Namespace, "Name", instance.Name)
+		r.reqLogger.Info("Capability is pending. So, we won't update the status of the Capability to Ready", "Namespace", instance.Namespace, "Name", instance.Name)
 		return nil
 	}
 }
@@ -60,7 +58,7 @@ func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability,
 }
 
 //updateServiceBindingStatus returns error when status regards the Capability Binding resource could not be updated
-func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceBinding, error) {
+/*func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceBinding, error) {
 	for {
 		_, err := r.fetchServiceBinding(instance)
 		if err != nil {
@@ -97,7 +95,7 @@ func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capa
 	}
 	return serviceBinding, nil
 }
-
+*/
 //updateServiceInstanceStatus returns error when status regards the Capability Instance resource could not be updated
 /*func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
 	for {
@@ -136,20 +134,11 @@ func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capa
 	return serviceInstance, nil
 }*/
 
-func (r *ReconcileCapability) isServiceInstanceReady(serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance) bool {
-	for _, c := range serviceInstanceStatus.Status.Conditions {
+func (r *ReconcileCapability) isServiceInstanceReady() bool {
+/*	for _, c := range serviceInstanceStatus.Status.Conditions {
 		if c.Type == servicecatalogv1beta1.ServiceInstanceConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
 			return true
 		}
-	}
-	return false
-}
-
-func (r *ReconcileCapability) isServiceBindingReady(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding) bool {
-	for _, c := range serviceBindingStatus.Status.Conditions {
-		if c.Type == servicecatalogv1beta1.ServiceBindingConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
-			return true
-		}
-	}
+	}*/
 	return false
 }

@@ -1,6 +1,7 @@
 package capability
 
 import (
+	"github.com/appscode/go/encoding/json/types"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	apps "k8s.io/api/apps/v1"
@@ -9,16 +10,28 @@ import (
 	ofst "kmodules.xyz/offshoot-api/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
+
 //buildSecret returns the secret resource
 func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
 	ls := r.GetAppLabels(c.Name)
+	paramsMap := r.ParametersAsMap(c.Spec.Parameters)
 
-	//postgresRes := schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
-/*	postgres := &unstructured.Unstructured{
+	/*
+	// https://github.com/kubernetes/client-go/tree/master/examples/dynamic-create-update-delete-deployment
+	// Approach to create dynamically tyhe object without type imported
+	postgresRes := schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
+	postgres := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "apps/v1",
 		},
-	}*/
+	}
+	// Create Postgres DB
+		fmt.Println("Creating Postgres DB ...")
+		result, err := client.Resource(postgresRes).Namespace(namespace).Create(postgres, metav1.CreateOptions{})
+		if err != nil {
+			panic(err)
+		}
+	*/
 
 	postgres := &kubedbv1.Postgres{
 		TypeMeta: metav1.TypeMeta{
@@ -31,21 +44,20 @@ func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kube
 			Labels:    ls,
 		},
 		Spec: kubedbv1.PostgresSpec{
-			// TODO : to be specify as parameter
-			Version:  "10.2-v2",
+			Version:  types.StrYo(c.Spec.Version),
 			Replicas: replicaNumber(1),
 			UpdateStrategy: apps.StatefulSetUpdateStrategy{
 				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
 			DatabaseSecret: &core.SecretVolumeSource{
-				SecretName: c.Name,
+				SecretName: r.SetDefaultSecretNameIfEmpty(c.Spec.SecretName),
 			},
 			StorageType:       kubedbv1.StorageTypeEphemeral,
 			TerminationPolicy: kubedbv1.TerminationPolicyDelete,
 			PodTemplate: ofst.PodTemplateSpec {
 				Spec:ofst.PodSpec{
 					Env: []core.EnvVar{
-						{Name:PG_DATABASE, Value: "my-database"},
+						{Name:PG_DATABASE, Value: paramsMap["DB_NAME"]},
 					},
 				},
 			},
