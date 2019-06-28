@@ -8,7 +8,6 @@ spec:
   category: database
   kind: postgres
   version: "10"
-  # secretName: postgres-auth
   parameters:
   - name: DB_USER
     value: "admin"
