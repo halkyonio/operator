@@ -137,10 +137,11 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	if strings.ToLower(string(v1alpha2.DatabaseCategory)) == string(capability.Spec.Category) {
 		installFn := r.installDB
 
-		//
+		// Define the initial status to pending to indicates to the user that we have started to process
+		// the CRD and we are creating/installing the kube resources
 		r.setInitialStatus(capability, v1alpha2.CapabilityPending)
 
-		//
+		// Install the 2nd resources and check if the status of the watched resources has changed
 		result, e := r.installAndUpdateStatus(capability, request, installFn)
 		r.reqLogger.Info("<== Reconciled Capability", "name", capability.Name)
 		return result, e
