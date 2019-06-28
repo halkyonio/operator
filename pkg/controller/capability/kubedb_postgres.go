@@ -40,7 +40,7 @@ func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kube
 			PodTemplate: ofst.PodTemplateSpec{
 				Spec: ofst.PodSpec{
 					Env: []core.EnvVar{
-						{Name: PG_DATABASE, Value: paramsMap["DB_NAME"]},
+						{Name: PG_VAR_DATABASE_NAME, Value: paramsMap["DB_NAME"]},
 					},
 				},
 			},

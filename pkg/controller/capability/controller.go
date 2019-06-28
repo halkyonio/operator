@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	controllerName   = "service-controller"
-	SECRET           = "Secret"
-	PG_DATABASE      = "Postgres"
+	controllerName        = "service-controller"
+	SECRET                = "Secret"
+	PG_DATABASE           = "Postgres"
+	PG_VAR_DATABASE_NAME  = "POSTGRES_DB"
 )
 
 var (
