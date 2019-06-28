@@ -21,13 +21,9 @@ spec:
   envs:
   - name: SPRING_PROFILES_ACTIVE
     value: postgresql-kubedb
-  - name: DB_HOST
-    value: postgres-db
-  - name: DB_PORT
-    value: "5432"
-  - name: DB_NAME
-    value: my-db
-  - name: DB_USER
-    value: admin
-  - name: DB_PASSWORD
-    value: admin
+    # This parameter DB_CONFIG_NAME is added automatically by the Operator. No need to add it.
+    # It is used to bind the ENV vars of the database config with ENV Vars that the Spring Boot
+    # application will replace within the Datasource
+    # It has been added to document
+  - name: DB_CONFIG_NAME
+    value: postgres-db-config
