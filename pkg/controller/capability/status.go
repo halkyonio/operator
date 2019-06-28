@@ -5,102 +5,84 @@ import (
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"reflect"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
-//updateStatus returns error when status regards the all required resources could not be updated
-func (r *ReconcileCapability) updateStatus(p *kubedbv1.Postgres ,instance *v1alpha2.Capability, request reconcile.Request) error {
-	if r.isServiceInstanceReady(p.Status) {
-		r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", v1alpha2.CapabilityReady))
+func (r *ReconcileCapability) setErrorStatus(instance *v1alpha2.Capability, err error) {
+	instance.Status.Phase = v1alpha2.CapabilityFailed
+	r.updateStatusWithMessage(instance, err.Error(), true)
+}
 
-		if v1alpha2.CapabilityReady != instance.Status.Phase {
-			// Get a more recent version of the CR
-			service, err := r.fetchCapability(request)
-			if err != nil {
-				r.reqLogger.Error(err, "Failed to get the Capability")
-				return err
-			}
-
-			service.Status.Phase = v1alpha2.CapabilityReady
-
-			err = r.client.Status().Update(context.TODO(), service)
-			if err != nil {
-				r.reqLogger.Error(err, "Failed to update Status for the Capability App")
-				return err
-			}
+func (r *ReconcileCapability) updateStatusWithMessage(instance *v1alpha2.Capability, msg string, fetch bool) {
+	// fetch latest version to avoid optimistic lock error
+	current := instance
+	var err error
+	if fetch {
+		current, err = r.fetchLatestVersion(instance)
+		if err != nil {
+			r.reqLogger.Error(err, "failed to fetch latest version of capability "+instance.Name)
 		}
-		return nil
-	} else {
-		r.reqLogger.Info("Capability is pending. So, we won't update the status of the Capability to Ready", "Namespace", instance.Namespace, "Name", instance.Name)
-		return nil
+	}
+
+	r.reqLogger.Info("updating capability status",
+		"phase", instance.Status.Phase, "podName", instance.Status.PodName, "message", msg)
+	current.Status.PodName = instance.Status.PodName
+	current.Status.Phase = instance.Status.Phase
+	current.Status.Message = msg
+
+	err = r.client.Status().Update(context.TODO(), current)
+	if err != nil {
+		r.reqLogger.Error(err, "failed to update status for capability "+current.Name)
 	}
 }
 
-//updateStatus
-func (r *ReconcileCapability) updateCapabilityStatus(instance *v1alpha2.Capability, phase v1alpha2.CapabilityPhase, request reconcile.Request) error {
-	if !reflect.DeepEqual(phase, instance.Status.Phase) {
-		// Get a more recent version of the CR
-		service, err := r.fetchCapability(request)
-		if err != nil {
-			return err
-		}
-
-		service.Status.Phase = phase
-
-		err = r.client.Status().Update(context.TODO(), service)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Status of the Capability")
-			return err
-		}
+func (r *ReconcileCapability) fetchLatestVersion(instance *v1alpha2.Capability) (*v1alpha2.Capability, error) {
+	component, err := r.fetchCapability(reconcile.Request{
+		NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace},
+	})
+	if err != nil {
+		r.reqLogger.Error(err, "failed to get the Capability")
+		return nil, err
 	}
-	r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", phase))
+	return component, nil
+}
+
+//updateStatus returns error when status regards the all required resources could not be updated
+
+func (r *ReconcileCapability) updateStatus(instance *v1alpha2.Capability, phase v1alpha2.CapabilityPhase) error {
+	// Get a more recent version of the CR
+	capability, err := r.fetchLatestVersion(instance)
+	if err != nil {
+		return err
+	}
+
+	db , err := r.fetchKubeDBPostgres(capability)
+	if err != nil || !r.isDBReady(db) {
+		r.makePending("pod", capability)
+		return nil
+	}
+
+	if db.Name != instance.Status.PodName || phase != instance.Status.Phase {
+		capability.Status.PodName = db.Name
+		capability.Status.Phase = phase
+		r.updateStatusWithMessage(capability, "", false)
+	}
+
 	return nil
 }
 
-func (r *ReconcileCapability) updateKubeDBStatus(c *v1alpha2.Capability, request reconcile.Request) (*kubedbv1.Postgres, error) {
-	for {
-		_, err := r.fetchPostgres(c)
-		if err != nil {
-			r.reqLogger.Info("Failed to get KubeDB Postgres. We retry till ...", "Namespace", c.Namespace, "Name", c.Name)
-			time.Sleep(2 * time.Second)
-		} else {
-			break
-		}
-	}
-
-	r.reqLogger.Info("Updating KubeDB Postgres Status for the Capability")
-	postgresDB, err := r.fetchPostgres(c)
-	if err != nil {
-		r.reqLogger.Error(err, "Failed to get KubeDB Postgres for Status", "Namespace", c.Namespace, "Name", c.Name)
-		return postgresDB, err
-	}
-	if !reflect.DeepEqual(postgresDB.Name, c.Status.DatabaseName) || !reflect.DeepEqual(postgresDB.Status, c.Status.DatabaseStatus) {
-		// Get a more recent version of the CR
-		service, err := r.fetchCapability(request)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to get the Capability")
-			return postgresDB, err
-		}
-
-		service.Status.DatabaseName = postgresDB.Name
-		service.Status.DatabaseStatus = postgresDB.Status.Reason
-
-		err = r.client.Status().Update(context.TODO(), service)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update postgresDB Name and Status for the Capability")
-			return postgresDB, err
-		}
-		r.reqLogger.Info("postgresDB Status updated for the Capability")
-	}
-	return postgresDB, nil
+func (r *ReconcileCapability) makePending(dependencyName string, c *v1alpha2.Capability) {
+	msg := fmt.Sprintf(dependencyName+" is not ready for component '%s' in namespace '%s'", c.Name, c.Namespace)
+	r.reqLogger.Info(msg)
+	c.Status.Phase = v1alpha2.CapabilityPending
+	r.updateStatusWithMessage(c, msg, false)
 }
 
-func (r *ReconcileCapability) isServiceInstanceReady(p kubedbv1.PostgresStatus) bool {
-		if p.Phase == kubedbv1.DatabasePhaseRunning {
-			return true
-		} else {
-			return false
-		}
+func (r *ReconcileCapability) isDBReady(p *kubedbv1.Postgres) bool {
+	if p.Status.Phase == kubedbv1.DatabasePhaseRunning {
+		return true
+	} else {
+		return false
+	}
 }

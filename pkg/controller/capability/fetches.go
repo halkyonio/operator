@@ -36,7 +36,7 @@ func (r *ReconcileCapability) fetchSecret(service *v1alpha2.Capability) (*v1.Sec
 	return secret, err
 }
 
-func (r *ReconcileCapability) fetchPostgres(service *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
+func (r *ReconcileCapability) fetchKubeDBPostgres(service *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
 	// Retrieve Postgres DB CRD
 	postgres := &kubedbv1.Postgres{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, postgres)

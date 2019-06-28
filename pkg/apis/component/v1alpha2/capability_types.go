@@ -52,7 +52,10 @@ const (
 	CapabilityPending CapabilityPhase = "Pending"
 	// CapabilityReady means the capability has been instantiated to a node and all of its dependencies are available. The
 	// capability is able to process requests.
-	CapabilityReady CapabilityPhase = "Running"
+	CapabilityReady   CapabilityPhase = "Ready"
+	// CapabilityFailed means that the capability and its dependencies have terminated, and at least one container has
+	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
+	CapabilityFailed  CapabilityPhase = "Failed"
 )
 
 // CapabilityStatus defines the observed state of Capability
@@ -62,8 +65,10 @@ type CapabilityStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	Phase           CapabilityPhase   `json:"phase,omitempty"`
+	PodName         string            `json:"podName,omitempty"`
 	DatabaseName    string            `json:"databaseName"`
 	DatabaseStatus  string            `json:"databaseStatus"`
+	Message         string            `json:"message,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

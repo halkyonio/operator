@@ -118,56 +118,57 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	r.reqLogger = log.WithValues("Namespace", request.Namespace)
 
 	// Fetch the Capability created, deleted or updated
-	service := &v1alpha2.Capability{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, service)
+	capability := &v1alpha2.Capability{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, capability)
 	if err != nil {
 		return r.fetch(err)
 	}
 
 	r.reqLogger.Info("-----------------------")
 	r.reqLogger.Info("Reconciling Capability")
-	r.reqLogger.Info("Status of the Capability", "Status phase", service.Status.Phase)
-	r.reqLogger.Info("Creation time          ", "Creation time", service.ObjectMeta.CreationTimestamp)
-	r.reqLogger.Info("Resource version       ", "Resource version", service.ObjectMeta.ResourceVersion)
-	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(service.ObjectMeta.Generation, 10))
+	r.reqLogger.Info("Status of the Capability", "Status phase", capability.Status.Phase)
+	r.reqLogger.Info("Creation time          ", "Creation time", capability.ObjectMeta.CreationTimestamp)
+	r.reqLogger.Info("Resource version       ", "Resource version", capability.ObjectMeta.ResourceVersion)
+	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(capability.ObjectMeta.Generation, 10))
 
 
-	// Add the Status Capability Creation when we process the first time the Capability CR
-	// as we will start to create different resources
-	if service.Generation == 1 && service.Status.Phase == "" {
-		if err := r.updateCapabilityStatus(service, v1alpha2.CapabilityPending, request); err != nil {
-			r.reqLogger.Info("Status update failed !")
-			return reconcile.Result{}, err
-		}
-		r.reqLogger.Info(fmt.Sprintf("Status is now : %s", v1alpha2.CapabilityPending))
+	if string(v1alpha2.DatabaseCategory) == string(capability.Spec.Category) {
+		installFn := r.installDB
+
+		//
+		r.setInitialStatus(capability, v1alpha2.CapabilityPending)
+
+		//
+		result, e := r.installAndUpdateStatus(capability, request, installFn)
+		r.reqLogger.Info("<== Reconciled Capability", "name", capability.Name)
+		return result, e
+	} else {
+		r.reqLogger.Info(fmt.Sprintf("<== Reconciled but Capability not supported : %s", capability.Spec.Category))
+		return reconcile.Result{}, nil
 	}
+}
 
-	// Check if the Secret exists
-	if _, err := r.fetchSecret(service); err != nil {
-		if err = r.create(service, SECRET); err != nil {
-			return reconcile.Result{}, err
-		}
-	}
+type installFnType func(c *v1alpha2.Capability) (bool, error)
 
-	// Check if the KubeDB - Postgres exists
-	if _, err := r.fetchPostgres(service); err != nil {
-		if err = r.create(service, PG_DATABASE); err != nil {
-			return reconcile.Result{}, err
-		}
-	}
-
-
-	// Update KubeDB Status
- 	kubeDbStatus, err := r.updateKubeDBStatus(service, request)
+func (r *ReconcileCapability) installAndUpdateStatus(c *v1alpha2.Capability, request reconcile.Request, install installFnType) (reconcile.Result, error) {
+	changed, err := install(c)
 	if err != nil {
+		r.reqLogger.Error(err, fmt.Sprintf("failed to install %s", c.Spec.Kind))
+		r.setErrorStatus(c, err)
 		return reconcile.Result{}, err
 	}
 
-	// Update Status of the Capability
-	if err := r.updateStatus(kubeDbStatus, service, request); err != nil {
-		return reconcile.Result{}, err
-	}
+	return reconcile.Result{Requeue: changed}, r.updateStatus(c, v1alpha2.CapabilityReady)
+}
 
-	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", service.Name))
-	return reconcile.Result{}, nil
+// Add the Status Capability Creation when we process the first time the Capability CR
+// as we will start to create different resources
+func (r *ReconcileCapability) setInitialStatus(c *v1alpha2.Capability, phase v1alpha2.CapabilityPhase) error {
+	if c.Generation == 1 && c.Status.Phase == "" {
+		if err := r.updateStatus(c, phase); err != nil {
+			r.reqLogger.Info("Status update failed !")
+			return err
+		}
+	}
+	return nil
 }
