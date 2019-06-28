@@ -1,9 +1,9 @@
 package capability
 
 import (
-	"errors"
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"strings"
 )
 
 func newFalse() *bool {
@@ -23,7 +23,7 @@ func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (bool, error) {
 		}
 	}
 
-	if string(c.Spec.Kind) == string(v1alpha2.PostgresKind) {
+	if string(c.Spec.Kind) == strings.ToLower(string(v1alpha2.PostgresKind)) {
 		// Check if the KubeDB - Postgres exists
 		if _, e := r.fetchKubeDBPostgres(c); e != nil {
 			if e = r.create(c, PG_DATABASE); e != nil {

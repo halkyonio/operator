@@ -16,7 +16,7 @@ type CapabilitySpec struct {
 
     /*
       category: <database>, <logging>,<metrics>
-	  kind: posgres (if category is database)
+	  kind: postgres (if category is database)
 	  version: <version of the DB or prometheus or ...> to be installed
 	  secretName: <secret_name_to_be_created> // Is used by kubedb postgres and is optional as some capability provider does not need to create a secret
 	  parameters:

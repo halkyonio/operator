@@ -15,6 +15,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -132,7 +133,7 @@ func (r *ReconcileCapability) Reconcile(request reconcile.Request) (reconcile.Re
 	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(capability.ObjectMeta.Generation, 10))
 
 
-	if string(v1alpha2.DatabaseCategory) == string(capability.Spec.Category) {
+	if strings.ToLower(string(v1alpha2.DatabaseCategory)) == string(capability.Spec.Category) {
 		installFn := r.installDB
 
 		//

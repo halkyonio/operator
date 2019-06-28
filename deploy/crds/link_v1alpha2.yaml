@@ -4,6 +4,11 @@ metadata:
   name: links.devexp.runtime.redhat.com
 spec:
   group: devexp.runtime.redhat.com
+  version: v1alpha2
+  versions:
+    - name: v1alpha2
+      served: true
+      storage: true
   names:
     kind: Link
     listKind: LinkList
@@ -14,8 +19,3 @@ spec:
   scope: Namespaced
   subresources:
     status: {}
-  version: v1alpha2
-  versions:
-  - name: v1alpha2
-    served: true
-    storage: true

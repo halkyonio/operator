@@ -6,7 +6,7 @@ metadata:
   name: postgres-db
 spec:
   category: database
-  kind: posgres
+  kind: postgres
   version: "10.6"
   # secretName: postgres-auth
   parameters:
