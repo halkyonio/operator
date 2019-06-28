@@ -16,23 +16,6 @@ func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kube
 	ls := r.GetAppLabels(c.Name)
 	paramsMap := r.ParametersAsMap(c.Spec.Parameters)
 
-	/*
-	// https://github.com/kubernetes/client-go/tree/master/examples/dynamic-create-update-delete-deployment
-	// Approach to create dynamically tyhe object without type imported
-	postgresRes := schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
-	postgres := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "apps/v1",
-		},
-	}
-	// Create Postgres DB
-		fmt.Println("Creating Postgres DB ...")
-		result, err := client.Resource(postgresRes).Namespace(namespace).Create(postgres, metav1.CreateOptions{})
-		if err != nil {
-			panic(err)
-		}
-	*/
-
 	postgres := &kubedbv1.Postgres{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -44,7 +27,7 @@ func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kube
 			Labels:    ls,
 		},
 		Spec: kubedbv1.PostgresSpec{
-			Version:  types.StrYo(c.Spec.Version),
+			Version:  SetDefaultDatabaseVersionIfEmpty(c.Spec.Version),
 			Replicas: replicaNumber(1),
 			UpdateStrategy: apps.StatefulSetUpdateStrategy{
 				Type: apps.RollingUpdateStatefulSetStrategyType,
@@ -54,10 +37,10 @@ func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kube
 			},
 			StorageType:       kubedbv1.StorageTypeEphemeral,
 			TerminationPolicy: kubedbv1.TerminationPolicyDelete,
-			PodTemplate: ofst.PodTemplateSpec {
-				Spec:ofst.PodSpec{
+			PodTemplate: ofst.PodTemplateSpec{
+				Spec: ofst.PodSpec{
 					Env: []core.EnvVar{
-						{Name:PG_DATABASE, Value: paramsMap["DB_NAME"]},
+						{Name: PG_DATABASE, Value: paramsMap["DB_NAME"]},
 					},
 				},
 			},
@@ -73,3 +56,38 @@ func replicaNumber(num int) *int32 {
 	q := int32(num)
 	return &q
 }
+
+func SetDefaultDatabaseVersionIfEmpty(version string) types.StrYo {
+	if version == "10.6-v2" {
+		return types.StrYo("10.6")
+	} else {
+		// Map DB Version with the KubeDB Version
+		switch version {
+		case "9":
+			return types.StrYo("9.6-v4")
+		case "10":
+			return types.StrYo("10.6-v2")
+		case "11":
+			return types.StrYo("11.2")
+		default:
+			return types.StrYo("10.6-v2")
+		}
+	}
+}
+
+/*
+	// https://github.com/kubernetes/client-go/tree/master/examples/dynamic-create-update-delete-deployment
+	// Approach to create dynamically tyhe object without type imported
+	postgresRes := schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
+	postgres := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "apps/v1",
+		},
+	}
+	// Create Postgres DB
+		fmt.Println("Creating Postgres DB ...")
+		result, err := client.Resource(postgresRes).Namespace(namespace).Create(postgres, metav1.CreateOptions{})
+		if err != nil {
+			panic(err)
+		}
+*/
