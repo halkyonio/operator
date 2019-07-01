@@ -22,9 +22,11 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -228,4 +230,38 @@ func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, pha
 		}
 	}
 	return nil
+}
+
+func (r *ReconcileComponent) initDependentResources() {
+	r.addDependentResource(&corev1.PersistentVolumeClaim{}, r.buildPVC, func(c *v1alpha2.Component) string {
+		specified := c.Spec.Storage.Name
+		if len(specified) > 0 {
+			return specified
+		}
+		return "m2-data-" + c.Name
+	})
+	r.addDependentResource(&appsv1.Deployment{},
+		func(res dependentResource, c *v1alpha2.Component) (object runtime.Object, e error) {
+			if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
+				if err := r.setInitialStatus(c, v1alpha2.ComponentBuilding); err != nil {
+					return nil, err
+				}
+				return r.createBuildDeployment(res, c)
+			}
+			if err := r.setInitialStatus(c, v1alpha2.ComponentPending); err != nil {
+				return nil, err
+			}
+			return r.buildDevDeployment(res, c)
+		}, buildOrDevNamer)
+	r.addDependentResourceFull(&corev1.Service{}, r.buildService, defaultNamer, buildOrDevNamer, r.updateServiceSelector)
+	r.addDependentResource(&corev1.ServiceAccount{}, r.buildServiceAccount, func(c *v1alpha2.Component) string {
+		return serviceAccountName
+	})
+	r.addDependentResource(&routev1.Route{}, r.buildRoute, defaultNamer)
+	r.addDependentResource(&v1beta1.Ingress{}, r.buildIngress, defaultNamer)
+	taskNamer := func(c *v1alpha2.Component) string {
+		return taskS2iBuildahPushName
+	}
+	r.addDependentResource(&v1alpha1.Task{}, r.buildTaskS2iBuildahPush, taskNamer)
+	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, defaultNamer)
 }
