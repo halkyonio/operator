@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -12,6 +11,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/spf13/pflag"
 	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"os"
 	"runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -81,7 +81,7 @@ func main() {
 
 	// Setup Scheme for all resources
 	log.Info("Registering Components")
-	if err := v1alpha2.AddToScheme(mgr.GetScheme()); err != nil {
+    if err := v1alpha2.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 	}
 
@@ -103,7 +103,7 @@ func main() {
 
 func registerAdditionalResources(m manager.Manager) {
 	scheme := m.GetScheme()
-	if err := servicecatalogv1.AddToScheme(scheme); err != nil {
+	if err := kubedbv1.AddToScheme(scheme); err != nil {
 		log.Error(err, "")
 	}
 	if err := route.Install(scheme); err != nil {

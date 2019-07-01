@@ -1,7 +1,6 @@
 package v1alpha2
 
 import (
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -15,15 +14,35 @@ type CapabilitySpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// Info needed to create a Capability instance from the Capability Catalog
-	// and next to bind the info to a Deployment using the Capability binding/secret
-	Class          string      `json:"class,omitempty"`
-	Plan           string      `json:"plan,omitempty"`
-	ExternalId     string      `json:"externalid,omitempty"`
-	SecretName     string      `json:"secretname,omitempty"`
-	Parameters     []Parameter `json:"parameters,omitempty"`
-	ParametersJSon string
+    /*
+      category: <database>, <logging>,<metrics>
+	  kind: postgres (if category is database)
+	  version: <version of the DB or prometheus or ...> to be installed
+	  secretName: <secret_name_to_be_created> // Is used by kubedb postgres and is optional as some capability provider does not need to create a secret
+	  parameters:
+	     // LIST OF PARAMETERS WILL BE MAPPED TO EACH CATEGORY !
+	    - name: DB_USER // WILL BE USED TO CREATE THE DB SECRET
+	       value: "admin"
+	    - name: DB_PASSWORD  // WILL BE USED TO CREATE THE DB SECRET
+	       value: "admin"
+     */
+	Category       CapabilityCategory  `json:"category"`
+	Kind           CapabilityKind      `json:"kind"`
+	Version        string              `json:"version"`
+	SecretName     string              `json:"secretName,omitempty"`
+	Parameters     []Parameter         `json:"parameters,omitempty"`
 }
+
+type CapabilityCategory string
+type CapabilityKind string
+
+const (
+	DatabaseCategory CapabilityCategory = "Database"
+	PostgresKind     CapabilityKind     = "Postgres"
+
+	MetricCategory   CapabilityCategory = "Metric"
+	LoggingCategory  CapabilityCategory = "Logging"
+)
 
 type CapabilityPhase string
 
@@ -31,18 +50,12 @@ const (
 	// CapabilityPending means the capability has been accepted by the system, but it is still being processed. This includes time
 	// being instantiated.
 	CapabilityPending CapabilityPhase = "Pending"
-	// CapabilityRunning means the capability has been instantiated to a node and all of its dependencies are available. The
+	// CapabilityReady means the capability has been instantiated to a node and all of its dependencies are available. The
 	// capability is able to process requests.
-	CapabilityRunning CapabilityPhase = "Running"
-	// CapabilitySucceeded means that the capability and its dependencies ran to successful completion
-	// with a container exit code of 0, and the system is not going to restart any of these containers.
-	CapabilitySucceeded CapabilityPhase = "Succeeded"
+	CapabilityReady   CapabilityPhase = "Ready"
 	// CapabilityFailed means that the capability and its dependencies have terminated, and at least one container has
 	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
-	CapabilityFailed CapabilityPhase = "Failed"
-	// CapabilityUnknown means that for some reason the state of the capability could not be obtained, typically due
-	// to an error in communicating with the host of the capability.
-	CapabilityUnknown CapabilityPhase = "Unknown"
+	CapabilityFailed  CapabilityPhase = "Failed"
 )
 
 // CapabilityStatus defines the observed state of Capability
@@ -51,11 +64,11 @@ type CapabilityStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Phase                 CapabilityPhase                        `json:"phase,omitempty"`
-	ServiceBindingName    string                                 `json:"serviceBindingName"`
-	ServiceBindingStatus  servicecatalogv1.ServiceBindingStatus  `json:"serviceBindingStatus"`
-	ServiceInstanceName   string                                 `json:"serviceInstanceName"`
-	ServiceInstanceStatus servicecatalogv1.ServiceInstanceStatus `json:"serviceInstanceStatus"`
+	Phase           CapabilityPhase   `json:"phase,omitempty"`
+	PodName         string            `json:"podName,omitempty"`
+	DatabaseName    string            `json:"databaseName"`
+	DatabaseStatus  string            `json:"databaseStatus"`
+	Message         string            `json:"message,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -2,8 +2,9 @@ package capability
 
 import (
 	"context"
-	servicecatalogv1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
+	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -28,15 +29,16 @@ func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alp
 	return cap, err
 }
 
-func (r *ReconcileCapability) fetchServiceBinding(service *v1alpha2.Capability) (*servicecatalogv1.ServiceBinding, error) {
-	serviceBinding := &servicecatalogv1.ServiceBinding{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceBinding)
-	return serviceBinding, err
+func (r *ReconcileCapability) fetchSecret(service *v1alpha2.Capability) (*v1.Secret, error) {
+	// Retrieve Secret
+	secret := &v1.Secret{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: r.SetDefaultSecretNameIfEmpty(service.Spec.SecretName)}, secret)
+	return secret, err
 }
 
-func (r *ReconcileCapability) fetchServiceInstance(service *v1alpha2.Capability) (*servicecatalogv1.ServiceInstance, error) {
-	// Retrieve ServiceInstances
-	serviceInstance := &servicecatalogv1.ServiceInstance{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: service.Name}, serviceInstance)
-	return serviceInstance, err
+func (r *ReconcileCapability) fetchKubeDBPostgres(c *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
+	// Retrieve Postgres DB CRD
+	postgres := &kubedbv1.Postgres{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: c.Namespace, Name: c.Name}, postgres)
+	return postgres, err
 }

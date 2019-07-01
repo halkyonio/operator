@@ -3,153 +3,86 @@ package capability
 import (
 	"context"
 	"fmt"
-	servicecatalogv1beta1 "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1beta1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"reflect"
+	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
-//updateStatus returns error when status regards the all required resources could not be updated
-func (r *ReconcileCapability) updateStatus(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding, serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance, instance *v1alpha2.Capability, request reconcile.Request) error {
-	if r.isServiceBindingReady(serviceBindingStatus) && r.isServiceInstanceReady(serviceInstanceStatus) {
-		r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", v1alpha2.CapabilityRunning))
+func (r *ReconcileCapability) setErrorStatus(instance *v1alpha2.Capability, err error) {
+	instance.Status.Phase = v1alpha2.CapabilityFailed
+	r.updateStatusWithMessage(instance, err.Error(), true)
+}
 
-		if v1alpha2.CapabilityRunning != instance.Status.Phase {
-			// Get a more recent version of the CR
-			service, err := r.fetchCapability(request)
-			if err != nil {
-				r.reqLogger.Error(err, "Failed to get the Capability")
-				return err
-			}
-
-			service.Status.Phase = v1alpha2.CapabilityRunning
-
-			err = r.client.Status().Update(context.TODO(), service)
-			if err != nil {
-				r.reqLogger.Error(err, "Failed to update Status for the Capability App")
-				return err
-			}
+func (r *ReconcileCapability) updateStatusWithMessage(instance *v1alpha2.Capability, msg string, fetch bool) {
+	// fetch latest version to avoid optimistic lock error
+	current := instance
+	var err error
+	if fetch {
+		current, err = r.fetchLatestVersion(instance)
+		if err != nil {
+			r.reqLogger.Error(err, "failed to fetch latest version of capability "+instance.Name)
 		}
-		return nil
-	} else {
-		r.reqLogger.Info("Capability instance or binding are not yet ready. So, we won't update the status of the Capability to Ready", "Namespace", instance.Namespace, "Name", instance.Name)
-		return nil
+	}
+
+	r.reqLogger.Info("updating capability status",
+		"phase", instance.Status.Phase, "podName", instance.Status.PodName, "message", msg)
+	current.Status.PodName = instance.Status.PodName
+	current.Status.Phase = instance.Status.Phase
+	current.Status.Message = msg
+
+	err = r.client.Status().Update(context.TODO(), current)
+	if err != nil {
+		r.reqLogger.Error(err, "failed to update status for capability "+current.Name)
 	}
 }
 
-//updateStatus
-func (r *ReconcileCapability) updateServiceStatus(instance *v1alpha2.Capability, phase v1alpha2.CapabilityPhase, request reconcile.Request) error {
-	if !reflect.DeepEqual(phase, instance.Status.Phase) {
-		// Get a more recent version of the CR
-		service, err := r.fetchCapability(request)
-		if err != nil {
-			return err
-		}
-
-		service.Status.Phase = phase
-
-		err = r.client.Status().Update(context.TODO(), service)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update Status of the Capability")
-			return err
-		}
+func (r *ReconcileCapability) fetchLatestVersion(instance *v1alpha2.Capability) (*v1alpha2.Capability, error) {
+	component, err := r.fetchCapability(reconcile.Request{
+		NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace},
+	})
+	if err != nil {
+		r.reqLogger.Error(err, "failed to get the Capability")
+		return nil, err
 	}
-	r.reqLogger.Info(fmt.Sprintf("Updating Status of the Capability to %v", phase))
+	return component, nil
+}
+
+//updateStatus returns error when status regards the all required resources could not be updated
+
+func (r *ReconcileCapability) updateStatus(instance *v1alpha2.Capability, phase v1alpha2.CapabilityPhase) error {
+	// Get a more recent version of the CR
+	capability, err := r.fetchLatestVersion(instance)
+	if err != nil {
+		return err
+	}
+
+	db , err := r.fetchKubeDBPostgres(capability)
+	if err != nil || !r.isDBReady(db) {
+		r.makePending("pod", capability)
+		return nil
+	}
+
+	if db.Name != instance.Status.PodName || phase != instance.Status.Phase {
+		capability.Status.PodName = db.Name
+		capability.Status.Phase = phase
+		r.updateStatusWithMessage(capability, "", false)
+	}
+
 	return nil
 }
 
-//updateServiceBindingStatus returns error when status regards the Capability Binding resource could not be updated
-func (r *ReconcileCapability) updateServiceBindingStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceBinding, error) {
-	for {
-		_, err := r.fetchServiceBinding(instance)
-		if err != nil {
-			r.reqLogger.Info("Failed to get ServiceBinding. We retry till ...", "Namespace", instance.Namespace, "Name", instance.Name)
-			time.Sleep(2 * time.Second)
-		} else {
-			break
-		}
-	}
-
-	r.reqLogger.Info("Updating ServiceBinding Status for the Capability")
-	serviceBinding, err := r.fetchServiceBinding(instance)
-	if err != nil {
-		r.reqLogger.Error(err, "Failed to get ServiceBinding for Status", "Namespace", instance.Namespace, "Name", instance.Name)
-		return serviceBinding, err
-	}
-	if !reflect.DeepEqual(serviceBinding.Name, instance.Status.ServiceBindingName) || !reflect.DeepEqual(serviceBinding.Status, instance.Status.ServiceBindingStatus) {
-		// Get a more recent version of the CR
-		service, err := r.fetchCapability(request)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to get the Capability")
-			return serviceBinding, err
-		}
-
-		service.Status.ServiceBindingName = serviceBinding.Name
-		service.Status.ServiceBindingStatus = serviceBinding.Status
-
-		err = r.client.Status().Update(context.TODO(), service)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update ServiceBinding Name and Status for the Capability")
-			return serviceBinding, err
-		}
-		r.reqLogger.Info("ServiceBinding Status updated for the Capability")
-	}
-	return serviceBinding, nil
+func (r *ReconcileCapability) makePending(dependencyName string, c *v1alpha2.Capability) {
+	msg := fmt.Sprintf(dependencyName+" is not ready for component '%s' in namespace '%s'", c.Name, c.Namespace)
+	r.reqLogger.Info(msg)
+	c.Status.Phase = v1alpha2.CapabilityPending
+	r.updateStatusWithMessage(c, msg, false)
 }
 
-//updateServiceInstanceStatus returns error when status regards the Capability Instance resource could not be updated
-func (r *ReconcileCapability) updateServiceInstanceStatus(instance *v1alpha2.Capability, request reconcile.Request) (*servicecatalogv1beta1.ServiceInstance, error) {
-	for {
-		_, err := r.fetchServiceInstance(instance)
-		if err != nil {
-			r.reqLogger.Info("Failed to get Service Instance. We retry till ...", "Namespace", instance.Namespace, "Name", instance.Name)
-			time.Sleep(2 * time.Second)
-		} else {
-			break
-		}
+func (r *ReconcileCapability) isDBReady(p *kubedbv1.Postgres) bool {
+	if p.Status.Phase == kubedbv1.DatabasePhaseRunning {
+		return true
+	} else {
+		return false
 	}
-	r.reqLogger.Info("Updating ServiceInstance Status for the Capability")
-	serviceInstance, err := r.fetchServiceInstance(instance)
-	if err != nil {
-		r.reqLogger.Error(err, "Failed to get ServiceInstance for Status", "Namespace", instance.Namespace, "Name", instance.Name)
-		return serviceInstance, err
-	}
-	if !reflect.DeepEqual(serviceInstance.Name, instance.Status.ServiceInstanceName) || !reflect.DeepEqual(serviceInstance.Status, instance.Status.ServiceInstanceStatus) {
-		// Get a more recent version of the CR
-		service, err := r.fetchCapability(request)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to get the Component")
-			return serviceInstance, err
-		}
-
-		service.Status.ServiceInstanceName = serviceInstance.Name
-		service.Status.ServiceInstanceStatus = serviceInstance.Status
-
-		err = r.client.Status().Update(context.TODO(), service)
-		if err != nil {
-			r.reqLogger.Error(err, "Failed to update ServiceInstance Name and Status for the Capability")
-			return serviceInstance, err
-		}
-		r.reqLogger.Info("ServiceInstance Status updated for the Capability")
-	}
-	return serviceInstance, nil
-}
-
-func (r *ReconcileCapability) isServiceInstanceReady(serviceInstanceStatus *servicecatalogv1beta1.ServiceInstance) bool {
-	for _, c := range serviceInstanceStatus.Status.Conditions {
-		if c.Type == servicecatalogv1beta1.ServiceInstanceConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
-			return true
-		}
-	}
-	return false
-}
-
-func (r *ReconcileCapability) isServiceBindingReady(serviceBindingStatus *servicecatalogv1beta1.ServiceBinding) bool {
-	for _, c := range serviceBindingStatus.Status.Conditions {
-		if c.Type == servicecatalogv1beta1.ServiceBindingConditionReady && c.Status == servicecatalogv1beta1.ConditionTrue {
-			return true
-		}
-	}
-	return false
 }

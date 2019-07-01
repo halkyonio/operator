@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/runtime"
+	"strings"
 )
 
 // BuildParameters converts a map of variable assignments to a byte encoded json document,
@@ -25,6 +26,15 @@ func (r *ReconcileCapability) ParametersAsMap(parameters []v1alpha2.Parameter) m
 		result[parameter.Name] = parameter.Value
 	}
 	return result
+}
+
+
+func (r *ReconcileCapability) SetDefaultSecretNameIfEmpty(name string) string {
+	if name == "" {
+		return strings.ToLower(string(v1alpha2.PostgresKind)) + "-auth"
+	} else {
+		return name
+	}
 }
 
 //getAppLabels returns an string map with the labels which wil be associated to the kubernetes/ocp resource which will be created and managed by this operator
