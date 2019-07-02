@@ -25,12 +25,6 @@ func (r *ReconcileComponent) fetch(err error) (reconcile.Result, error) {
 	return reconcile.Result{}, err
 }
 
-func (r *ReconcileComponent) fetchComponent(request reconcile.Request) (*v1alpha2.Component, error) {
-	component := &v1alpha2.Component{}
-	err := r.Client.Get(context.TODO(), request.NamespacedName, component)
-	return component, err
-}
-
 func (r *ReconcileComponent) fetchTaskRun(c *v1alpha2.Component) (*tektonv1alpha1.TaskRun, error) {
 	taskRun := &tektonv1alpha1.TaskRun{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, taskRun)
