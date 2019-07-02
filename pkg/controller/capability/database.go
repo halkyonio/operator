@@ -2,7 +2,9 @@ package capability
 
 import (
 	"fmt"
+	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	v1 "k8s.io/api/core/v1"
 	"strings"
 )
 
@@ -11,30 +13,19 @@ func newFalse() *bool {
 	return &b
 }
 
-func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (bool, error) {
-
-	hasChanges := newFalse()
-	// Check if the Secret exists
-	if _, e := r.fetchSecret(c); e != nil {
-		if e = r.create(c, SECRET); e != nil {
-			return false, e
-		} else {
-			*hasChanges = true
-		}
+func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (changed bool, e error) {
+	if changed, e = r.CreateIfNeeded(c, &v1.Secret{}); e != nil {
+		return false, e
 	}
 
 	if string(c.Spec.Kind) == strings.ToLower(string(v1alpha2.PostgresKind)) {
 		// Check if the KubeDB - Postgres exists
-		if _, e := r.fetchKubeDBPostgres(c); e != nil {
-			if e = r.create(c, KUBEDB_PG_DATABASE); e != nil {
-				return false, e
-			} else {
-				*hasChanges = true
-			}
+		if changed, e = r.CreateIfNeeded(c, &kubedbv1.Postgres{}); e != nil {
+			return false, e
 		}
 	} else {
-		return false, fmt.Errorf("Database kind not supported %s", c.Spec.Kind)
+		return false, fmt.Errorf("unsupported '%s' database kind", c.Spec.Kind)
 	}
 
-	return *hasChanges, nil
+	return
 }

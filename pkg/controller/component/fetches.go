@@ -6,15 +6,13 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	tektonv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // Request object not found, could have been deleted after reconcile request.
 // Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-func (r *ReconcileComponent) fetch(err error) (reconcile.Result, error) {
+/*func (r *ReconcileComponent) fetch(err error) (reconcile.Result, error) {
 	if errors.IsNotFound(err) {
 		// Return and don't create
 		r.ReqLogger.Info("component resource not found. Ignoring since object must be deleted")
@@ -24,7 +22,7 @@ func (r *ReconcileComponent) fetch(err error) (reconcile.Result, error) {
 	r.ReqLogger.Error(err, "Failed to get Component")
 	return reconcile.Result{}, err
 }
-
+*/
 func (r *ReconcileComponent) fetchTaskRun(c *v1alpha2.Component) (*tektonv1alpha1.TaskRun, error) {
 	taskRun := &tektonv1alpha1.TaskRun{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, taskRun)
