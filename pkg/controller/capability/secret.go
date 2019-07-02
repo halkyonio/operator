@@ -22,11 +22,16 @@ func (r *ReconcileCapability) buildSecret(c *v1alpha2.Capability) (*v1.Secret, e
 			Labels:    ls,
 		},
 		Data: map[string][]byte{
-			KUBEDB_PG_USER:     []byte(paramsMap[DB_USER]),
-			KUBEDB_PG_PASSWORD: []byte(paramsMap[DB_PASSWORD]),
-			KUBEDB_PG_DATABASE_NAME: []byte(paramsMap[DB_NAME]),
-			DB_HOST: []byte(r.SetDefaultDatabaseHost(c.Name,paramsMap[DB_HOST])),
-			DB_PORT: []byte(r.SetDefaultDatabasePort(paramsMap[DB_PORT])),
+			KUBEDB_PG_USER:          []byte(paramsMap[DB_USER]),
+			KUBEDB_PG_PASSWORD:      []byte(paramsMap[DB_PASSWORD]),
+			KUBEDB_PG_DATABASE_NAME: []byte(r.SetDefaultDatabaseName(paramsMap[DB_NAME])),
+			// TODO : To be reviewed according to the discussion started with issue #75
+			// as we will create another secret when a link will be issued
+			DB_HOST:     []byte(r.SetDefaultDatabaseHost(c.Name,paramsMap[DB_HOST])),
+			DB_PORT:     []byte(r.SetDefaultDatabasePort(paramsMap[DB_PORT])),
+			DB_NAME:     []byte(r.SetDefaultDatabaseName(paramsMap[DB_NAME])),
+			DB_USER:     []byte((paramsMap[DB_USER])),
+			DB_PASSWORD: []byte(paramsMap[DB_PASSWORD]),
 		},
 	}
 

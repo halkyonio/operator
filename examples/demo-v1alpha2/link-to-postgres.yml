@@ -1,0 +1,8 @@
+apiVersion: "devexp.runtime.redhat.com/v1alpha2"
+kind: "Link"
+metadata:
+  name: "link-to-database"
+spec:
+  componentName: "fruit-backend-sb"
+  kind: "Secret"
+  ref: "postgres-db-config"

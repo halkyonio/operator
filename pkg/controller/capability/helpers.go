@@ -37,6 +37,14 @@ func (r *ReconcileCapability) SetDefaultSecretNameIfEmpty(capabilityName, paramS
 	}
 }
 
+func (r *ReconcileCapability) SetDefaultDatabaseName(paramDatabaseName string) string {
+	if paramDatabaseName == "" {
+		return "sample-db"
+	} else {
+		return paramDatabaseName
+	}
+}
+
 func (r *ReconcileCapability) SetDefaultDatabaseHost(capabilityHost, paramHost string) string {
 	if paramHost == "" {
 		return capabilityHost
