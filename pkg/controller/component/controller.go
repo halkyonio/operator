@@ -138,11 +138,10 @@ func (r *ReconcileComponent) Delete(object runtime.Object) (bool, error) {
 
 func (r *ReconcileComponent) CreateOrUpdate(object runtime.Object) (bool, error) {
 	component := r.asComponent(object)
-	installFn := r.installDevMode
 	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
-		installFn = r.installBuildMode
+		return r.installBuildMode(component, component.Namespace)
 	}
-	return installFn(component, component.Namespace)
+	return r.installDevMode(component, component.Namespace)
 }
 
 func (r *ReconcileComponent) SetErrorStatus(object runtime.Object, e error) {
@@ -207,19 +206,6 @@ func getKeyAndKindFor(resourceType runtime.Object) (key string, kind string) {
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	return controller2.NewGenericReconciler(r).Reconcile(request)
-}
-
-type installFnType func(component *v1alpha2.Component, namespace string) (bool, error)
-
-func (r *ReconcileComponent) installAndUpdateStatus(component *v1alpha2.Component, request reconcile.Request, install installFnType) (reconcile.Result, error) {
-	changed, err := install(component, request.Namespace)
-	if err != nil {
-		r.ReqLogger.Error(err, fmt.Sprintf("failed to install %s mode", component.Spec.DeploymentMode))
-		r.setErrorStatus(component, err)
-		return reconcile.Result{}, err
-	}
-
-	return reconcile.Result{Requeue: changed}, r.updateStatus(component, v1alpha2.ComponentReady)
 }
 
 func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, phase v1alpha2.ComponentPhase) error {
