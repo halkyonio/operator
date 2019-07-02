@@ -18,16 +18,11 @@ limitations under the License.
 package component
 
 import (
-	"fmt"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
-	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
-	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -75,13 +70,20 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	}
 
 	r := &ReconcileComponent{
-		runtimeImages:      images,
-		supervisor:         &supervisor,
-		dependentResources: make(map[string]dependentResource, 11),
+		BaseGenericReconciler: controller2.NewBaseGenericReconciler(&v1alpha2.Component{}, mgr),
+		runtimeImages:         images,
+		supervisor:            &supervisor,
 	}
-	r.ReconcilerHelper = controller2.NewHelper(r.PrimaryResourceType(), mgr)
 
-	r.initDependentResources()
+	//r.initDependentResources()
+	r.AddDependentResource(newPvc())
+	r.AddDependentResource(newDeployment(r))
+	r.AddDependentResource(newService(r))
+	r.AddDependentResource(newServiceAccount())
+	r.AddDependentResource(newRoute())
+	r.AddDependentResource(newIngress())
+	r.AddDependentResource(newTask())
+	r.AddDependentResource(newTaskRun(r))
 
 	return r
 }
@@ -92,11 +94,14 @@ type imageInfo struct {
 }
 
 type ReconcileComponent struct {
-	controller2.ReconcilerHelper
-	runtimeImages      map[string]imageInfo
-	supervisor         *v1alpha2.Component
-	onOpenShift        *bool
-	dependentResources map[string]dependentResource
+	*controller2.BaseGenericReconciler
+	runtimeImages map[string]imageInfo
+	supervisor    *v1alpha2.Component
+	onOpenShift   *bool
+}
+
+func (r *ReconcileComponent) GetDependentResourceFor(owner v1.Object, resourceType runtime.Object) (controller2.DependentResource, error) {
+	panic("implement me")
 }
 
 func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
@@ -162,48 +167,6 @@ func (r *ReconcileComponent) Helper() controller2.ReconcilerHelper {
 	return r.ReconcilerHelper
 }
 
-//Create the factory object
-func (r *ReconcileComponent) createIfNeeded(instance *v1alpha2.Component, resourceType runtime.Object) (bool, error) {
-	key, kind := getKeyAndKindFor(resourceType)
-	resource, ok := r.dependentResources[key]
-	if !ok {
-		return false, fmt.Errorf("unknown dependent type %s", kind)
-	}
-
-	res, err := resource.fetch(resource, instance)
-	if err != nil {
-		// create the object
-		obj, errBuildObject := resource.build(resource, instance)
-		if errBuildObject != nil {
-			return false, errBuildObject
-		}
-		if errors.IsNotFound(err) {
-			err = r.Client.Create(context.TODO(), obj)
-			if err != nil {
-				r.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
-				return false, err
-			}
-			r.ReqLogger.Info("Created successfully", "kind", kind)
-			return true, nil
-		}
-		r.ReqLogger.Error(err, "Failed to get", "kind", kind)
-		return false, err
-	} else {
-		// if the resource defined an updater, use it to try to update the resource
-		if resource.update != nil {
-			return resource.update(res, resource, instance)
-		}
-		return false, nil
-	}
-}
-
-func getKeyAndKindFor(resourceType runtime.Object) (key string, kind string) {
-	gvk := resourceType.GetObjectKind().GroupVersionKind()
-	key = gvk.String()
-	kind = gvk.Kind
-	return
-}
-
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	return controller2.NewGenericReconciler(r).Reconcile(request)
 }
@@ -219,7 +182,7 @@ func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, pha
 }
 
 func (r *ReconcileComponent) initDependentResources() {
-	r.addDependentResource(&corev1.PersistentVolumeClaim{}, r.buildPVC, func(c *v1alpha2.Component) string {
+	/*r.addDependentResource(&corev1.PersistentVolumeClaim{}, r.buildPVC, func(c *v1alpha2.Component) string {
 		specified := c.Spec.Storage.Name
 		if len(specified) > 0 {
 			return specified
@@ -249,5 +212,5 @@ func (r *ReconcileComponent) initDependentResources() {
 		return taskS2iBuildahPushName
 	}
 	r.addDependentResource(&v1alpha1.Task{}, r.buildTaskS2iBuildahPush, taskNamer)
-	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, defaultNamer)
+	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, defaultNamer)*/
 }

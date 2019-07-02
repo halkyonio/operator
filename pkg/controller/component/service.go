@@ -1,26 +1,37 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
-
+	"context"
+	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-//buildService returns the service resource
-func (r *ReconcileComponent) buildService(res dependentResource, m *v1alpha2.Component) (runtime.Object, error) {
-	ls := getAppLabels(res.labelsName(m))
+type service struct {
+	base
+	reconciler *ReconcileComponent // todo: remove
+}
+
+func newService(reconciler *ReconcileComponent) service {
+	return service{
+		base:       newBaseDependent(&corev1.Service{}),
+		reconciler: reconciler,
+	}
+}
+
+func (res service) Build() (runtime.Object, error) {
+	c := res.ownerAsComponent()
+	ls := getAppLabels(buildOrDevNamer(c))
 	ser := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Service",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      res.name(m),
-			Namespace: m.Namespace,
+			Name:      res.Name(),
+			Namespace: c.Namespace,
 			Labels:    ls,
 		},
 		Spec: corev1.ServiceSpec{
@@ -30,14 +41,27 @@ func (r *ReconcileComponent) buildService(res dependentResource, m *v1alpha2.Com
 				{
 					TargetPort: intstr.IntOrString{
 						Type:   intstr.Int,
-						IntVal: m.Spec.Port,
+						IntVal: c.Spec.Port,
 					},
-					Port:     m.Spec.Port,
+					Port:     c.Spec.Port,
 					Protocol: "TCP",
 				},
 			},
 		},
 	}
-	// Set Component instance as the owner and controller
-	return ser, controllerutil.SetControllerReference(m, ser, r.Scheme)
+	return ser, nil
+}
+
+func (res service) Update(toUpdate metav1.Object) (bool, error) {
+	c := res.ownerAsComponent()
+	svc := toUpdate.(*corev1.Service)
+	name := buildOrDevNamer(c)
+	if svc.Spec.Selector["app"] != name {
+		svc.Spec.Selector["app"] = name
+		if err := res.reconciler.Client.Update(context.TODO(), svc); err != nil {
+			return false, fmt.Errorf("couldn't update service '%s' selector", svc.Name)
+		}
+		return true, nil
+	}
+	return false, nil
 }

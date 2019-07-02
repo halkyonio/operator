@@ -23,7 +23,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"strings"
 )
@@ -65,7 +64,7 @@ func (r *ReconcileComponent) isTargetClusterRunningOpenShift() bool {
 	return *r.onOpenShift
 }
 
-func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, namespace string) (bool, error) {
+func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, namespace string) (changed bool, e error) {
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
@@ -78,47 +77,37 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	r.populateEnvVar(component)
 
 	// Create PVC if it does not exists
-	hasChanges := newFalse()
-	if e := r.createAndCheckForChanges(component, &corev1.PersistentVolumeClaim{}, hasChanges); e != nil {
+	if changed, e = r.CreateIfNeeded(component, &corev1.PersistentVolumeClaim{}); e != nil {
 		return false, e
 	}
 
 	// Create Deployment if it does not exists
-	if e := r.createAndCheckForChanges(component, &appsv1.Deployment{}, hasChanges); e != nil {
+	if changed, e = r.CreateIfNeeded(component, &appsv1.Deployment{}); e != nil {
 		return false, e
 	}
 
-	if e := r.createAndCheckForChanges(component, &corev1.Service{}, hasChanges); e != nil {
+	if changed, e = r.CreateIfNeeded(component, &corev1.Service{}); e != nil {
 		return false, e
 	}
 
 	if component.Spec.ExposeService {
 		if r.isTargetClusterRunningOpenShift() {
 			// Create an OpenShift Route
-			if e := r.createAndCheckForChanges(component, &routev1.Route{}, hasChanges); e != nil {
+			if changed, e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
 				return false, e
 			}
 		} else {
 			// Create an Ingress resource
-			if e := r.createAndCheckForChanges(component, &v1beta1.Ingress{}, hasChanges); e != nil {
+			if changed, e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
 				return false, e
 			}
 		}
 	}
 
-	return *hasChanges, nil
+	return changed, nil
 }
 
 func (r *ReconcileComponent) deleteDevMode(component *v1alpha2.Component, namespace string) error {
 	// todo
-	return nil
-}
-
-func (r *ReconcileComponent) createAndCheckForChanges(component *v1alpha2.Component, kind runtime.Object, hasChanges *bool) error {
-	created, err := r.createIfNeeded(component, kind)
-	if err != nil {
-		return err
-	}
-	*hasChanges = created || *hasChanges
 	return nil
 }

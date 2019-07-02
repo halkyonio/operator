@@ -28,32 +28,31 @@ import (
 	"reflect"
 )
 
-func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (bool, error) {
+func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (changed bool, e error) {
 	// Create Task s2i Buildah Push if it does not exists
-	hasChanges := newFalse()
-	if e := r.createAndCheckForChanges(component, &pipeline.Task{}, hasChanges); e != nil {
+	if changed, e = r.CreateIfNeeded(component, &pipeline.Task{}); e != nil {
 		return false, e
 	}
 
 	// Create ServiceAccount used by the Task's pod if it does not exists
-	if e := r.createAndCheckForChanges(component, &corev1.ServiceAccount{}, hasChanges); e != nil {
+	if changed, e = r.CreateIfNeeded(component, &corev1.ServiceAccount{}); e != nil {
 		return false, e
 	}
 
 	// Create the TaskRun in order to trigger the build
-	if e := r.createAndCheckForChanges(component, &pipeline.TaskRun{}, hasChanges); e != nil {
+	if changed, e = r.CreateIfNeeded(component, &pipeline.TaskRun{}); e != nil {
 		return false, e
 	}
 
-	if e := r.createAndCheckForChanges(component, &v1.Deployment{}, hasChanges); e != nil {
+	if changed, e = r.CreateIfNeeded(component, &v1.Deployment{}); e != nil {
 		return false, e
 	}
 
-	if e := r.createAndCheckForChanges(component, &corev1.Service{}, hasChanges); e != nil {
+	if changed, e = r.CreateIfNeeded(component, &corev1.Service{}); e != nil {
 		return false, e
 	}
 
-	return *hasChanges, nil
+	return changed, nil
 }
 
 func (r *ReconcileComponent) updateServiceSelector(object runtime.Object, res dependentResource, component *v1alpha2.Component) (bool, error) {

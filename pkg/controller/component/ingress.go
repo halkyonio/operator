@@ -1,24 +1,31 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+type ingress struct {
+	base
+}
+
+func newIngress() ingress {
+	return ingress{base: newBaseDependent(&v1beta1.Ingress{})}
+}
+
 //buildIngress returns the Ingress resource
-func (r *ReconcileComponent) buildIngress(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
+func (res ingress) Build() (runtime.Object, error) {
+	c := res.ownerAsComponent()
 	ls := getAppLabels(c.Name)
-	route := &v1beta1.Ingress{
+	ingress := &v1beta1.Ingress{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.k8s.io/v1beta1",
 			Kind:       "Ingress",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:      res.name(c),
+			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
@@ -46,6 +53,5 @@ func (r *ReconcileComponent) buildIngress(res dependentResource, c *v1alpha2.Com
 		},
 	}
 
-	// Set Component instance as the owner and controller
-	return route, controllerutil.SetControllerReference(c, route, r.Scheme)
+	return ingress, nil
 }

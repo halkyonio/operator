@@ -2,14 +2,21 @@ package component
 
 import (
 	routev1 "github.com/openshift/api/route/v1"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+type route struct {
+	base
+}
+
+func newRoute() route {
+	return route{base: newBaseDependent(&routev1.Route{})}
+}
+
 //buildRoute returns the route resource
-func (r *ReconcileComponent) buildRoute(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
+func (res route) Build() (runtime.Object, error) {
+	c := res.ownerAsComponent()
 	ls := getAppLabels(c.Name)
 	route := &routev1.Route{
 		TypeMeta: v1.TypeMeta{
@@ -17,7 +24,7 @@ func (r *ReconcileComponent) buildRoute(res dependentResource, c *v1alpha2.Compo
 			Kind:       "Route",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:      res.name(c),
+			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
@@ -29,6 +36,5 @@ func (r *ReconcileComponent) buildRoute(res dependentResource, c *v1alpha2.Compo
 		},
 	}
 
-	// Set Component instance as the owner and controller
-	return route, controllerutil.SetControllerReference(c, route, r.Scheme)
+	return route, nil
 }

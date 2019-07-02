@@ -1,12 +1,10 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	v1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -14,7 +12,16 @@ const (
 	serviceAccountName     = "build-bot"
 )
 
-func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
+type task struct {
+	base
+}
+
+func newTask() task {
+	return task{base: newBaseDependent(&v1alpha1.Task{})}
+}
+
+func (res task) buildTaskS2iBuildahPush() (runtime.Object, error) {
+	c := res.ownerAsComponent()
 	task := &v1alpha1.Task{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "tekton.dev/v1alpha1",
@@ -22,7 +29,7 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
-			Name:      res.name(c),
+			Name:      res.Name(),
 		},
 		Spec: v1alpha1.TaskSpec{
 			Inputs: &v1alpha1.Inputs{
@@ -30,15 +37,15 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 				// under by default the following directory : /workspace/{resource-name}
 				// Resource name has been defined to git hereafter
 				Resources: []v1alpha1.TaskResource{{
-					Name:       "git",
-					Type:       "git",
+					Name: "git",
+					Type: "git",
 				}},
 				Params: []v1alpha1.TaskParam{
 					{Name: "baseImage", Default: "quay.io/snowdrop/spring-boot-maven-s2i", Description: "S2i base image"},
-					{Name: "contextPath", Default:".", Description:"The location of the path to run s2i from"},
+					{Name: "contextPath", Default: ".", Description: "The location of the path to run s2i from"},
 					{Name: "moduleDirName", Default: ".", Description: "The name of the directory containing the project (maven, ...) to be compiled"},
 					{Name: "verifyTLS", Default: "false", Description: "Verify registry certificates"},
-					{Name: "workspacePath", Default: "/workspace/git",Description: "Git path where project is cloned"},
+					{Name: "workspacePath", Default: "/workspace/git", Description: "Git path where project is cloned"},
 				}},
 			Outputs: &v1alpha1.Outputs{
 				Resources: []v1alpha1.TaskResource{{
@@ -74,8 +81,8 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 				},
 				// Build a Container image using the dockerfile created previously
 				{
-					Name:  "build",
-					Image: "quay.io/openshift-pipeline/buildah",
+					Name:       "build",
+					Image:      "quay.io/openshift-pipeline/buildah",
 					WorkingDir: "/sources",
 					Command: []string{
 						"buildah",
@@ -144,9 +151,11 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 		},
 	}
 
-	// Set Component instance as the owner and controller
-	controllerutil.SetControllerReference(c, task, r.Scheme)
 	return task, nil
+}
+
+func (res task) Name() string {
+	return taskS2iBuildahPushName
 }
 
 func newBoolPtr(b bool) *bool {

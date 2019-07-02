@@ -3,9 +3,31 @@ package component
 import (
 	"context"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/controller"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+type base struct {
+	controller.BaseDependentResource
+}
+
+func newBaseDependent(primaryResourceType runtime.Object) base {
+	return base{BaseDependentResource: controller.NewDependentResource(primaryResourceType)}
+}
+
+func (res base) asObject(object runtime.Object) v1.Object {
+	return res.asComponent(object)
+}
+
+func (res base) ownerAsComponent() *v1alpha2.Component {
+	return res.Owner().(*v1alpha2.Component)
+}
+
+func (res base) asComponent(object runtime.Object) *v1alpha2.Component {
+	return object.(*v1alpha2.Component)
+}
 
 type namer func(*v1alpha2.Component) string
 type labelsNamer func(*v1alpha2.Component) string
@@ -50,7 +72,7 @@ func (r *ReconcileComponent) addDependentResource(res runtime.Object, buildFn bu
 }
 
 func (r *ReconcileComponent) addDependentResourceFull(res runtime.Object, buildFn builder, nameFn namer, labelsNameFn labelsNamer, updateFn updater) {
-	key, kind := getKeyAndKindFor(res)
+	/*key, kind := getKeyAndKindFor(res)
 	r.dependentResources[key] = dependentResource{
 		build:      buildFn,
 		labelsName: labelsNameFn,
@@ -59,5 +81,5 @@ func (r *ReconcileComponent) addDependentResourceFull(res runtime.Object, buildF
 		prototype:  res,
 		fetch:      r.genericFetcher,
 		kind:       kind,
-	}
+	}*/
 }
