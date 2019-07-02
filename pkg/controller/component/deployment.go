@@ -20,27 +20,15 @@ func newDeployment(reconciler *ReconcileComponent) deployment {
 
 func (res deployment) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-
-	// todo: remove dependency on dependentResource
-	dr := dependentResource{
-		name: func(c *v1alpha2.Component) string {
-			return res.Name()
-		},
-		build: func(r dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-			return res.Build()
-		},
-		prototype: res.Prototype(),
-		kind:      "",
-	}
 	if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
 		if err := res.reconciler.setInitialStatus(c, v1alpha2.ComponentBuilding); err != nil {
 			return nil, err
 		}
-		return res.reconciler.createBuildDeployment(dr, c)
+		return res.installBuild()
 	} else if err := res.reconciler.setInitialStatus(c, v1alpha2.ComponentPending); err != nil {
 		return nil, err
 	}
-	return res.reconciler.buildDevDeployment(dr, c)
+	return res.installDev()
 }
 
 func (res deployment) Name() string {

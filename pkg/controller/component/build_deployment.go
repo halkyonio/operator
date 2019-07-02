@@ -7,15 +7,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 //createBuildDeployment returns the Deployment config object to be used for deployment using a container image build by Tekton
-func (r *ReconcileComponent) createBuildDeployment(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
+func (res deployment) installBuild() (runtime.Object, error) {
+	c := res.ownerAsComponent()
 	ls := getAppLabels(c.Name)
 
 	// create runtime container using built image (= created by the Tekton build task)
-	runtimeContainer, err := r.getRuntimeContainerFor(c)
+	runtimeContainer, err := res.reconciler.getRuntimeContainerFor(c)
 	if err != nil {
 		return nil, err
 	}
@@ -23,10 +23,9 @@ func (r *ReconcileComponent) createBuildDeployment(res dependentResource, c *v1a
 	// If this is the case, then that means that we are switching from dev to build mode
 	// and we will enrich the deployment resource of the runtime container
 	// create a "dev" version of the component to be able to check if the dev deployment exists
-	devComp := c.DeepCopyObject().(*v1alpha2.Component)
-	object, err := res.fetch(res, devComp)
+	devDeployment := &appsv1.Deployment{}
+	_, err = res.reconciler.Helper().Fetch(defaultNamer(c), c.Namespace, devDeployment)
 	if err == nil {
-		devDeployment := object.(*appsv1.Deployment)
 		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
 		runtimeContainer.Env = devContainer.Env
 		runtimeContainer.EnvFrom = devContainer.EnvFrom
@@ -50,7 +49,7 @@ func (r *ReconcileComponent) createBuildDeployment(res dependentResource, c *v1a
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      res.name(c),
+			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
@@ -73,7 +72,7 @@ func (r *ReconcileComponent) createBuildDeployment(res dependentResource, c *v1a
 	}
 
 	// Set Component instance as the owner and controller
-	return dep, controllerutil.SetControllerReference(c, dep, r.Scheme)
+	return dep, nil
 }
 
 func (r *ReconcileComponent) getRuntimeContainerFor(component *v1alpha2.Component) (corev1.Container, error) {

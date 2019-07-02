@@ -103,6 +103,13 @@ type ReconcilerHelper struct {
 	ReqLogger logr.Logger
 }
 
+func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (runtime.Object, error) {
+	if err := rh.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, into); err != nil {
+		return nil, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s'", name, into.GetObjectKind().GroupVersionKind().Kind, namespace)
+	}
+	return into, nil
+}
+
 type GenericReconciler struct {
 	ReconcilerHelper
 	ReconcilerFactory
@@ -123,7 +130,7 @@ type BaseGenericReconciler struct {
 }
 
 func (b *BaseGenericReconciler) PrimaryResourceType() runtime.Object {
-	return b.primary
+	return b.primary.DeepCopyObject()
 }
 
 func (b *BaseGenericReconciler) SecondaryResourceTypes() []runtime.Object {
@@ -141,6 +148,11 @@ func (b *BaseGenericReconciler) ResourceMetadata(object runtime.Object) Resource
 
 func (b *BaseGenericReconciler) Delete(object runtime.Object) (bool, error) {
 	panic("implement me")
+}
+
+func (b *BaseGenericReconciler) Fetch(name, namespace string) (runtime.Object, error) {
+	into := b.PrimaryResourceType()
+	return b.Helper().Fetch(name, namespace, into)
 }
 
 func (b *BaseGenericReconciler) CreateOrUpdate(object runtime.Object) (bool, error) {

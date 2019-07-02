@@ -18,14 +18,10 @@ limitations under the License.
 package component
 
 import (
-	"context"
-	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 )
 
 func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (changed bool, e error) {
@@ -53,23 +49,4 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 	}
 
 	return changed, nil
-}
-
-func (r *ReconcileComponent) updateServiceSelector(object runtime.Object, res dependentResource, component *v1alpha2.Component) (bool, error) {
-	svc, ok := object.(*corev1.Service)
-	if !ok {
-		return false, fmt.Errorf("updateServiceSelector only works on Service instances, got '%s'", reflect.TypeOf(object).Elem().Name())
-	}
-
-	// update the service selector if needed
-	name := res.labelsName(component)
-	if svc.Spec.Selector["app"] != name {
-		svc.Spec.Selector["app"] = name
-		if err := r.Client.Update(context.TODO(), svc); err != nil {
-			return false, fmt.Errorf("couldn't update service '%s' selector", svc.Name)
-		}
-		return true, nil
-	}
-
-	return false, nil
 }
