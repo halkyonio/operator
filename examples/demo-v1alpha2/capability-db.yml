@@ -17,7 +17,7 @@ spec:
   # This parameter DB_HOST is added automatically by the Operator. No need to add it.
   # It is calculated using the Capability name
   - name: DB_HOST
-    value: postgres-db-config
+    value: postgres-db
   # This parameter DB_PORT is added automatically by the Operator. No need to add it.
   # It is calculated according to the default service port used by the database.
   - name: DB_PORT
