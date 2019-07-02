@@ -110,11 +110,12 @@ func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (r
 	return into, nil
 }
 
-func NewBaseGenericReconciler(primaryResourceType runtime.Object, mgr manager.Manager) *BaseGenericReconciler {
+func NewBaseGenericReconciler(primaryResourceType runtime.Object, secondaryResourceTypes []runtime.Object, mgr manager.Manager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
 		ReconcilerHelper: newHelper(primaryResourceType, mgr),
 		dependents:       make(map[runtime.Object]DependentResource, 7),
 		primary:          primaryResourceType,
+		secondary:        secondaryResourceTypes,
 	}
 }
 
@@ -122,6 +123,7 @@ type BaseGenericReconciler struct {
 	ReconcilerHelper
 	dependents map[runtime.Object]DependentResource
 	primary    runtime.Object
+	secondary  []runtime.Object
 }
 
 func (b *BaseGenericReconciler) PrimaryResourceType() runtime.Object {
@@ -129,7 +131,7 @@ func (b *BaseGenericReconciler) PrimaryResourceType() runtime.Object {
 }
 
 func (b *BaseGenericReconciler) SecondaryResourceTypes() []runtime.Object {
-	panic("implement me")
+	return b.secondary
 }
 
 func (b *BaseGenericReconciler) IsPrimaryResourceValid(object runtime.Object) bool {

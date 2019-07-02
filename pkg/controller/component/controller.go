@@ -26,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // newReconciler returns a new reconcile.Reconciler
@@ -70,9 +69,16 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	}
 
 	r := &ReconcileComponent{
-		BaseGenericReconciler: controller2.NewBaseGenericReconciler(&v1alpha2.Component{}, mgr),
-		runtimeImages:         images,
-		supervisor:            &supervisor,
+		BaseGenericReconciler: controller2.NewBaseGenericReconciler(
+			&v1alpha2.Component{},
+			[]runtime.Object{
+				&corev1.Pod{},
+				&appsv1.Deployment{},
+				&corev1.Service{},
+				&routev1.Route{},
+			}, mgr),
+		runtimeImages: images,
+		supervisor:    &supervisor,
 	}
 
 	//r.initDependentResources()
@@ -100,23 +106,6 @@ type ReconcileComponent struct {
 	onOpenShift   *bool
 }
 
-func (r *ReconcileComponent) GetDependentResourceFor(owner v1.Object, resourceType runtime.Object) (controller2.DependentResource, error) {
-	panic("implement me")
-}
-
-func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
-	return new(v1alpha2.Component)
-}
-
-func (r *ReconcileComponent) SecondaryResourceTypes() []runtime.Object {
-	return []runtime.Object{
-		&corev1.Pod{},
-		&appsv1.Deployment{},
-		&corev1.Service{},
-		&routev1.Route{},
-	}
-}
-
 func (r *ReconcileComponent) IsPrimaryResourceValid(object runtime.Object) bool {
 	// todo: implement
 	return true
@@ -134,11 +123,6 @@ func (r *ReconcileComponent) ResourceMetadata(object runtime.Object) controller2
 		Created:      component.ObjectMeta.CreationTimestamp,
 		ShouldDelete: !component.ObjectMeta.DeletionTimestamp.IsZero(),
 	}
-}
-
-func (r *ReconcileComponent) Delete(object runtime.Object) (bool, error) {
-	// todo: implement
-	return false, nil
 }
 
 func (r *ReconcileComponent) CreateOrUpdate(object runtime.Object) (bool, error) {
@@ -163,14 +147,6 @@ func (r *ReconcileComponent) SetSuccessStatus(object runtime.Object) {
 	}
 }
 
-func (r *ReconcileComponent) Helper() controller2.ReconcilerHelper {
-	return r.ReconcilerHelper
-}
-
-func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	return r.BaseGenericReconciler.Reconcile(request)
-}
-
 func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, phase v1alpha2.ComponentPhase) error {
 	if component.Generation == 1 && component.Status.Phase == "" {
 		if err := r.updateStatus(component, phase); err != nil {
@@ -179,38 +155,4 @@ func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, pha
 		}
 	}
 	return nil
-}
-
-func (r *ReconcileComponent) initDependentResources() {
-	/*r.addDependentResource(&corev1.PersistentVolumeClaim{}, r.buildPVC, func(c *v1alpha2.Component) string {
-		specified := c.Spec.Storage.Name
-		if len(specified) > 0 {
-			return specified
-		}
-		return "m2-data-" + c.Name
-	})
-	r.addDependentResource(&appsv1.Deployment{},
-		func(res dependentResource, c *v1alpha2.Component) (object runtime.Object, e error) {
-			if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
-				if err := r.setInitialStatus(c, v1alpha2.ComponentBuilding); err != nil {
-					return nil, err
-				}
-				return r.createBuildDeployment(res, c)
-			}
-			if err := r.setInitialStatus(c, v1alpha2.ComponentPending); err != nil {
-				return nil, err
-			}
-			return r.buildDevDeployment(res, c)
-		}, buildOrDevNamer)
-	r.addDependentResourceFull(&corev1.Service{}, r.buildService, defaultNamer, buildOrDevNamer, r.updateServiceSelector)
-	r.addDependentResource(&corev1.ServiceAccount{}, r.buildServiceAccount, func(c *v1alpha2.Component) string {
-		return serviceAccountName
-	})
-	r.addDependentResource(&routev1.Route{}, r.buildRoute, defaultNamer)
-	r.addDependentResource(&v1beta1.Ingress{}, r.buildIngress, defaultNamer)
-	taskNamer := func(c *v1alpha2.Component) string {
-		return taskS2iBuildahPushName
-	}
-	r.addDependentResource(&v1alpha1.Task{}, r.buildTaskS2iBuildahPush, taskNamer)
-	r.addDependentResource(&v1alpha1.TaskRun{}, r.buildTaskRunS2iBuildahPush, defaultNamer)*/
 }
