@@ -47,14 +47,14 @@ func (res postgres) Build() (runtime.Object, error) {
 				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
 			DatabaseSecret: &core.SecretVolumeSource{
-				SecretName: r.SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME]),
+				SecretName: SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME]),
 			},
 			StorageType:       kubedbv1.StorageTypeEphemeral,
 			TerminationPolicy: kubedbv1.TerminationPolicyDelete,
 			PodTemplate: ofst.PodTemplateSpec{
 				Spec: ofst.PodSpec{
 					Env: []core.EnvVar{
-						{Name: KUBEDB_PG_DATABASE_NAME, Value: r.SetDefaultDatabaseName(paramsMap[DB_NAME])},
+						{Name: KUBEDB_PG_DATABASE_NAME, Value: SetDefaultDatabaseName(paramsMap[DB_NAME])},
 					},
 				},
 			},

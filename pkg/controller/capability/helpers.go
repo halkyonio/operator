@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/runtime"
+	"strings"
 )
 
 // BuildParameters converts a map of variable assignments to a byte encoded json document,
@@ -27,7 +28,7 @@ func parametersAsMap(parameters []v1alpha2.Parameter) map[string]string {
 	return result
 }
 
-func (r *ReconcileCapability) SetDefaultSecretNameIfEmpty(capabilityName, paramSecretName string) string {
+func SetDefaultSecretNameIfEmpty(capabilityName, paramSecretName string) string {
 	if paramSecretName == "" {
 		return strings.ToLower(capabilityName) + "-config"
 	} else {
@@ -35,7 +36,7 @@ func (r *ReconcileCapability) SetDefaultSecretNameIfEmpty(capabilityName, paramS
 	}
 }
 
-func (r *ReconcileCapability) SetDefaultDatabaseName(paramDatabaseName string) string {
+func SetDefaultDatabaseName(paramDatabaseName string) string {
 	if paramDatabaseName == "" {
 		return "sample-db"
 	} else {
@@ -43,7 +44,7 @@ func (r *ReconcileCapability) SetDefaultDatabaseName(paramDatabaseName string) s
 	}
 }
 
-func (r *ReconcileCapability) SetDefaultDatabaseHost(capabilityHost, paramHost string) string {
+func SetDefaultDatabaseHost(capabilityHost, paramHost string) string {
 	if paramHost == "" {
 		return capabilityHost
 	} else {
@@ -51,7 +52,7 @@ func (r *ReconcileCapability) SetDefaultDatabaseHost(capabilityHost, paramHost s
 	}
 }
 
-func (r *ReconcileCapability) SetDefaultDatabasePort(paramPort string) string {
+func SetDefaultDatabasePort(paramPort string) string {
 	// TODO. Assign port according to the DB type using Enum
 	if paramPort == "" {
 		return "5432"
