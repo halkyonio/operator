@@ -65,8 +65,6 @@ type CapabilityStatus struct {
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	Phase           CapabilityPhase   `json:"phase,omitempty"`
 	PodName         string            `json:"podName,omitempty"`
-	DatabaseName    string            `json:"databaseName"`
-	DatabaseStatus  string            `json:"databaseStatus"`
 	Message         string            `json:"message,omitempty"`
 }
 
