@@ -21,7 +21,7 @@ spec:
   # This parameter DB_PORT is added automatically by the Operator. No need to add it.
   # It is calculated according to the default service port used by the database.
   - name: DB_PORT
-    value: 5324
+    value: "5324"
   # This parameter DB_NAME is used to define the database to be created. No need to add it.
   # It is added automatically by the Operator and is equal to sample-db
   - name: DB_NAME

@@ -26,7 +26,7 @@ func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (bool, error) {
 	if string(c.Spec.Kind) == strings.ToLower(string(v1alpha2.PostgresKind)) {
 		// Check if the KubeDB - Postgres exists
 		if _, e := r.fetchKubeDBPostgres(c); e != nil {
-			if e = r.create(c, PG_DATABASE); e != nil {
+			if e = r.create(c, KUBEDB_PG_DATABASE); e != nil {
 				return false, e
 			} else {
 				*hasChanges = true

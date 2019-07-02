@@ -21,10 +21,18 @@ import (
 const (
 	controllerName          = "service-controller"
 	SECRET                  = "Secret"
-	PG_DATABASE             = "Postgres"
+	// KubeDB Postgres const
+	KUBEDB_PG_DATABASE      = "Postgres"
 	KUBEDB_PG_DATABASE_NAME = "POSTGRES_DB"
 	KUBEDB_PG_USER          = "POSTGRES_USER"
 	KUBEDB_PG_PASSWORD      = "POSTGRES_PASSWORD"
+	// Capability const
+	DB_CONFIG_NAME          = "DB_CONFIG_NAME"
+	DB_HOST                 = "DB_HOST"
+	DB_PORT                 = "DB_PORT"
+	DB_NAME                 = "DB_NAME"
+	DB_USER                 = "DB_USER"
+	DB_PASSWORD             = "DB_PASSWORD"
 )
 
 var (
@@ -94,7 +102,7 @@ func (r *ReconcileCapability) buildFactory(instance *v1alpha2.Capability, kind s
 	switch kind {
 	case SECRET:
 		return r.buildSecret(instance)
-	case PG_DATABASE:
+	case KUBEDB_PG_DATABASE:
 		return r.buildKubeDBPostgres(instance)
 	default:
 		msg := "Failed to recognize type of object" + kind + " into the Namespace " + instance.Namespace

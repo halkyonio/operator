@@ -29,11 +29,11 @@ func (r *ReconcileCapability) ParametersAsMap(parameters []v1alpha2.Parameter) m
 }
 
 
-func (r *ReconcileCapability) SetDefaultSecretNameIfEmpty(name string) string {
-	if name == "" {
-		return strings.ToLower(string(v1alpha2.PostgresKind)) + "-auth"
+func (r *ReconcileCapability) SetDefaultSecretNameIfEmpty(capabilityName, paramSecretName string) string {
+	if paramSecretName == "" {
+		return strings.ToLower(capabilityName) + "-config"
 	} else {
-		return name
+		return paramSecretName
 	}
 }
 

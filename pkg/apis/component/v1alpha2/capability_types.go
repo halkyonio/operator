@@ -29,7 +29,6 @@ type CapabilitySpec struct {
 	Category       CapabilityCategory  `json:"category"`
 	Kind           CapabilityKind      `json:"kind"`
 	Version        string              `json:"version"`
-	SecretName     string              `json:"secretName,omitempty"`
 	Parameters     []Parameter         `json:"parameters,omitempty"`
 }
 

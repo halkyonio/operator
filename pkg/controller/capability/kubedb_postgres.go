@@ -33,14 +33,14 @@ func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kube
 				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
 			DatabaseSecret: &core.SecretVolumeSource{
-				SecretName: r.SetDefaultSecretNameIfEmpty(c.Spec.SecretName),
+				SecretName: r.SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME]),
 			},
 			StorageType:       kubedbv1.StorageTypeEphemeral,
 			TerminationPolicy: kubedbv1.TerminationPolicyDelete,
 			PodTemplate: ofst.PodTemplateSpec{
 				Spec: ofst.PodSpec{
 					Env: []core.EnvVar{
-						{Name: KUBEDB_PG_DATABASE_NAME, Value: paramsMap["DB_NAME"]},
+						{Name: KUBEDB_PG_DATABASE_NAME, Value: paramsMap[DB_NAME]},
 					},
 				},
 			},

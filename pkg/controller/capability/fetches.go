@@ -29,10 +29,11 @@ func (r *ReconcileCapability) fetchCapability(request reconcile.Request) (*v1alp
 	return cap, err
 }
 
-func (r *ReconcileCapability) fetchSecret(service *v1alpha2.Capability) (*v1.Secret, error) {
+func (r *ReconcileCapability) fetchSecret(c *v1alpha2.Capability) (*v1.Secret, error) {
+	paramsMap := r.ParametersAsMap(c.Spec.Parameters)
 	// Retrieve Secret
 	secret := &v1.Secret{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: service.Namespace, Name: r.SetDefaultSecretNameIfEmpty(service.Spec.SecretName)}, secret)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: c.Namespace, Name: r.SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME])}, secret)
 	return secret, err
 }
 
