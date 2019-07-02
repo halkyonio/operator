@@ -22,8 +22,8 @@ func (r *ReconcileCapability) buildSecret(c *v1alpha2.Capability) (*v1.Secret, e
 			Labels:    ls,
 		},
 		Data: map[string][]byte{
-			"POSTGRES_USER": []byte(paramsMap["DB_USER"]),
-			"POSTGRES_PASSWORD": []byte(paramsMap["DB_USER"]),
+			KUBEDB_PG_USER:     []byte(paramsMap["DB_USER"]),
+			KUBEDB_PG_PASSWORD: []byte(paramsMap["DB_PASSWORD"]),
 		},
 	}
 
