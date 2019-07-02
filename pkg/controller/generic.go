@@ -110,14 +110,9 @@ func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (r
 	return into, nil
 }
 
-type GenericReconciler struct {
-	ReconcilerHelper
-	ReconcilerFactory
-}
-
 func NewBaseGenericReconciler(primaryResourceType runtime.Object, mgr manager.Manager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
-		ReconcilerHelper: NewHelper(primaryResourceType, mgr),
+		ReconcilerHelper: newHelper(primaryResourceType, mgr),
 		dependents:       make(map[runtime.Object]DependentResource, 7),
 		primary:          primaryResourceType,
 	}
@@ -183,61 +178,52 @@ func (b *BaseGenericReconciler) GetDependentResourceFor(owner v1.Object, resourc
 	return resource.NewInstanceWith(owner), nil
 }
 
-func (g *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	g.ReqLogger.WithValues("namespace", request.Namespace)
+func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	b.ReqLogger.WithValues("namespace", request.Namespace)
 
 	// Fetch the primary resource
-	resource := g.PrimaryResourceType()
+	resource := b.PrimaryResourceType()
 	typeName := resource.GetObjectKind().GroupVersionKind().Kind
-	err := g.Client.Get(context.TODO(), request.NamespacedName, resource)
+	err := b.Client.Get(context.TODO(), request.NamespacedName, resource)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
-			g.ReqLogger.Info(typeName + " resource not found. Ignoring since object must be deleted")
+			b.ReqLogger.Info(typeName + " resource not found. Ignoring since object must be deleted")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - create the request.
-		g.ReqLogger.Error(err, "failed to get "+typeName)
+		b.ReqLogger.Error(err, "failed to get "+typeName)
 		return reconcile.Result{}, err
 	}
 
-	if !g.IsPrimaryResourceValid(resource) {
+	if !b.IsPrimaryResourceValid(resource) {
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	metadata := g.ResourceMetadata(resource)
-	g.ReqLogger.Info("==> Reconciling "+typeName,
+	metadata := b.ResourceMetadata(resource)
+	b.ReqLogger.Info("==> Reconciling "+typeName,
 		"name", metadata.Name,
 		"status", metadata.Status,
 		"created", metadata.Created)
 
 	if metadata.ShouldDelete {
-		requeue, err := g.Delete(resource)
+		requeue, err := b.Delete(resource)
 		return reconcile.Result{Requeue: requeue}, err
 	}
 
-	changed, err := g.CreateOrUpdate(resource)
+	changed, err := b.CreateOrUpdate(resource)
 	if err != nil {
-		g.ReqLogger.Error(err, fmt.Sprintf("failed to create or update %s '%s'", typeName, metadata.Name))
-		g.SetErrorStatus(resource, err)
+		b.ReqLogger.Error(err, fmt.Sprintf("failed to create or update %s '%s'", typeName, metadata.Name))
+		b.SetErrorStatus(resource, err)
 		return reconcile.Result{}, err
 	}
 
-	g.ReqLogger.Info("<== Reconciled "+typeName, "name", metadata.Name)
-	g.SetSuccessStatus(resource)
+	b.ReqLogger.Info("<== Reconciled "+typeName, "name", metadata.Name)
+	b.SetSuccessStatus(resource)
 	return reconcile.Result{Requeue: changed}, nil
 }
 
-func NewGenericReconciler(rf ReconcilerFactory) *GenericReconciler {
-	reconciler := &GenericReconciler{
-		ReconcilerHelper:  rf.Helper(),
-		ReconcilerFactory: rf,
-	}
-
-	return reconciler
-}
-
-func NewHelper(resourceType runtime.Object, mgr manager.Manager) ReconcilerHelper {
+func newHelper(resourceType runtime.Object, mgr manager.Manager) ReconcilerHelper {
 	helper := ReconcilerHelper{
 		Client:    mgr.GetClient(),
 		Config:    mgr.GetConfig(),
@@ -247,13 +233,16 @@ func NewHelper(resourceType runtime.Object, mgr manager.Manager) ReconcilerHelpe
 	return helper
 }
 
-func RegisterNewReconciler(factory ReconcilerFactory, mgr manager.Manager) error {
-	r := NewGenericReconciler(factory)
+type GenericReconciler interface {
+	ReconcilerFactory
+	reconcile.Reconciler
+}
 
+func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error {
 	resourceType := factory.PrimaryResourceType()
 
 	// Create a new controller
-	c, err := controller.New(controllerNameFor(resourceType), mgr, controller.Options{Reconciler: r})
+	c, err := controller.New(controllerNameFor(resourceType), mgr, controller.Options{Reconciler: factory})
 	if err != nil {
 		return err
 	}

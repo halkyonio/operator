@@ -168,7 +168,7 @@ func (r *ReconcileComponent) Helper() controller2.ReconcilerHelper {
 }
 
 func (r *ReconcileComponent) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	return controller2.NewGenericReconciler(r).Reconcile(request)
+	return r.BaseGenericReconciler.Reconcile(request)
 }
 
 func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, phase v1alpha2.ComponentPhase) error {
