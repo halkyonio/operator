@@ -25,8 +25,8 @@ func (r *ReconcileCapability) buildSecret(c *v1alpha2.Capability) (*v1.Secret, e
 			KUBEDB_PG_USER:     []byte(paramsMap[DB_USER]),
 			KUBEDB_PG_PASSWORD: []byte(paramsMap[DB_PASSWORD]),
 			KUBEDB_PG_DATABASE_NAME: []byte(paramsMap[DB_NAME]),
-			DB_HOST: []byte(c.Name),
-			DB_PORT: []byte("5324"),
+			DB_HOST: []byte(r.SetDefaultDatabaseHost(c.Name,paramsMap[DB_HOST]),
+			DB_PORT: []byte(r.SetDefaultDatabasePort(paramsMap[DB_PORT])),
 		},
 	}
 

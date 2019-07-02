@@ -37,6 +37,23 @@ func (r *ReconcileCapability) SetDefaultSecretNameIfEmpty(capabilityName, paramS
 	}
 }
 
+func (r *ReconcileCapability) SetDefaultDatabaseHost(capabilityHost, paramHost string) string {
+	if paramHost == "" {
+		return capabilityHost
+	} else {
+		return paramHost
+	}
+}
+
+func (r *ReconcileCapability) SetDefaultDatabasePort(paramPort string) string {
+	// TODO. Assig port according to the DB type using Enum
+	if paramPort == "" {
+		return "5342"
+	} else {
+		return paramPort
+	}
+}
+
 //getAppLabels returns an string map with the labels which wil be associated to the kubernetes/ocp resource which will be created and managed by this operator
 func (r *ReconcileCapability) GetAppLabels(name string) map[string]string {
 	return map[string]string{
