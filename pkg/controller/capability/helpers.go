@@ -54,7 +54,7 @@ func (r *ReconcileCapability) SetDefaultDatabaseHost(capabilityHost, paramHost s
 }
 
 func (r *ReconcileCapability) SetDefaultDatabasePort(paramPort string) string {
-	// TODO. Assig port according to the DB type using Enum
+	// TODO. Assign port according to the DB type using Enum
 	if paramPort == "" {
 		return "5432"
 	} else {
