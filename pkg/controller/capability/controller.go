@@ -6,13 +6,11 @@ import (
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"strings"
 )
 
 const (
-	controllerName = "service-controller"
-	SECRET         = "Secret"
+	SECRET = "Secret"
 	// KubeDB Postgres const
 	KUBEDB_PG_DATABASE      = "Postgres"
 	KUBEDB_PG_DATABASE_NAME = "POSTGRES_DB"
@@ -25,10 +23,6 @@ const (
 	DB_NAME        = "DB_NAME"
 	DB_USER        = "DB_USER"
 	DB_PASSWORD    = "DB_PASSWORD"
-)
-
-var (
-	log = logf.Log.WithName("capability.controller")
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
