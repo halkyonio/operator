@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,6 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strings"
 )
 
 type ResourceMetadata struct {
@@ -105,7 +107,7 @@ type ReconcilerHelper struct {
 
 func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (runtime.Object, error) {
 	if err := rh.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, into); err != nil {
-		return nil, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s'", name, into.GetObjectKind().GroupVersionKind().Kind, namespace)
+		return nil, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s'", name, util.GetObjectName(into), namespace)
 	}
 	return into, nil
 }
@@ -140,6 +142,10 @@ func (b *BaseGenericReconciler) factory() ReconcilerFactory {
 
 func (b *BaseGenericReconciler) PrimaryResourceType() runtime.Object {
 	return b.primary.DeepCopyObject()
+}
+
+func (b *BaseGenericReconciler) primaryResourceTypeName() string {
+	return util.GetObjectName(b.primary)
 }
 
 func (b *BaseGenericReconciler) SecondaryResourceTypes() []runtime.Object {
@@ -186,7 +192,7 @@ func (b *BaseGenericReconciler) AddDependentResource(resource DependentResource)
 func (b *BaseGenericReconciler) GetDependentResourceFor(owner v1.Object, resourceType runtime.Object) (DependentResource, error) {
 	resource, ok := b.dependents[resourceType]
 	if !ok {
-		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", resourceType.GetObjectKind().GroupVersionKind().Kind)
+		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", util.GetObjectName(resourceType))
 	}
 	return resource.NewInstanceWith(owner), nil
 }
@@ -196,7 +202,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 
 	// Fetch the primary resource
 	resource := b.PrimaryResourceType()
-	typeName := resource.GetObjectKind().GroupVersionKind().Kind
+	typeName := b.primaryResourceTypeName()
 	err := b.Client.Get(context.TODO(), request.NamespacedName, resource)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -281,16 +287,16 @@ func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error
 }
 
 func controllerNameFor(resource runtime.Object) string {
-	return resource.GetObjectKind().GroupVersionKind().Kind + "-controller"
+	return strings.ToLower(util.GetObjectName(resource)) + "-controller"
 }
 
 func (b *BaseGenericReconciler) CreateIfNeeded(owner v1.Object, resourceType runtime.Object) (bool, error) {
 	resource, err := b.GetDependentResourceFor(owner, resourceType)
-	kind := resourceType.GetObjectKind().GroupVersionKind().Kind
 	if err != nil {
-		return false, fmt.Errorf("unknown dependent type %s", kind)
+		return false, err
 	}
 
+	kind := util.GetObjectName(resourceType)
 	res, err := resource.Fetch(b.Helper())
 	if err != nil {
 		// create the object
