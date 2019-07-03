@@ -37,56 +37,45 @@ type DependentResource interface {
 	NewInstanceWith(owner v1.Object) DependentResource
 	Owner() v1.Object
 	Prototype() runtime.Object
-	AsObject(object runtime.Object) v1.Object
 	ShouldWatch() bool
 }
 
-type BaseDependentResource struct {
+type DependentResourceHelper struct {
 	_owner     v1.Object
 	_prototype runtime.Object
+	_delegate  DependentResource
 }
 
-func (res BaseDependentResource) ShouldWatch() bool {
+func (res DependentResourceHelper) ShouldWatch() bool {
 	return true
 }
 
-func NewDependentResource(primaryResourceType runtime.Object) BaseDependentResource {
-	return BaseDependentResource{_prototype: primaryResourceType}
+func NewDependentResource(primaryResourceType runtime.Object, owner v1.Object) *DependentResourceHelper {
+	return &DependentResourceHelper{_prototype: primaryResourceType, _owner: owner}
 }
 
-func (res BaseDependentResource) AsObject(object runtime.Object) v1.Object {
-	panic("implement me")
+func (res *DependentResourceHelper) SetDelegate(delegate DependentResource) {
+	res._delegate = delegate
 }
 
-func (res BaseDependentResource) Build() (runtime.Object, error) {
-	panic("implement me")
-}
-
-func (res BaseDependentResource) Update(toUpdate v1.Object) (bool, error) {
-	panic("implement me")
-}
-
-func (res BaseDependentResource) Name() string {
+func (res DependentResourceHelper) Name() string {
 	return res._owner.GetName()
 }
 
-func (res BaseDependentResource) Fetch(helper ReconcilerHelper) (v1.Object, error) {
-	into := res.Prototype()
-	if err := helper.Client.Get(context.TODO(), types.NamespacedName{Name: res.Name(), Namespace: res.Owner().GetNamespace()}, into); err != nil {
+func (res DependentResourceHelper) Fetch(helper ReconcilerHelper) (v1.Object, error) {
+	delegate := res._delegate
+	into := delegate.Prototype()
+	if err := helper.Client.Get(context.TODO(), types.NamespacedName{Name: delegate.Name(), Namespace: delegate.Owner().GetNamespace()}, into); err != nil {
 		return nil, err
 	}
-	return res.AsObject(into), nil
+	return into.(v1.Object), nil
 }
 
-func (res BaseDependentResource) NewInstanceWith(owner v1.Object) DependentResource {
-	return BaseDependentResource{_owner: owner, _prototype: res._prototype}
-}
-
-func (res BaseDependentResource) Owner() v1.Object {
+func (res DependentResourceHelper) Owner() v1.Object {
 	return res._owner
 }
 
-func (res BaseDependentResource) Prototype() runtime.Object {
+func (res DependentResourceHelper) Prototype() runtime.Object {
 	return res._prototype.DeepCopyObject()
 }
 

@@ -1,6 +1,7 @@
 package component
 
 import (
+	"github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -12,8 +13,19 @@ type ingress struct {
 	reconciler *ReconcileComponent
 }
 
+func (res ingress) NewInstanceWith(owner v1.Object) controller.DependentResource {
+	return newOwnedIngress(res.reconciler, owner)
+}
+
 func newIngress(reconciler *ReconcileComponent) ingress {
-	return ingress{base: newBaseDependent(&v1beta1.Ingress{}), reconciler: reconciler}
+	return newOwnedIngress(reconciler, nil)
+}
+
+func newOwnedIngress(reconciler *ReconcileComponent, owner v1.Object) ingress {
+	dependent := newBaseDependent(&v1beta1.Ingress{}, owner)
+	i := ingress{base: dependent, reconciler: reconciler}
+	dependent.SetDelegate(i)
+	return i
 }
 
 //buildIngress returns the Ingress resource

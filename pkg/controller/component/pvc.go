@@ -2,6 +2,7 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,8 +13,19 @@ type pvc struct {
 	base
 }
 
+func (res pvc) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedPvc(owner)
+}
+
+func newOwnedPvc(owner metav1.Object) pvc {
+	dependent := newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)
+	p := pvc{base: dependent}
+	dependent.SetDelegate(p)
+	return p
+}
+
 func newPvc() pvc {
-	return pvc{base: newBaseDependent(&corev1.PersistentVolumeClaim{})}
+	return newOwnedPvc(nil)
 }
 
 func (res pvc) Build() (runtime.Object, error) {

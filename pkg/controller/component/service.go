@@ -3,6 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
+	"github.com/snowdrop/component-operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,11 +15,22 @@ type service struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
+func (res service) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedService(res.reconciler, owner)
+}
+
 func newService(reconciler *ReconcileComponent) service {
-	return service{
-		base:       newBaseDependent(&corev1.Service{}),
+	return newOwnedService(reconciler, nil)
+}
+
+func newOwnedService(reconciler *ReconcileComponent, owner metav1.Object) service {
+	dependent := newBaseDependent(&corev1.Service{}, owner)
+	s := service{
+		base:       dependent,
 		reconciler: reconciler,
 	}
+	dependent.SetDelegate(s)
+	return s
 }
 
 func (res service) Build() (runtime.Object, error) {

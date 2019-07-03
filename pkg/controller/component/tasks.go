@@ -1,6 +1,7 @@
 package component
 
 import (
+	"github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,11 +17,22 @@ type task struct {
 	base
 }
 
-func newTask() task {
-	return task{base: newBaseDependent(&v1alpha1.Task{})}
+func (res task) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedTask(owner)
 }
 
-func (res task) buildTaskS2iBuildahPush() (runtime.Object, error) {
+func newTask() task {
+	return newOwnedTask(nil)
+}
+
+func newOwnedTask(owner metav1.Object) task {
+	dependent := newBaseDependent(&v1alpha1.Task{}, owner)
+	t := task{base: dependent}
+	dependent.SetDelegate(t)
+	return t
+}
+
+func (res task) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	task := &v1alpha1.Task{
 		TypeMeta: metav1.TypeMeta{
@@ -107,7 +119,7 @@ func (res task) buildTaskS2iBuildahPush() (runtime.Object, error) {
 						},
 					},
 					SecurityContext: &corev1.SecurityContext{
-						Privileged: newBoolPtr(true),
+						Privileged: newTrue(),
 					},
 				},
 				// Push the image created to quay.io using as credentials the secret mounted within
@@ -130,7 +142,7 @@ func (res task) buildTaskS2iBuildahPush() (runtime.Object, error) {
 							Name:      "libcontainers"},
 					},
 					SecurityContext: &corev1.SecurityContext{
-						Privileged: newBoolPtr(true),
+						Privileged: newTrue(),
 					},
 				},
 			},
@@ -156,8 +168,4 @@ func (res task) buildTaskS2iBuildahPush() (runtime.Object, error) {
 
 func (res task) Name() string {
 	return taskS2iBuildahPushName
-}
-
-func newBoolPtr(b bool) *bool {
-	return &b
 }

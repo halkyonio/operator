@@ -73,7 +73,6 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	}
 	baseReconciler.SetReconcilerFactory(r)
 
-	//r.initDependentResources()
 	r.AddDependentResource(newPvc())
 	r.AddDependentResource(newDeployment(r))
 	r.AddDependentResource(newService(r))

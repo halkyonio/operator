@@ -1,6 +1,7 @@
 package component
 
 import (
+	"github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	corev1 "k8s.io/api/core/v1"
@@ -11,8 +12,19 @@ type serviceAccount struct {
 	base
 }
 
+func (res serviceAccount) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedServiceAccount(owner)
+}
+
 func newServiceAccount() serviceAccount {
-	return serviceAccount{base: newBaseDependent(&corev1.ServiceAccount{})}
+	return newOwnedServiceAccount(nil)
+}
+
+func newOwnedServiceAccount(owner metav1.Object) serviceAccount {
+	dependent := newBaseDependent(&corev1.ServiceAccount{}, owner)
+	s := serviceAccount{base: dependent}
+	dependent.SetDelegate(s)
+	return s
 }
 
 //buildServiceAccount returns the service resource

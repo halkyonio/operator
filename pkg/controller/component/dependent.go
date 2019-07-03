@@ -8,15 +8,15 @@ import (
 )
 
 type base struct {
-	controller.BaseDependentResource
+	*controller.DependentResourceHelper
 }
 
-func newBaseDependent(primaryResourceType runtime.Object) base {
-	return base{BaseDependentResource: controller.NewDependentResource(primaryResourceType)}
+func (res base) Update(toUpdate v1.Object) (bool, error) {
+	return false, nil
 }
 
-func (res base) asObject(object runtime.Object) v1.Object {
-	return res.asComponent(object)
+func newBaseDependent(primaryResourceType runtime.Object, owner v1.Object) base {
+	return base{DependentResourceHelper: controller.NewDependentResource(primaryResourceType, owner)}
 }
 
 func (res base) ownerAsComponent() *v1alpha2.Component {

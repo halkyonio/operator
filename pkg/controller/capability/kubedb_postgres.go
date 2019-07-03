@@ -13,11 +13,26 @@ import (
 )
 
 type postgres struct {
-	controller.BaseDependentResource
+	*controller.DependentResourceHelper
+}
+
+func (res postgres) Update(toUpdate metav1.Object) (bool, error) {
+	return false, nil
+}
+
+func (res postgres) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedPostgres(owner)
 }
 
 func newPostgres() postgres {
-	return postgres{BaseDependentResource: controller.NewDependentResource(&kubedbv1.Postgres{})}
+	return newOwnedPostgres(nil)
+}
+
+func newOwnedPostgres(owner metav1.Object) postgres {
+	resource := controller.NewDependentResource(&kubedbv1.Postgres{}, owner)
+	p := postgres{DependentResourceHelper: resource}
+	resource.SetDelegate(p)
+	return p
 }
 
 func (res postgres) ownerAsCapability() *v1alpha2.Capability {

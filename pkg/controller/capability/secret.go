@@ -9,11 +9,26 @@ import (
 )
 
 type secret struct {
-	controller.BaseDependentResource
+	*controller.DependentResourceHelper
+}
+
+func (res secret) Update(toUpdate metav1.Object) (bool, error) {
+	return false, nil
+}
+
+func (res secret) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedSecret(owner)
 }
 
 func newSecret() secret {
-	return secret{BaseDependentResource: controller.NewDependentResource(&v1.Secret{})}
+	return newOwnedSecret(nil)
+}
+
+func newOwnedSecret(owner metav1.Object) secret {
+	resource := controller.NewDependentResource(&v1.Secret{}, owner)
+	s := secret{DependentResourceHelper: resource}
+	resource.SetDelegate(s)
+	return s
 }
 
 func (res secret) ownerAsCapability() *v1alpha2.Capability {
