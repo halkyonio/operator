@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -115,7 +116,7 @@ func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (r
 func NewBaseGenericReconciler(primaryResourceType runtime.Object, secondaryResourceTypes []runtime.Object, mgr manager.Manager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
 		ReconcilerHelper: newHelper(primaryResourceType, mgr),
-		dependents:       make(map[runtime.Object]DependentResource, 7),
+		dependents:       make(map[string]DependentResource, 7),
 		primary:          primaryResourceType,
 		secondary:        secondaryResourceTypes,
 	}
@@ -127,7 +128,7 @@ func (b *BaseGenericReconciler) SetReconcilerFactory(factory ReconcilerFactory) 
 
 type BaseGenericReconciler struct {
 	ReconcilerHelper
-	dependents map[runtime.Object]DependentResource
+	dependents map[string]DependentResource
 	primary    runtime.Object
 	secondary  []runtime.Object
 	_factory   ReconcilerFactory
@@ -185,12 +186,22 @@ func (b *BaseGenericReconciler) Helper() ReconcilerHelper {
 	return b.ReconcilerHelper
 }
 
+func getKeyFor(resourceType runtime.Object) (key string) {
+	t := reflect.TypeOf(resourceType)
+	pkg := t.PkgPath()
+	kind := util.GetObjectName(resourceType)
+	key = pkg + "/" + kind
+	return
+}
+
 func (b *BaseGenericReconciler) AddDependentResource(resource DependentResource) {
-	b.dependents[resource.Prototype()] = resource
+	prototype := resource.Prototype()
+	key := getKeyFor(prototype)
+	b.dependents[key] = resource
 }
 
 func (b *BaseGenericReconciler) GetDependentResourceFor(owner v1.Object, resourceType runtime.Object) (DependentResource, error) {
-	resource, ok := b.dependents[resourceType]
+	resource, ok := b.dependents[getKeyFor(resourceType)]
 	if !ok {
 		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", util.GetObjectName(resourceType))
 	}
