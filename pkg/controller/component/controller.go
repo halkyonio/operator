@@ -68,18 +68,20 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		},
 	}
 
+	baseReconciler := controller2.NewBaseGenericReconciler(
+		&v1alpha2.Component{},
+		[]runtime.Object{
+			&corev1.Pod{},
+			&appsv1.Deployment{},
+			&corev1.Service{},
+			&routev1.Route{},
+		}, mgr)
 	r := &ReconcileComponent{
-		BaseGenericReconciler: controller2.NewBaseGenericReconciler(
-			&v1alpha2.Component{},
-			[]runtime.Object{
-				&corev1.Pod{},
-				&appsv1.Deployment{},
-				&corev1.Service{},
-				&routev1.Route{},
-			}, mgr),
-		runtimeImages: images,
-		supervisor:    &supervisor,
+		BaseGenericReconciler: baseReconciler,
+		runtimeImages:         images,
+		supervisor:            &supervisor,
 	}
+	baseReconciler.SetReconcilerFactory(r)
 
 	//r.initDependentResources()
 	r.AddDependentResource(newPvc())

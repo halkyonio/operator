@@ -119,11 +119,23 @@ func NewBaseGenericReconciler(primaryResourceType runtime.Object, secondaryResou
 	}
 }
 
+func (b *BaseGenericReconciler) SetReconcilerFactory(factory ReconcilerFactory) {
+	b._factory = factory
+}
+
 type BaseGenericReconciler struct {
 	ReconcilerHelper
 	dependents map[runtime.Object]DependentResource
 	primary    runtime.Object
 	secondary  []runtime.Object
+	_factory   ReconcilerFactory
+}
+
+func (b *BaseGenericReconciler) factory() ReconcilerFactory {
+	if b._factory == nil {
+		panic(fmt.Errorf("factory needs to be set on BaseGenericReconciler before use"))
+	}
+	return b._factory
 }
 
 func (b *BaseGenericReconciler) PrimaryResourceType() runtime.Object {
@@ -135,16 +147,15 @@ func (b *BaseGenericReconciler) SecondaryResourceTypes() []runtime.Object {
 }
 
 func (b *BaseGenericReconciler) IsPrimaryResourceValid(object runtime.Object) bool {
-	//todo: implement
-	return true
+	return b.factory().IsPrimaryResourceValid(object)
 }
 
 func (b *BaseGenericReconciler) ResourceMetadata(object runtime.Object) ResourceMetadata {
-	panic("implement me")
+	return b.factory().ResourceMetadata(object)
 }
 
 func (b *BaseGenericReconciler) Delete(object runtime.Object) (bool, error) {
-	panic("implement me")
+	return b.factory().Delete(object)
 }
 
 func (b *BaseGenericReconciler) Fetch(name, namespace string) (runtime.Object, error) {
@@ -153,15 +164,15 @@ func (b *BaseGenericReconciler) Fetch(name, namespace string) (runtime.Object, e
 }
 
 func (b *BaseGenericReconciler) CreateOrUpdate(object runtime.Object) (bool, error) {
-	panic("implement me")
+	return b.factory().CreateOrUpdate(object)
 }
 
 func (b *BaseGenericReconciler) SetErrorStatus(object runtime.Object, e error) {
-	panic("implement me")
+	b.factory().SetErrorStatus(object, e)
 }
 
 func (b *BaseGenericReconciler) SetSuccessStatus(object runtime.Object) {
-	panic("implement me")
+	b.factory().SetSuccessStatus(object)
 }
 
 func (b *BaseGenericReconciler) Helper() ReconcilerHelper {

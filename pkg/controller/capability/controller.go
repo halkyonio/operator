@@ -12,20 +12,20 @@ import (
 )
 
 const (
-	controllerName          = "service-controller"
-	SECRET                  = "Secret"
+	controllerName = "service-controller"
+	SECRET         = "Secret"
 	// KubeDB Postgres const
 	KUBEDB_PG_DATABASE      = "Postgres"
 	KUBEDB_PG_DATABASE_NAME = "POSTGRES_DB"
 	KUBEDB_PG_USER          = "POSTGRES_USER"
 	KUBEDB_PG_PASSWORD      = "POSTGRES_PASSWORD"
 	// Capability const
-	DB_CONFIG_NAME          = "DB_CONFIG_NAME"
-	DB_HOST                 = "DB_HOST"
-	DB_PORT                 = "DB_PORT"
-	DB_NAME                 = "DB_NAME"
-	DB_USER                 = "DB_USER"
-	DB_PASSWORD             = "DB_PASSWORD"
+	DB_CONFIG_NAME = "DB_CONFIG_NAME"
+	DB_HOST        = "DB_HOST"
+	DB_PORT        = "DB_PORT"
+	DB_NAME        = "DB_NAME"
+	DB_USER        = "DB_USER"
+	DB_PASSWORD    = "DB_PASSWORD"
 )
 
 var (
@@ -33,12 +33,14 @@ var (
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
+	baseReconciler := controller2.NewBaseGenericReconciler(
+		&v1alpha2.Capability{},
+		[]runtime.Object{&kubedbv1.Postgres{}},
+		mgr)
 	r := &ReconcileCapability{
-		BaseGenericReconciler: controller2.NewBaseGenericReconciler(
-			&v1alpha2.Capability{},
-			[]runtime.Object{&kubedbv1.Postgres{}},
-			mgr),
+		BaseGenericReconciler: baseReconciler,
 	}
+	baseReconciler.SetReconcilerFactory(r)
 
 	r.AddDependentResource(newSecret())
 	r.AddDependentResource(newPostgres())
