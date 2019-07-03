@@ -70,10 +70,10 @@ func (r *ReconcileLink) update(obj runtime.Object) (reconcile.Result, error) {
 	err := r.client.Update(context.TODO(), obj)
 	if err != nil {
 		r.reqLogger.Error(err, "Failed to update spec")
-		return reconcile.Result{}, err
+		return reconcile.Result{Requeue: true}, err
 	}
 	r.reqLogger.Info("Spec updated - return and create")
-	return reconcile.Result{Requeue: true}, nil
+	return reconcile.Result{}, nil
 }
 
 func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, error) {
