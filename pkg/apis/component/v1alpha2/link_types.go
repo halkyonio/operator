@@ -33,6 +33,10 @@ type LinkSpec struct {
 
 type LinkPhase string
 
+func (l LinkPhase) String() string {
+	return string(l)
+}
+
 const (
 	// LinkPending means the link has been accepted by the system, but it is still being processed.
 	LinkPending LinkPhase = "Pending"
