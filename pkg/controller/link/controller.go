@@ -66,14 +66,14 @@ type ReconcileLink struct {
 }
 
 //Update the factory object and requeue
-func (r *ReconcileLink) update(obj runtime.Object) (reconcile.Result, error) {
-	err := r.client.Update(context.TODO(), obj)
+func (r *ReconcileLink) update(d *appsv1.Deployment) error {
+	err := r.client.Update(context.TODO(), d)
 	if err != nil {
-		r.reqLogger.Error(err, "Failed to update spec")
-		return reconcile.Result{Requeue: true}, err
+		return err
 	}
-	r.reqLogger.Info("Spec updated - return and create")
-	return reconcile.Result{}, nil
+
+	r.reqLogger.Info("Deployment updated.")
+	return nil
 }
 
 func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -178,11 +178,14 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 
 func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *v1alpha2.Link, request reconcile.Request) error {
 	// Update the Deployment of the component
-	r.update(d)
+	if err := r.update(d); err != nil {
+		r.reqLogger.Info( "Failed to update deployment.")
+		return err
+	}
 
 	// Update Status to value "Linked"
 	if err := r.updateStatusInstance(v1alpha2.LinkReady, link, request); err != nil {
-		r.reqLogger.Info("Status update failed !")
+		r.reqLogger.Info("Failed to update link Status !")
 		return err
 	}
 
