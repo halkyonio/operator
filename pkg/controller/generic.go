@@ -320,7 +320,7 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1.Object, resourceType run
 				return false, err
 			}
 			b.ReqLogger.Info("Created successfully", "kind", kind)
-			return true, controllerutil.SetControllerReference(resource.Owner(), res, b.Scheme)
+			return true, controllerutil.SetControllerReference(resource.Owner(), obj.(v1.Object), b.Scheme)
 		}
 		b.ReqLogger.Error(err, "Failed to get", "kind", kind)
 		return false, err
