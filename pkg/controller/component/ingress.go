@@ -9,10 +9,11 @@ import (
 
 type ingress struct {
 	base
+	reconciler *ReconcileComponent
 }
 
-func newIngress() ingress {
-	return ingress{base: newBaseDependent(&v1beta1.Ingress{})}
+func newIngress(reconciler *ReconcileComponent) ingress {
+	return ingress{base: newBaseDependent(&v1beta1.Ingress{}), reconciler: reconciler}
 }
 
 //buildIngress returns the Ingress resource
@@ -54,4 +55,8 @@ func (res ingress) Build() (runtime.Object, error) {
 	}
 
 	return ingress, nil
+}
+
+func (res ingress) ShouldWatch() bool {
+	return !res.reconciler.isTargetClusterRunningOpenShift()
 }

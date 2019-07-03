@@ -18,11 +18,8 @@ limitations under the License.
 package component
 
 import (
-	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -68,14 +65,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		},
 	}
 
-	baseReconciler := controller2.NewBaseGenericReconciler(
-		&v1alpha2.Component{},
-		[]runtime.Object{
-			&corev1.Pod{},
-			&appsv1.Deployment{},
-			&corev1.Service{},
-			&routev1.Route{},
-		}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&v1alpha2.Component{}, mgr)
 	r := &ReconcileComponent{
 		BaseGenericReconciler: baseReconciler,
 		runtimeImages:         images,
@@ -88,8 +78,8 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	r.AddDependentResource(newDeployment(r))
 	r.AddDependentResource(newService(r))
 	r.AddDependentResource(newServiceAccount())
-	r.AddDependentResource(newRoute())
-	r.AddDependentResource(newIngress())
+	r.AddDependentResource(newRoute(r))
+	r.AddDependentResource(newIngress(r))
 	r.AddDependentResource(newTask())
 	r.AddDependentResource(newTaskRun(r))
 

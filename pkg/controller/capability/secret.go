@@ -57,3 +57,7 @@ func (res secret) Name() string {
 	paramsMap := parametersAsMap(c.Spec.Parameters)
 	return SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME])
 }
+
+func (res secret) ShouldWatch() bool {
+	return false
+}

@@ -38,11 +38,16 @@ type DependentResource interface {
 	Owner() v1.Object
 	Prototype() runtime.Object
 	AsObject(object runtime.Object) v1.Object
+	ShouldWatch() bool
 }
 
 type BaseDependentResource struct {
 	_owner     v1.Object
 	_prototype runtime.Object
+}
+
+func (res BaseDependentResource) ShouldWatch() bool {
+	return true
 }
 
 func NewDependentResource(primaryResourceType runtime.Object) BaseDependentResource {
@@ -87,7 +92,7 @@ func (res BaseDependentResource) Prototype() runtime.Object {
 
 type ReconcilerFactory interface {
 	PrimaryResourceType() runtime.Object
-	SecondaryResourceTypes() []runtime.Object
+	WatchedSecondaryResourceTypes() []runtime.Object
 	IsPrimaryResourceValid(object runtime.Object) bool
 	ResourceMetadata(object runtime.Object) ResourceMetadata
 	Delete(object runtime.Object) (bool, error)
@@ -113,12 +118,11 @@ func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (r
 	return into, nil
 }
 
-func NewBaseGenericReconciler(primaryResourceType runtime.Object, secondaryResourceTypes []runtime.Object, mgr manager.Manager) *BaseGenericReconciler {
+func NewBaseGenericReconciler(primaryResourceType runtime.Object, mgr manager.Manager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
 		ReconcilerHelper: newHelper(primaryResourceType, mgr),
 		dependents:       make(map[string]DependentResource, 7),
 		primary:          primaryResourceType,
-		secondary:        secondaryResourceTypes,
 	}
 }
 
@@ -130,7 +134,6 @@ type BaseGenericReconciler struct {
 	ReconcilerHelper
 	dependents map[string]DependentResource
 	primary    runtime.Object
-	secondary  []runtime.Object
 	_factory   ReconcilerFactory
 }
 
@@ -149,8 +152,14 @@ func (b *BaseGenericReconciler) primaryResourceTypeName() string {
 	return util.GetObjectName(b.primary)
 }
 
-func (b *BaseGenericReconciler) SecondaryResourceTypes() []runtime.Object {
-	return b.secondary
+func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object {
+	watched := make([]runtime.Object, 0, len(b.dependents))
+	for _, dep := range b.dependents {
+		if dep.ShouldWatch() {
+			watched = append(watched, dep.Prototype())
+		}
+	}
+	return watched
 }
 
 func (b *BaseGenericReconciler) IsPrimaryResourceValid(object runtime.Object) bool {
@@ -288,7 +297,7 @@ func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error
 		OwnerType:    resourceType,
 	}
 
-	for _, t := range factory.SecondaryResourceTypes() {
+	for _, t := range factory.WatchedSecondaryResourceTypes() {
 		if err = c.Watch(&source.Kind{Type: t}, owner); err != nil {
 			return err
 		}

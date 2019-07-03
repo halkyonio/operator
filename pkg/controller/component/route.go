@@ -8,10 +8,11 @@ import (
 
 type route struct {
 	base
+	reconciler *ReconcileComponent // todo: remove
 }
 
-func newRoute() route {
-	return route{base: newBaseDependent(&routev1.Route{})}
+func newRoute(reconciler *ReconcileComponent) route {
+	return route{base: newBaseDependent(&routev1.Route{}), reconciler: reconciler}
 }
 
 //buildRoute returns the route resource
@@ -37,4 +38,8 @@ func (res route) Build() (runtime.Object, error) {
 	}
 
 	return route, nil
+}
+
+func (res route) ShouldWatch() bool {
+	return res.reconciler.isTargetClusterRunningOpenShift()
 }

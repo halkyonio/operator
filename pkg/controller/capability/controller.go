@@ -2,7 +2,6 @@ package capability
 
 import (
 	"fmt"
-	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,10 +32,7 @@ var (
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
-	baseReconciler := controller2.NewBaseGenericReconciler(
-		&v1alpha2.Capability{},
-		[]runtime.Object{&kubedbv1.Postgres{}},
-		mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&v1alpha2.Capability{}, mgr)
 	r := &ReconcileCapability{
 		BaseGenericReconciler: baseReconciler,
 	}
