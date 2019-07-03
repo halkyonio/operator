@@ -60,8 +60,6 @@ func (r *ReconcileComponent) buildTaskS2iBuildahPush(res dependentResource, c *v
 						"image:///usr/local/s2i",
 						"--env",
 						"MAVEN_ARGS_APPEND=-pl ${inputs.params.moduleDirName}",
-/*						"--env",
-						"ARTIFACT_COPY_ARGS='*.jar'",*/
 						"--env",
 						"MAVEN_S2I_ARTIFACT_DIRS=${inputs.params.moduleDirName}/target",
 						"--env",
