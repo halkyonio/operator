@@ -18,8 +18,8 @@ func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kube
 
 	postgres := &kubedbv1.Postgres{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Secret",
+			APIVersion: "kubedb.com/v1alpha1",
+			Kind:       "Postgres",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      c.Name,
