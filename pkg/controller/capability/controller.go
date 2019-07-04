@@ -81,11 +81,17 @@ func (r *ReconcileCapability) CreateOrUpdate(object runtime.Object) (bool, error
 }
 
 func (r *ReconcileCapability) SetErrorStatus(object runtime.Object, e error) {
-	panic("implement me")
+	r.setErrorStatus(asCapability(object), e)
 }
 
 func (r *ReconcileCapability) SetSuccessStatus(object runtime.Object) {
-	panic("implement me")
+	c := asCapability(object)
+	if c.Status.Phase != v1alpha2.CapabilityReady {
+		err := r.updateStatus(c, v1alpha2.CapabilityReady)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 // Add the Status Capability Creation when we process the first time the Capability CR
