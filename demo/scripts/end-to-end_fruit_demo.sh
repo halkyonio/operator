@@ -5,10 +5,10 @@
 # This script assumes that KubeDB & Component operators are installed
 #
 # End to end scenario to be executed on minikube, minishift or k8s cluster
-# Example: ./scripts/end-to-end.sh CLUSTER_IP
+# Example: ./scripts/end-to-end.sh <CLUSTER_IP> <NAMESPACE> <DEPLOYMENT_MODE>
 # where CLUSTER_IP represents the external IP address exposed top of the VM
 #
-CLUSTER_IP=${1:-$(minikube ip)}
+CLUSTER_IP=${1:-192.168.99.50}
 NS=${2:-test1}
 MODE=${3:-dev}
 
@@ -71,7 +71,7 @@ items:
     labels:
       app: fruit-backend-sb
   spec:
-    deploymentMode: dev
+    deploymentMode: $MODE
     buildConfig:
       url: https://github.com/snowdrop/component-operator-demo.git
       ref: master
@@ -105,7 +105,7 @@ items:
       version: "0.0.1-SNAPSHOT"
     name: "fruit-client-sb"
   spec:
-    deploymentMode: "dev"
+    deploymentMode: $MODE
     runtime: "spring-boot"
     version: "2.1.3.RELEASE"
     exposeService: true
