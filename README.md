@@ -54,6 +54,101 @@ When this `Custom resource` will be processed by the Kubernetes API Server and p
 
 ## For the users
 
+### TODO - To be reviewed and updated
+
+- Login to the cluster using a user having admin cluster role
+```bash
+oc login "https://<cluster_ip>:8443" -u admin -p admin
+```
+
+- Install Tekton Pipelines technology
+```bash
+kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.4.0/release.yaml
+```
+
+- Disable TLS verification
+```bash
+kubectl config set-cluster <cluster_ip>:8443 --insecure-skip-tls-verify=false
+```
+
+- Install KubeDB operator and Postgresql catalog
+```bash
+kubectl create ns kubedb
+curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh \
+    | bash -s -- --namespace=kubedb --install-catalog=postgres --enable-validating-webhook=false --enable-mutating-webhook=false
+
+OR
+
+KUBEDB_VERSION=0.12.0
+helm init
+until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
+kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
+
+helm repo add appscode https://charts.appscode.com/stable/
+helm repo update
+helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} \
+--namespace kubedb --set apiserver.enableValidatingWebhook=false,apiserver.enableMutatingWebhook=false
+
+TIMER=0
+until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions.catalog.kubedb.com mongodbversions.catalog.kubedb.com mysqlversions.catalog.kubedb.com postgresversions.catalog.kubedb.com redisversions.catalog.kubedb.com || [[ ${TIMER} -eq 60 ]]; do
+  sleep 2
+  TIMER=$((TIMER + 1))
+done
+
+helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
+--namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
+```
+
+- Verify operator installation
+
+To check if KubeDB operator pods have started, run the following command:
+```
+kubectl get pods --all-namespaces -l app=kubedb --watch
+```
+
+Once the operator pods are running, you can cancel the above command by typing Ctrl+C.
+Now, to confirm CRD groups have been registered by the operator, run the following command:
+
+```
+kubectl get crd -l app=kubedb
+```
+Now, you are ready to create your first database using KubeDB
+
+- Deploy the resources within the namespace `component-operator` 
+
+```bash
+kubectl create ns component-operator
+kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/sa.yaml
+kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/cluster-rbac.yaml
+kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/user-rbac.yaml
+kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/capability_v1alpha2.yaml
+kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/component_v1alpha2.yaml
+kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/link_v1alpha2.yaml
+kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/operator.yaml
+```
+
+- Give the `priveleged` security context to the serviceaccount `postgres-db` used by the KubeDB operator
+```bash
+oc project test
+oc adm policy add-scc-to-user privileged -z postgres-db
+```
+
+- Give also the security context `privileged` to the serviceaccount `build-bot` used to run the Task of the pod. Git ve it to this serviceaccount the role to `edit`
+```bash
+oc adm policy add-scc-to-user privileged -z build-bot
+oc adm policy add-role-to-user edit -z build-bot
+```
+
+## Clean up
+
+```
+curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh \
+    | bash -s -- --uninstall -n kubedb
+```
+
+error: unable to retrieve the complete list of server APIs: mutators.kubedb.com/v1alpha1: the server is currently unable to handle the request, validators.kubedb.com/v1alpha1: the server is currently unable to handle the request
+
+
 ### How to play with the Component operator locally
 
 - Log on to an OpenShift cluster >=3.10 with cluster-admin rights

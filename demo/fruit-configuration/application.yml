@@ -1,0 +1,20 @@
+ap4k:
+  capability:
+    - name: postgres-db
+      category: database
+      kind: postgres
+      version: "10"
+      parameters:
+      - name: DB_CONFIG // => SECRET TO BE CREATED
+        value: postgres-db = .spec.name
+      - name: DB_USER
+        value: "admin"
+      - name: DB_PASSWORD
+        value: "admin"
+      - name: DB_HOST
+        value: postgres-db
+   - name: fruit-metrics
+     category: metric
+     kind: prometheus
+
+

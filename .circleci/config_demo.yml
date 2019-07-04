@@ -1,0 +1,328 @@
+version: 2.1
+
+executors:
+  k8s-executor:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      KUBE_VERSION: v1.13.0
+      MICROK8S_VERSION: 1.13
+      TEKTON_VERSION: v0.4.0
+      KUBEDB_VERSION: 0.12.0
+      MINIKUBE_HOME: $HOME
+      KUBECONFIG: $HOME/.kube/config
+      OPERATOR_GIT_REF: master
+      NAMESPACE_TESTING: demo
+
+jobs:
+  k8s-setup-start:
+    executor: k8s-executor
+    steps:
+      - checkout
+      - run:
+          name: Setup initial
+          command:
+            mkdir -p /home/circleci/project/logs/
+
+      - run:
+          name: Install kubectl, Helm
+          command: |
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
+            chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl
+
+            curl -L https://git.io/get_helm.sh | bash
+
+      - run:
+          name: Install microk8s
+          command: |
+            sudo snap install microk8s --classic --channel=${MICROK8S_VERSION}/stable
+
+            # wait until a k8s node is ready
+            sleep 10
+            n=0
+            until [ $n -ge 15 ]
+            do
+              (/snap/bin/microk8s.kubectl get no | grep -z "Ready") && break
+              n=$[$n+1]
+              sleep 20
+            done
+            echo "Kubernetes cluster launched"
+
+            # Allow intra-pod communication
+            sudo iptables -P FORWARD ACCEPT
+
+      - run:
+          name: Enable Services dns & storage. Disable internal k8s docker registry
+          command: |
+            /snap/bin/microk8s.enable dns storage
+            # Disable Internal Docker Registry as we will not use it
+            #/snap/bin/microk8s.disable registry
+
+      - run:
+          name: Enable Services Ingress
+          command: |
+            /snap/bin/microk8s.enable ingress
+
+      - run:
+          name: Initialize helm
+          command: |
+            helm init
+
+            until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
+
+            kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
+
+      # DEPRECATED as we don't use anymore OABroker
+      # - run:
+      #     name: Install ServiceCatalog using helm & OAB
+      #     command: |
+      #       # Adds the chart repository for the service catalog
+      #       helm repo add svc-cat https://svc-catalog-charts.storage.googleapis.com
+      #
+      #       # Installs the service catalog
+      #       helm install svc-cat/catalog --name catalog --namespace catalog
+      #
+      #       # Wait until the catalog is ready before moving on
+      #       until kubectl get pods -n catalog -l app=catalog-catalog-apiserver | grep 2/2; do sleep 1; done
+      #       until kubectl get pods -n catalog -l app=catalog-catalog-controller-manager | grep 1/1; do sleep 1; done
+      #
+      #       kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/oab-install.yaml
+      #       until kubectl get pods -n automation-broker -l app=automation-broker | grep 2/2; do sleep 10; done
+
+      - run:
+          name: Install KubeDB Operator using Helm chart
+          command: |
+            helm repo add appscode https://charts.appscode.com/stable/
+            helm repo update
+            helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} \
+            --namespace kubedb --set apiserver.enableValidatingWebhook=false,apiserver.enableMutatingWebhook=false
+      - run:
+          name: Wait till KubeDB operator is on, CRDs deployed and install KubeDB Catalog using Helm chart
+          command: |
+            TIMER=0
+            until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions.catalog.kubedb.com mongodbversions.catalog.kubedb.com mysqlversions.catalog.kubedb.com postgresversions.catalog.kubedb.com redisversions.catalog.kubedb.com || [[ ${TIMER} -eq 60 ]]; do
+              sleep 2
+              TIMER=$((TIMER + 1))
+            done
+
+            helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
+            --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
+
+      - run:
+          name: Install Component Operator from master branch
+          command: |
+            kubectl create namespace component-operator
+            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/sa.yaml -n component-operator
+            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/cluster-rbac.yaml
+            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/user-rbac.yaml
+            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/crds/capability_v1alpha2.yaml
+            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/crds/component_v1alpha2.yaml
+            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/crds/link_v1alpha2.yaml
+            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/operator.yaml -n component-operator
+
+      - run:
+          name: Install Tekton Operator to perform build tasks
+          command: |
+            kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/${TEKTON_VERSION}/release.yaml
+
+      - restore_cache:
+          keys:
+            - demo
+      - run:
+          name: dependencies
+          command: |
+            mvn dependency:go-offline || true
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: demo
+      - run:
+          name: Compile the component-operator-demo project using maven
+          command: |
+            mvn clean package -DskipTests=true
+
+      # Following run will fail as we still have 2 ap4k issues to be fixed
+      # See: https://github.com/ap4k/ap4k/issues/225
+      # See: https://github.com/snowdrop/component-operator/issues/48
+      #- run:
+      #    name: Deploy the yaml resources populated by ap4k within the demo namespace
+      #    command: |
+      #      kubectl create namespace ${NAMESPACE_TESTING}
+      #      kubectl apply -n ${NAMESPACE_TESTING} -f fruit-backend-sb/target/classes/META-INF/ap4k/component.yml
+      #      kubectl apply -n ${NAMESPACE_TESTING} -f fruit-client-sb/target/classes/META-INF/ap4k/component.yml
+
+      - run:
+          name: Deploy the CORRECT yaml resources within the ${NAMESPACE_TESTING} namespace
+          command: |
+            kubectl create namespace ${NAMESPACE_TESTING}
+            echo "Deploy fruit-backend-sb"
+            cat \<<EOF | kubectl apply -n ${NAMESPACE_TESTING} -f -
+            ---
+            apiVersion: "v1"
+            kind: "List"
+            items:
+            - apiVersion: devexp.runtime.redhat.com/v1alpha2
+              kind: Capability
+              metadata:
+                name: postgres-db
+              spec:
+                category: database
+                kind: postgres
+                version: "10"
+                parameters:
+                - name: DB_USER
+                  value: admin
+                - name: DB_PASSWORD
+                  value: admin
+            - apiVersion: devexp.runtime.redhat.com/v1alpha2
+              kind: Component
+              metadata:
+                name: fruit-backend-sb
+                labels:
+                  app: fruit-backend-sb
+              spec:
+                deploymentMode: dev
+                buildConfig:
+                  url: https://github.com/snowdrop/component-operator-demo.git
+                  ref: master
+                  moduleDirName: fruit-backend-sb
+                runtime: spring-boot
+                version: 2.1.3
+                envs:
+                - name: SPRING_PROFILES_ACTIVE
+                  value: postgresql-kubedb
+            - apiVersion: "devexp.runtime.redhat.com/v1alpha2"
+              kind: "Link"
+              metadata:
+                name: "link-to-postgres-db"
+              spec:
+                componentName: "fruit-backend-sb"
+                kind: "Secret"
+                ref: "postgres-db-config"
+            EOF
+
+            echo "Deploy fruit-client-sb"
+            cat \<<EOF | kubectl apply -n ${NAMESPACE_TESTING} -f -
+            ---
+            apiVersion: "v1"
+            kind: "List"
+            items:
+            - apiVersion: "devexp.runtime.redhat.com/v1alpha2"
+              kind: "Component"
+              metadata:
+                labels:
+                  app: "fruit-client-sb"
+                  version: "0.0.1-SNAPSHOT"
+                name: "fruit-client-sb"
+              spec:
+                deploymentMode: "dev"
+                runtime: "spring-boot"
+                version: "2.1.3.RELEASE"
+                exposeService: true
+            - apiVersion: "devexp.runtime.redhat.com/v1alpha2"
+              kind: "Link"
+              metadata:
+                name: "link-to-fruit-backend"
+              spec:
+                kind: "Env"
+                componentName: "fruit-client-sb"
+                envs:
+                - name: "ENDPOINT_BACKEND"
+                  value: "http://fruit-backend-sb:8080/api/fruits"
+            EOF
+
+      - run:
+          name: Wait till fruit, backend and DB pods are running/ready
+          command: |
+            until kubectl get pods -n ${NAMESPACE_TESTING} -l kubedb.com/name=postgres-db | grep "Running"; do sleep 10; done
+            until kubectl get pods -n ${NAMESPACE_TESTING} -l app=fruit-client-sb | grep "Running"; do sleep 10; done
+            until kubectl get pods -n ${NAMESPACE_TESTING} -l app=fruit-backend-sb | grep "Running"; do sleep 10; done
+            until kubectl get components -n ${NAMESPACE_TESTING} -l app=fruit-client-sb | grep "Ready"; do sleep 10; done
+            until kubectl get components -n ${NAMESPACE_TESTING} -l app=fruit-backend-sb | grep "Ready"; do sleep 10; done
+
+      - run:
+          name: Wait and log pods, components, links, capabilities, ...
+          command: |
+            sleep 240s
+            kubectl get -n ${NAMESPACE_TESTING} all,pvc > /home/circleci/project/logs/all.txt
+
+      - run:
+          name: Log component operator
+          command: |
+            pod_id=$(kubectl get pod -l name=component-operator -n component-operator | grep "Running" | awk '{print $1}')
+            kubectl logs -n component-operator ${pod_id} > /home/circleci/project/logs/component-operator.txt
+
+      - run:
+          name: Push now the uber jar file of the frontend, backend
+          command: |
+            set -x
+            ./scripts/k8s_push_start.sh fruit-backend sb ${NAMESPACE_TESTING}
+            ./scripts/k8s_push_start.sh fruit-client sb ${NAMESPACE_TESTING}
+
+            url='http://localhost:8080/actuator/health'
+            EXPECTED_RESPONSE='{"status":"UP"}'
+
+            echo "Wait until Spring Boot actuator health replies UP"
+            for i in fruit-backend-sb fruit-client-sb
+            do
+              HTTP_BODY=""
+              pod_id=$(kubectl get pod -n $NS -lapp=$i | grep "Running" | awk '{print $1}')
+              until [ "$HTTP_BODY" == "$EXPECTED_RESPONSE" ]; do
+                echo "Check $i actuator"
+                HTTP_RESPONSE=$(kubectl exec -n $NS $pod_id -- curl -L -w "HTTPSTATUS:%{http_code}" -s $url 2>&1)
+                HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
+                HTTP_STATUS=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+                echo $HTTP_BODY
+                echo "Wait 5s ..."
+                sleep 5s
+              done
+            done
+
+      - run:
+          name: Log of Frontend, Backend applications, pod configuration and their ENV variables
+          command: |
+            declare -a arr=("fruit-client-sb" "fruit-backend-sb")
+
+            for i in "${arr[@]}"
+            do
+               pod_id=$(kubectl get pod -l app=$i -n ${NAMESPACE_TESTING} | grep "Running" | awk '{print $1}')
+               echo "####################"
+               echo "#### Log Spring Boot application: $i"
+               echo "#### Stdout Pod Config #####" > /home/circleci/project/logs/$i.txt
+               kubectl get -n ${NAMESPACE_TESTING} pod/${pod_id} -o yaml >> /home/circleci/project/logs/$i.txt
+
+               echo "#### Stdout ENV defined within the container ####"
+               kubectl exec ${pod_id} -n ${NAMESPACE_TESTING} env >> /home/circleci/project/logs/$i.txt
+
+               echo "#### Logs #####" >> /home/circleci/project/logs/$i.txt
+               kubectl logs -n ${NAMESPACE_TESTING} ${pod_id} >> /home/circleci/project/logs/$i.txt
+            done
+
+      - run:
+          name: Check if the client can get the fruits from the backend/db
+          command: |
+            expected='[{"id":1,"name":"Cherry"},{"id":2,"name":"Apple"},{"id":3,"name":"Banana"}]'
+            response=$(curl -H "Host: fruit-client-sb" 127.0.0.1/api/client)
+
+            echo "#### Expected #####" > /home/circleci/project/logs/fruits_curl_req_results.txt
+            echo $expected >> /home/circleci/project/logs/fruits_curl_req_results.txt
+
+            echo "#### Response #####" >> /home/circleci/project/logs/fruits_curl_req_results.txt
+            echo $response >> /home/circleci/project/logs/fruits_curl_req_results.txt
+
+            if [ "$response" == "$expected" ]; then
+               echo "SUCCEEDED"
+            else
+               echo "FAILED"
+               exit 1
+            fi
+
+      - store_artifacts:
+          path: /home/circleci/project/logs/
+
+workflows:
+  version: 2.1
+  test-component-operator-demo:
+    jobs:
+      - k8s-setup-start

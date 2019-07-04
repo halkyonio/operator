@@ -1,0 +1,70 @@
+{
+  "name": "nodejs-rest-http",
+  "version": "2.0.1",
+  "author": "Red Hat, Inc.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "tape test/*.js | tap-spec",
+    "test:integration": "tape test/integration/*.js | tap-spec",
+    "test:integration:undeploy": "nodeshift --strictSSL=false undeploy",
+    "lint": "xo",
+    "prepare": "echo 'To confirm CVE compliance, run \"npm run security-check\"' ",
+    "security-check": "nsp check",
+    "coverage": "nyc npm test",
+    "coveralls": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
+    "ci": "npm run lint && npm run coveralls",
+    "dependencyCheck": "szero . --ci",
+    "release": "standard-version -a",
+    "openshift": "nodeshift --strictSSL=false --nodeVersion=10.x",
+    "start": "node ."
+  },
+  "main": "./bin/www",
+  "standard-version": {
+    "scripts": {
+      "postbump": "node release.js"
+    }
+  },
+  "xo": {
+    "space": 2,
+    "rules": {
+      "space-before-function-paren": [
+        "error",
+        "always"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nodeshift-starters/nodejs-rest-http.git"
+  },
+  "files": [
+    "package.json",
+    "app.js",
+    "public",
+    "bin"
+  ],
+  "bugs": {
+    "url": "https://github.com/nodeshift-starters/nodejs-rest-http/issues"
+  },
+  "homepage": "https://github.com/nodeshift-starters/nodejs-rest-http",
+  "devDependencies": {
+    "coveralls": "^3.0.0",
+    "js-yaml": ">=3.13.1",
+    "nodeshift": "~2.0.0",
+    "nsp": "~3.2.1",
+    "nyc": "~12.0.1",
+    "rhoaster": "^0.2.0",
+    "standard-version": "^4.3.0",
+    "supertest": "^3.0.0",
+    "szero": "^1.0.0",
+    "tap-spec": "~5.0.0",
+    "tape": "~4.9.0",
+    "xo": "~0.22.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "debug": "^4.0.1",
+    "express": "4.16.0",
+    "request": "^2.88.0"
+  }
+}
