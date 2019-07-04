@@ -18,9 +18,12 @@ limitations under the License.
 package component
 
 import (
+	"context"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -122,6 +125,30 @@ func (r *ReconcileComponent) CreateOrUpdate(object runtime.Object) (bool, error)
 		return r.installBuildMode(component, component.Namespace)
 	}
 	return r.installDevMode(component, component.Namespace)
+}
+
+func (r *ReconcileComponent) Delete(object runtime.Object) (bool, error) {
+	c := r.asComponent(object)
+	if r.isTargetClusterRunningOpenShift() {
+		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
+		// when it is created during build deployment mode
+		imageStream := &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "image.openshift.io/v1",
+				"kind":       "ImageStream",
+				"metadata": map[string]interface{}{
+					"name":      c.Name,
+					"namespace": c.Namespace,
+				},
+			},
+		}
+
+		// attempt to delete the imagestream if it exists
+		if e := r.Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
+			return false, e
+		}
+	}
+	return false, nil
 }
 
 func (r *ReconcileComponent) SetErrorStatus(object runtime.Object, e error) {
