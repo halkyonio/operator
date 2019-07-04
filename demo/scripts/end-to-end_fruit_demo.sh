@@ -121,17 +121,31 @@ items:
       value: "http://fruit-backend-sb:8080/api/fruits"
 EOF
 }
+
 function createAll() {
   createPostgresqlCapability
   createFruitBackend
   createFruitClient
 }
 
+# Test if we run on plain k8s or openshift
+res=$(kubectl api-versions | grep user.openshift.io/v1)
+if [ "$res" == "" ]; then
+  isOpenShift="false"
+else
+  isOpenShift="true"
+fi
+
 printTitle "Creating the namespace"
 kubectl create ns ${NS}
 
-printTitle "Add privileged SCC to serviceaccount postgres-db"
-oc adm policy add-scc-to-user privileged system:serviceaccount:${NS}:postgres-db
+printTitle "Add privileged SCC to the serviceaccount postgres-db"
+if [ "$isOpenShift" == "true" ]; then
+  echo "We run on Openshift. So we will apply the SCC rule"
+  oc adm policy add-scc-to-user privileged system:serviceaccount:${NS}:postgres-db
+else
+  echo "We DON'T run on OpenShift. So need to change SCC"
+fi
 
 printTitle "Deploy the component for the fruit-backend, link and capability"
 createPostgresqlCapability
