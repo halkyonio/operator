@@ -8,11 +8,6 @@ import (
 	"strings"
 )
 
-func newFalse() *bool {
-	b := false
-	return &b
-}
-
 func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (changed bool, e error) {
 	if changed, e = r.CreateIfNeeded(c, &v1.Secret{}); e != nil {
 		return false, e
