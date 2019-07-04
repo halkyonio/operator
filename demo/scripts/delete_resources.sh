@@ -13,4 +13,4 @@ function deleteResources() {
 
 deleteResources $NS
 kubectl delete ns ${NS} --wait=false
-#./demo/scripts/kill-ns.sh ${NS}
+./demo/scripts/kill-ns.sh ${NS}

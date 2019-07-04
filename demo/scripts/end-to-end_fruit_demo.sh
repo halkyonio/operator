@@ -204,5 +204,6 @@ fi
 
 printTitle "Delete the resources components, links and capabilities"
 kubectl delete components,links,capabilities --all -n ${NS}
-echo "Sleep ${SLEEP_TIME}"
-sleep ${SLEEP_TIME}
+
+printTitle "End-to-end scenario executed successfully"
+printTitle "To delete the resources, run:  ./demo/scripts/delete_resources.sh <NAMESPACE>"
