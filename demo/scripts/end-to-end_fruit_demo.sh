@@ -130,6 +130,9 @@ function createAll() {
 printTitle "Creating the namespace"
 kubectl create ns ${NS}
 
+printTitle "Add privileged SCC to serviceaccount postgres-db"
+oc adm policy add-scc-to-user privileged system:serviceaccount:${NS}:postgres-db
+
 printTitle "Deploy the component for the fruit-backend, link and capability"
 createPostgresqlCapability
 createFruitBackend
