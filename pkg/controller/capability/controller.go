@@ -61,7 +61,7 @@ func (r *ReconcileCapability) ResourceMetadata(object runtime.Object) controller
 	}
 }
 
-func (r *ReconcileCapability) Delete(object runtime.Object) (bool, error) {
+func (r *ReconcileCapability) Delete(name, namespace string) (bool, error) {
 	panic("implement me")
 }
 

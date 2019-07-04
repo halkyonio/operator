@@ -84,7 +84,7 @@ type ReconcilerFactory interface {
 	WatchedSecondaryResourceTypes() []runtime.Object
 	IsPrimaryResourceValid(object runtime.Object) bool
 	ResourceMetadata(object runtime.Object) ResourceMetadata
-	Delete(object runtime.Object) (bool, error)
+	Delete(name, namespace string) (bool, error)
 	CreateOrUpdate(object runtime.Object) (bool, error)
 	SetErrorStatus(object runtime.Object, e error)
 	SetSuccessStatus(object runtime.Object)
@@ -159,8 +159,8 @@ func (b *BaseGenericReconciler) ResourceMetadata(object runtime.Object) Resource
 	return b.factory().ResourceMetadata(object)
 }
 
-func (b *BaseGenericReconciler) Delete(object runtime.Object) (bool, error) {
-	return b.factory().Delete(object)
+func (b *BaseGenericReconciler) Delete(name, namespace string) (bool, error) {
+	return b.factory().Delete(name, namespace)
 }
 
 func (b *BaseGenericReconciler) Fetch(name, namespace string) (runtime.Object, error) {
@@ -212,11 +212,17 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	// Fetch the primary resource
 	resource := b.PrimaryResourceType()
 	typeName := b.primaryResourceTypeName()
+	metadata := b.ResourceMetadata(resource)
 	err := b.Client.Get(context.TODO(), request.NamespacedName, resource)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
-			b.ReqLogger.Info(typeName + " resource not found. Ignoring since object must be deleted")
+			b.ReqLogger.Info(typeName + " resource not found.")
+			if metadata.ShouldDelete {
+				b.ReqLogger.Info(typeName + " is marked for deletion. Cleaning up!")
+				requeue, err := b.Delete(request.Name, request.Namespace)
+				return reconcile.Result{Requeue: requeue}, err
+			}
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - create the request.
@@ -228,16 +234,10 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	metadata := b.ResourceMetadata(resource)
 	b.ReqLogger.Info("==> Reconciling "+typeName,
 		"name", metadata.Name,
 		"status", metadata.Status,
 		"created", metadata.Created)
-
-	if metadata.ShouldDelete {
-		requeue, err := b.Delete(resource)
-		return reconcile.Result{Requeue: requeue}, err
-	}
 
 	changed, err := b.CreateOrUpdate(resource)
 	if err != nil {

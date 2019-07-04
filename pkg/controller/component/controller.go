@@ -127,8 +127,7 @@ func (r *ReconcileComponent) CreateOrUpdate(object runtime.Object) (bool, error)
 	return r.installDevMode(component, component.Namespace)
 }
 
-func (r *ReconcileComponent) Delete(object runtime.Object) (bool, error) {
-	c := r.asComponent(object)
+func (r *ReconcileComponent) Delete(name, namespace string) (bool, error) {
 	if r.isTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode
@@ -137,8 +136,8 @@ func (r *ReconcileComponent) Delete(object runtime.Object) (bool, error) {
 				"apiVersion": "image.openshift.io/v1",
 				"kind":       "ImageStream",
 				"metadata": map[string]interface{}{
-					"name":      c.Name,
-					"namespace": c.Namespace,
+					"name":      name, // todo: is this correct? we should determine the name based on the component
+					"namespace": namespace,
 				},
 			},
 		}
