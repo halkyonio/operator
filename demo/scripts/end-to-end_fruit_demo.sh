@@ -10,6 +10,8 @@
 #
 CLUSTER_IP=${1:-$(minikube ip)}
 NS=${2:-test1}
+MODE=${3:-dev}
+
 SLEEP_TIME=30s
 TIME=$(date +"%Y-%m-%d_%H-%M")
 REPORT_FILE="result_${TIME}.txt"
@@ -125,7 +127,6 @@ function createAll() {
   createFruitClient
 }
 
-
 printTitle "Creating the namespace"
 kubectl create ns ${NS}
 
@@ -169,9 +170,11 @@ printTitle "3. ENV var defined for the fruit client component" >> ${REPORT_FILE}
 for item in $(kubectl get pod -n ${NS} -lapp=fruit-client-sb --output=name); do printf "Envs for %s\n" "$item" | grep --color -E '[^/]+$' && kubectl get "$item" -n ${NS} --output=json | jq -r -S '.spec.containers[0].env[] | " \(.name)=\(.value)"' 2>/dev/null; printf "\n"; done >> ${REPORT_FILE}
 printf "\n" >> ${REPORT_FILE}
 
-printTitle "Push fruit client and backend"
-./demo/scripts/k8s_push_start.sh fruit-backend sb ${NS}
-./demo/scripts/k8s_push_start.sh fruit-client sb ${NS}
+if [ "$MODE" == "dev" ]; then
+  printTitle "Push fruit client and backend"
+  ./demo/scripts/k8s_push_start.sh fruit-backend sb ${NS}
+  ./demo/scripts/k8s_push_start.sh fruit-client sb ${NS}
+fi
 
 echo "Wait until Spring Boot actuator health replies UP for both microservices"
 for i in fruit-backend-sb fruit-client-sb
@@ -200,12 +203,3 @@ printTitle "Delete the resources components, links and capabilities"
 kubectl delete components,links,capabilities --all -n ${NS}
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
-
-#printTitle "List all resources"
-#listAllK8sResources $NS
-
-#printTitle  "Delete pending resources using ApiServices registered"
-#deleteResources $NS
-
-#printTitle  "Delete namespace $NS"
-#kubectl delete ns $NS
