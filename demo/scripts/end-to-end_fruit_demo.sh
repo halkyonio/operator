@@ -106,6 +106,10 @@ items:
     name: "fruit-client-sb"
   spec:
     deploymentMode: $MODE
+    buildConfig:
+      url: https://github.com/snowdrop/component-operator-demo.git
+      ref: master
+      moduleDirName: fruit-client-sb
     runtime: "spring-boot"
     version: "2.1.3.RELEASE"
     exposeService: true
