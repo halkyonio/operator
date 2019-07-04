@@ -4,17 +4,46 @@ import (
 	"github.com/appscode/go/encoding/json/types"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/controller"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	ofst "kmodules.xyz/offshoot-api/api/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-//buildSecret returns the secret resource
-func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kubedbv1.Postgres, error) {
-	ls := r.GetAppLabels(c.Name)
-	paramsMap := r.ParametersAsMap(c.Spec.Parameters)
+type postgres struct {
+	*controller.DependentResourceHelper
+}
+
+func (res postgres) Update(toUpdate metav1.Object) (bool, error) {
+	return false, nil
+}
+
+func (res postgres) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedPostgres(owner)
+}
+
+func newPostgres() postgres {
+	return newOwnedPostgres(nil)
+}
+
+func newOwnedPostgres(owner metav1.Object) postgres {
+	resource := controller.NewDependentResource(&kubedbv1.Postgres{}, owner)
+	p := postgres{DependentResourceHelper: resource}
+	resource.SetDelegate(p)
+	return p
+}
+
+func (res postgres) ownerAsCapability() *v1alpha2.Capability {
+	return res.Owner().(*v1alpha2.Capability)
+}
+
+//buildSecret returns the postgres resource
+func (res postgres) Build() (runtime.Object, error) {
+	c := res.ownerAsCapability()
+	ls := getAppLabels(c.Name)
+	paramsMap := parametersAsMap(c.Spec.Parameters)
 
 	postgres := &kubedbv1.Postgres{
 		TypeMeta: metav1.TypeMeta{
@@ -33,22 +62,19 @@ func (r *ReconcileCapability) buildKubeDBPostgres(c *v1alpha2.Capability) (*kube
 				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
 			DatabaseSecret: &core.SecretVolumeSource{
-				SecretName: r.SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME]),
+				SecretName: SetDefaultSecretNameIfEmpty(c.Name, paramsMap[DB_CONFIG_NAME]),
 			},
 			StorageType:       kubedbv1.StorageTypeEphemeral,
 			TerminationPolicy: kubedbv1.TerminationPolicyDelete,
 			PodTemplate: ofst.PodTemplateSpec{
 				Spec: ofst.PodSpec{
 					Env: []core.EnvVar{
-						{Name: KUBEDB_PG_DATABASE_NAME, Value: r.SetDefaultDatabaseName(paramsMap[DB_NAME])},
+						{Name: KUBEDB_PG_DATABASE_NAME, Value: SetDefaultDatabaseName(paramsMap[DB_NAME])},
 					},
 				},
 			},
 		},
 	}
-
-	// Set Component instance as the owner and controller
-	controllerutil.SetControllerReference(c, postgres, r.scheme)
 	return postgres, nil
 }
 

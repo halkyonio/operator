@@ -1,28 +1,50 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+type serviceAccount struct {
+	base
+}
+
+func (res serviceAccount) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedServiceAccount(owner)
+}
+
+func newServiceAccount() serviceAccount {
+	return newOwnedServiceAccount(nil)
+}
+
+func newOwnedServiceAccount(owner metav1.Object) serviceAccount {
+	dependent := newBaseDependent(&corev1.ServiceAccount{}, owner)
+	s := serviceAccount{base: dependent}
+	dependent.SetDelegate(s)
+	return s
+}
+
 //buildServiceAccount returns the service resource
-func (r *ReconcileComponent) buildServiceAccount(res dependentResource, m *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(m.Name)
+func (res serviceAccount) Build() (runtime.Object, error) {
+	c := res.ownerAsComponent()
+	ls := getAppLabels(c.Name)
 	sa := &corev1.ServiceAccount{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "ServiceAccount",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      res.name(m),
-			Namespace: m.Namespace,
+			Name:      res.Name(),
+			Namespace: c.Namespace,
 			Labels:    ls,
 		},
 	}
-	// Set Component instance as the owner and controller
-	return sa, controllerutil.SetControllerReference(m, sa, r.scheme)
+	return sa, nil
+}
+
+func (res serviceAccount) Name() string {
+	return serviceAccountName
 }

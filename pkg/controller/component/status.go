@@ -7,8 +7,6 @@ import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 func (r *ReconcileComponent) setErrorStatus(instance *v1alpha2.Component, err error) {
@@ -23,19 +21,19 @@ func (r *ReconcileComponent) updateStatusWithMessage(instance *v1alpha2.Componen
 	if fetch {
 		current, err = r.fetchLatestVersion(instance)
 		if err != nil {
-			r.reqLogger.Error(err, "failed to fetch latest version of component "+instance.Name)
+			r.ReqLogger.Error(err, "failed to fetch latest version of component "+instance.Name)
 		}
 	}
 
-	r.reqLogger.Info("updating component status",
+	r.ReqLogger.Info("updating component status",
 		"phase", instance.Status.Phase, "podName", instance.Status.PodName, "message", msg)
 	current.Status.PodName = instance.Status.PodName
 	current.Status.Phase = instance.Status.Phase
 	current.Status.Message = msg
 
-	err = r.client.Status().Update(context.TODO(), current)
+	err = r.Client.Status().Update(context.TODO(), current)
 	if err != nil {
-		r.reqLogger.Error(err, "failed to update status for component "+current.Name)
+		r.ReqLogger.Error(err, "failed to update status for component "+current.Name)
 	}
 }
 
@@ -77,20 +75,18 @@ func (r *ReconcileComponent) updateStatus(instance *v1alpha2.Component, phase v1
 
 func (r *ReconcileComponent) makePending(dependencyName string, component *v1alpha2.Component) {
 	msg := fmt.Sprintf(dependencyName+" is not ready for component '%s' in namespace '%s'", component.Name, component.Namespace)
-	r.reqLogger.Info(msg)
+	r.ReqLogger.Info(msg)
 	component.Status.Phase = v1alpha2.ComponentPending
 	r.updateStatusWithMessage(component, msg, false)
 }
 
 func (r *ReconcileComponent) fetchLatestVersion(instance *v1alpha2.Component) (*v1alpha2.Component, error) {
-	component, err := r.fetchComponent(reconcile.Request{
-		NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace},
-	})
+	component, err := r.Fetch(instance.Name, instance.Namespace)
 	if err != nil {
-		r.reqLogger.Error(err, "failed to get the Component")
+		r.ReqLogger.Error(err, "failed to get the Component")
 		return nil, err
 	}
-	return component, nil
+	return r.asComponent(component), nil
 }
 
 // Check if the Pod Condition is Type = Ready and Status = True

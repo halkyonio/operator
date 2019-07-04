@@ -19,10 +19,12 @@ const (
 )
 
 //buildDevDeployment returns the Deployment config object
-func (r *ReconcileComponent) buildDevDeployment(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
+func (res deployment) installDev() (runtime.Object, error) {
+	c := res.ownerAsComponent()
+	ls := getAppLabels(c.Name)
 
 	// create runtime container
+	r := res.reconciler
 	runtimeContainer, err := r.getBaseContainerFor(c)
 	if err != nil {
 		return nil, err
@@ -53,7 +55,7 @@ func (r *ReconcileComponent) buildDevDeployment(res dependentResource, c *v1alph
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      res.name(c),
+			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
@@ -83,7 +85,7 @@ func (r *ReconcileComponent) buildDevDeployment(res dependentResource, c *v1alph
 	}
 
 	// Set Component instance as the owner and controller
-	return dep, controllerutil.SetControllerReference(c, dep, r.scheme)
+	return dep, controllerutil.SetControllerReference(c, dep, r.Scheme)
 }
 
 func (r *ReconcileComponent) getBaseContainerFor(component *v1alpha2.Component) (corev1.Container, error) {

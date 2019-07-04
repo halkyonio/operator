@@ -2,18 +2,36 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/apimachinery/pkg/runtime"
-
+	"github.com/snowdrop/component-operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
-//buildPVC returns the PVC resource
-func (r *ReconcileComponent) buildPVC(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
-	name := res.name(c)
+type pvc struct {
+	base
+}
+
+func (res pvc) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedPvc(owner)
+}
+
+func newOwnedPvc(owner metav1.Object) pvc {
+	dependent := newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)
+	p := pvc{base: dependent}
+	dependent.SetDelegate(p)
+	return p
+}
+
+func newPvc() pvc {
+	return newOwnedPvc(nil)
+}
+
+func (res pvc) Build() (runtime.Object, error) {
+	c := res.ownerAsComponent()
+	ls := getAppLabels(c.Name)
+	name := res.Name()
 	pvc := &corev1.PersistentVolumeClaim{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -38,9 +56,16 @@ func (r *ReconcileComponent) buildPVC(res dependentResource, c *v1alpha2.Compone
 
 	// Specify the default Storage data - value
 	c.Spec.Storage.Name = name
+	return pvc, nil
+}
 
-	// Set Component instance as the owner and controller
-	return pvc, controllerutil.SetControllerReference(c, pvc, r.scheme)
+func (res pvc) Name() string {
+	c := res.ownerAsComponent()
+	specified := c.Spec.Storage.Name
+	if len(specified) > 0 {
+		return specified
+	}
+	return "m2-data-" + c.Name
 }
 
 func getCapacity(c *v1alpha2.Component) resource.Quantity {

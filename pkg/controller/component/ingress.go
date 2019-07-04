@@ -1,24 +1,44 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	"github.com/snowdrop/component-operator/pkg/controller"
+	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+type ingress struct {
+	base
+	reconciler *ReconcileComponent
+}
+
+func (res ingress) NewInstanceWith(owner v1.Object) controller.DependentResource {
+	return newOwnedIngress(res.reconciler, owner)
+}
+
+func newIngress(reconciler *ReconcileComponent) ingress {
+	return newOwnedIngress(reconciler, nil)
+}
+
+func newOwnedIngress(reconciler *ReconcileComponent, owner v1.Object) ingress {
+	dependent := newBaseDependent(&v1beta1.Ingress{}, owner)
+	i := ingress{base: dependent, reconciler: reconciler}
+	dependent.SetDelegate(i)
+	return i
+}
+
 //buildIngress returns the Ingress resource
-func (r *ReconcileComponent) buildIngress(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
-	route := &v1beta1.Ingress{
+func (res ingress) Build() (runtime.Object, error) {
+	c := res.ownerAsComponent()
+	ls := getAppLabels(c.Name)
+	ingress := &v1beta1.Ingress{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.k8s.io/v1beta1",
 			Kind:       "Ingress",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:      res.name(c),
+			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
@@ -46,6 +66,9 @@ func (r *ReconcileComponent) buildIngress(res dependentResource, c *v1alpha2.Com
 		},
 	}
 
-	// Set Component instance as the owner and controller
-	return route, controllerutil.SetControllerReference(c, route, r.scheme)
+	return ingress, nil
+}
+
+func (res ingress) ShouldWatch() bool {
+	return !res.reconciler.isTargetClusterRunningOpenShift()
 }

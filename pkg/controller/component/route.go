@@ -2,22 +2,42 @@ package component
 
 import (
 	routev1 "github.com/openshift/api/route/v1"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+type route struct {
+	base
+	reconciler *ReconcileComponent // todo: remove
+}
+
+func (res route) NewInstanceWith(owner v1.Object) controller.DependentResource {
+	return newOwnedRoute(res.reconciler, owner)
+}
+
+func newRoute(reconciler *ReconcileComponent) route {
+	return newOwnedRoute(reconciler, nil)
+}
+
+func newOwnedRoute(reconciler *ReconcileComponent, owner v1.Object) route {
+	dependent := newBaseDependent(&routev1.Route{}, owner)
+	r := route{base: dependent, reconciler: reconciler}
+	dependent.SetDelegate(r)
+	return r
+}
+
 //buildRoute returns the route resource
-func (r *ReconcileComponent) buildRoute(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getAppLabels(c.Name)
+func (res route) Build() (runtime.Object, error) {
+	c := res.ownerAsComponent()
+	ls := getAppLabels(c.Name)
 	route := &routev1.Route{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Route",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:      res.name(c),
+			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
@@ -29,6 +49,9 @@ func (r *ReconcileComponent) buildRoute(res dependentResource, c *v1alpha2.Compo
 		},
 	}
 
-	// Set Component instance as the owner and controller
-	return route, controllerutil.SetControllerReference(c, route, r.scheme)
+	return route, nil
+}
+
+func (res route) ShouldWatch() bool {
+	return res.reconciler.isTargetClusterRunningOpenShift()
 }

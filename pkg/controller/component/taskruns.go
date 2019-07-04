@@ -1,15 +1,38 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	v1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	"github.com/snowdrop/component-operator/pkg/controller"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c *v1alpha2.Component) (runtime.Object, error) {
-	ls := r.getBuildLabels(c.Name)
+type taskRun struct {
+	base
+	reconciler *ReconcileComponent // todo: remove
+}
+
+func (res taskRun) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+	return newOwnedTaskRun(res.reconciler, owner)
+}
+
+func newTaskRun(reconciler *ReconcileComponent) taskRun {
+	return newOwnedTaskRun(reconciler, nil)
+}
+
+func newOwnedTaskRun(reconciler *ReconcileComponent, owner metav1.Object) taskRun {
+	dependent := newBaseDependent(&v1alpha1.TaskRun{}, owner)
+	t := taskRun{
+		base:       dependent,
+		reconciler: reconciler,
+	}
+	dependent.SetDelegate(t)
+	return t
+}
+
+func (res taskRun) Build() (runtime.Object, error) {
+	c := res.ownerAsComponent()
+	ls := getBuildLabels(c.Name)
 	taskRun := &v1alpha1.TaskRun{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "tekton.dev/v1alpha1",
@@ -17,7 +40,7 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
-			Name:      res.name(c),
+			Name:      res.Name(),
 			Labels:    ls,
 		},
 		Spec: v1alpha1.TaskRunSpec{
@@ -61,7 +84,7 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c
 								{
 									Name: "url",
 									// OCP, OKD
-									Value: r.dockerImageURL(c),
+									Value: res.reconciler.dockerImageURL(c),
 									// Kubernetes
 									// Value: "kube-registry.kube-system.svc:5000/demo/spring-boot-example",
 								},
@@ -73,7 +96,5 @@ func (r *ReconcileComponent) buildTaskRunS2iBuildahPush(res dependentResource, c
 		},
 	}
 
-	// Set Component instance as the owner and controller
-	controllerutil.SetControllerReference(c, taskRun, r.scheme)
 	return taskRun, nil
 }
