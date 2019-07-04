@@ -1,6 +1,7 @@
 package v1alpha2
 
 import (
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -14,22 +15,22 @@ type CapabilitySpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 
-    /*
-      category: <database>, <logging>,<metrics>
-	  kind: postgres (if category is database)
-	  version: <version of the DB or prometheus or ...> to be installed
-	  secretName: <secret_name_to_be_created> // Is used by kubedb postgres and is optional as some capability provider does not need to create a secret
-	  parameters:
-	     // LIST OF PARAMETERS WILL BE MAPPED TO EACH CATEGORY !
-	    - name: DB_USER // WILL BE USED TO CREATE THE DB SECRET
-	       value: "admin"
-	    - name: DB_PASSWORD  // WILL BE USED TO CREATE THE DB SECRET
-	       value: "admin"
-     */
-	Category       CapabilityCategory  `json:"category"`
-	Kind           CapabilityKind      `json:"kind"`
-	Version        string              `json:"version"`
-	Parameters     []Parameter         `json:"parameters,omitempty"`
+	/*
+	      category: <database>, <logging>,<metrics>
+		  kind: postgres (if category is database)
+		  version: <version of the DB or prometheus or ...> to be installed
+		  secretName: <secret_name_to_be_created> // Is used by kubedb postgres and is optional as some capability provider does not need to create a secret
+		  parameters:
+		     // LIST OF PARAMETERS WILL BE MAPPED TO EACH CATEGORY !
+		    - name: DB_USER // WILL BE USED TO CREATE THE DB SECRET
+		       value: "admin"
+		    - name: DB_PASSWORD  // WILL BE USED TO CREATE THE DB SECRET
+		       value: "admin"
+	*/
+	Category   CapabilityCategory `json:"category"`
+	Kind       CapabilityKind     `json:"kind"`
+	Version    string             `json:"version"`
+	Parameters []Parameter        `json:"parameters,omitempty"`
 }
 
 type CapabilityCategory string
@@ -39,8 +40,8 @@ const (
 	DatabaseCategory CapabilityCategory = "Database"
 	PostgresKind     CapabilityKind     = "Postgres"
 
-	MetricCategory   CapabilityCategory = "Metric"
-	LoggingCategory  CapabilityCategory = "Logging"
+	MetricCategory  CapabilityCategory = "Metric"
+	LoggingCategory CapabilityCategory = "Logging"
 )
 
 type CapabilityPhase string
@@ -55,10 +56,10 @@ const (
 	CapabilityPending CapabilityPhase = "Pending"
 	// CapabilityReady means the capability has been instantiated to a node and all of its dependencies are available. The
 	// capability is able to process requests.
-	CapabilityReady   CapabilityPhase = "Ready"
+	CapabilityReady CapabilityPhase = "Ready"
 	// CapabilityFailed means that the capability and its dependencies have terminated, and at least one container has
 	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
-	CapabilityFailed  CapabilityPhase = "Failed"
+	CapabilityFailed CapabilityPhase = "Failed"
 )
 
 // CapabilityStatus defines the observed state of Capability
@@ -67,9 +68,9 @@ type CapabilityStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Phase           CapabilityPhase   `json:"phase,omitempty"`
-	PodName         string            `json:"podName,omitempty"`
-	Message         string            `json:"message,omitempty"`
+	Phase   CapabilityPhase `json:"phase,omitempty"`
+	PodName string          `json:"podName,omitempty"`
+	Message string          `json:"message,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -83,6 +84,25 @@ type Capability struct {
 
 	Spec   CapabilitySpec   `json:"spec,omitempty"`
 	Status CapabilityStatus `json:"status,omitempty"`
+}
+
+func (in *Capability) GetStatusAsString() string {
+	return in.Status.Phase.String()
+}
+
+func (in *Capability) SetStatus(status interface{}) {
+	switch t := status.(type) {
+	case CapabilityStatus:
+		in.Status = t
+	case CapabilityPhase:
+		in.Status.Phase = t
+	default:
+		panic(fmt.Errorf("impossible to set status from %T object", t))
+	}
+}
+
+func (in *Capability) ShouldDelete() bool {
+	return !in.DeletionTimestamp.IsZero()
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

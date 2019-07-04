@@ -1,6 +1,7 @@
 package v1alpha2
 
 import (
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -39,7 +40,7 @@ type ComponentSpec struct {
 	Envs     []Env  `json:"envs,omitempty"`
 	Revision string `json:"revision,omitempty"`
 	// Build configuration used to execute a TekTon Build task
-	BuildConfig BuildConfig  `json:"buildConfig,omitempty"`
+	BuildConfig BuildConfig `json:"buildConfig,omitempty"`
 }
 
 type ComponentPhase string
@@ -95,6 +96,25 @@ type Component struct {
 
 	Spec   ComponentSpec   `json:"spec,omitempty"`
 	Status ComponentStatus `json:"status,omitempty"`
+}
+
+func (in *Component) GetStatusAsString() string {
+	return in.Status.Phase.String()
+}
+
+func (in *Component) SetStatus(status interface{}) {
+	switch t := status.(type) {
+	case ComponentStatus:
+		in.Status = t
+	case ComponentPhase:
+		in.Status.Phase = t
+	default:
+		panic(fmt.Errorf("impossible to set status from %T object", t))
+	}
+}
+
+func (in *Component) ShouldDelete() bool {
+	return !in.DeletionTimestamp.IsZero()
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

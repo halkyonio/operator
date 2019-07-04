@@ -1,5 +1,7 @@
 package v1alpha2
 
+import v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 const (
 	// ComponentKind --
 	ComponentKind string = "Component"
@@ -23,4 +25,11 @@ type Env struct {
 type Parameter struct {
 	Name  string `json:"name,omitempty"`
 	Value string `json:"value,omitempty"`
+}
+
+type Resource interface {
+	v1.ObjectMetaAccessor
+	GetStatusAsString() string
+	SetStatus(status interface{})
+	ShouldDelete() bool
 }

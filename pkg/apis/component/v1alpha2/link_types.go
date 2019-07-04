@@ -1,6 +1,7 @@
 package v1alpha2
 
 import (
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -69,6 +70,25 @@ type Link struct {
 
 	Spec   LinkSpec   `json:"spec,omitempty"`
 	Status LinkStatus `json:"status,omitempty"`
+}
+
+func (in *Link) GetStatusAsString() string {
+	return in.Status.Phase.String()
+}
+
+func (in *Link) SetStatus(status interface{}) {
+	switch t := status.(type) {
+	case LinkStatus:
+		in.Status = t
+	case LinkPhase:
+		in.Status.Phase = t
+	default:
+		panic(fmt.Errorf("impossible to set status from %T object", t))
+	}
+}
+
+func (in *Link) ShouldDelete() bool {
+	return !in.DeletionTimestamp.IsZero()
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
