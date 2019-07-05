@@ -34,12 +34,7 @@ func newOwnedDeployment(reconciler *ReconcileComponent, owner v1.Object) deploym
 func (res deployment) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
-		if err := res.reconciler.setInitialStatus(c, v1alpha2.ComponentBuilding); err != nil {
-			return nil, err
-		}
 		return res.installBuild()
-	} else if err := res.reconciler.setInitialStatus(c, v1alpha2.ComponentPending); err != nil {
-		return nil, err
 	}
 	return res.installDev()
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,13 +22,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
 )
-
-type ResourceMetadata struct {
-	Name         string
-	Status       string
-	Created      v1.Time
-	ShouldDelete bool
-}
 
 type DependentResource interface {
 	Name() string
@@ -80,14 +74,13 @@ func (res DependentResourceHelper) Prototype() runtime.Object {
 }
 
 type ReconcilerFactory interface {
-	PrimaryResourceType() runtime.Object
+	PrimaryResourceType() v1alpha2.Resource
+	AsResource(object runtime.Object) v1alpha2.Resource
 	WatchedSecondaryResourceTypes() []runtime.Object
-	IsPrimaryResourceValid(object runtime.Object) bool
-	ResourceMetadata(object runtime.Object) ResourceMetadata
-	Delete(name, namespace string) (bool, error)
+	Delete(object runtime.Object) (bool, error)
 	CreateOrUpdate(object runtime.Object) (bool, error)
-	SetErrorStatus(object runtime.Object, e error)
-	SetSuccessStatus(object runtime.Object)
+	ComputeStatus(current v1alpha2.Resource, err error) (statusChanged bool, needRequeue bool)
+	IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool)
 	Helper() ReconcilerHelper
 	GetDependentResourceFor(owner v1.Object, resourceType runtime.Object) (DependentResource, error)
 	AddDependentResource(resource DependentResource)
@@ -107,7 +100,7 @@ func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (r
 	return into, nil
 }
 
-func NewBaseGenericReconciler(primaryResourceType runtime.Object, mgr manager.Manager) *BaseGenericReconciler {
+func NewBaseGenericReconciler(primaryResourceType v1alpha2.Resource, mgr manager.Manager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
 		ReconcilerHelper: newHelper(primaryResourceType, mgr),
 		dependents:       make(map[string]DependentResource, 7),
@@ -126,15 +119,28 @@ type BaseGenericReconciler struct {
 	_factory   ReconcilerFactory
 }
 
+func (b *BaseGenericReconciler) ComputeStatus(current v1alpha2.Resource, err error) (bool, bool) {
+	depOrTypeName, ready := b.IsDependentResourceReady(current)
+	if !ready {
+		return b.MakePending(depOrTypeName, current)
+	}
+
+	return current.SetSuccessStatus(depOrTypeName, "Ready"), false
+}
+
+func (b *BaseGenericReconciler) PrimaryResourceType() v1alpha2.Resource {
+	return b.AsResource(b.primary.DeepCopyObject())
+}
+
+func (b *BaseGenericReconciler) AsResource(object runtime.Object) v1alpha2.Resource {
+	return b.factory().AsResource(object)
+}
+
 func (b *BaseGenericReconciler) factory() ReconcilerFactory {
 	if b._factory == nil {
 		panic(fmt.Errorf("factory needs to be set on BaseGenericReconciler before use"))
 	}
 	return b._factory
-}
-
-func (b *BaseGenericReconciler) PrimaryResourceType() runtime.Object {
-	return b.primary.DeepCopyObject()
 }
 
 func (b *BaseGenericReconciler) primaryResourceTypeName() string {
@@ -151,33 +157,28 @@ func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object
 	return watched
 }
 
-func (b *BaseGenericReconciler) IsPrimaryResourceValid(object runtime.Object) bool {
-	return b.factory().IsPrimaryResourceValid(object)
+func (b *BaseGenericReconciler) Delete(object runtime.Object) (bool, error) {
+	return b.factory().Delete(object)
 }
 
-func (b *BaseGenericReconciler) ResourceMetadata(object runtime.Object) ResourceMetadata {
-	return b.factory().ResourceMetadata(object)
+func (b *BaseGenericReconciler) Fetch(into v1alpha2.Resource) (v1alpha2.Resource, error) {
+	object, e := b.Helper().Fetch(into.GetName(), into.GetNamespace(), into)
+	if e != nil {
+		return nil, e
+	}
+	return b.AsResource(object), nil
 }
 
-func (b *BaseGenericReconciler) Delete(name, namespace string) (bool, error) {
-	return b.factory().Delete(name, namespace)
-}
-
-func (b *BaseGenericReconciler) Fetch(name, namespace string) (runtime.Object, error) {
-	into := b.PrimaryResourceType()
-	return b.Helper().Fetch(name, namespace, into)
+func (b *BaseGenericReconciler) MakePending(dependencyName string, resource v1alpha2.Resource) (changed bool, wantsRequeue bool) {
+	msg := fmt.Sprintf("'%s' is not ready for %s '%s' in namespace '%s'",
+		dependencyName, util.GetObjectName(resource), resource.GetName(), resource.GetNamespace())
+	b.ReqLogger.Info(msg)
+	resource.SetInitialStatus(msg)
+	return true, true
 }
 
 func (b *BaseGenericReconciler) CreateOrUpdate(object runtime.Object) (bool, error) {
 	return b.factory().CreateOrUpdate(object)
-}
-
-func (b *BaseGenericReconciler) SetErrorStatus(object runtime.Object, e error) {
-	b.factory().SetErrorStatus(object, e)
-}
-
-func (b *BaseGenericReconciler) SetSuccessStatus(object runtime.Object) {
-	b.factory().SetSuccessStatus(object)
 }
 
 func (b *BaseGenericReconciler) Helper() ReconcilerHelper {
@@ -211,16 +212,17 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 
 	// Fetch the primary resource
 	resource := b.PrimaryResourceType()
+	resource.SetName(request.Name)
+	resource.SetNamespace(request.Namespace)
 	typeName := b.primaryResourceTypeName()
-	metadata := b.ResourceMetadata(resource)
 	err := b.Client.Get(context.TODO(), request.NamespacedName, resource)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
 			b.ReqLogger.Info(typeName + " resource not found.")
-			if metadata.ShouldDelete {
-				b.ReqLogger.Info(typeName + " is marked for deletion. Cleaning up!")
-				requeue, err := b.Delete(request.Name, request.Namespace)
+			if resource.ShouldDelete() {
+				b.ReqLogger.Info(typeName + " resource is marked for deletion. Running clean-up.")
+				requeue, err := b.Delete(resource)
 				return reconcile.Result{Requeue: requeue}, err
 			}
 			return reconcile.Result{}, nil
@@ -230,25 +232,47 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 
-	if !b.IsPrimaryResourceValid(resource) {
+	if resource.GetGeneration() == 1 && len(resource.GetStatusAsString()) == 0 {
+		resource.SetInitialStatus("Initializing")
+	}
+
+	if !resource.IsValid() {
 		return reconcile.Result{Requeue: true}, nil
 	}
 
 	b.ReqLogger.Info("==> Reconciling "+typeName,
-		"name", metadata.Name,
-		"status", metadata.Status,
-		"created", metadata.Created)
+		"name", resource.GetName(),
+		"status", resource.GetStatusAsString(),
+		"created", resource.GetCreationTimestamp())
 
 	changed, err := b.CreateOrUpdate(resource)
 	if err != nil {
-		b.ReqLogger.Error(err, fmt.Sprintf("failed to create or update %s '%s'", typeName, metadata.Name))
-		b.SetErrorStatus(resource, err)
-		return reconcile.Result{}, err
+		err = fmt.Errorf("failed to create or update %s '%s': %s", typeName, resource.GetName(), err.Error())
 	}
 
-	b.ReqLogger.Info("<== Reconciled "+typeName, "name", metadata.Name)
-	b.SetSuccessStatus(resource)
-	return reconcile.Result{Requeue: changed}, nil
+	b.ReqLogger.Info("<== Reconciled "+typeName, "name", resource.GetName())
+	changed = changed || b.updateStatus(resource, err)
+	return reconcile.Result{Requeue: changed}, err
+}
+
+func (b *BaseGenericReconciler) updateStatus(instance v1alpha2.Resource, err error) bool {
+	// fetch latest version to avoid optimistic lock error
+	current := instance
+	var e error
+	current, e = b.Fetch(instance)
+	if e != nil {
+		b.ReqLogger.Error(e, fmt.Sprintf("failed to fetch latest version of '%s' %s", instance.GetName(), util.GetObjectName(instance)))
+	}
+
+	// compute the status and update the resource if the status has changed
+	if needsStatusUpdate, needsRequeue := b.ComputeStatus(current, err); needsStatusUpdate {
+		e = b.Client.Status().Update(context.TODO(), current)
+		if e != nil {
+			b.ReqLogger.Error(e, "failed to update status for component "+current.GetName())
+		}
+		return needsRequeue
+	}
+	return false
 }
 
 func newHelper(resourceType runtime.Object, mgr manager.Manager) ReconcilerHelper {
@@ -329,4 +353,8 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1.Object, resourceType run
 		// if the resource defined an updater, use it to try to update the resource
 		return resource.Update(res)
 	}
+}
+
+func (b *BaseGenericReconciler) IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool) {
+	return b.factory().IsDependentResourceReady(resource)
 }

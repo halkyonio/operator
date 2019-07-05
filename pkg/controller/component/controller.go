@@ -18,9 +18,12 @@ limitations under the License.
 package component
 
 import (
+	"github.com/knative/pkg/apis"
 	"context"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
+	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -100,22 +103,24 @@ type ReconcileComponent struct {
 	onOpenShift   *bool
 }
 
-func (r *ReconcileComponent) IsPrimaryResourceValid(object runtime.Object) bool {
-	// todo: implement
-	return true
-}
-
 func (ReconcileComponent) asComponent(object runtime.Object) *v1alpha2.Component {
 	return object.(*v1alpha2.Component)
 }
 
-func (r *ReconcileComponent) ResourceMetadata(object runtime.Object) controller2.ResourceMetadata {
-	component := r.asComponent(object)
-	return controller2.ResourceMetadata{
-		Name:         component.Name,
-		Status:       component.Status.Phase.String(),
-		Created:      component.ObjectMeta.CreationTimestamp,
-		ShouldDelete: !component.ObjectMeta.DeletionTimestamp.IsZero(),
+func (r *ReconcileComponent) IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool) {
+	component := r.asComponent(resource)
+	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
+		taskRun, err := r.fetchTaskRun(component)
+		if err != nil || !r.isBuildSucceed(taskRun) {
+			return "taskRun job", false
+		}
+		return taskRun.Name, true
+	} else {
+		pod, err := r.fetchPod(component)
+		if err != nil || !r.isPodReady(pod) {
+			return "pod", false
+		}
+		return pod.Name, true
 	}
 }
 
@@ -150,26 +155,22 @@ func (r *ReconcileComponent) Delete(name, namespace string) (bool, error) {
 	return false, nil
 }
 
-func (r *ReconcileComponent) SetErrorStatus(object runtime.Object, e error) {
-	r.setErrorStatus(r.asComponent(object), e)
-}
-
-func (r *ReconcileComponent) SetSuccessStatus(object runtime.Object) {
-	component := r.asComponent(object)
-	if component.Status.Phase != v1alpha2.ComponentReady {
-		err := r.updateStatus(component, v1alpha2.ComponentReady)
-		if err != nil {
-			panic(err)
+// Check if the Pod Condition is Type = Ready and Status = True
+func (r *ReconcileComponent) isPodReady(pod *corev1.Pod) bool {
+	for _, c := range pod.Status.Conditions {
+		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
+			return true
 		}
 	}
+	return false
 }
 
-func (r *ReconcileComponent) setInitialStatus(component *v1alpha2.Component, phase v1alpha2.ComponentPhase) error {
-	if component.Generation == 1 && component.Status.Phase == "" {
-		if err := r.updateStatus(component, phase); err != nil {
-			r.ReqLogger.Info("Status update failed !")
-			return err
+// Check if the TaskRun Condition is Type = SUCCEEDED and Status = True
+func (r *ReconcileComponent) isBuildSucceed(taskRun *taskRunv1alpha1.TaskRun) bool {
+	for _, c := range taskRun.Status.Conditions {
+		if c.Type == apis.ConditionSucceeded && c.Status == corev1.ConditionTrue {
+			return true
 		}
 	}
-	return nil
+	return false
 }

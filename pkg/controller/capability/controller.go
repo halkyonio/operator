@@ -2,6 +2,7 @@ package capability
 
 import (
 	"fmt"
+	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,19 +47,13 @@ func asCapability(object runtime.Object) *v1alpha2.Capability {
 	return object.(*v1alpha2.Capability)
 }
 
-func (r *ReconcileCapability) IsPrimaryResourceValid(object runtime.Object) bool {
-	// todo: implement
-	return true
-}
-
-func (r *ReconcileCapability) ResourceMetadata(object runtime.Object) controller2.ResourceMetadata {
-	capability := asCapability(object)
-	return controller2.ResourceMetadata{
-		Name:         capability.Name,
-		Status:       capability.Status.Phase.String(),
-		Created:      capability.CreationTimestamp,
-		ShouldDelete: !capability.DeletionTimestamp.IsZero(),
+func (r *ReconcileCapability) IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool) {
+	capability := asCapability(resource)
+	db, err := r.fetchKubeDBPostgres(capability)
+	if err != nil || !r.isDBReady(db) {
+		return "postgreSQL db", false
 	}
+	return db.Name, true
 }
 
 func (r *ReconcileCapability) Delete(name, namespace string) (bool, error) {
@@ -68,11 +63,6 @@ func (r *ReconcileCapability) Delete(name, namespace string) (bool, error) {
 func (r *ReconcileCapability) CreateOrUpdate(object runtime.Object) (bool, error) {
 	capability := asCapability(object)
 	if strings.ToLower(string(v1alpha2.DatabaseCategory)) == string(capability.Spec.Category) {
-		err := r.setInitialStatus(capability, v1alpha2.CapabilityPending)
-		if err != nil {
-			return false, err
-		}
-
 		// Install the 2nd resources and check if the status of the watched resources has changed
 		return r.installDB(capability)
 	} else {
@@ -80,28 +70,6 @@ func (r *ReconcileCapability) CreateOrUpdate(object runtime.Object) (bool, error
 	}
 }
 
-func (r *ReconcileCapability) SetErrorStatus(object runtime.Object, e error) {
-	r.setErrorStatus(asCapability(object), e)
-}
-
-func (r *ReconcileCapability) SetSuccessStatus(object runtime.Object) {
-	c := asCapability(object)
-	if c.Status.Phase != v1alpha2.CapabilityReady {
-		err := r.updateStatus(c, v1alpha2.CapabilityReady)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-// Add the Status Capability Creation when we process the first time the Capability CR
-// as we will start to create different resources
-func (r *ReconcileCapability) setInitialStatus(c *v1alpha2.Capability, phase v1alpha2.CapabilityPhase) error {
-	if c.Generation == 1 && c.Status.Phase == "" {
-		if err := r.updateStatus(c, phase); err != nil {
-			r.ReqLogger.Info("Status update failed !")
-			return err
-		}
-	}
-	return nil
+func (r *ReconcileCapability) isDBReady(p *kubedbv1.Postgres) bool {
+	return p.Status.Phase == kubedbv1.DatabasePhaseRunning
 }
