@@ -8,18 +8,18 @@ import (
 	"strings"
 )
 
-func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (changed bool, e error) {
-	if changed, e = r.CreateIfNeeded(c, &v1.Secret{}); e != nil {
-		return false, e
+func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (e error) {
+	if e = r.CreateIfNeeded(c, &v1.Secret{}); e != nil {
+		return e
 	}
 
 	if string(c.Spec.Kind) == strings.ToLower(string(v1alpha2.PostgresKind)) {
 		// Check if the KubeDB - Postgres exists
-		if changed, e = r.CreateIfNeeded(c, &kubedbv1.Postgres{}); e != nil {
-			return false, e
+		if e = r.CreateIfNeeded(c, &kubedbv1.Postgres{}); e != nil {
+			return e
 		}
 	} else {
-		return false, fmt.Errorf("unsupported '%s' database kind", c.Spec.Kind)
+		return fmt.Errorf("unsupported '%s' database kind", c.Spec.Kind)
 	}
 
 	return

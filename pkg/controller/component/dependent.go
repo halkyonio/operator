@@ -15,7 +15,7 @@ func (res base) Update(toUpdate v1.Object) (bool, error) {
 	return false, nil
 }
 
-func newBaseDependent(primaryResourceType runtime.Object, owner v1.Object) base {
+func newBaseDependent(primaryResourceType runtime.Object, owner v1alpha2.Resource) base {
 	return base{DependentResourceHelper: controller.NewDependentResource(primaryResourceType, owner)}
 }
 

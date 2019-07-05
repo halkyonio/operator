@@ -82,8 +82,17 @@ type Capability struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   CapabilitySpec   `json:"spec,omitempty"`
-	Status CapabilityStatus `json:"status,omitempty"`
+	Spec    CapabilitySpec   `json:"spec,omitempty"`
+	Status  CapabilityStatus `json:"status,omitempty"`
+	requeue bool
+}
+
+func (in *Capability) SetNeedsRequeue(requeue bool) {
+	in.requeue = in.requeue || requeue
+}
+
+func (in *Capability) NeedsRequeue() bool {
+	return in.requeue
 }
 
 func (in *Capability) SetInitialStatus(msg string) {

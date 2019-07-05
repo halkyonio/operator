@@ -16,7 +16,7 @@ func (res secret) Update(toUpdate metav1.Object) (bool, error) {
 	return false, nil
 }
 
-func (res secret) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+func (res secret) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
 	return newOwnedSecret(owner)
 }
 
@@ -24,7 +24,7 @@ func newSecret() secret {
 	return newOwnedSecret(nil)
 }
 
-func newOwnedSecret(owner metav1.Object) secret {
+func newOwnedSecret(owner v1alpha2.Resource) secret {
 	resource := controller.NewDependentResource(&v1.Secret{}, owner)
 	s := secret{DependentResourceHelper: resource}
 	resource.SetDelegate(s)

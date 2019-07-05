@@ -2,6 +2,7 @@ package component
 
 import (
 	routev1 "github.com/openshift/api/route/v1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -12,7 +13,7 @@ type route struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res route) NewInstanceWith(owner v1.Object) controller.DependentResource {
+func (res route) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
 	return newOwnedRoute(res.reconciler, owner)
 }
 
@@ -20,7 +21,7 @@ func newRoute(reconciler *ReconcileComponent) route {
 	return newOwnedRoute(reconciler, nil)
 }
 
-func newOwnedRoute(reconciler *ReconcileComponent, owner v1.Object) route {
+func newOwnedRoute(reconciler *ReconcileComponent, owner v1alpha2.Resource) route {
 	dependent := newBaseDependent(&routev1.Route{}, owner)
 	r := route{base: dependent, reconciler: reconciler}
 	dependent.SetDelegate(r)

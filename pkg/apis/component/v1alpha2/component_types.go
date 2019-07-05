@@ -94,8 +94,17 @@ type Component struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ComponentSpec   `json:"spec,omitempty"`
-	Status ComponentStatus `json:"status,omitempty"`
+	Spec    ComponentSpec   `json:"spec,omitempty"`
+	Status  ComponentStatus `json:"status,omitempty"`
+	requeue bool
+}
+
+func (in *Component) SetNeedsRequeue(requeue bool) {
+	in.requeue = in.requeue || requeue
+}
+
+func (in *Component) NeedsRequeue() bool {
+	return in.requeue
 }
 
 func (in *Component) SetInitialStatus(msg string) {

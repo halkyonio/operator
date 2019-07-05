@@ -124,12 +124,14 @@ func (r *ReconcileComponent) IsDependentResourceReady(resource v1alpha2.Resource
 	}
 }
 
-func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (bool, error) {
+func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (wantsRequeue bool, err error) {
 	component := r.asComponent(object)
 	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
-		return r.installBuildMode(component, component.Namespace)
+		err = r.installBuildMode(component, component.Namespace)
+	} else {
+		err = r.installDevMode(component, component.Namespace)
 	}
-	return r.installDevMode(component, component.Namespace)
+	return component.NeedsRequeue(), err
 }
 
 func (r *ReconcileComponent) Delete(name, namespace string) (bool, error) {

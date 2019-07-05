@@ -28,14 +28,14 @@ type DependentResource interface {
 	Fetch(helper ReconcilerHelper) (v1.Object, error)
 	Build() (runtime.Object, error)
 	Update(toUpdate v1.Object) (bool, error)
-	NewInstanceWith(owner v1.Object) DependentResource
-	Owner() v1.Object
+	NewInstanceWith(owner v1alpha2.Resource) DependentResource
+	Owner() v1alpha2.Resource
 	Prototype() runtime.Object
 	ShouldWatch() bool
 }
 
 type DependentResourceHelper struct {
-	_owner     v1.Object
+	_owner     v1alpha2.Resource
 	_prototype runtime.Object
 	_delegate  DependentResource
 }
@@ -44,7 +44,7 @@ func (res DependentResourceHelper) ShouldWatch() bool {
 	return true
 }
 
-func NewDependentResource(primaryResourceType runtime.Object, owner v1.Object) *DependentResourceHelper {
+func NewDependentResource(primaryResourceType runtime.Object, owner v1alpha2.Resource) *DependentResourceHelper {
 	return &DependentResourceHelper{_prototype: primaryResourceType, _owner: owner}
 }
 
@@ -65,7 +65,7 @@ func (res DependentResourceHelper) Fetch(helper ReconcilerHelper) (v1.Object, er
 	return into.(v1.Object), nil
 }
 
-func (res DependentResourceHelper) Owner() v1.Object {
+func (res DependentResourceHelper) Owner() v1alpha2.Resource {
 	return res._owner
 }
 
@@ -323,10 +323,10 @@ func controllerNameFor(resource runtime.Object) string {
 	return strings.ToLower(util.GetObjectName(resource)) + "-controller"
 }
 
-func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resourceType runtime.Object) (bool, error) {
+func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resourceType runtime.Object) error {
 	resource, err := b.GetDependentResourceFor(owner, resourceType)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	kind := util.GetObjectName(resourceType)
@@ -335,23 +335,26 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 		// create the object
 		obj, errBuildObject := resource.Build()
 		if errBuildObject != nil {
-			return false, errBuildObject
+			return errBuildObject
 		}
 		if errors.IsNotFound(err) {
 			controllerutil.SetControllerReference(resource.Owner(), obj.(v1.Object), b.Scheme)
 			err = b.Client.Create(context.TODO(), obj)
 			if err != nil {
 				b.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
-				return false, err
+				return err
 			}
 			b.ReqLogger.Info("Created successfully", "kind", kind)
-			return true, nil
+			owner.SetNeedsRequeue(true)
+			return nil
 		}
 		b.ReqLogger.Error(err, "Failed to get", "kind", kind)
-		return false, err
+		return err
 	} else {
 		// if the resource defined an updater, use it to try to update the resource
-		return resource.Update(res)
+		updated, err := resource.Update(res)
+		owner.SetNeedsRequeue(updated)
+		return err
 	}
 }
 

@@ -64,7 +64,7 @@ func (r *ReconcileComponent) isTargetClusterRunningOpenShift() bool {
 	return *r.onOpenShift
 }
 
-func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, namespace string) (changed bool, e error) {
+func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, namespace string) (e error) {
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
@@ -77,34 +77,34 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	r.populateEnvVar(component)
 
 	// Create PVC if it does not exists
-	if changed, e = r.CreateIfNeeded(component, &corev1.PersistentVolumeClaim{}); e != nil {
-		return false, e
+	if e = r.CreateIfNeeded(component, &corev1.PersistentVolumeClaim{}); e != nil {
+		return e
 	}
 
 	// Create Deployment if it does not exists
-	if changed, e = r.CreateIfNeeded(component, &appsv1.Deployment{}); e != nil {
-		return false, e
+	if e = r.CreateIfNeeded(component, &appsv1.Deployment{}); e != nil {
+		return e
 	}
 
-	if changed, e = r.CreateIfNeeded(component, &corev1.Service{}); e != nil {
-		return false, e
+	if e = r.CreateIfNeeded(component, &corev1.Service{}); e != nil {
+		return e
 	}
 
 	if component.Spec.ExposeService {
 		if r.isTargetClusterRunningOpenShift() {
 			// Create an OpenShift Route
-			if changed, e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
-				return false, e
+			if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
+				return e
 			}
 		} else {
 			// Create an Ingress resource
-			if changed, e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
-				return false, e
+			if e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
+				return e
 			}
 		}
 	}
 
-	return changed, nil
+	return
 }
 
 func (r *ReconcileComponent) deleteDevMode(component *v1alpha2.Component, namespace string) error {

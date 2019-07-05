@@ -31,8 +31,10 @@ type Parameter struct {
 }
 
 type Resource interface {
-	runtime.Object
 	v1.Object
+	runtime.Object
+	NeedsRequeue() bool
+	SetNeedsRequeue(requeue bool)
 	GetStatusAsString() string
 	SetStatus(status interface{})
 	ShouldDelete() bool

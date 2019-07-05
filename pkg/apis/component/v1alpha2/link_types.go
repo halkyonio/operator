@@ -69,8 +69,17 @@ type Link struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   LinkSpec   `json:"spec,omitempty"`
-	Status LinkStatus `json:"status,omitempty"`
+	Spec    LinkSpec   `json:"spec,omitempty"`
+	Status  LinkStatus `json:"status,omitempty"`
+	requeue bool
+}
+
+func (in *Link) SetNeedsRequeue(requeue bool) {
+	in.requeue = in.requeue || requeue
+}
+
+func (in *Link) NeedsRequeue() bool {
+	return in.requeue
 }
 
 func (in *Link) SetInitialStatus(msg string) {
