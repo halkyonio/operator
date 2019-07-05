@@ -1,6 +1,7 @@
 package component
 
 import (
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,7 +13,7 @@ type taskRun struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res taskRun) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+func (res taskRun) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
 	return newOwnedTaskRun(res.reconciler, owner)
 }
 
@@ -20,7 +21,7 @@ func newTaskRun(reconciler *ReconcileComponent) taskRun {
 	return newOwnedTaskRun(reconciler, nil)
 }
 
-func newOwnedTaskRun(reconciler *ReconcileComponent, owner metav1.Object) taskRun {
+func newOwnedTaskRun(reconciler *ReconcileComponent, owner v1alpha2.Resource) taskRun {
 	dependent := newBaseDependent(&v1alpha1.TaskRun{}, owner)
 	t := taskRun{
 		base:       dependent,

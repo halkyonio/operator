@@ -20,7 +20,7 @@ func (res postgres) Update(toUpdate metav1.Object) (bool, error) {
 	return false, nil
 }
 
-func (res postgres) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+func (res postgres) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
 	return newOwnedPostgres(owner)
 }
 
@@ -28,7 +28,7 @@ func newPostgres() postgres {
 	return newOwnedPostgres(nil)
 }
 
-func newOwnedPostgres(owner metav1.Object) postgres {
+func newOwnedPostgres(owner v1alpha2.Resource) postgres {
 	resource := controller.NewDependentResource(&kubedbv1.Postgres{}, owner)
 	p := postgres{DependentResourceHelper: resource}
 	resource.SetDelegate(p)

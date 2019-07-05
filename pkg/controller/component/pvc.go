@@ -13,11 +13,11 @@ type pvc struct {
 	base
 }
 
-func (res pvc) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+func (res pvc) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
 	return newOwnedPvc(owner)
 }
 
-func newOwnedPvc(owner metav1.Object) pvc {
+func newOwnedPvc(owner v1alpha2.Resource) pvc {
 	dependent := newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)
 	p := pvc{base: dependent}
 	dependent.SetDelegate(p)

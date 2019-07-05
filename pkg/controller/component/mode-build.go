@@ -26,43 +26,43 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (changed bool, e error) {
+func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (e error) {
 	// Create Task s2i Buildah Push if it does not exists
-	if changed, e = r.CreateIfNeeded(component, &pipeline.Task{}); e != nil {
-		return false, e
+	if e = r.CreateIfNeeded(component, &pipeline.Task{}); e != nil {
+		return e
 	}
 
 	// Create ServiceAccount used by the Task's pod if it does not exists
-	if changed, e = r.CreateIfNeeded(component, &corev1.ServiceAccount{}); e != nil {
-		return false, e
+	if e = r.CreateIfNeeded(component, &corev1.ServiceAccount{}); e != nil {
+		return e
 	}
 
 	// Create the TaskRun in order to trigger the build
-	if changed, e = r.CreateIfNeeded(component, &pipeline.TaskRun{}); e != nil {
-		return false, e
+	if e = r.CreateIfNeeded(component, &pipeline.TaskRun{}); e != nil {
+		return e
 	}
 
-	if changed, e = r.CreateIfNeeded(component, &v1.Deployment{}); e != nil {
-		return false, e
+	if e = r.CreateIfNeeded(component, &v1.Deployment{}); e != nil {
+		return e
 	}
 
-	if changed, e = r.CreateIfNeeded(component, &corev1.Service{}); e != nil {
-		return false, e
+	if e = r.CreateIfNeeded(component, &corev1.Service{}); e != nil {
+		return e
 	}
 
 	if component.Spec.ExposeService {
 		if r.isTargetClusterRunningOpenShift() {
 			// Create an OpenShift Route
-			if changed, e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
-				return false, e
+			if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
+				return  e
 			}
 		} else {
 			// Create an Ingress resource
-			if changed, e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
-				return false, e
+			if e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
+				return e
 			}
 		}
 	}
 
-	return changed, nil
+	return
 }
