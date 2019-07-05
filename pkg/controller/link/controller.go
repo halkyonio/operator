@@ -3,132 +3,65 @@ package link
 import (
 	"context"
 	"fmt"
-	"github.com/go-logr/logr"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	controller2 "github.com/snowdrop/component-operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-	"strconv"
 )
 
-const (
-	controllerName = "link-controller"
-)
-
-var log = logf.Log.WithName("link.controller")
-
-// New creates a new Component Controller and adds it to the Manager. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
-func New(mgr manager.Manager) error {
-	return Add(mgr, NewReconciler(mgr))
-}
-
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func Add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to primary resource Link
-	err = c.Watch(&source.Kind{Type: &v1alpha2.Link{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// newReconciler returns a new reconcile.Reconciler
-func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileLink{
-		client:    mgr.GetClient(),
-		config:    mgr.GetConfig(),
-		scheme:    mgr.GetScheme(),
-		reqLogger: log,
-	}
+func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
+	baseReconciler := controller2.NewBaseGenericReconciler(&v1alpha2.Link{}, mgr)
+	r := &ReconcileLink{BaseGenericReconciler: baseReconciler}
+	baseReconciler.SetReconcilerFactory(r)
+	return r
 }
 
 type ReconcileLink struct {
-	client    client.Client
-	config    *rest.Config
-	scheme    *runtime.Scheme
-	reqLogger logr.Logger
+	*controller2.BaseGenericReconciler
 }
 
-//Update the factory object and requeue
-func (r *ReconcileLink) update(d *appsv1.Deployment) error {
-	err := r.client.Update(context.TODO(), d)
-	if err != nil {
-		return err
-	}
-
-	r.reqLogger.Info("Deployment updated.")
-	return nil
+func (ReconcileLink) asLink(object runtime.Object) *v1alpha2.Link {
+	return object.(*v1alpha2.Link)
 }
 
-func (r *ReconcileLink) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	r.reqLogger = log.WithValues("Namespace", request.Namespace)
-
-	// Fetch the Link created, deleted or updated
-	link := &v1alpha2.Link{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, link)
-	if err != nil {
-		return r.fetch(err)
+func (r *ReconcileLink) IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool) {
+	link := r.asLink(resource)
+	component := &v1alpha2.Component{}
+	component.Name = link.Spec.ComponentName
+	component.Namespace = link.Namespace
+	resource, err := r.Fetch(component)
+	if err != nil || v1alpha2.ComponentReady == component.Status.Phase || v1alpha2.ComponentRunning == component.Status.Phase {
+		return "component", false
 	}
+	return component.Name, true
+}
 
-	r.reqLogger.Info("-----------------------")
-	r.reqLogger.Info("Reconciling Link")
-	r.reqLogger.Info("Status of the Link", "Status phase", link.Status.Phase)
-	r.reqLogger.Info("Creation time          ", "Creation time", link.ObjectMeta.CreationTimestamp)
-	r.reqLogger.Info("Resource version       ", "Resource version", link.ObjectMeta.ResourceVersion)
-	r.reqLogger.Info("Generation version     ", "Generation version", strconv.FormatInt(link.ObjectMeta.Generation, 10))
-	// r.reqLogger.Info("Deletion time          ","Deletion time", Link.ObjectMeta.DeletionTimestamp)
-
-	// Add the Status Link Creation when we process the first time the Link CR
-	// as we will start to create/update resources
-	if link.Generation == 1 && link.Status.Phase == "" {
-		// Update Status to value "Linking" as we will try to update the Deployment
-		if err := r.updateStatusInstance(v1alpha2.LinkPending, link, request); err != nil {
-			r.reqLogger.Info("Status update failed !")
-			return reconcile.Result{}, err
-		}
-	}
-
-	// Process the Link if the status is not Linked
+func (r *ReconcileLink) CreateOrUpdate(object v1alpha2.Resource) (wantsRequeue bool, err error) {
+	link := r.asLink(object)
 	if link.Status.Phase != v1alpha2.LinkReady {
-		found, err := r.fetchDeployment(request.Namespace, link.Spec.ComponentName)
+		found, err := r.fetchDeployment(link)
 		if err != nil {
-			r.reqLogger.Info("Component not found")
-			// TODO Update status of the link to report the error
-			return reconcile.Result{Requeue: true}, nil
+			link.SetNeedsRequeue(true)
+			return link.NeedsRequeue(), err
 		}
-
 		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
-		if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers, request); isModified {
+		if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers); isModified {
 			found.Spec.Template.Spec.Containers = containers
-			if err := r.updateDeploymentWithLink(found, link, request); err != nil {
+			if err := r.updateDeploymentWithLink(found, link); err != nil {
 				// As it could be possible that we can't update the Deployment as it has been modified by another
 				// process, then we will requeue
-				return reconcile.Result{Requeue: true}, err
+				link.SetNeedsRequeue(true)
+				return link.NeedsRequeue(), err
 			}
 		}
 	}
-
-	r.reqLogger.Info(fmt.Sprintf("Reconciled : %s", link.Name))
-	return reconcile.Result{}, nil
+	return false, nil
 }
 
-func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, containers []v1.Container, request reconcile.Request) ([]v1.Container, bool) {
+func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, containers []v1.Container) ([]v1.Container, bool) {
 	var isModified = false
 	kind := link.Spec.Kind
 	switch kind {
@@ -176,19 +109,36 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 	return containers, isModified
 }
 
-func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *v1alpha2.Link, request reconcile.Request) error {
+func (r *ReconcileLink) update(d *appsv1.Deployment) error {
+	err := r.Client.Update(context.TODO(), d)
+	if err != nil {
+		return err
+	}
+
+	r.ReqLogger.Info("Deployment updated.")
+	return nil
+}
+
+//fetchDeployment returns the deployment resource created for this instance
+func (r *ReconcileLink) fetchDeployment(link *v1alpha2.Link) (*appsv1.Deployment, error) {
+	deployment := &appsv1.Deployment{}
+	name := link.Spec.ComponentName
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err != nil {
+		r.ReqLogger.Info("Deployment doesn't exist", "Name", name)
+		return deployment, err
+	} else {
+		return deployment, nil
+	}
+}
+
+func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *v1alpha2.Link) error {
 	// Update the Deployment of the component
 	if err := r.update(d); err != nil {
-		r.reqLogger.Info( "Failed to update deployment.")
+		r.ReqLogger.Info("Failed to update deployment.")
 		return err
 	}
 
-	// Update Status to value "Linked"
-	if err := r.updateStatusInstance(v1alpha2.LinkReady, link, request); err != nil {
-		r.reqLogger.Info("Failed to update link Status !")
-		return err
-	}
-
-	r.reqLogger.Info("Added link to the component", "Name", link.Spec.ComponentName)
+	name := link.Spec.ComponentName
+	link.SetSuccessStatus(name, fmt.Sprintf("linked to '%s' component", name))
 	return nil
 }

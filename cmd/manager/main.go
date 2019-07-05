@@ -12,6 +12,7 @@ import (
 	"github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/snowdrop/component-operator/pkg/controller/capability"
 	"github.com/snowdrop/component-operator/pkg/controller/component"
+	"github.com/snowdrop/component-operator/pkg/controller/link"
 	"github.com/spf13/pflag"
 	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"os"
@@ -99,7 +100,7 @@ func main() {
 		log.Error(err, "")
 		os.Exit(1)
 	}
-	if err := controller.AddToManager(mgr); err != nil {
+	if err := controller.RegisterNewReconciler(link.NewLinkReconciler(mgr), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
