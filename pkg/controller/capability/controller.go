@@ -56,11 +56,11 @@ func (r *ReconcileCapability) IsDependentResourceReady(resource v1alpha2.Resourc
 	return db.Name, true
 }
 
-func (r *ReconcileCapability) Delete(name, namespace string) (bool, error) {
+func (r *ReconcileCapability) Delete(object v1alpha2.Resource) (bool, error) {
 	panic("implement me")
 }
 
-func (r *ReconcileCapability) CreateOrUpdate(object runtime.Object) (bool, error) {
+func (r *ReconcileCapability) CreateOrUpdate(object v1alpha2.Resource) (bool, error) {
 	capability := asCapability(object)
 	if strings.ToLower(string(v1alpha2.DatabaseCategory)) == string(capability.Spec.Category) {
 		// Install the 2nd resources and check if the status of the watched resources has changed

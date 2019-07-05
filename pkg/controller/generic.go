@@ -77,12 +77,12 @@ type ReconcilerFactory interface {
 	PrimaryResourceType() v1alpha2.Resource
 	AsResource(object runtime.Object) v1alpha2.Resource
 	WatchedSecondaryResourceTypes() []runtime.Object
-	Delete(object runtime.Object) (bool, error)
-	CreateOrUpdate(object runtime.Object) (bool, error)
+	Delete(object v1alpha2.Resource) (bool, error)
+	CreateOrUpdate(object v1alpha2.Resource) (bool, error)
 	ComputeStatus(current v1alpha2.Resource, err error) (statusChanged bool, needRequeue bool)
 	IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool)
 	Helper() ReconcilerHelper
-	GetDependentResourceFor(owner v1.Object, resourceType runtime.Object) (DependentResource, error)
+	GetDependentResourceFor(owner v1alpha2.Resource, resourceType runtime.Object) (DependentResource, error)
 	AddDependentResource(resource DependentResource)
 }
 
@@ -157,7 +157,7 @@ func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object
 	return watched
 }
 
-func (b *BaseGenericReconciler) Delete(object runtime.Object) (bool, error) {
+func (b *BaseGenericReconciler) Delete(object v1alpha2.Resource) (bool, error) {
 	return b.factory().Delete(object)
 }
 
@@ -177,7 +177,7 @@ func (b *BaseGenericReconciler) MakePending(dependencyName string, resource v1al
 	return true, true
 }
 
-func (b *BaseGenericReconciler) CreateOrUpdate(object runtime.Object) (bool, error) {
+func (b *BaseGenericReconciler) CreateOrUpdate(object v1alpha2.Resource) (bool, error) {
 	return b.factory().CreateOrUpdate(object)
 }
 
@@ -199,7 +199,7 @@ func (b *BaseGenericReconciler) AddDependentResource(resource DependentResource)
 	b.dependents[key] = resource
 }
 
-func (b *BaseGenericReconciler) GetDependentResourceFor(owner v1.Object, resourceType runtime.Object) (DependentResource, error) {
+func (b *BaseGenericReconciler) GetDependentResourceFor(owner v1alpha2.Resource, resourceType runtime.Object) (DependentResource, error) {
 	resource, ok := b.dependents[getKeyFor(resourceType)]
 	if !ok {
 		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", util.GetObjectName(resourceType))
@@ -323,7 +323,7 @@ func controllerNameFor(resource runtime.Object) string {
 	return strings.ToLower(util.GetObjectName(resource)) + "-controller"
 }
 
-func (b *BaseGenericReconciler) CreateIfNeeded(owner v1.Object, resourceType runtime.Object) (bool, error) {
+func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resourceType runtime.Object) (bool, error) {
 	resource, err := b.GetDependentResourceFor(owner, resourceType)
 	if err != nil {
 		return false, err
