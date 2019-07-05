@@ -2,17 +2,19 @@ apiVersion: tekton.dev/v1alpha1
 kind: TaskRun
 metadata:
   labels:
-    build: dummy-test
     tekton.dev/task: s2i-buildah-push
-  name: dummy-test
+  name: dummy-test-buildah
 spec:
+  serviceAccount: build-bot
+  taskRef:
+    kind: Task
+    name: s2i-buildah-push
   inputs:
     params:
     - name: moduleDirName
       value: fruit-client-sb
     resources:
     - name: git
-      resourceRef: {}
       resourceSpec:
         params:
         - name: revision
@@ -23,13 +25,8 @@ spec:
   outputs:
     resources:
     - name: image
-      resourceRef: {}
       resourceSpec:
         params:
         - name: url
-          value: docker-registry.default.svc:5000/test1/dummy-test
+          value: docker-registry.default.svc:5000/test/dummy-test
         type: image
-  serviceAccount: build-bot
-  taskRef:
-    kind: Task
-    name: s2i-buildah-push

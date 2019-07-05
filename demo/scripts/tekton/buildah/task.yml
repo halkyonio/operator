@@ -38,9 +38,12 @@ spec:
         - bash
         - -c
         - echo $HOME;ls -la $HOME/.docker; ls $HOME/.docker/config.json
-      image: fedora
+      image: quay.io/openshift-pipeline/tektoncd-pipeline-bash
       securityContext:
         privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: libcontainers
     - name: generate
       args:
         - ${inputs.params.contextPath}
@@ -83,25 +86,18 @@ spec:
         - mountPath: /sources
           name: generatedsources
       workingDir: /sources
-    #- name: docker-images
-    #  command:
-    #    - /usr/local/bin/bash
-    #    - -c
-    #    - docker images | grep dummy-test
-    #  image: docker.io/library/docker
-    #  securityContext:
-    #    privileged: true
     - name: push
+      env:
+      - name: REGISTRY_AUTH_FILE
+        value: /home/builder/docker/docker.json
       args:
         - push
         - --tls-verify=${inputs.params.verifyTLS}
-        - --authfile=/builder/home/.docker/config.json
         - docker://${outputs.resources.image.url}
       command:
         - buildah
       #image: quay.io/buildah/stable
-      #image: quay.io/openshift-pipeline/buildah
-      image: quay.io/openshift-pipeline/buildah:master
+      image: quay.io/openshift-pipeline/buildah
       resources: {}
       securityContext:
         privileged: true
@@ -110,19 +106,6 @@ spec:
           name: libcontainers
       terminationMessagePath: /dev/termination-log
       terminationMessagePolicy: File
-      #- name: docker-push
-      #  command:
-      #    - docker
-      #  args:
-      #    - push
-      #    - ${outputs.resources.image.url}
-      #  image: docker.io/library/docker
-      #  resources: {}
-      #  securityContext:
-      #    privileged: true
-      #  volumeMounts:
-      #    - mountPath: /var/lib/containers
-      #      name: libcontainers
   volumes:
     - emptyDir: {}
       name: generatedsources
