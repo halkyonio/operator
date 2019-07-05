@@ -124,7 +124,7 @@ func (r *ReconcileComponent) IsDependentResourceReady(resource v1alpha2.Resource
 	}
 }
 
-func (r *ReconcileComponent) CreateOrUpdate(object runtime.Object) (bool, error) {
+func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (bool, error) {
 	component := r.asComponent(object)
 	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
 		return r.installBuildMode(component, component.Namespace)
