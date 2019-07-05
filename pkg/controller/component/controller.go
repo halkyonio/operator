@@ -18,8 +18,8 @@ limitations under the License.
 package component
 
 import (
-	"github.com/knative/pkg/apis"
 	"context"
+	"github.com/knative/pkg/apis"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	controller2 "github.com/snowdrop/component-operator/pkg/controller"
 	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
@@ -134,7 +134,7 @@ func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (wantsRequ
 	return component.NeedsRequeue(), err
 }
 
-func (r *ReconcileComponent) Delete(name, namespace string) (bool, error) {
+func (r *ReconcileComponent) Delete(resource v1alpha2.Resource) (bool, error) {
 	if r.isTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode
@@ -143,8 +143,8 @@ func (r *ReconcileComponent) Delete(name, namespace string) (bool, error) {
 				"apiVersion": "image.openshift.io/v1",
 				"kind":       "ImageStream",
 				"metadata": map[string]interface{}{
-					"name":      name, // todo: is this correct? we should determine the name based on the component
-					"namespace": namespace,
+					"name":      resource.GetName(), // todo: is this correct? we should determine the name based on the component
+					"namespace": resource.GetNamespace(),
 				},
 			},
 		}
