@@ -16,16 +16,16 @@ type CapabilitySpec struct {
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	/*
-	      category: <database>, <logging>,<metrics>
-		  kind: postgres (if category is database)
-		  version: <version of the DB or prometheus or ...> to be installed
-		  secretName: <secret_name_to_be_created> // Is used by kubedb postgres and is optional as some capability provider does not need to create a secret
-		  parameters:
-		     // LIST OF PARAMETERS WILL BE MAPPED TO EACH CATEGORY !
-		    - name: DB_USER // WILL BE USED TO CREATE THE DB SECRET
-		       value: "admin"
-		    - name: DB_PASSWORD  // WILL BE USED TO CREATE THE DB SECRET
-		       value: "admin"
+		      category: <database>, <logging>,<metrics>
+			  kind: postgres (if category is database)
+			  version: <version of the DB or prometheus or ...> to be installed
+			  secretName: <secret_name_to_be_created> // Is used by kubedb postgres and is optional as some capability provider does not need to create a secret
+			  parameters:
+			     // LIST OF PARAMETERS WILL BE MAPPED TO EACH CATEGORY !
+			    - name: DB_USER // WILL BE USED TO CREATE THE DB SECRET
+			       value: "admin"
+			    - name: DB_PASSWORD  // WILL BE USED TO CREATE THE DB SECRET
+			       value: "admin"
 	*/
 	Category   CapabilityCategory `json:"category"`
 	Kind       CapabilityKind     `json:"kind"`
@@ -84,6 +84,30 @@ type Capability struct {
 
 	Spec   CapabilitySpec   `json:"spec,omitempty"`
 	Status CapabilityStatus `json:"status,omitempty"`
+}
+
+func (in *Capability) SetInitialStatus(msg string) {
+	in.Status.Phase = CapabilityPending
+	in.Status.Message = msg
+}
+
+func (in *Capability) IsValid() bool {
+	return true // todo: implement me
+}
+
+func (in *Capability) SetErrorStatus(err error) {
+	in.Status.Phase = CapabilityFailed
+	in.Status.Message = err.Error()
+}
+
+func (in *Capability) SetSuccessStatus(dependentName, msg string) bool {
+	if dependentName != in.Status.PodName || CapabilityReady != in.Status.Phase || msg != in.Status.Message {
+		in.Status.Phase = CapabilityReady
+		in.Status.PodName = dependentName
+		in.Status.Message = msg
+		return true
+	}
+	return false
 }
 
 func (in *Capability) GetStatusAsString() string {

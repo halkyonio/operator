@@ -98,6 +98,33 @@ type Component struct {
 	Status ComponentStatus `json:"status,omitempty"`
 }
 
+func (in *Component) SetInitialStatus(msg string) {
+	in.Status.Phase = ComponentPending
+	if BuildDeploymentMode == in.Spec.DeploymentMode {
+		in.Status.Phase = ComponentBuilding
+	}
+	in.Status.Message = msg
+}
+
+func (in *Component) IsValid() bool {
+	return true // todo: implement me
+}
+
+func (in *Component) SetErrorStatus(err error) {
+	in.Status.Phase = ComponentFailed
+	in.Status.Message = err.Error()
+}
+
+func (in *Component) SetSuccessStatus(dependentName, msg string) bool {
+	if dependentName != in.Status.PodName || ComponentReady != in.Status.Phase || msg != in.Status.Message {
+		in.Status.Phase = ComponentReady
+		in.Status.PodName = dependentName
+		in.Status.Message = msg
+		return true
+	}
+	return false
+}
+
 func (in *Component) GetStatusAsString() string {
 	return in.Status.Phase.String()
 }

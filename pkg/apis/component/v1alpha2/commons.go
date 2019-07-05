@@ -1,6 +1,9 @@
 package v1alpha2
 
-import v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+)
 
 const (
 	// ComponentKind --
@@ -28,8 +31,13 @@ type Parameter struct {
 }
 
 type Resource interface {
-	v1.ObjectMetaAccessor
+	runtime.Object
+	v1.Object
 	GetStatusAsString() string
 	SetStatus(status interface{})
 	ShouldDelete() bool
+	SetErrorStatus(err error)
+	SetSuccessStatus(dependentName, msg string) bool
+	SetInitialStatus(msg string)
+	IsValid() bool
 }

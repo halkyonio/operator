@@ -56,7 +56,8 @@ type LinkStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Phase LinkPhase `json:"phase,omitempty"`
+	Phase   LinkPhase `json:"phase,omitempty"`
+	Message string    `json:"message"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -70,6 +71,28 @@ type Link struct {
 
 	Spec   LinkSpec   `json:"spec,omitempty"`
 	Status LinkStatus `json:"status,omitempty"`
+}
+
+func (in *Link) SetInitialStatus(msg string) {
+	in.Status.Phase = LinkPending
+	in.Status.Message = msg
+}
+
+func (in *Link) IsValid() bool {
+	return true // todo: implement me
+}
+
+func (in *Link) SetErrorStatus(err error) {
+	in.Status.Phase = LinkFailed
+}
+
+func (in *Link) SetSuccessStatus(dependentName, msg string) bool {
+	if LinkReady != in.Status.Phase || msg != in.Status.Message {
+		in.Status.Phase = LinkReady
+		in.Status.Message = msg
+		return true
+	}
+	return false
 }
 
 func (in *Link) GetStatusAsString() string {
