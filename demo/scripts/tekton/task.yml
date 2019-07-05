@@ -1,0 +1,130 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: s2i-buildah-push
+spec:
+  inputs:
+    params:
+      - default: quay.io/snowdrop/spring-boot-maven-s2i
+        description: S2i base image
+        name: baseImage
+      - default: .
+        description: The location of the path to run s2i from
+        name: contextPath
+      - default: .
+        description: The name of the directory containing the project (maven, ...)
+          to be compiled
+        name: moduleDirName
+      - default: "false"
+        description: Verify registry certificates
+        name: verifyTLS
+      - default: /workspace/git
+        description: Git path where project is cloned
+        name: workspacePath
+    resources:
+      - name: git
+        outputImageDir: ""
+        targetPath: ""
+        type: git
+  outputs:
+    resources:
+      - name: image
+        outputImageDir: /builder/image-outputs/image
+        targetPath: ""
+        type: image
+  steps:
+    - name: cat
+      command:
+        - bash
+        - -c
+        - echo $HOME;ls -la $HOME/.docker; ls $HOME/.docker/config.json
+      image: fedora
+      securityContext:
+        privileged: true
+    - name: generate
+      args:
+        - ${inputs.params.contextPath}
+        - ${inputs.params.baseImage}
+        - --as-dockerfile
+        - /sources/Dockerfile.gen
+        - --image-scripts-url
+        - image:///usr/local/s2i
+        - --env
+        - MAVEN_ARGS_APPEND=-pl ${inputs.params.moduleDirName}
+        - --env
+        - MAVEN_S2I_ARTIFACT_DIRS=${inputs.params.moduleDirName}/target
+        - --env
+        - S2I_SOURCE_DEPLOYMENTS_FILTER=*.jar
+      image: quay.io/openshift-pipeline/s2i-buildah
+      resources: {}
+      volumeMounts:
+        - mountPath: /sources
+          name: generatedsources
+      workingDir: ${inputs.params.workspacePath}
+    - name: build
+      args:
+        - bud
+        - --tls-verify=${inputs.params.verifyTLS}
+        - --layers
+        - -f
+        - /sources/Dockerfile.gen
+        - -t
+        - ${outputs.resources.image.url}
+        - .
+      command:
+        - buildah
+      image: quay.io/buildah/stable
+      resources: {}
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: libcontainers
+        - mountPath: /sources
+          name: generatedsources
+      workingDir: /sources
+    #- name: docker-images
+    #  command:
+    #    - /usr/local/bin/bash
+    #    - -c
+    #    - docker images | grep dummy-test
+    #  image: docker.io/library/docker
+    #  securityContext:
+    #    privileged: true
+    - name: push
+      args:
+        - push
+        - --tls-verify=${inputs.params.verifyTLS}
+        - --authfile=/builder/home/.docker/config.json
+        - docker://${outputs.resources.image.url}
+      command:
+        - buildah
+      #image: quay.io/buildah/stable
+      #image: quay.io/openshift-pipeline/buildah
+      image: quay.io/openshift-pipeline/buildah:master
+      resources: {}
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: libcontainers
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      #- name: docker-push
+      #  command:
+      #    - docker
+      #  args:
+      #    - push
+      #    - ${outputs.resources.image.url}
+      #  image: docker.io/library/docker
+      #  resources: {}
+      #  securityContext:
+      #    privileged: true
+      #  volumeMounts:
+      #    - mountPath: /var/lib/containers
+      #      name: libcontainers
+  volumes:
+    - emptyDir: {}
+      name: generatedsources
+    - emptyDir: {}
+      name: libcontainers
