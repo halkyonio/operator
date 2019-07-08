@@ -100,7 +100,26 @@ spec:
       #image: quay.io/openshift-pipeline/buildah
       securityContext:
         privileged: true
-    - name: push
+    - name: new-push
+      env:
+      - name: REGISTRY_AUTH_FILE
+        value: /home/builder/.docker/config.json
+      args:
+        - "buildah login --tls-verify=${inputs.params.verifyTLS} docker-registry.default.svc:5000 && buildah push --tls-verify=${inputs.params.verifyTLS} docker://${outputs.resources.image.url}"
+      command:
+        - bash
+        - -c
+      image: quay.io/buildah/stable
+      #image: quay.io/openshift-pipeline/buildah
+      resources: {}
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: libcontainers
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+    - name: old-push
       env:
       - name: REGISTRY_AUTH_FILE
         value: /home/builder/.docker/config.json
