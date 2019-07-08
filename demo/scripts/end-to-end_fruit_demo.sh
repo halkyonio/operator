@@ -9,7 +9,7 @@
 # where CLUSTER_IP represents the external IP address exposed top of the VM
 #
 CLUSTER_IP=${1:-192.168.99.50}
-NS=${2:-test1}
+NS=${2:-test}
 MODE=${3:-dev}
 
 SLEEP_TIME=30s
@@ -17,6 +17,22 @@ TIME=$(date +"%Y-%m-%d_%H-%M")
 REPORT_FILE="result_${TIME}.txt"
 EXPECTED_RESPONSE='{"status":"UP"}'
 INGRESS_RESOURCES=$(kubectl get ing 2>&1)
+
+# Test if we run on plain k8s or openshift
+res=$(kubectl api-versions | grep user.openshift.io/v1)
+if [ "$res" == "" ]; then
+  isOpenShift="false"
+else
+  isOpenShift="true"
+fi
+
+if [ "$MODE" == "build" ]; then
+    COMPONENT_FRUIT_BACKEND_NAME="fruit-backend-sb-build"
+    COMPONENT_FRUIT_CLIENT_NAME="fruit-client-sb-build"
+else
+    COMPONENT_FRUIT_BACKEND_NAME="fruit-backend-sb"
+    COMPONENT_FRUIT_CLIENT_NAME="fruit-client-sb"
+fi
 
 function deleteResources() {
   result=$(kubectl api-resources --verbs=list --namespaced -o name)
@@ -115,7 +131,7 @@ items:
   metadata:
     name: "link-to-postgres-db"
   spec:
-    componentName: "fruit-backend-sb"
+    componentName: $COMPONENT_FRUIT_BACKEND_NAME
     kind: "Secret"
     ref: "postgres-db-config"
 EOF
@@ -148,7 +164,7 @@ items:
     name: "link-to-fruit-backend"
   spec:
     kind: "Env"
-    componentName: "fruit-client-sb"
+    componentName: $COMPONENT_FRUIT_CLIENT_NAME
     envs:
     - name: "ENDPOINT_BACKEND"
       value: "http://fruit-backend-sb:8080/api/fruits"
@@ -160,14 +176,6 @@ function createAll() {
   createFruitBackend
   createFruitClient
 }
-
-# Test if we run on plain k8s or openshift
-res=$(kubectl api-versions | grep user.openshift.io/v1)
-if [ "$res" == "" ]; then
-  isOpenShift="false"
-else
-  isOpenShift="true"
-fi
 
 printTitle "Creating the namespace"
 kubectl create ns ${NS}
@@ -214,10 +222,12 @@ else
   done
 fi
 
+printTitle "2. ENV injected to the fruit backend component"
 printTitle "2. ENV injected to the fruit backend component" >> ${REPORT_FILE}
 kubectl exec -n ${NS} $(kubectl get pod -n ${NS} -lapp=fruit-backend-sb | grep "Running" | awk '{print $1}') env | grep DB >> ${REPORT_FILE}
 printf "\n" >> ${REPORT_FILE}
 
+printTitle "3. ENV var defined for the fruit client component"
 printTitle "3. ENV var defined for the fruit client component" >> ${REPORT_FILE}
 # kubectl describe -n ${NS} pod/$(kubectl get pod -n ${NS} -lapp=fruit-client-sb | grep "Running" | awk '{print $1}') >> ${REPORT_FILE}
 # See jsonpath examples : https://kubernetes.io/docs/reference/kubectl/cheatsheet/
@@ -253,8 +263,8 @@ else
     curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client >> ${REPORT_FILE}
 fi
 
-printTitle "Delete the resources components, links and capabilities"
-kubectl delete components,links,capabilities --all -n ${NS}
+# printTitle "Delete the resources components, links and capabilities"
+# kubectl delete components,links,capabilities --all -n ${NS}
 
 printTitle "End-to-end scenario executed successfully"
 printTitle "To delete the resources, run:  ./demo/scripts/delete_resources.sh <NAMESPACE>"
