@@ -19,6 +19,9 @@ oc adm policy add-role-to-user edit system:serviceaccount:test:build-bot
 export NS=test
 kc delete -Rf demo/scripts/tekton/buildah -n $NS
 kc apply -Rf demo/scripts/tekton/buildah -n $NS
+
+#kc delete -Rf demo/scripts/tekton/login -n $NS
+#kc apply -Rf demo/scripts/tekton/login -n $NS
 ```
 
 - Install task and taskRun using `kaniko` tool
