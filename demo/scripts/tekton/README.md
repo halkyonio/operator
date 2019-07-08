@@ -29,6 +29,21 @@ oc apply -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator
 oc apply -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator/master/demo/scripts/tekton/buildah/task.yml
 oc apply -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator/master/demo/scripts/tekton/buildah/taskrun.yml
 
+oc delete -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator/master/demo/scripts/tekton/buildah/sa.yml
+oc delete -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator/master/demo/scripts/tekton/buildah/task.yml
+oc delete -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator/master/demo/scripts/tekton/buildah/taskrun.yml
+```
+
+Create Imagestream
+```bash
+cat <<EOF | kubectl apply -n ${NS} -f -
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: dummy-test
+spec:
+  lookupPolicy:
+EOF
 ```
 
 - Install task and taskRun using `kaniko` tool
