@@ -3,7 +3,7 @@ kind: TaskRun
 metadata:
   labels:
     tekton.dev/task: s2i-buildah-push
-  name: dummy-test-buildah
+  name: dummy-buildah
 spec:
   serviceAccount: build-bot
   taskRef:
@@ -28,5 +28,5 @@ spec:
       resourceSpec:
         params:
         - name: url
-          value: docker-registry.default.svc:5000/test/dummy-test
+          value: docker-registry.default.svc:5000/test/dummy
         type: image
