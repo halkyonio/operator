@@ -83,10 +83,8 @@ func (res taskRun) Build() (runtime.Object, error) {
 							Params: []v1alpha1.Param{
 								{
 									Name: "url",
-									// OCP, OKD
+									// Calculate the path of the image using docker registry URL for ocp or k8s cluster
 									Value: res.reconciler.dockerImageURL(c),
-									// Kubernetes
-									// Value: "kube-registry.kube-system.svc:5000/demo/spring-boot-example",
 								},
 							},
 						},
