@@ -130,6 +130,9 @@ func (res task) Build() (runtime.Object, error) {
 					Command: []string{
 						"buildah",
 					},
+					Env: []corev1.EnvVar{
+						{Name: "REGISTRY_AUTH_FILE", Value: "/home/builder/.docker/config.json"},
+					},
 					Args: []string{
 						"push",
 						"--tls-verify=${inputs.params.verifyTLS}",
