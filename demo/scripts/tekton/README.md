@@ -20,8 +20,15 @@ export NS=test
 kc delete -Rf demo/scripts/tekton/buildah -n $NS
 kc apply -Rf demo/scripts/tekton/buildah -n $NS
 
-#kc delete -Rf demo/scripts/tekton/login -n $NS
-#kc apply -Rf demo/scripts/tekton/login -n $NS
+export NS=test
+oc new-project $NS
+oc adm policy add-scc-to-user privileged system:serviceaccount:$NS:build-bot
+oc adm policy add-role-to-user edit system:serviceaccount:$NS:build-bot
+
+oc apply -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator/master/demo/scripts/tekton/buildah/sa.yml
+oc apply -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator/master/demo/scripts/tekton/buildah/task.yml
+oc apply -n $NS -f https://raw.githubusercontent.com/snowdrop/component-operator/master/demo/scripts/tekton/buildah/taskrun.yml
+
 ```
 
 - Install task and taskRun using `kaniko` tool
