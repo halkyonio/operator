@@ -116,6 +116,7 @@ items:
     labels:
       app: fruit-backend-sb
   spec:
+    exposeService: true
     deploymentMode: $MODE
     buildConfig:
       url: https://github.com/snowdrop/component-operator-demo.git
