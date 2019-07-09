@@ -26,41 +26,11 @@ The `Custom Resouorces` contains `METADATA` information about the framework/lang
 - Configure the microservice in order to inject `env var, secret, ...`
 - Create a service or capability such as database: postgresql
 
-## How to create a 
 
-The deployment of an application will consist in to create a `Component` yaml resource file defined according to the 
-[Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha2/component_types.go#L11).
+### Prerequisites
 
-```bash
-apiVersion: devexp.runtime.redhat.com/v1alpha2
-kind: Component
-metadata:
-  name: spring-boot-demo
-spec:
-  # Strategy used by the operator to install the Kubernetes resources as DevMode = dev or BuildMode = outerloop
-  deploymentMode: dev
-  # Runtime type that the operator will map with a docker image (java, node, ...)
-  runtime: spring-boot
-  version: 1.5.16
-  # To been able to create a Kubernetes Ingress resource OR OpenShift Route
-  exposeService: true
-  envs:
-    - name: SPRING_PROFILES_ACTIVE
-      value: openshift-catalog
-```
-
-When this `Custom resource` will be processed by the Kubernetes API Server and published, then the `Component operator` will be notified and will execute different operations to create:
-- For the `runtime` a development's pod running a `supervisor's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/dev/install.go#L56) and where we can push a `uber jar` file compiled locally, 
-- A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
-- `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
-
-**Remark**: The `Component` Operator can be deployed on `Kubernetes >= 1.11` or `OpenShift >= 3.11`.
-
-## For the users
-
-In order to use the 
-
-### TODO - To be reviewed and updated
+In order to use the Operator and the CRs, it is needed to install Tekton Pipelines and KubeDB Operator.
+We assume that you have installed a K8s cluster starting from version 1.12 
 
 - Login to the cluster using a user having admin cluster role
 ```bash
@@ -118,7 +88,8 @@ Now, to confirm CRD groups have been registered by the operator, run the followi
 ```
 kubectl get crd -l app=kubedb
 ```
-Now, you are ready to create your first database using KubeDB
+
+### Install the Operator
 
 - Deploy the resources within the namespace `component-operator` 
 
@@ -133,7 +104,7 @@ kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/m
 kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/operator.yaml
 ```
 
-- Give the `priveleged` security context to the serviceaccount `postgres-db` used by the KubeDB operator
+- Give the `privileged` security context to the serviceaccount `postgres-db` used by the KubeDB operator
 ```bash
 oc project test
 oc adm policy add-scc-to-user privileged -z postgres-db
@@ -145,35 +116,14 @@ oc adm policy add-scc-to-user privileged -z build-bot
 oc adm policy add-role-to-user edit -z build-bot
 ```
 
-## Clean up
 
-```
-curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh \
-    | bash -s -- --uninstall -n kubedb
-```
-
-error: unable to retrieve the complete list of server APIs: mutators.kubedb.com/v1alpha1: the server is currently unable to handle the request, validators.kubedb.com/v1alpha1: the server is currently unable to handle the request
-
-
-### How to play with the Component operator locally
+### How to play with it
 
 - Log on to an OpenShift cluster >=3.10 with cluster-admin rights
 - Create a namespace `component-operator`
   ```bash
   $ oc new-project component-operator
   ```
-
-- Deploy the resources: service account, rbac and crd definition
-  ```bash
-  $ oc create -f deploy/sa.yaml
-  $ oc create -f deploy/rbac.yaml
-  $ oc create -f deploy/crds/component_v1alpha2.yaml
-  ```
-
-- Start the Operator locally using the `Main` go file
-  ```bash
-  $ oc new-project my-spring-app
-  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=$HOME/.kube/config go run cmd/manager/main.go
   
 - In a separate terminal create a component's yaml file with the following information
   ```bash
@@ -261,18 +211,36 @@ In order to switch between the 2 modes, execute the following operations:
   oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
   ```   
   
-### How to install the operator on a cluster
+## TODO: to be reviewed 
 
-In the previous section, the operator was launched locally using a `go SDK`. If you would like to install it as a `container` on an OpenShift cluster, then it is required to build 
-the container image using the `operator-sdk` tool [1], to push the image and next to install the operator using a `Deployment` kubernetes resource as defined hereafter
+The deployment of an application will consist in to create a `Component` yaml resource file defined according to the 
+[Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha2/component_types.go#L11).
 
-  ```bash
-  operator-sdk build quay.io/snowdrop/component-operator
-  docker push quay.io/snowdrop/component-operator
-  oc create -f deploy/operator.yaml
-  ``` 
+```bash
+apiVersion: devexp.runtime.redhat.com/v1alpha2
+kind: Component
+metadata:
+  name: spring-boot-demo
+spec:
+  # Strategy used by the operator to install the Kubernetes resources as DevMode = dev or BuildMode = outerloop
+  deploymentMode: dev
+  # Runtime type that the operator will map with a docker image (java, node, ...)
+  runtime: spring-boot
+  version: 1.5.16
+  # To been able to create a Kubernetes Ingress resource OR OpenShift Route
+  exposeService: true
+  envs:
+    - name: SPRING_PROFILES_ACTIVE
+      value: openshift-catalog
+```
+
+When this `Custom resource` will be processed by the Kubernetes API Server and published, then the `Component operator` will be notified and will execute different operations to create:
+- For the `runtime` a development's pod running a `supervisor's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/dev/install.go#L56) and where we can push a `uber jar` file compiled locally, 
+- A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
+- `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
+
+**Remark**: The `Component` Operator can be deployed on `Kubernetes >= 1.11` or `OpenShift >= 3.11`.
   
-[1] https://github.com/operator-framework/operator-sdk   
 
 ### Cleanup
 
