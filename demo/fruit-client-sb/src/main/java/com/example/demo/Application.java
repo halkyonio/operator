@@ -15,10 +15,10 @@
  */
 package com.example.demo;
 
-import io.ap4k.component.annotation.CompositeApplication;
-import io.ap4k.component.annotation.Link;
-import io.ap4k.component.model.Kind;
-import io.ap4k.kubernetes.annotation.Env;
+import io.dekorate.component.annotation.ComponentApplication;
+import io.dekorate.component.annotation.Link;
+import io.dekorate.component.model.Kind;
+import io.dekorate.kubernetes.annotation.Env;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -26,7 +26,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Entry point to the application.
  */
 @SpringBootApplication
-@CompositeApplication(
+@ComponentApplication(
     name = "fruit-client-sb",
     exposeService = true
 )

@@ -400,26 +400,26 @@ add to the pom.xml file
 
 <properties>
   ...
-  <ap4k.version>0.3.2</ap4k.version>
+  <dekorate.version>0.3.2</dekorate.version>
 </properties>
   
 and 
 
 <dependencies>
   <dependency>
-    <groupId>io.ap4k</groupId>
+    <groupId>io.dekorate</groupId>
     <artifactId>component-annotations</artifactId>
-    <version>${ap4k.version}</version>
+    <version>${dekorate.version}</version>
   </dependency>
   <dependency>
-    <groupId>io.ap4k</groupId>
+    <groupId>io.dekorate</groupId>
     <artifactId>kubernetes-annotations</artifactId>
-    <version>${ap4k.version}</version>
+    <version>${dekorate.version}</version>
   </dependency>
   <dependency>
-    <groupId>io.ap4k</groupId>
-    <artifactId>ap4k-spring-boot</artifactId>
-    <version>${ap4k.version}</version>
+    <groupId>io.dekorate</groupId>
+    <artifactId>dekorate-spring-boot</artifactId>
+    <version>${dekorate.version}</version>
   </dependency>
   <!-- spring Boot -->
   

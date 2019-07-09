@@ -28,22 +28,22 @@
         </dependency>
         <!-- To generate CRD -->
         <dependency>
-            <groupId>io.ap4k</groupId>
+            <groupId>io.dekorate</groupId>
             <artifactId>component-annotations</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>io.ap4k</groupId>
-            <artifactId>ap4k-spring-boot</artifactId>
+            <groupId>io.dekorate</groupId>
+            <artifactId>dekorate-spring-boot</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>io.ap4k</groupId>
-            <artifactId>ap4k-core</artifactId>
+            <groupId>io.dekorate</groupId>
+            <artifactId>dekorate-core</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>io.ap4k</groupId>
+            <groupId>io.dekorate</groupId>
             <artifactId>kubernetes-annotations</artifactId>
             <scope>compile</scope>
         </dependency>
