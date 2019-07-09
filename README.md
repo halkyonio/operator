@@ -5,12 +5,14 @@
 Table of Contents
 =================
   * [Introduction](#introduction)
-  * [For the users](#for-the-users)
-     * [How to play with the Component operator locally](#how-to-play-with-the-component-operator-locally)
+     * [Prerequisites](#prerequisites)
+     * [Install the Operator](#install-the-operator)
+     * [How to play with it](#how-to-play-with-it)
      * [A more complex scenario](#a-more-complex-scenario)
      * [Switch from Development to Build/Prod mode](#switch-from-development-to-buildprod-mode)
-     * [How to install the operator on a cluster](#how-to-install-the-operator-on-a-cluster)
+  * [TODO: to be reviewed](#todo-to-be-reviewed)
      * [Cleanup](#cleanup)
+
 
 ## Introduction
 
