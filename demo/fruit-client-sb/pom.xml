@@ -9,8 +9,8 @@
     </parent>
     <artifactId>fruit-client-sb</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Spring Boot - HTTP REST Client</name>
-    <description>Spring Boot - HTTP REST Client</description>
+    <name>Spring Boot - Fruit REST client</name>
+    <description>Spring Boot - Fruit REST client</description>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

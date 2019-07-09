@@ -10,8 +10,8 @@
     
     <artifactId>fruit-backend-sb</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Spring Boot - CRUD Demo</name>
-    <description>Spring Boot - CRUD Demo</description>
+    <name>Spring Boot - Fruit backend</name>
+    <description>Spring Boot - Fruit backend</description>
 
     <properties>
         <awaitility.version>3.1.0</awaitility.version>
