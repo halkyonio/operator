@@ -28,7 +28,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     exposeService = true,
     envs = @Env(
         name = "SPRING_PROFILES_ACTIVE",
-        value = "broker-catalog")
+        value = "postgresql-kubedb")
 )
 @Link(
     name = "link-to-database",
