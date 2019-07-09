@@ -225,14 +225,14 @@ fi
 
 printTitle "2. ENV injected to the fruit backend component"
 printTitle "2. ENV injected to the fruit backend component" >> ${REPORT_FILE}
-kubectl exec -n ${NS} $(kubectl get pod -n ${NS} -lapp=fruit-backend-sb | grep "Running" | awk '{print $1}') env | grep DB >> ${REPORT_FILE}
+until kubectl get pods -n $NS -l app=$COMPONENT_FRUIT_BACKEND_NAME | grep "Running"; do sleep 5; done
+kubectl exec -n ${NS} $(kubectl get pod -n ${NS} -lapp=$COMPONENT_FRUIT_BACKEND_NAME | grep "Running" | awk '{print $1}') env | grep DB >> ${REPORT_FILE}
 printf "\n" >> ${REPORT_FILE}
 
 printTitle "3. ENV var defined for the fruit client component"
 printTitle "3. ENV var defined for the fruit client component" >> ${REPORT_FILE}
-# kubectl describe -n ${NS} pod/$(kubectl get pod -n ${NS} -lapp=fruit-client-sb | grep "Running" | awk '{print $1}') >> ${REPORT_FILE}
-# See jsonpath examples : https://kubernetes.io/docs/reference/kubectl/cheatsheet/
-for item in $(kubectl get pod -n ${NS} -lapp=fruit-client-sb --output=name); do printf "Envs for %s\n" "$item" | grep --color -E '[^/]+$' && kubectl get "$item" -n ${NS} --output=json | jq -r -S '.spec.containers[0].env[] | " \(.name)=\(.value)"' 2>/dev/null; printf "\n"; done >> ${REPORT_FILE}
+until kubectl get pods -n $NS -l app=$COMPONENT_FRUIT_CLIENT_NAME | grep "Running"; do sleep 5; done
+for item in $(kubectl get pod -n ${NS} -lapp=$COMPONENT_FRUIT_CLIENT_NAME --output=name); do printf "Envs for %s\n" "$item" | grep --color -E '[^/]+$' && kubectl get "$item" -n ${NS} --output=json | jq -r -S '.spec.containers[0].env[] | " \(.name)=\(.value)"' 2>/dev/null; printf "\n"; done >> ${REPORT_FILE}
 printf "\n" >> ${REPORT_FILE}
 
 if [ "$MODE" == "dev" ]; then
@@ -242,7 +242,7 @@ if [ "$MODE" == "dev" ]; then
 fi
 
 printTitle "Wait until Spring Boot actuator health replies UP for both microservices"
-for i in fruit-backend-sb fruit-client-sb
+for i in $COMPONENT_FRUIT_BACKEND_NAME $COMPONENT_FRUIT_CLIENT_NAME
   do
     until [ "$HTTP_BODY" == "$EXPECTED_RESPONSE" ]; do
       HTTP_RESPONSE=$(kubectl exec -n $NS $(kubectl get pod -n $NS -lapp=$i | grep "Running" | awk '{print $1}') -- curl -L -w "HTTPSTATUS:%{http_code}" -s localhost:8080/actuator/health 2>&1)
