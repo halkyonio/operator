@@ -16,18 +16,18 @@ Table of Contents
 
 ## Introduction
 
-The purpose of this project is to enhance the developer experience and to it when you will install/deploy a project on Kubernetes 
-by providing different [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
-a Runtime [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) able
-to install a collection of runtimes (aka microservices) such as `Spring Boot, Vert.x, Thorntail, Quarkus` on `Kubernetes` or `OpenShift`
-and to manage different aspects such as to `link` them when we have to access REST endpoints or `capability` to access a backend like a database
+The purpose of this project is to enhance the developer experience when you will install/deploy a collection of microservices
+on Kubernetes by providing different [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
+a Runtime [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) able to:
+- Install different runtimes (aka microservices) such as `Spring Boot, Vert.x, Thorntail, Quarkus`
+- Manage the relations or `link` to consume the services exposed by a REST endpoint or
+- To setup a `capability` on the platform to access a backend like a database: postgresql
 
-The `Custom Resouorces` contains `METADATA` information about the framework/language to be used to either:
+The `Custom Resources` contains `METADATA` information about the framework/language to be used to either:
 - Configure the strategy that we want to adopt to deploy the application: `Development mode` or `Building/Prod mode`
 - Select the container image to be used to launch the application: java for `Spring Boot, Eclipse Vert.x, Thorntail`; node for `nodejs` 
 - Configure the microservice in order to inject `env var, secret, ...`
 - Create a service or capability such as database: postgresql
-
 
 ### Prerequisites
 
