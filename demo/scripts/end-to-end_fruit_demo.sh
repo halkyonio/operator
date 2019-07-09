@@ -276,4 +276,8 @@ else
 fi
 
 printTitle "Delete the resources components, links and capabilities"
-kubectl delete components,links,capabilities,imagestreams --all -n ${NS}
+if [ "$isOpenShift" == "true" ]; then
+  kubectl delete components,links,capabilities,imagestreams --all -n ${NS}
+else
+  kubectl delete components,links,capabilities --all -n ${NS}
+fi
