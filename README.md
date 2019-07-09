@@ -5,14 +5,13 @@
 Table of Contents
 =================
   * [Introduction](#introduction)
-     * [Prerequisites](#prerequisites)
-     * [Install the Operator](#install-the-operator)
-     * [How to play with it](#how-to-play-with-it)
-     * [A more complex scenario](#a-more-complex-scenario)
-     * [Switch from Development to Build/Prod mode](#switch-from-development-to-buildprod-mode)
-  * [TODO: to be reviewed](#todo-to-be-reviewed)
-     * [Cleanup](#cleanup)
-
+  * [Prerequisites](#prerequisites)
+  * [Installation of the Operator](#installation-of-the-operator)
+  * [How to play with it](#how-to-play-with-it)
+  * [A more complex scenario](#a-more-complex-scenario)
+  * [Switch from Development to Build/Prod mode](#switch-from-development-to-buildprod-mode)
+  * [A cool demo](#a-cool-demo)
+  * [Cleanup](#cleanup)
 
 ## Introduction
 
@@ -29,7 +28,7 @@ The `Custom Resources` contains `METADATA` information about the framework/langu
 - Configure the microservice in order to inject `env var, secret, ...`
 - Create a service or capability such as database: postgresql
 
-### Prerequisites
+## Prerequisites
 
 In order to use the Operator and the CRs, it is needed to install Tekton Pipelines and KubeDB Operator.
 We assume that you have installed a K8s cluster starting from version 1.12 
@@ -91,7 +90,7 @@ Now, to confirm CRD groups have been registered by the operator, run the followi
 kubectl get crd -l app=kubedb
 ```
 
-### Install the Operator
+## Installation of the Operator
 
 - Deploy the resources within the namespace `component-operator` 
 
@@ -118,8 +117,7 @@ oc adm policy add-scc-to-user privileged -z build-bot
 oc adm policy add-role-to-user edit -z build-bot
 ```
 
-
-### How to play with it
+## How to play with it
 
 - Log on to an OpenShift cluster >=3.10 with cluster-admin rights
 - Create a namespace `component-operator`
@@ -170,7 +168,7 @@ oc adm policy add-role-to-user edit -z build-bot
   $ oc delete components,route,svc,is,pvc,dc --all=true && 
   ``` 
   
-### A more complex scenario   
+## A more complex scenario   
 
 In order to play with a more complex scenario where we would like to install 2 components: `frontend`, `backend` and a database's service from the Ansible Broker's catalog
 like also the `links` needed to update the `DeploymentConfig`, then you should execute the following commands at the root of the github project within a terminal
@@ -183,7 +181,7 @@ like also the `links` needed to update the `DeploymentConfig`, then you should e
   oc apply -f examples/demo/component-link.yml
   ```  
   
-### Switch from Development to Build/Prod mode
+## Switch from Development to Build/Prod mode
 
 The existing operator supports to switch from the `inner` or development mode (where code must be pushed to the development's pod) to the `outer` mode (responsible to perform a `s2i` build 
 deployment using a SCM project). In this case, a container image will be created from the project compiled and next a new deploymentConfig will be created in order to launch the 
@@ -212,6 +210,17 @@ In order to switch between the 2 modes, execute the following operations:
   ```bash
   oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
   ```   
+
+## A cool demo
+
+## Cleanup
+
+  ```bash
+  oc delete -f deploy/crds/component-v1alpha2.yaml
+  oc delete -f deploy/operator.yaml
+  oc delete -f deploy/rbac.yaml
+  oc delete -f deploy/sa.yaml
+  ```
   
 ## TODO: to be reviewed 
 
