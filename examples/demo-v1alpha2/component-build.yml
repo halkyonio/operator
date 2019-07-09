@@ -9,6 +9,7 @@ metadata:
   name: http-rest-sb
 spec:
   deploymentMode: build
+  exposeService: true
   buildConfig:
     url: https://github.com/snowdrop/rest-http-example.git
     ref: 2.1.6-1
