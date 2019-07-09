@@ -16,6 +16,7 @@ SLEEP_TIME=30s
 TIME=$(date +"%Y-%m-%d_%H-%M")
 REPORT_FILE="result_${TIME}.txt"
 EXPECTED_RESPONSE='{"status":"UP"}'
+EXPECTED_FRUITS='[{"id":1,"name":"Cherry"},{"id":2,"name":"Apple"},{"id":3,"name":"Banana"}]'
 INGRESS_RESOURCES=$(kubectl get ing 2>&1)
 
 # Test if we run on plain k8s or openshift
@@ -243,13 +244,14 @@ fi
 
 printTitle "Wait until Spring Boot actuator health replies UP for both microservices"
 for i in $COMPONENT_FRUIT_BACKEND_NAME $COMPONENT_FRUIT_CLIENT_NAME
-  do
-    until [ "$HTTP_BODY" == "$EXPECTED_RESPONSE" ]; do
-      HTTP_RESPONSE=$(kubectl exec -n $NS $(kubectl get pod -n $NS -lapp=$i | grep "Running" | awk '{print $1}') -- curl -L -w "HTTPSTATUS:%{http_code}" -s localhost:8080/actuator/health 2>&1)
-      HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
-      echo "$i: Response is : $HTTP_BODY, expected is : $EXPECTED_RESPONSE"
-      sleep 10s
-    done
+do
+  HTTP_BODY=""
+  until [ "$HTTP_BODY" == "$EXPECTED_RESPONSE" ]; do
+    HTTP_RESPONSE=$(kubectl exec -n $NS $(kubectl get pod -n $NS -lapp=$i | grep "Running" | awk '{print $1}') -- curl -L -w "HTTPSTATUS:%{http_code}" -s localhost:8080/actuator/health 2>&1)
+    HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
+    echo "$i: Response is : $HTTP_BODY, expected is : $EXPECTED_RESPONSE"
+    sleep 10s
+  done
 done
 
 printTitle "Curl Fruit service"
@@ -258,14 +260,20 @@ printTitle "4. Curl Fruit Endpoint service"  >> ${REPORT_FILE}
 if [ "$INGRESS_RESOURCES" == "No resources found." ]; then
     echo "No ingress resources found. We run on OpenShift" >> ${REPORT_FILE}
     FRONTEND_ROUTE_URL=$(kubectl get route/fruit-client-sb -o jsonpath='{.spec.host}' -n ${NS})
-    curl http://$FRONTEND_ROUTE_URL/api/client >> ${REPORT_FILE}
+    CURL_RESPONSE=$(curl http://$FRONTEND_ROUTE_URL/api/client)
+    echo $CURL_RESPONSE >> ${REPORT_FILE}
 else
     FRONTEND_ROUTE_URL=fruit-client-sb.$CLUSTER_IP.nip.io
-    curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client >> ${REPORT_FILE}
+    CURL_RESPONSE=$(curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client)
+    echo $CURL_RESPONSE >> ${REPORT_FILE}
 fi
 
-# printTitle "Delete the resources components, links and capabilities"
-# kubectl delete components,links,capabilities --all -n ${NS}
+if [ "$CURL_RESPONSE" == "$EXPECTED_FRUITS" ]; then
+   printTitle "CALLING FRUIT ENDPOINT SUCCEEDED :-)"
+else
+   printTitle "FAILED TO CALL FRUIT ENDPOINT :-("
+   exit 1
+fi
 
-printTitle "End-to-end scenario executed successfully"
-printTitle "To delete the resources, run:  ./demo/scripts/delete_resources.sh <NAMESPACE>"
+printTitle "Delete the resources components, links and capabilities"
+kubectl delete components,links,capabilities,imagestreams --all -n ${NS}
