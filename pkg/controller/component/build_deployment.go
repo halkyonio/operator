@@ -7,6 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	// "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 //createBuildDeployment returns the Deployment config object to be used for deployment using a container image build by Tekton
@@ -15,6 +16,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	ls := getAppLabels(buildOrDevNamer(c))
 
 	// create runtime container using built image (= created by the Tekton build task)
+	// r := res.reconciler
 	runtimeContainer, err := res.reconciler.getRuntimeContainerFor(c)
 	if err != nil {
 		return nil, err

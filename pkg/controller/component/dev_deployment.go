@@ -9,7 +9,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -85,7 +84,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 	}
 
 	// Set Component instance as the owner and controller
-	return dep, controllerutil.SetControllerReference(c, dep, r.Scheme)
+	return dep, nil
 }
 
 func (r *ReconcileComponent) getBaseContainerFor(component *v1alpha2.Component) (corev1.Container, error) {
