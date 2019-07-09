@@ -1,4 +1,4 @@
-# Component CRD & Kubernetes operator
+# Developer Experience Runtime Operator
 
 [![CircleCI](https://circleci.com/gh/snowdrop/component-operator/tree/master.svg?style=shield)](https://circleci.com/gh/snowdrop/component-operator/tree/master)
 
@@ -12,19 +12,23 @@ Table of Contents
      * [How to install the operator on a cluster](#how-to-install-the-operator-on-a-cluster)
      * [Cleanup](#cleanup)
 
-   
 ## Introduction
 
-The purpose of this project is to develop a Kubernetes `Custom Resource Definition` called `Component CRD` and [Kubernetes Operator](https://goo.gl/D8iE2K) able to install a Microservice Application such as `Spring Boot` on a cloud platform: `Kubernetes` or `OpenShift`
-or to deploy a Service using the help of Service Broker Catalog.
+The purpose of this project is to enhance the developer experience and to it when you will install/deploy a project on Kubernetes 
+by providing different [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
+a Runtime [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) able
+to install a collection of runtimes (aka microservices) such as `Spring Boot, Vert.x, Thorntail, Quarkus` on `Kubernetes` or `OpenShift`
+and to manage different aspects such as to `link` them when we have to access REST endpoints or `capability` to access a backend like a database
 
-The CRD contains `METADATA` information about the framework/language to be used to either:
-- Configure the strategy that we want to adopt to code and install the application: `Development mode` or `Building/Prod mode`
+The `Custom Resouorces` contains `METADATA` information about the framework/language to be used to either:
+- Configure the strategy that we want to adopt to deploy the application: `Development mode` or `Building/Prod mode`
 - Select the container image to be used to launch the application: java for `Spring Boot, Eclipse Vert.x, Thorntail`; node for `nodejs` 
 - Configure the microservice in order to inject `env var, secret, ...`
-- Create a service selected from a Service Broker Catalog
+- Create a service or capability such as database: postgresql
 
-The deployment or installation of an application in a namespace will consist in to create a `Component` yaml resource file defined according to the 
+## How to create a 
+
+The deployment of an application will consist in to create a `Component` yaml resource file defined according to the 
 [Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha2/component_types.go#L11).
 
 ```bash
@@ -53,6 +57,8 @@ When this `Custom resource` will be processed by the Kubernetes API Server and p
 **Remark**: The `Component` Operator can be deployed on `Kubernetes >= 1.11` or `OpenShift >= 3.11`.
 
 ## For the users
+
+In order to use the 
 
 ### TODO - To be reviewed and updated
 
