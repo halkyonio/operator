@@ -8,8 +8,6 @@ apiVersion: devexp.runtime.redhat.com/v1alpha2
 kind: Component
 metadata:
   name: fruit-backend-sb
-  labels:
-    app: fruit-backend-sb
 spec:
   deploymentMode: build
   buildConfig:
