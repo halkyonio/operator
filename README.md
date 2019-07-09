@@ -20,7 +20,7 @@ The purpose of this project is to enhance the developer experience when you will
 on Kubernetes by providing different [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
 a Runtime [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) able to:
 - Install different runtimes (aka microservices) such as `Spring Boot, Vert.x, Thorntail, Quarkus`
-- Manage the relations or `link` to consume the services exposed by a REST endpoint or
+- Manage the relations which exist between the microservices using a `link` to consume by example a REST endpoint or
 - To setup a `capability` on the platform to access a backend like a database: postgresql
 
 The `Custom Resources` contains `METADATA` information about the framework/language to be used to either:
