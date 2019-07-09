@@ -4,3 +4,4 @@ tmp/
 build/_output/
 **/target/
 package-lock.json
+result**.txt
