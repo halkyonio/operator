@@ -20,7 +20,6 @@ oc adm policy add-role-to-user edit system:serviceaccount:test:build-bot
 export NS=test
 kubectl apply -Rf demo/scripts/tekton/buildah -n $NS
 
-export NS=test
 oc new-project $NS
 oc adm policy add-scc-to-user privileged system:serviceaccount:$NS:build-bot
 oc adm policy add-role-to-user edit system:serviceaccount:$NS:build-bot
