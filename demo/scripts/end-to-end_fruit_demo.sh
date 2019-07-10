@@ -17,7 +17,6 @@ TIME=$(date +"%Y-%m-%d_%H-%M")
 REPORT_FILE="result_${TIME}.txt"
 EXPECTED_RESPONSE='{"status":"UP"}'
 EXPECTED_FRUITS='[{"id":1,"name":"Cherry"},{"id":2,"name":"Apple"},{"id":3,"name":"Banana"}]'
-INGRESS_RESOURCES=$(kubectl get ing -n $NS 2>&1)
 
 # Test if we run on plain k8s or openshift
 res=$(kubectl api-versions | grep user.openshift.io/v1)
@@ -181,7 +180,7 @@ sleep ${SLEEP_TIME}
 printTitle "Report status : ${TIME}" > ${REPORT_FILE}
 
 printTitle "1. Status of the resources created using the CRDs : Component, Link or Capability" >> ${REPORT_FILE}
-if [ "$INGRESS_RESOURCES" == "No resources found." ]; then
+if [ "$isOpenShift" == "true" ]; then
   for i in components links capabilities pods deployments deploymentconfigs services routes pvc postgreses secret/postgres-db-config
   do
     printTitle "$(echo $i | tr a-z A-Z)" >> ${REPORT_FILE}
@@ -230,7 +229,7 @@ done
 printTitle "Curl Fruit service"
 printTitle "4. Curl Fruit Endpoint service"  >> ${REPORT_FILE}
 
-if [ "$INGRESS_RESOURCES" == "No resources found." ]; then
+if [ "$isOpenShift" == "true" ]; then
     echo "No ingress resources found. We run on OpenShift" >> ${REPORT_FILE}
     FRONTEND_ROUTE_URL=$(kubectl get route/fruit-client-sb -o jsonpath='{.spec.host}' -n ${NS})
     CURL_RESPONSE=$(curl http://$FRONTEND_ROUTE_URL/api/client)
