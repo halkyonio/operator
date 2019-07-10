@@ -97,7 +97,7 @@ to configure its HTTP Client to access the HTTP endpoint exposed by the backend 
 )
 ```
 
-Like for the Client's component, we will define a `@ComponentApplication` and `@Link` annotations. The link will inject from the secret referenced, the parameters that the application
+Like for the Client's component, we will define a `@ComponentApplication` and `@Link` annotations for the `Backend` component. The link will inject from the secret referenced, the parameters that the application
 will use to create a `DataSource`'s java bean able to call the `PostgreSQL` instance.
 
 **Backend**
@@ -119,8 +119,8 @@ will use to create a `DataSource`'s java bean able to call the `PostgreSQL` inst
     ref = "postgresql-db")
 ```             
                 
-To configure the Service/Capability to be created (e.g postgresql database), we will use the `@Capability` annotation to 
-configure the database, user, password and database name.
+To configure the postgresql database to be used by the backend, we will use the `@Capability` annotation to 
+configure the database, the user, password and database name.
                 
 ```java
 @Capability(
@@ -144,8 +144,11 @@ kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
 ``` 
 
 Wait a few moment and verify if the status of the components deployed is ready
+```bash
+TODO - add resources deployed here
+```
 
-Then push the uber jar file withn the pod using the following bash script 
+Then push the uber jar file within the pod using the following bash script 
 ```bash
 ./scripts/k8s_push_start.sh fruit-backend sb demo
 ./scripts/k8s_push_start.sh fruit-client sb demo
@@ -162,31 +165,35 @@ curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client
 
 ### Switch from Dev to Build mode
 
-- Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
-  the dev loop to the publish loop
+TODO: To be reviewed !
 
-  ```bash
-   annotations:
-     app.openshift.io/git-uri: https://github.com/snowdrop/component-operator-demo.git
-     app.openshift.io/git-ref: master
-     app.openshift.io/git-dir: fruit-backend-sb
-     app.openshift.io/artifact-copy-args: "*.jar"
-     app.openshift.io/runtime-image: "fruit-backend-sb"
-     app.openshift.io/component-name: "fruit-backend-sb"
-     app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
-  ``` 
+Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
+the dev loop to the publish loop
+
+```bash
+ annotations:
+   app.openshift.io/git-uri: https://github.com/snowdrop/component-operator-demo.git
+   app.openshift.io/git-ref: master
+   app.openshift.io/git-dir: fruit-backend-sb
+   app.openshift.io/artifact-copy-args: "*.jar"
+   app.openshift.io/runtime-image: "fruit-backend-sb"
+   app.openshift.io/component-name: "fruit-backend-sb"
+   app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
+``` 
   
-  **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
+**Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
   
-- Patch the component when it has been deployed to switch from `dev` to `build`
+Patch the component when it has been deployed to switch from `dev` to `build`
   
-  ```bash
-  kubectl patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"build"}}' --type=merge
-  ```   
+```bash
+kubectl patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"build"}}' --type=merge
+```   
 
 ### Nodejs deployment
 
-- Build node project locally
+TODO : To be reviewed !
+
+Build node project locally
 ```bash
 cd fruit-client-nodejs
 nvm use v10.1.0
@@ -194,24 +201,24 @@ npm audit fix
 npm install -s --only=production
 ```
 
-- Run locally
+Run locally
 ```bash
 export ENDPOINT_BACKEND=http://fruit-backend-sb.my-spring-app.195.201.87.126.nip.io/api/fruits
 npm run -d start      
 ```
 
-- Deploy the node's component and link it to the Spring Boot fruit backend
+Deploy the node's component and link it to the Spring Boot fruit backend
 ```bash
 kubectl apply -f fruit-client-nodejs/component.yml
 kubectl apply -f fruit-client-nodejs/env-backend-endpoint.yml
 ```
 
-- Push the code and start the nodejs application
+Push the code and start the nodejs application
 ```bash
 ./scripts/push_start.sh fruit-client nodejs
 ```
 
-- Test it locally or remotely
+Test it locally or remotely
 ```bash
 # locally
 http :8080/api/client
@@ -231,6 +238,7 @@ http http://$route_address/api/client/3
 
 ### Scaffold a project
 
+TODO: To be reviewed using `kreate` tool
 
 ```bash
 git clone git@github.com:snowdrop/scaffold-command.git && cd scaffold-command
