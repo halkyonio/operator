@@ -111,6 +111,119 @@ jobs:
           go get github.com/onsi/gomega
           go test -v ./e2e -ginkgo.v
 
+  k8s-test:
+    machine: true
+    steps:
+    - checkout
+    - run:
+        name: Install go and retrieve project code
+        command: |
+          GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
+          PROJECT_PATH=src/github.com/snowdrop/component-operator
+          mkdir -p "${GO_PATH_FIRST}/${PROJECT_PATH}"
+          cp -R $HOME/project/* ${GO_PATH_FIRST}/${PROJECT_PATH}
+          GO_VERSION=1.12.5
+          sudo rm -rf /usr/local/go && sudo mkdir -p /usr/local/go
+          curl -O https://dl.google.com/go/go"${GO_VERSION}".linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go"${GO_VERSION}".linux-amd64.tar.gz
+    - run:
+        name: Install kubectl, Helm
+        command: |
+          KUBE_VERSION=v1.13.0
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
+          chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl
+          curl -L https://git.io/get_helm.sh | bash
+    - run:
+        name: Install microk8s
+        command: |
+          MICROK8S_VERSION=1.13
+          sudo snap install microk8s --classic --channel=${MICROK8S_VERSION}/stable
+
+          # wait until a k8s node is ready
+          sleep 10
+          n=0
+          until [ $n -ge 15 ]
+          do
+            (/snap/bin/microk8s.kubectl get no | grep -z "Ready") && break
+            n=$[$n+1]
+            sleep 20
+          done
+          echo "Kubernetes cluster launched"
+
+          # Allow intra-pod communication
+          sudo iptables -P FORWARD ACCEPT
+    - run:
+        name: Enable Services dns & storage. Disable internal k8s docker registry
+        command: |
+          /snap/bin/microk8s.enable dns storage
+          # Disable Internal Docker Registry as we will not use it
+          #/snap/bin/microk8s.disable registry
+    - run:
+        name: Enable Services Ingress
+        command: |
+          /snap/bin/microk8s.enable ingress
+    - run:
+        name: Initialize helm
+        command: |
+          helm init
+
+          until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
+
+          kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
+    - run:
+        name: Install KubeDB Operator using Helm chart
+        command: |
+          helm repo add appscode https://charts.appscode.com/stable/
+          helm repo update
+          KUBEDB_VERSION=0.12.0
+          helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} \
+          --namespace kubedb --set apiserver.enableValidatingWebhook=false,apiserver.enableMutatingWebhook=false
+    - run:
+        name: Wait till KubeDB operator is on, CRDs deployed and install KubeDB Catalog using Helm chart
+        command: |
+          TIMER=0
+          until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions.catalog.kubedb.com mongodbversions.catalog.kubedb.com mysqlversions.catalog.kubedb.com postgresversions.catalog.kubedb.com redisversions.catalog.kubedb.com || [[ ${TIMER} -eq 60 ]]; do
+            sleep 2
+            TIMER=$((TIMER + 1))
+          done
+
+          KUBEDB_VERSION=0.12.0
+          helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
+          --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
+
+    - run:
+        name: Install Component Operator from master branch
+        command: |
+          kubectl create namespace operators
+          CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/sa.yaml -n operators
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-role.yaml
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/user-rbac.yaml
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-role-binding.yaml
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/capability_v1alpha2.yaml
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component_v1alpha2.yaml
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/link_v1alpha2.yaml
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/operator.yaml -n operators
+    - run:
+        name: Install Tekton Operator to perform build tasks
+        command: |
+          TEKTON_VERSION=v0.4.0
+          kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/${TEKTON_VERSION}/release.yaml
+    - run:
+        name: Perform E2E tests
+        command: |
+          CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
+          GO_PATH_FIRST=$(echo ${GOPATH} | cut -d ":" -f1)
+          PROJECT_PATH=src/github.com/snowdrop/component-operator
+          kubectl create namespace my-spring-boot
+          kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/examples/component.yml
+          sleep 30s
+          cd ${GO_PATH_FIRST}/${PROJECT_PATH}
+          export GO111MODULE="on"
+          go get github.com/onsi/ginkgo
+          go get github.com/onsi/gomega
+          go test -v ./e2e -ginkgo.v
+
   # Creates a github release and pushes all the assets
   release:
     executor: go-executor
@@ -158,7 +271,7 @@ jobs:
             VERSION=${BASH_REMATCH[1]}
 
             make build-linux
-            
+
             docker build -t component-operator:${VERSION} -f build/Dockerfile .
             TAG_ID=$(docker images -q component-operator:${VERSION})
             docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
@@ -186,8 +299,11 @@ workflows:
           branches:
             only: master
     - okd-test:
-         requires:
-           - docker-image
+        requires:
+          - docker-image
+    - k8s-test:
+        requires:
+          - docker-image
   release-operator:
     jobs:
     - release:
