@@ -39,8 +39,10 @@ kind: Component
 metadata:
   name: spring-boot-demo
 spec:
-  # Strategy used by the operator to install the Kubernetes resources using a Dev mode where we can push the uber jar file of the microservices compiled locally
-  # or Build Mode where we want to delegate to the operator the responsibility to build the code from the git repository and to push to a local kubernetes registry the image
+  # Strategy used by the operator to install the Kubernetes resources using a Dev mode where we can push
+  # the uber jar file of the microservices compiled locally or Build Mode where we want to delegate to
+  # the operator the responsibility to build the code from the git repository and to push to a local
+  # kubernetes registry the image
   deploymentMode: dev
   # Runtime type that the operator will map with a docker image (java, nodejs, ...)
   runtime: spring-boot
