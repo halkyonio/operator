@@ -93,8 +93,9 @@ items:
     exposeService: true
     deploymentMode: $MODE
     buildConfig:
-      url: https://github.com/snowdrop/component-operator-demo.git
+      url: https://github.com/snowdrop/component-operator.git
       ref: master
+      contextPath: demo
       moduleDirName: fruit-backend-sb
     runtime: spring-boot
     version: 2.1.3
@@ -127,8 +128,9 @@ items:
   spec:
     deploymentMode: $MODE
     buildConfig:
-      url: https://github.com/snowdrop/component-operator-demo.git
+      url: https://github.com/snowdrop/component-operator.git
       ref: master
+      contextPath: demo
       moduleDirName: fruit-client-sb
     runtime: "spring-boot"
     version: "2.1.3.RELEASE"
