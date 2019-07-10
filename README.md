@@ -14,16 +14,15 @@ Table of Contents
 
 ## Introduction
 
-Modern applications designed using the `Microservices` pattern or the [12-factor](https://12factor.net/) methodology requires when they will be deployed
-on a Kubernetes cluster a strong Developer Experience able to deal with the different and sometimes complex Kubernetes resources needed.
+Deploying modern microservices style applications that utilize the [12-factor](https://12factor.net/) guidelines on to Kubernetes is difficult, mainly due to the host of different and complex Kubernetes Resources involved. In such scenarios developer experience becomes very important. 
 
-This project has been developed in order to help you and to `simplify` the process to deploy such applications.
+This projects aims to tackle said complexity and vastly **simplify** the process of deploying microservices style applications on to Kubernetes.
 
-This is the reason why, to enhance the Developer Experience on Kubernetes, we have designed different [Custom Resources - CR](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
-a Kubernetes [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) able to perform the following tasks:
+By provising various easy to use Kubernetes [Custom Resources - CR](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
+an [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) to handle them, the project provides the following features:
 - Install different `runtimes` (aka microservices) such as `Spring Boot, Vert.x, Thorntail, Quarkus or Nodejs`
-- Manage the relations which exist between the `Microservices` using a CR `link` to consume by example a REST endpoint or
-- To setup a CR `capability` on the platform to access a backend like a database: postgresql
+- Manage the relations which exist between the `Microservices` using a `link` CR allowing one microservice for example to consume a REST endpoint provided by another
+- Deploy various infrastructure services like a database (like postgresql) which are bound to a microservice via the `capability` CR.
 
 The `Custom Resource` contains `METADATA` information about the framework/language to be used to either:
 - Configure the strategy that we want to adopt to deploy the application: `Development mode` or `Building/Prod mode`
