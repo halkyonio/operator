@@ -78,6 +78,7 @@ minikube config set kubernetes-version v1.14.0
 minikube config set memory 6000
 minikube addons enable ingress
 minikube addons enable dashboard
+minikube addons enable registry
 minikube start
 ```
 
