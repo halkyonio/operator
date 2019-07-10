@@ -1,8 +1,7 @@
-# Spring Boot Demo using Component's CRD
+# A Real Example
 
   * [Introduction](#introduction)
   * [Demo's time](#demos-time)
-     * [Install the project](#install-the-project)
      * [Build the application](#build-the-application)
      * [Install the components on the cluster](#install-the-components-on-the-cluster)
      * [Check if the Component Client is replying](#check-if-the-component-client-is-replying)
@@ -12,14 +11,15 @@
      * [Scaffold a project](#scaffold-a-project)
   * [Cleanup](#cleanup)
 
+
 ## Introduction
 
-The purpose of this demo is to showcase how you can use the `Component`, `Link` and `Capability` CRDs combined withe the Kubernetes `operator` to help you to :
-- Install your Microservices Spring Boot application,
+The purpose of this demo is to showcase how you can use the `Component`, `Link` and `Capability` CRs combined with the Kubernetes `operator` to help you to :
+- Install your Microservices - Spring Boot applications,
 - Instantiate a PostgreSQL database
-- Inject the required information to the different Microservices to let a Spring Boot application to access/consume a service (http endpoint, database, ...)
+- Inject the required information to the different Microservices to let a Spring Boot application to access a service which is a http endpoint or to consume a database
 
-The demo's project consists, as depicted within the following diagram, of two Spring Boot applications and a PostgreSQL Database.
+The real example consists, as depicted within the following diagram, of two Spring Boot applications and a PostgreSQL Database.
 
 ![Composition](component-operator-demo2.png)
 
@@ -29,39 +29,17 @@ The application to be deployed can be described using a Fluent DSL syntax as :
 
 where the `ComponentA` and `ComponentB` correspond respectively to a Spring Boot application `fruit-client-sb` and `fruit-backend-sb`.
 
-The relation `from -> to` indicates that we will `reference` the `ComponentA` 
-with the `ComponentB` using a `Link`.
+The relation `from -> to` indicates that we will `reference` the `ComponentA`  with the `ComponentB` using a `Link`.
 
 The `link`'s purpose is to inject as `Env var(s)` the information required to by example configure the `HTTP client` of the `ComponentA` to access the 
 `ComponentB` which exposes the logic of the backend's system as CRUD REST operations.
 
-To let the `ComponentB` to access the database, we will also setup a `link` in order to pass using the `Secret` of the service instance created the parameters which are needed to configure a Spring Boot Datasource's bean.
+To let the `ComponentB` to access the database, we will also setup a `link` in order to pass using the `Secret` the parameters which are needed to configure a Java Datasource's bean.
 
-The deployment or installation of the application in a namespace will consist in to create the resources on the platform using some `Component` yaml resource files defined according to the 
-[Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha1/component_types.go#L11).
-When they will be created, then the `Component operator` which is a Kubernetes [controller](https://goo.gl/D8iE2K) will execute different operations to create : 
-- For the `component-runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push the `uber jar` file compiled locally, 
-- A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
-- `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
+To avoid that you must manually generate such `CR`, we will use the project [`Dekorate`](https://dekorate.io) which supports to generate Kubernetes resources from Java Annotations or using parameters defined
+within an `application.properties` file. 
 
 ## Demo's time
-
-### Install the project
-
-- Login to the OpenShift's cluster using your favorite user
-```bash
-oc login https://ip_address_or_hostname_fqdn>:8443 -u <user> -p <password
-```
-
-- Git clone the project locally to play with a Spring Boot composite application
-```bash
-git clone https://github.com/snowdrop/component-operator-demo.git && cd component-operator-demo
-```
-
-- Create a new project `my-spring-app`
-```bash
-oc new-project my-spring-app
-```
 
 ### Build the application
 

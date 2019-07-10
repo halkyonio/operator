@@ -1,8 +1,0 @@
-apiVersion: devexp.runtime.redhat.com/v1alpha2
-kind: Component
-metadata:
-  name: my-cool-vertx
-spec:
-  deploymentMode: dev
-  runtime: vert.x
-  version: v3.5.4
