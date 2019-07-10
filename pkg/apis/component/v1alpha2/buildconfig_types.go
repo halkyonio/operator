@@ -10,9 +10,12 @@ type BuildConfig struct {
 	// Ref is the git reference of the repo.
 	// Optional. By default it is equal to "master".
 	Ref string `json:"ref"`
-	// module is the name of the subfolder or directory in the repo to be used to perform a maven or gradle build.
+	// moduleDirName is the name of the maven module / directory where build should be done.
 	// Optional. By default, it is equal to "."
 	ModuleDirName string `json:"moduleDirName,omitempty"`
+	// contextPath is the directory relative to the git repository where the s2i build must take place.
+	// Optional. By default, it is equal to "."
+	ContextPath string `json:"contextPath,omitempty"`
 	// Container image to be used as Base or From to build the final image
 	BaseImage string `json:baseImage,omitempty`
 }
