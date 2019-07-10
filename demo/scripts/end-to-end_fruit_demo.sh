@@ -74,6 +74,8 @@ items:
       value: admin
     - name: DB_PASSWORD
       value: admin
+    - name: DB_HOST
+      value: postgres-db.$NS
 EOF
 }
 function createFruitBackend() {
