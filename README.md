@@ -18,17 +18,17 @@ Table of Contents
 
 ## Introduction
 
-The purpose of this project is to enhance the developer experience when you will install/deploy a collection of microservices
-on Kubernetes by providing different [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
-a Runtime [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) able to:
-- Install different runtimes (aka microservices) such as `Spring Boot, Vert.x, Thorntail, Quarkus`
-- Manage the relations which exist between the microservices using a `link` to consume by example a REST endpoint or
-- To setup a `capability` on the platform to access a backend like a database: postgresql
+The purpose of this project is to enhance the Developer Experience on Kubernetes when you will deploy a collection of Microservices
+by using different [Custom Resources - CR](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
+a Kubernetes [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) able to:
+- Install different `runtimes` (aka microservices) such as `Spring Boot, Vert.x, Thorntail, Quarkus`
+- Manage the relations which exist between the `Microservices` using a CR `link` to consume by example a REST endpoint or
+- To setup a CR `capability` on the platform to access a backend like a database: postgresql
 
-The `Custom Resources` contains `METADATA` information about the framework/language to be used to either:
+The `Custom Resource` contains `METADATA` information about the framework/language to be used to either:
 - Configure the strategy that we want to adopt to deploy the application: `Development mode` or `Building/Prod mode`
 - Select the container image to be used to launch the application: java for `Spring Boot, Eclipse Vert.x, Thorntail`; node for `nodejs` 
-- Configure the microservice in order to inject `env var, secret, ...`
+- Configure the `Microservice` in order to inject `env var, secret, ...`
 - Create a service or capability such as database: postgresql
 
 ## Prerequisites
