@@ -1,36 +1,27 @@
-# Spring Boot Demo using Component's CRD
+# A Real Example
 
   * [Introduction](#introduction)
-  * [Setup](#setup)
-     * [Hetzner remote's cluster](#hetzner-remotes-cluster)
-     * [Local cluster using MiniShift](#local-cluster-using-minishift)
-     * [Local cluster using Minikube](#local-cluster-using-minikube)     
   * [Demo's time](#demos-time)
-     * [Install the project](#install-the-project)
-     * [Build code](#build-code)
-     * [Install the components](#install-the-components)
-     * [Create the database's service usign the Catalog](#create-the-databases-service-usign-the-catalog)
-     * [Link the components](#link-the-components)
-     * [Push the code and start the Spring Boot application](#push-the-code-and-start-the-spring-boot-application)
-     * [Use ap4k and yaml files generated](#use-ap4k-and-yaml-files-generated)
+     * [Build the application](#build-the-application)
+     * [Install the components on the cluster](#install-the-components-on-the-cluster)
      * [Check if the Component Client is replying](#check-if-the-component-client-is-replying)
      * [Using K8s](#using-k8s)
      * [Switch from Dev to Build mode](#switch-from-dev-to-build-mode)
      * [Nodejs deployment](#nodejs-deployment)
      * [Scaffold a project](#scaffold-a-project)
-
   * [Cleanup](#cleanup)
-     * [Demo components](#demo-components)
-     * [Operator and CRD resources](#operator-and-crd-resources)
+
 
 ## Introduction
 
-The purpose of this demo is to showcase how you can use `Component CRD` and a Kubernetes `operator` deployed on OpenShift to help you to install your Microservices Spring Boot 
-application, instantiate a database using a Kubernetes Service Catalog and inject the required information to the different Microservices to let a Spring Boot application to access/consume a service (http endpoint, database, ...).
+The purpose of this demo is to showcase how you can use the `Component`, `Link` and `Capability` CRs combined with the Kubernetes `operator` to help you to :
+- Install your Microservices - Spring Boot applications,
+- Instantiate a PostgreSQL database
+- Inject the required information to the different Microservices to let a Spring Boot application to access a service which is a http endpoint or to consume a database
 
-The demo's project consists, as depicted within the following diagram, of two Spring Boot applications and a PostgreSQL Database.
+The real example consists, as depicted within the following diagram, of two Spring Boot applications and a PostgreSQL Database.
 
-![Composition](component-operator-demo2.png)
+![Composition](component-operator-demo.png)
 
 The application to be deployed can be described using a Fluent DSL syntax as :
 
@@ -38,267 +29,133 @@ The application to be deployed can be described using a Fluent DSL syntax as :
 
 where the `ComponentA` and `ComponentB` correspond respectively to a Spring Boot application `fruit-client-sb` and `fruit-backend-sb`.
 
-The relation `from -> to` indicates that we will `reference` the `ComponentA` 
-with the `ComponentB` using a `Link`.
+The relation `from -> to` indicates that we will `reference` the `ComponentA`  with the `ComponentB` using a `Link`.
 
 The `link`'s purpose is to inject as `Env var(s)` the information required to by example configure the `HTTP client` of the `ComponentA` to access the 
-`ComponentB` which exposes the logic of the backend's system as CRUD REST operations.
+`ComponentB` which exposes a `HTTP endpoint` that the client `ComponentA`  could use to access the `CRUD` operations.
 
-To let the `ComponentB` to access the database, we will also setup a `link` in order to pass using the `Secret` of the service instance created the parameters which are needed to configure a Spring Boot Datasource's bean.
+To let the `ComponentB` to consume a database, we will also setup a `link` in order to pass using the database `Secret` the parameters which are needed to configure a Java Datasource's bean.
 
-The deployment or installation of the application in a namespace will consist in to create the resources on the platform using some `Component` yaml resource files defined according to the 
-[Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha1/component_types.go#L11).
-When they will be created, then the `Component operator` which is a Kubernetes [controller](https://goo.gl/D8iE2K) will execute different operations to create : 
-- For the `component-runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push the `uber jar` file compiled locally, 
-- A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
-- `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
-
-## Setup
-
-### Hetzner remote's cluster
-```bash
-oc login https://195.201.87.126:8443 --token=TOKEN_PROVIDED_BY_SNOWDROP_TEAM
-oc project <user_project>
-```
-
-### Local cluster using MiniShift
-
-- Minishift (>= v1.26.1) with Service Catalog feature enabled
-- Launch Minishift VM
-
-```bash
-# if you don't have a minishift VM, start as follows
-minishift addons enable xpaas
-minishift addons enable admin-user
-minishift start
-minishift openshift component add service-catalog
-minishift openshift component add automation-service-broker
-```
-
-- Login to MiniShift using `admin`'s user
-```bash
-oc login "https://$(minishift ip):8443" -u admin -p admin
-```
-- Deploy the resources within the namespace `component-operator` 
-
-```bash
-oc new-project component-operator
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/sa.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/cluster-rbac.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/user-rbac.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/capability_v1alpha2.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/component_v1alpha2.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/link_v1alpha2.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/operator.yaml
-```
-
-### Local cluster using Minikube
-
-Install using brew tool on MacOS the following applications
-```bash
-brew cask install minikube
-brew install kubernetes-cli
-brew install kubernetes-service-catalog-client
-brew install kubernetes-helm
-```
-
-Next, create a K8s cluster where ingress addon is enabled
-```bash
-minikube config set vm-driver virtualbox
-minikube config set WantReportError true
-minikube config set cpus 4
-minikube config set kubernetes-version v1.14.0
-minikube config set memory 5000
-minikube addons enable ingress
-minikube addons enable dashboard
-minikube start
-```
-
-When `minikube` is running, initialize the Helm Tiller on ths server and next deploy the Service Catalog
-
-```bash
-helm init
-# Wait until tiller is ready before moving on
-until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
-
-kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
-
-# Adds the chart repository for the service catalog
-helm repo add svc-cat https://svc-catalog-charts.storage.googleapis.com
-
-# Installs the service catalog
-helm install svc-cat/catalog --name catalog --namespace catalog
-
-# Wait until the catalog is ready before moving on
-until kubectl get pods -n catalog -l app=catalog-catalog-apiserver | grep 2/2; do sleep 1; done
-until kubectl get pods -n catalog -l app=catalog-catalog-controller-manager | grep 1/1; do sleep 1; done
-```
-
-We can now install the OpenShift Ansible Broker
-```bash
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/oab-install.yaml
-```
-
-Install the `Component Operator`
-
-```bash
-kubectl create namespace component-operator
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/sa.yaml -n component-operator
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/cluster-rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/user-rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/capability_v1alpha2.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/component_v1alpha2.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/link_v1alpha2.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/operator.yaml -n component-operator
-```
+To avoid that you must manually generate such `CR`, we will use the project [`Dekorate`](https://dekorate.io) which supports to generate Kubernetes resources from Java Annotations or using parameters defined
+within an `application.properties` file. 
 
 ## Demo's time
 
-### Install the project
-
-- Login to the OpenShift's cluster using your favorite user
-```bash
-oc login https://ip_address_or_hostname_fqdn>:8443 -u <user> -p <password
-```
-
-- Git clone the project locally to play with a Spring Boot composite application
-```bash
-git clone https://github.com/snowdrop/component-operator-demo.git && cd component-operator-demo
-```
-
-- Create a new project `my-spring-app`
-```bash
-oc new-project my-spring-app
-```
-
-### Build the application
-
-- Build the `frontend` and the `Backend` using `mvn` to generate their respective Spring Boot uber jar file
+Build the `frontend` and the `Backend` using `maven` tool to generate their respective Spring Boot uber jar file
 ```bash
 mvn clean package
 ``` 
 
-### Install the components on the cluster
+As our different Spring Boot maven projects use the `dekorate` maven dependencies
 
-As our Spring Boot applications use the `ap4k` dependencies, then during the `mvn compile or mvn package` phases, additional yaml resources will be created under the 
-directory `ap4k`. They will be next used to deploy the different components on the cluster with the help of the `oc` or `kubectl` client tool.
-
-```bash
-<maven_project>/target/classes/META-INF/ap4k/
+```xml
+ <dependency>
+     <groupId>io.dekorate</groupId>
+     <artifactId>component-annotations</artifactId>
+     <scope>compile</scope>
+ </dependency>
+ <dependency>
+     <groupId>io.dekorate</groupId>
+     <artifactId>dekorate-spring-boot</artifactId>
+     <scope>compile</scope>
+ </dependency>
 ```
 
-Here is what we did within the Java classes of the frontend ot backend applications in order to tell to Ap4k to generate either a `Component`, `Link` or 
-`Capability` Custom Resource definition (yaml|json).
+then during the `mvn package` phase, additional yaml resources will be created under the 
+directory `dekorate`. They will be next used to deploy the different components on the cluster with the help of the `kubectl` client tool.
 
-The `@CompositeApplication` is used by the `ap4k` lib to generate a `Component CRD` resource, containing
-the definition of the runtime, the name of the component, if a route is needed.
-  
-A `@Link` represents additional information or metadata to be injected within the `Comnponent` (aka Deployment resource)
-in order to configure the application to access another `component` using its service address, a service deployed from the k8s catalog.
+```bash
+<maven_project>/target/classes/META-INF/dekorate/
+```
+
+A few explanation is certainly needed here in order to understand what we did within the different projects to configure them :-)
+
+The `@ComponentApplication` has been added within the `Application.java` java classes and they will be scanned by `dekorate` to generate a `Component.yaml` resource
+which contains the definition of the runtime, the name of the component, if a route is needed.
+
+**client**
+```java
+@ComponentApplication(
+    name = "fruit-client-sb",
+    exposeService = true
+)
+```
+
+The `@Link` annotation express using an `@Env` the name of the variable to be injected within the pod in order to let the Spring Boot Application
+to configure its HTTP Client to access the HTTP endpoint exposed by the backend service.
  
 **client**
 ```java
-@CompositeApplication(
-        name = "fruit-client-sb",
-        exposeService = true,
-        links = @Link(
-                  name = "Env var to be injected within the target component -> fruit-backend",
-                  targetcomponentname = "fruit-client-sb",
-                  kind = "Env",
-                  ref = "",
-                  envVars = @Env(
-                          name  = "ENDPOINT_BACKEND",
-                          value = "http://fruit-backend-sb:8080/api/fruits"
-                  )
-))
+@Link(
+    name = "link-to-fruit-backend",
+    componentName = "fruit-client-sb",
+    kind = Kind.Env,
+    envs = @Env(
+        name = "ENDPOINT_BACKEND",
+        value = "http://fruit-backend-sb:8080/api/fruits"
+    )
+)
 ```
-  
-To express the creation of a Service/Capability on the Cloud platform, we are using the `@ServiceCatalog` annotation where we define the `Service's class`, its plan and parameters
-as defined by the Database PostgreSQL Service of the OpenDhift Ansible Broker.
 
-Like for the Client's component, we will also define a `@Link` annotation to inject from the secret created during the creation of the service, the parameters that the application
-will use to configure, in this example, the `DataSource`'s object able to call the `PostgreSQL` instance.
+Like for the Client's component, we will define a `@ComponentApplication` and `@Link` annotations for the `Backend` component. The link will inject from the secret referenced, the parameters that the application
+will use to create a `DataSource`'s java bean able to call the `PostgreSQL` instance.
 
 **Backend**
 ```java
-@CompositeApplication(
-        name = "fruit-backend-sb",
-        exposeService = true,
-        envVars = @Env(
-                name = "SPRING_PROFILES_ACTIVE",
-                value = "broker-catalog"),
-        links = @Link(
-                name = "Secret to be injected as EnvVar using Service's secret",
-                targetcomponentname = "fruit-backend-sb",
-                kind = "Secret",
-                ref = "postgresql-db"))
-@ServiceCatalog(
-   instances = @ServiceCatalogInstance(
-        name = "postgresql-db",
-        serviceClass = "dh-postgresql-apb",
-        servicePlan = "dev",
-        bindingSecret = "postgresql-db",
-        parameters = {
-                @Parameter(key = "postgresql_user", value = "luke"),
-                @Parameter(key = "postgresql_password", value = "secret"),
-                @Parameter(key = "postgresql_database", value = "my_data"),
-                @Parameter(key = "postgresql_version", value = "9.6")
-        }
-   )
-) 
+@ComponentApplication(
+    name = "fruit-backend-sb",
+    exposeService = true,
+    envs = @Env(
+        name = "SPRING_PROFILES_ACTIVE",
+        value = "postgresql-kubedb")
+)
+```
+
+```java
+@Link(
+    name = "link-to-database",
+    componentName = "fruit-backend-sb",
+    kind = Kind.Secret,
+    ref = "postgresql-db")
+```             
+                
+To configure the postgresql database to be used by the backend, we will use the `@Capability` annotation to 
+configure the database, the user, password and database name.
+                
+```java
+@Capability(
+    name = "postgres-db",
+    category = "database",
+    kind = "postgres",
+    version = "10",
+    parameters = {
+       @Parameter(name = "DB_USER", value = "admin"),
+       @Parameter(name = "DB_PASSWORD", value = "admin"),
+       @Parameter(name = "DB_NAME", value = "sample-db"),
+    }
+)
 ```  
 
-Deploy the generated `component.yml` resource files
+Deploy the generated resource files
 ```bash
-oc apply -f fruit-client-sb/target/classes/META-INF/ap4k/component.yml
-oc apply -f fruit-backend-sb/target/classes/META-INF/ap4k/component.yml
+kubectl create ns demo
+kubectl apply -f fruit-client-sb/target/classes/META-INF/dekorate/component.yml
+kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
 ``` 
 
-when the Supervisord pod is ready, then push the code and launch the java application using the following bash script
+Wait a few moment and verify if the status of the components deployed is ready
 ```bash
-./scripts/push_start.sh fruit-client sb
-./scripts/push_start.sh fruit-backend sb
+TODO - add resources deployed here
 ```
 
-### Check if the Component Client is replying
-
-- Call the HTTP Endpoint exposed by the `Spring Boot Fruit Client` in order to fetch data from the database
-```bash
-route_address=$(oc get route/fruit-client-sb -o jsonpath='{.spec.host}')
-curl http://$route_address/api/client
-or 
-
-using httpie client
-http -s solarized http://$route_address/api/client
-http -s solarized http://$route_address/api/client/1
-http -s solarized http://$route_address/api/client/2
-http -s solarized http://$route_address/api/client/3
-``` 
-
-### Using K8s
-
-Before to install the operator, create a kubernetes namespace and then deploy the resources
-as defined within the section of the README - Minikube
-
-Next, install the 2 components `frontend` and `backend` within the namespace demo
-
-```bash
-kubectl create namespace demo
-kubectl apply -n demo -f fruit-backend-sb/target/classes/META-INF/ap4k/component.yml
-kubectl apply -n demo -f fruit-client-sb/target/classes/META-INF/ap4k/component.yml
-```
-
-When the Dev's pods are ready, then push the code using the following bash script within the target namespace
-
+Then push the uber jar file within the pod using the following bash script 
 ```bash
 ./scripts/k8s_push_start.sh fruit-backend sb demo
 ./scripts/k8s_push_start.sh fruit-client sb demo
 ```
 
-**REMARK**: the namespace where the application will be deployed must be passed as 3rd paramter to the bash script
-
-As an Ingress route will be created instead of an OpenShift route, then we must adapt the curl command to access the service's address
-and get the fruits
+Check now if the `Component` Client is replying and calls its `HTTP Endpoint` exposed in order to fetch the `fruits` data from the database consumed by the 
+other microservice.
 
 ```bash
 # export FRONTEND_ROUTE_URL=<service_name>.<hostname_or_ip>.<domain_name>
@@ -308,31 +165,35 @@ curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client
 
 ### Switch from Dev to Build mode
 
-- Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
-  the dev loop to the publish loop
+TODO: To be reviewed !
 
-  ```bash
-   annotations:
-     app.openshift.io/git-uri: https://github.com/snowdrop/component-operator-demo.git
-     app.openshift.io/git-ref: master
-     app.openshift.io/git-dir: fruit-backend-sb
-     app.openshift.io/artifact-copy-args: "*.jar"
-     app.openshift.io/runtime-image: "fruit-backend-sb"
-     app.openshift.io/component-name: "fruit-backend-sb"
-     app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
-  ``` 
+Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
+the dev loop to the publish loop
+
+```bash
+ annotations:
+   app.openshift.io/git-uri: https://github.com/snowdrop/component-operator-demo.git
+   app.openshift.io/git-ref: master
+   app.openshift.io/git-dir: fruit-backend-sb
+   app.openshift.io/artifact-copy-args: "*.jar"
+   app.openshift.io/runtime-image: "fruit-backend-sb"
+   app.openshift.io/component-name: "fruit-backend-sb"
+   app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
+``` 
   
-  **Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
+**Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
   
-- Patch the component when it has been deployed to switch from `dev` to `build`
+Patch the component when it has been deployed to switch from `dev` to `build`
   
-  ```bash
-  oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"build"}}' --type=merge
-  ```   
+```bash
+kubectl patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"build"}}' --type=merge
+```   
 
 ### Nodejs deployment
 
-- Build node project locally
+TODO : To be reviewed !
+
+Build node project locally
 ```bash
 cd fruit-client-nodejs
 nvm use v10.1.0
@@ -340,31 +201,31 @@ npm audit fix
 npm install -s --only=production
 ```
 
-- Run locally
+Run locally
 ```bash
 export ENDPOINT_BACKEND=http://fruit-backend-sb.my-spring-app.195.201.87.126.nip.io/api/fruits
 npm run -d start      
 ```
 
-- Deploy the node's component and link it to the Spring Boot fruit backend
+Deploy the node's component and link it to the Spring Boot fruit backend
 ```bash
-oc apply -f fruit-client-nodejs/component.yml
-oc apply -f fruit-client-nodejs/env-backend-endpoint.yml
+kubectl apply -f fruit-client-nodejs/component.yml
+kubectl apply -f fruit-client-nodejs/env-backend-endpoint.yml
 ```
 
-- Push the code and start the nodejs application
+Push the code and start the nodejs application
 ```bash
 ./scripts/push_start.sh fruit-client nodejs
 ```
 
-- Test it locally or remotely
+Test it locally or remotely
 ```bash
 # locally
 http :8080/api/client
 http :8080/api/client/1 
 
 #Remotely
-route_address=$(oc get route/fruit-client-nodejs -o jsonpath='{.spec.host}')
+route_address=$(kubectl get route/fruit-client-nodejs -o jsonpath='{.spec.host}')
 curl http://$route_address/api/client
 or 
 
@@ -377,6 +238,7 @@ http http://$route_address/api/client/3
 
 ### Scaffold a project
 
+TODO: To be reviewed using `kreate` tool
 
 ```bash
 git clone git@github.com:snowdrop/scaffold-command.git && cd scaffold-command
@@ -422,34 +284,5 @@ and
     <version>${dekorate.version}</version>
   </dependency>
   <!-- spring Boot -->
-  
-
-
 ```
 
-## Cleanup
-
-### Demo components
-
-TODO: To be updated as this is not longer correct
-
-```bash
-oc delete cp/fruit-backend-sb
-oc delete cp/fruit-database
-oc delete cp/fruit-database-config
-
-oc delete cp/fruit-client
-oc delete cp/fruit-endpoint
-```
-
-### Operator and CRD resources
-
-TODO: To be updated as this is not longer correct
-
-```bash
-oc delete -f resources/sa.yaml -n component-operator
-oc delete -f resources/cluster-rbac.yaml
-oc delete -f resources/crd.yaml 
-oc delete -f resources/operator.yaml -n component-operator
-```
-  
