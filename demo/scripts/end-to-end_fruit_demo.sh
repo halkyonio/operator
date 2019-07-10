@@ -234,8 +234,8 @@ if [ "$isOpenShift" == "true" ]; then
     CURL_RESPONSE=$(curl http://$FRONTEND_ROUTE_URL/api/client)
     echo $CURL_RESPONSE >> ${REPORT_FILE}
 else
-    FRONTEND_ROUTE_URL=fruit-client-sb.$CLUSTER_IP.nip.io
-    CURL_RESPONSE=$(curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client)
+    # FRONTEND_ROUTE_URL=fruit-client-sb.$CLUSTER_IP.nip.io
+    CURL_RESPONSE=$(curl -H "Host: fruit-client-sb" http://${CLUSTER_IP}/api/client)
     echo $CURL_RESPONSE >> ${REPORT_FILE}
 fi
 
