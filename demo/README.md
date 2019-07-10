@@ -25,8 +25,10 @@
 
 ## Introduction
 
-The purpose of this demo is to showcase how you can use `Component CRD` and a Kubernetes `operator` deployed on OpenShift to help you to install your Microservices Spring Boot 
-application, instantiate a database using a Kubernetes Service Catalog and inject the required information to the different Microservices to let a Spring Boot application to access/consume a service (http endpoint, database, ...).
+The purpose of this demo is to showcase how you can use the `Component`, `Link` and `Capability` CRDs combined withe the Kubernetes `operator` to help you to :
+- Install your Microservices Spring Boot application,
+- Instantiate a PostgreSQL database
+- Inject the required information to the different Microservices to let a Spring Boot application to access/consume a service (http endpoint, database, ...)
 
 The demo's project consists, as depicted within the following diagram, of two Spring Boot applications and a PostgreSQL Database.
 
@@ -52,105 +54,6 @@ When they will be created, then the `Component operator` which is a Kubernetes [
 - For the `component-runtime` a development's pod running a `supervisord's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/innerloop/install.go#L56) and where we can push the `uber jar` file compiled locally, 
 - A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
 - `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
-
-## Setup
-
-### Hetzner remote's cluster
-```bash
-oc login https://195.201.87.126:8443 --token=TOKEN_PROVIDED_BY_SNOWDROP_TEAM
-oc project <user_project>
-```
-
-### Local cluster using MiniShift
-
-- Minishift (>= v1.26.1) with Service Catalog feature enabled
-- Launch Minishift VM
-
-```bash
-# if you don't have a minishift VM, start as follows
-minishift addons enable xpaas
-minishift addons enable admin-user
-minishift start
-minishift openshift component add service-catalog
-minishift openshift component add automation-service-broker
-```
-
-- Login to MiniShift using `admin`'s user
-```bash
-oc login "https://$(minishift ip):8443" -u admin -p admin
-```
-- Deploy the resources within the namespace `component-operator` 
-
-```bash
-oc new-project component-operator
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/sa.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/cluster-rbac.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/user-rbac.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/capability_v1alpha2.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/component_v1alpha2.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/link_v1alpha2.yaml
-oc apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/operator.yaml
-```
-
-### Local cluster using Minikube
-
-Install using brew tool on MacOS the following applications
-```bash
-brew cask install minikube
-brew install kubernetes-cli
-brew install kubernetes-service-catalog-client
-brew install kubernetes-helm
-```
-
-Next, create a K8s cluster where ingress addon is enabled
-```bash
-minikube config set vm-driver virtualbox
-minikube config set WantReportError true
-minikube config set cpus 4
-minikube config set kubernetes-version v1.14.0
-minikube config set memory 5000
-minikube addons enable ingress
-minikube addons enable dashboard
-minikube start
-```
-
-When `minikube` is running, initialize the Helm Tiller on ths server and next deploy the Service Catalog
-
-```bash
-helm init
-# Wait until tiller is ready before moving on
-until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
-
-kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
-
-# Adds the chart repository for the service catalog
-helm repo add svc-cat https://svc-catalog-charts.storage.googleapis.com
-
-# Installs the service catalog
-helm install svc-cat/catalog --name catalog --namespace catalog
-
-# Wait until the catalog is ready before moving on
-until kubectl get pods -n catalog -l app=catalog-catalog-apiserver | grep 2/2; do sleep 1; done
-until kubectl get pods -n catalog -l app=catalog-catalog-controller-manager | grep 1/1; do sleep 1; done
-```
-
-We can now install the OpenShift Ansible Broker
-```bash
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/oab-install.yaml
-```
-
-Install the `Component Operator`
-
-```bash
-kubectl create namespace component-operator
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/sa.yaml -n component-operator
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/cluster-rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/user-rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/capability_v1alpha2.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/component_v1alpha2.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/crds/link_v1alpha2.yaml
-kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/operator.yaml -n component-operator
-```
 
 ## Demo's time
 
@@ -422,34 +325,9 @@ and
     <version>${dekorate.version}</version>
   </dependency>
   <!-- spring Boot -->
-  
-
-
 ```
 
 ## Cleanup
 
-### Demo components
-
 TODO: To be updated as this is not longer correct
 
-```bash
-oc delete cp/fruit-backend-sb
-oc delete cp/fruit-database
-oc delete cp/fruit-database-config
-
-oc delete cp/fruit-client
-oc delete cp/fruit-endpoint
-```
-
-### Operator and CRD resources
-
-TODO: To be updated as this is not longer correct
-
-```bash
-oc delete -f resources/sa.yaml -n component-operator
-oc delete -f resources/cluster-rbac.yaml
-oc delete -f resources/crd.yaml 
-oc delete -f resources/operator.yaml -n component-operator
-```
-  

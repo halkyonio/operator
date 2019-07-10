@@ -30,25 +30,73 @@ The `Custom Resources` contains `METADATA` information about the framework/langu
 
 ## Prerequisites
 
-In order to use the Operator and the CRs, it is needed to install Tekton Pipelines and KubeDB Operator.
-We assume that you have installed a K8s cluster starting from version 1.12 
+In order to use the DevExp Runtime Operator and the CRs, it is needed to install [Tekton Pipelines]() and [KubeDB]() Operators.
+We assume that you have installed a K8s cluster starting from version 1.12.
 
-- Login to the cluster using a user having admin cluster role
+## Setup
+
+### Local cluster using MiniShift
+
+- Minishift (>= v1.26.1) with Service Catalog feature enabled
+- Launch Minishift VM
+
+```bash
+# if you don't have a minishift VM, start as follows
+minishift addons enable xpaas
+minishift addons enable admin-user
+minishift start
+```
+- Login to MiniShift using `admin`'s user
+```bash
+oc login "https://$(minishift ip):8443" -u admin -p admin
+```
+
+### Local cluster using Minikube
+
+Install using brew tool on MacOS the following applications
+```bash
+brew cask install minikube
+brew install kubernetes-cli
+brew install kubernetes-service-catalog-client
+brew install kubernetes-helm
+```
+
+Next, create a K8s cluster where ingress addon is enabled
+```bash
+minikube config set vm-driver virtualbox
+minikube config set WantReportError true
+minikube config set cpus 4
+minikube config set kubernetes-version v1.14.0
+minikube config set memory 5000
+minikube addons enable ingress
+minikube addons enable dashboard
+minikube start
+```
+
+When `minikube` is running, initialize the Helm Tiller on ths server
+
+```bash
+helm init
+until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
+kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
+```
+
+Login to the cluster using a user having admin cluster role
 ```bash
 oc login "https://<cluster_ip>:8443" -u admin -p admin
 ```
 
-- Install Tekton Pipelines technology
+Install Tekton Pipelines technology
 ```bash
 kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.4.0/release.yaml
 ```
 
-- Disable TLS verification
+Disable TLS verification
 ```bash
 kubectl config set-cluster <cluster_ip>:8443 --insecure-skip-tls-verify=false
 ```
 
-- Install KubeDB operator and Postgresql catalog
+Install KubeDB operator and Postgresql catalog
 ```bash
 kubectl create ns kubedb
 curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh \
@@ -57,10 +105,6 @@ curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubed
 OR
 
 KUBEDB_VERSION=0.12.0
-helm init
-until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
-kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
-
 helm repo add appscode https://charts.appscode.com/stable/
 helm repo update
 helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} \
@@ -74,20 +118,6 @@ done
 
 helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
 --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
-```
-
-- Verify operator installation
-
-To check if KubeDB operator pods have started, run the following command:
-```
-kubectl get pods --all-namespaces -l app=kubedb --watch
-```
-
-Once the operator pods are running, you can cancel the above command by typing Ctrl+C.
-Now, to confirm CRD groups have been registered by the operator, run the following command:
-
-```
-kubectl get crd -l app=kubedb
 ```
 
 ## Installation of the Operator
