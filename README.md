@@ -34,6 +34,32 @@ The `Custom Resource` contains `METADATA` information about the framework/langua
 - Configure the `Microservice` in order to inject `env var, secret, ...`
 - Create a service or capability such as database: postgresql
 
+To define what a microservices is, if a URL should be created to access it from outside of the cluster or simply to specify some `ENV` vars to be used by the 
+container's image when the pod is created, then create a `component.yaml` file containing the following information: 
+ 
+```bash
+apiVersion: devexp.runtime.redhat.com/v1alpha2
+kind: Component
+metadata:
+  name: spring-boot-demo
+spec:
+  # Strategy used by the operator to install the Kubernetes resources using a Dev mode where we can push the uber jar file of the microservices compiled locally
+  # or Build Mode where we want to delegate to the operator the responsibility to build the code from the git repository and to push to a local kubernetes registry the image
+  deploymentMode: dev
+  # Runtime type that the operator will map with a docker image (java, nodejs, ...)
+  runtime: spring-boot
+  version: 1.5.16
+  # To been able to create a Kubernetes Ingress resource or OpenShift Route
+  exposeService: true
+  envs:
+  - name: SPRING_PROFILES_ACTIVE
+    value: openshift-catalog
+```
+
+**Remarks**: 
+- The `DevExp Runtime` Operator runs top of `Kubernetes >= 1.11` or `OpenShift >= 3.11`.
+- You can find more information about the `Custom Resources` and their `fields` under this folder `pkg/apis/component/v1alpha2` like also the others `CRs` supported : `link` and `capability`
+
 ## Prerequisites
 
 In order to use the DevExp Runtime Operator and the CRs, it is needed to install [Tekton Pipelines](https://tekton.dev/) and [KubeDB](http://kubedb.com) Operators.
@@ -132,7 +158,6 @@ So, create first a `demo` namespace
 ```bash
 kubectl create ns demo
 ```
-
 and next, create a `component's yaml` file with the following information
 ```bash
 echo "
@@ -147,116 +172,43 @@ spec:
 
 Verify if the component has been well created by executing the following kubectl command
 ```bash
-kc get components -n demo
-NAME          RUNTIME       VERSION   AGE   MODE   STATUS   MESSAGE   REVISION
-spring-boot   spring-boot             11s   dev                       
+kubectl get components -n demo
+NAME          RUNTIME       VERSION   AGE   MODE   STATUS    MESSAGE                                                            REVISION
+spring-boot   spring-boot             14s   dev    Pending   pod is not ready for component 'spring-boot' in namespace 'demo'                        
 ```
+
+**Remark** Don't worry about the status which is reported the first time as downloading the first time the needed images from external docker registry could take time !
+
+```bash
+kubectl get components -n demo   
+NAME          RUNTIME       VERSION   AGE     MODE   STATUS   MESSAGE   REVISION
+spring-boot   spring-boot             2m19s   dev    Ready              
+```
+
 When, the DevExp operator will read the content of the Custom Resource `Component`, then it will create several K8s resources that you can discover if you execute the following command
 ```bash
-kubectl get all,pvc,component
-NAME                         READY     STATUS    RESTARTS   AGE
-pod/my-spring-boot-1-nrszv   1/1       Running   0          41s
+kubectl get pods,services,deployments,pvc -n demo
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/spring-boot-6d9475f4c-c9w2z   1/1     Running   0          4m18s
 
-NAME                                     DESIRED   CURRENT   READY     AGE
-replicationcontroller/my-spring-boot-1   1         1         1         44s
+NAME                  TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+service/spring-boot   ClusterIP   10.104.75.68   <none>        8080/TCP   4m18s
 
-NAME                     TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
-service/my-spring-boot   ClusterIP   172.30.73.5   <none>        8080/TCP   45s
+NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.extensions/spring-boot   1/1     1            1           4m18s
 
-NAME                                                REVISION   DESIRED   CURRENT   TRIGGERED BY
-deploymentconfig.apps.openshift.io/my-spring-boot   1          1         1         image(copy-supervisord:latest),image(dev-runtime-spring-boot:latest)
-
-NAME                                                     DOCKER REPO                                                     TAGS      UPDATED
-imagestream.image.openshift.io/copy-supervisord          docker-registry.default.svc:5000/demo/copy-supervisord          latest    45 seconds ago
-imagestream.image.openshift.io/dev-runtime-spring-boot   docker-registry.default.svc:5000/demo/dev-runtime-spring-boot   latest    45 seconds ago
-
-NAME                                        RUNTIME       VERSION   SERVICE   TYPE      CONSUMED BY   AGE
-component.devexp.runtime.redhat.com/my-spring-boot   spring-boot                                               46s
-
-NAME                                           STATUS    VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-persistentvolumeclaim/m2-data-my-spring-boot   Bound     pv005     1Gi        RWO                           46s
+NAME                                        STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+persistentvolumeclaim/m2-data-spring-boot   Bound    pvc-dab00dfe-a2f6-11e9-98d1-08002798bb5f   1Gi        RWO            standard       4m18s
 ```
 
-To cleanup the project installed (component)
+You can now cleanup the project as we will not deploy a Java Microservices or delegate the build to the Operator. So cleanup the project installed (component)
 ```bash  
-$ kubectl delete component --all -n demo 
-``` 
-  
-## A more complex scenario   
-
-In order to play with a more complex scenario where we would like to install 2 components: `frontend`, `backend` and a database's service from the Ansible Broker's catalog
-like also the `links` needed to update the `DeploymentConfig`, then you should execute the following commands at the root of the github project within a terminal
-
-```bash
-kubectl apply -f examples/demo/component-client.yml
-kubectl apply -f examples/demo/component-link-env.yml
-kubectl apply -f examples/demo/component-crud.yml
-kubectl apply -f examples/demo/component-service.yml
-kubectl apply -f examples/demo/component-link.yml
-```  
-  
-## Switch from Development to Build/Prod mode
-
-The existing operator supports to switch from the `inner` or development mode (where code must be pushed to the development's pod) to the `outer` mode (responsible to perform a `s2i` build 
-deployment using a SCM project). In this case, a container image will be created from the project compiled and next a new deploymentConfig will be created in order to launch the 
-runtime.
-
-In order to switch between the 2 modes, execute the following operations: 
-
-Decorate the `Component CRD yaml` file with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
-the dev loop to the outer loop
-
-```bash
- annotations:
-   app.openshift.io/git-uri: https://github.com/snowdrop/component-operator-demo.git
-   app.openshift.io/git-ref: master
-   app.openshift.io/git-dir: fruit-backend-sb
-   app.openshift.io/artifact-copy-args: "*.jar"
-   app.openshift.io/runtime-image: "fruit-backend-sb"
-   app.openshift.io/component-name: "fruit-backend-sb"
-   app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
-``` 
-  
-  **Remark**: When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
-  
-Patch the component when it has been deployed to switch from the `inner` to the `outer` deployment mode
-  
-```bash
-kubectl patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
-```   
-
-## A cool demo
-  
-## TODO: to be reviewed 
-
-The deployment of an application will consist in to create a `Component` yaml resource file defined according to the 
-[Component API spec](https://github.com/snowdrop/component-operator/blob/master/pkg/apis/component/v1alpha2/component_types.go#L11).
-
-```bash
-apiVersion: devexp.runtime.redhat.com/v1alpha2
-kind: Component
-metadata:
-  name: spring-boot-demo
-spec:
-  # Strategy used by the operator to install the Kubernetes resources as DevMode = dev or BuildMode = outerloop
-  deploymentMode: dev
-  # Runtime type that the operator will map with a docker image (java, node, ...)
-  runtime: spring-boot
-  version: 1.5.16
-  # To been able to create a Kubernetes Ingress resource OR OpenShift Route
-  exposeService: true
-  envs:
-    - name: SPRING_PROFILES_ACTIVE
-      value: openshift-catalog
+kubectl delete component --all -n demo 
 ```
 
-When this `Custom resource` will be processed by the Kubernetes API Server and published, then the `Component operator` will be notified and will execute different operations to create:
-- For the `runtime` a development's pod running a `supervisor's daemon` able to start/stop the application [**[1]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/dev/install.go#L56) and where we can push a `uber jar` file compiled locally, 
-- A Service using the OpenShift Automation Broker and the Kubernetes Service Catalog [**[2]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/servicecatalog/install.go),
-- `EnvVar` section for the development's pod [**[3]**](https://github.com/snowdrop/component-operator/blob/master/pkg/pipeline/link/link.go#L56).
-
-**Remark**: The `Component` Operator can be deployed on `Kubernetes >= 1.11` or `OpenShift >= 3.11`.
+## A Cool demo
   
+TODO: to be reviewed too ;-)
 
 ### Cleanup the Operator resources
 
