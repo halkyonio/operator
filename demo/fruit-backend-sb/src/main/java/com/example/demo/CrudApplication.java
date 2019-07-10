@@ -18,6 +18,7 @@ package com.example.demo;
 
 import io.dekorate.component.annotation.Capability;
 import io.dekorate.component.annotation.ComponentApplication;
+import io.dekorate.component.annotation.Parameter;
 import io.dekorate.component.annotation.Link;
 import io.dekorate.component.model.Kind;
 import io.dekorate.kubernetes.annotation.Env;
@@ -48,7 +49,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     }
 )
 @SpringBootApplication
-public class CrudApplication
+public class CrudApplication {
     public static void main(String[] args) {
         SpringApplication.run(CrudApplication.class, args);
     }
