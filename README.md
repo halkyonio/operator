@@ -4,14 +4,17 @@
 
 Table of Contents
 =================
-  * [Introduction](#introduction)
-  * [Prerequisites](#prerequisites)
-  * [Installation of the Operator](#installation-of-the-operator)
-  * [How to play with it](#how-to-play-with-it)
-  * [A more complex scenario](#a-more-complex-scenario)
-  * [Switch from Development to Build/Prod mode](#switch-from-development-to-buildprod-mode)
-  * [A cool demo](#a-cool-demo)
-  * [Cleanup](#cleanup)
+   * [Introduction](#introduction)
+   * [Prerequisites](#prerequisites)
+   * [Setup](#setup)
+      * [Local cluster using MiniShift](#local-cluster-using-minishift)
+      * [Local cluster using Minikube](#local-cluster-using-minikube)
+   * [Installation of the Operator](#installation-of-the-operator)
+   * [How to play with it](#how-to-play-with-it)
+   * [A more complex scenario](#a-more-complex-scenario)
+   * [Switch from Development to Build/Prod mode](#switch-from-development-to-buildprod-mode)
+   * [A cool demo](#a-cool-demo)
+   * [Cleanup](#cleanup)
 
 ## Introduction
 
