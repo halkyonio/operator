@@ -13,6 +13,8 @@ spec:
     params:
     - name: moduleDirName
       value: fruit-client-sb
+    - name: contextPath
+      value: demo
     resources:
     - name: git
       resourceSpec:
@@ -20,7 +22,7 @@ spec:
         - name: revision
           value: master
         - name: url
-          value: https://github.com/snowdrop/component-operator-demo.git
+          value: https://github.com/snowdrop/component-operator.git
         type: git
   outputs:
     resources:
