@@ -21,7 +21,7 @@ The purpose of this demo is to showcase how you can use the `Component`, `Link` 
 
 The real example consists, as depicted within the following diagram, of two Spring Boot applications and a PostgreSQL Database.
 
-![Composition](component-operator-demo2.png)
+![Composition](component-operator-demo.png)
 
 The application to be deployed can be described using a Fluent DSL syntax as :
 
