@@ -4,6 +4,18 @@ metadata:
   name: component-operator
 rules:
 - apiGroups:
+  - tekton.dev
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
+  - kubedb.com
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
   - devexp.runtime.redhat.com
   resources:
   - "*"
@@ -19,6 +31,7 @@ rules:
   - events
   - configmaps
   - secrets
+  - serviceaccounts
   verbs:
   - "*"
 - apiGroups:
@@ -28,10 +41,10 @@ rules:
   verbs:
   - get
 - apiGroups:
-    - extensions
+  - extensions
   resources:
-    - deployments
-    - ingresses
+  - deployments
+  - ingresses
   verbs:
     - "*"
 - apiGroups:
@@ -56,43 +69,8 @@ rules:
   verbs:
   - "*"
 - apiGroups:
-  - servicecatalog.k8s.io
-  resources:
-  - serviceinstances
-  - servicebindings
-  verbs:
-  - "*"
-- apiGroups:
-  - build.openshift.io
-  resources:
-  - builds
-  - buildconfigs
-  verbs:
-  - "*"
-- apiGroups:
-  - automationbroker.io
-  resources:
-  - "access"
-  verbs:
-  - "create"
-- apiGroups:
   - policy
   resources:
   - poddisruptionbudgets
   verbs:
   - "*"
-
----
-
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: component-operator-role-binding
-subjects:
-- kind: ServiceAccount
-  name: component-operator
-  namespace: component-operator
-roleRef:
-  kind: ClusterRole
-  name: component-operator
-  apiGroup: rbac.authorization.k8s.io

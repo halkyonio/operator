@@ -30,15 +30,7 @@ rules:
   - statefulsets
   verbs:
   - "*"
-- apiGroups:
-    - build.openshift.io
-  resources:
-    - builds
-    - buildconfigs
-  verbs:
-    - "*"
 ---
-
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
