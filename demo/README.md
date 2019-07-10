@@ -41,134 +41,118 @@ within an `application.properties` file.
 
 ## Demo's time
 
-### Build the application
-
-- Build the `frontend` and the `Backend` using `mvn` to generate their respective Spring Boot uber jar file
+Build the `frontend` and the `Backend` using `maven` tool to generate their respective Spring Boot uber jar file
 ```bash
 mvn clean package
 ``` 
 
-### Install the components on the cluster
+As our different Spring Boot maven projects use the `dekorate` maven dependencies
 
-As our Spring Boot applications use the `ap4k` dependencies, then during the `mvn compile or mvn package` phases, additional yaml resources will be created under the 
-directory `ap4k`. They will be next used to deploy the different components on the cluster with the help of the `oc` or `kubectl` client tool.
-
-```bash
-<maven_project>/target/classes/META-INF/ap4k/
+```xml
+ <dependency>
+     <groupId>io.dekorate</groupId>
+     <artifactId>component-annotations</artifactId>
+     <scope>compile</scope>
+ </dependency>
+ <dependency>
+     <groupId>io.dekorate</groupId>
+     <artifactId>dekorate-spring-boot</artifactId>
+     <scope>compile</scope>
+ </dependency>
 ```
 
-Here is what we did within the Java classes of the frontend ot backend applications in order to tell to Ap4k to generate either a `Component`, `Link` or 
-`Capability` Custom Resource definition (yaml|json).
+then during the `mvn package` phase, additional yaml resources will be created under the 
+directory `dekorate`. They will be next used to deploy the different components on the cluster with the help of the `kubectl` client tool.
 
-The `@CompositeApplication` is used by the `ap4k` lib to generate a `Component CRD` resource, containing
-the definition of the runtime, the name of the component, if a route is needed.
-  
-A `@Link` represents additional information or metadata to be injected within the `Comnponent` (aka Deployment resource)
-in order to configure the application to access another `component` using its service address, a service deployed from the k8s catalog.
+```bash
+<maven_project>/target/classes/META-INF/dekorate/
+```
+
+A few explanation is certainly needed here in order to understand what we did within the different projects to configure them :-)
+
+The `@ComponentApplication` has been added within the `Application.java` java classes and they will be scanned by `dekorate` to generate a `Component.yaml` resource
+which contains the definition of the runtime, the name of the component, if a route is needed.
+
+**client**
+```java
+@ComponentApplication(
+    name = "fruit-client-sb",
+    exposeService = true
+)
+```
+
+The `@Link` annotation express using an `@Env` the name of the variable to be injected within the pod in order to let the Spring Boot Application
+to configure its HTTP Client to access the HTTP endpoint exposed by the backend service.
  
 **client**
 ```java
-@CompositeApplication(
-        name = "fruit-client-sb",
-        exposeService = true,
-        links = @Link(
-                  name = "Env var to be injected within the target component -> fruit-backend",
-                  targetcomponentname = "fruit-client-sb",
-                  kind = "Env",
-                  ref = "",
-                  envVars = @Env(
-                          name  = "ENDPOINT_BACKEND",
-                          value = "http://fruit-backend-sb:8080/api/fruits"
-                  )
-))
+@Link(
+    name = "link-to-fruit-backend",
+    componentName = "fruit-client-sb",
+    kind = Kind.Env,
+    envs = @Env(
+        name = "ENDPOINT_BACKEND",
+        value = "http://fruit-backend-sb:8080/api/fruits"
+    )
+)
 ```
-  
-To express the creation of a Service/Capability on the Cloud platform, we are using the `@ServiceCatalog` annotation where we define the `Service's class`, its plan and parameters
-as defined by the Database PostgreSQL Service of the OpenDhift Ansible Broker.
 
-Like for the Client's component, we will also define a `@Link` annotation to inject from the secret created during the creation of the service, the parameters that the application
-will use to configure, in this example, the `DataSource`'s object able to call the `PostgreSQL` instance.
+Like for the Client's component, we will define a `@ComponentApplication` and `@Link` annotations. The link will inject from the secret referenced, the parameters that the application
+will use to create a `DataSource`'s java bean able to call the `PostgreSQL` instance.
 
 **Backend**
 ```java
-@CompositeApplication(
-        name = "fruit-backend-sb",
-        exposeService = true,
-        envVars = @Env(
-                name = "SPRING_PROFILES_ACTIVE",
-                value = "broker-catalog"),
-        links = @Link(
-                name = "Secret to be injected as EnvVar using Service's secret",
-                targetcomponentname = "fruit-backend-sb",
-                kind = "Secret",
-                ref = "postgresql-db"))
-@ServiceCatalog(
-   instances = @ServiceCatalogInstance(
-        name = "postgresql-db",
-        serviceClass = "dh-postgresql-apb",
-        servicePlan = "dev",
-        bindingSecret = "postgresql-db",
-        parameters = {
-                @Parameter(key = "postgresql_user", value = "luke"),
-                @Parameter(key = "postgresql_password", value = "secret"),
-                @Parameter(key = "postgresql_database", value = "my_data"),
-                @Parameter(key = "postgresql_version", value = "9.6")
-        }
-   )
-) 
+@ComponentApplication(
+    name = "fruit-backend-sb",
+    exposeService = true,
+    envs = @Env(
+        name = "SPRING_PROFILES_ACTIVE",
+        value = "postgresql-kubedb")
+)
+```
+
+```java
+@Link(
+    name = "link-to-database",
+    componentName = "fruit-backend-sb",
+    kind = Kind.Secret,
+    ref = "postgresql-db")
+```             
+                
+To configure the Service/Capability to be created (e.g postgresql database), we will use the `@Capability` annotation to 
+configure the database, user, password and database name.
+                
+```java
+@Capability(
+    name = "postgres-db",
+    category = "database",
+    kind = "postgres",
+    version = "10",
+    parameters = {
+       @Parameter(name = "DB_USER", value = "admin"),
+       @Parameter(name = "DB_PASSWORD", value = "admin"),
+       @Parameter(name = "DB_NAME", value = "sample-db"),
+    }
+)
 ```  
 
-Deploy the generated `component.yml` resource files
+Deploy the generated resource files
 ```bash
-oc apply -f fruit-client-sb/target/classes/META-INF/ap4k/component.yml
-oc apply -f fruit-backend-sb/target/classes/META-INF/ap4k/component.yml
+kubectl create ns demo
+kubectl apply -f fruit-client-sb/target/classes/META-INF/dekorate/component.yml
+kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
 ``` 
 
-when the Supervisord pod is ready, then push the code and launch the java application using the following bash script
-```bash
-./scripts/push_start.sh fruit-client sb
-./scripts/push_start.sh fruit-backend sb
-```
+Wait a few moment and verify if the status of the components deployed is ready
 
-### Check if the Component Client is replying
-
-- Call the HTTP Endpoint exposed by the `Spring Boot Fruit Client` in order to fetch data from the database
-```bash
-route_address=$(oc get route/fruit-client-sb -o jsonpath='{.spec.host}')
-curl http://$route_address/api/client
-or 
-
-using httpie client
-http -s solarized http://$route_address/api/client
-http -s solarized http://$route_address/api/client/1
-http -s solarized http://$route_address/api/client/2
-http -s solarized http://$route_address/api/client/3
-``` 
-
-### Using K8s
-
-Before to install the operator, create a kubernetes namespace and then deploy the resources
-as defined within the section of the README - Minikube
-
-Next, install the 2 components `frontend` and `backend` within the namespace demo
-
-```bash
-kubectl create namespace demo
-kubectl apply -n demo -f fruit-backend-sb/target/classes/META-INF/ap4k/component.yml
-kubectl apply -n demo -f fruit-client-sb/target/classes/META-INF/ap4k/component.yml
-```
-
-When the Dev's pods are ready, then push the code using the following bash script within the target namespace
-
+Then push the uber jar file withn the pod using the following bash script 
 ```bash
 ./scripts/k8s_push_start.sh fruit-backend sb demo
 ./scripts/k8s_push_start.sh fruit-client sb demo
 ```
 
-**REMARK**: the namespace where the application will be deployed must be passed as 3rd paramter to the bash script
-
-As an Ingress route will be created instead of an OpenShift route, then we must adapt the curl command to access the service's address
-and get the fruits
+Check now if the `Component` Client is replying and calls its `HTTP Endpoint` exposed in order to fetch the `fruits` data from the database consumed by the 
+other microservice.
 
 ```bash
 # export FRONTEND_ROUTE_URL=<service_name>.<hostname_or_ip>.<domain_name>
@@ -197,7 +181,7 @@ curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client
 - Patch the component when it has been deployed to switch from `dev` to `build`
   
   ```bash
-  oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"build"}}' --type=merge
+  kubectl patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"build"}}' --type=merge
   ```   
 
 ### Nodejs deployment
@@ -218,8 +202,8 @@ npm run -d start
 
 - Deploy the node's component and link it to the Spring Boot fruit backend
 ```bash
-oc apply -f fruit-client-nodejs/component.yml
-oc apply -f fruit-client-nodejs/env-backend-endpoint.yml
+kubectl apply -f fruit-client-nodejs/component.yml
+kubectl apply -f fruit-client-nodejs/env-backend-endpoint.yml
 ```
 
 - Push the code and start the nodejs application
@@ -234,7 +218,7 @@ http :8080/api/client
 http :8080/api/client/1 
 
 #Remotely
-route_address=$(oc get route/fruit-client-nodejs -o jsonpath='{.spec.host}')
+route_address=$(kubectl get route/fruit-client-nodejs -o jsonpath='{.spec.host}')
 curl http://$route_address/api/client
 or 
 
@@ -293,8 +277,4 @@ and
   </dependency>
   <!-- spring Boot -->
 ```
-
-## Cleanup
-
-TODO: To be updated as this is not longer correct
 
