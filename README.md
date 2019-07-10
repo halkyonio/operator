@@ -4,23 +4,20 @@
 
 Table of Contents
 =================
-   * [Introduction](#introduction)
-   * [Prerequisites](#prerequisites)
-   * [Setup](#setup)
-      * [Local cluster using Minikube](#local-cluster-using-minikube)
-   * [Installation of the Operator](#installation-of-the-operator)
-   * [How to play with it](#how-to-play-with-it)
-   * [A more complex scenario](#a-more-complex-scenario)
-   * [Switch from Development to Build/Prod mode](#switch-from-development-to-buildprod-mode)
-   * [A cool demo](#a-cool-demo)
-   * [Cleanup](#cleanup)
+  * [Introduction](#introduction)
+  * [Prerequisites](#prerequisites)
+     * [Local cluster using Minikube](#local-cluster-using-minikube)
+  * [Installation of the DevExp Runtime Operator](#installation-of-the-devexp-runtime-operator)
+  * [How to play with it](#how-to-play-with-it)
+  * [A Real demo](#a-real-demo)
+  * [Cleanup the Operator resources](#cleanup-the-operator-resources)
 
 ## Introduction
 
 Modern applications designed using the `Microservices` pattern or the [12-factor](https://12factor.net/) methodology requires when they will be deployed
 on a Kubernetes cluster a strong Developer Experience able to deal with the different and sometimes complex Kubernetes resources needed.
 
-This project has been developed in order to help them and to `simplify` the process to deploy such applications.
+This project has been developed in order to help you and to `simplify` the process to deploy such applications.
 
 This is the reason why, to enhance the Developer Experience on Kubernetes, we have designed different [Custom Resources - CR](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
 a Kubernetes [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) able to perform the following tasks:
@@ -153,21 +150,25 @@ Enjoy now to play with the DevExp Runtime Operator !
 
 ## How to play with it
 
-The process is pretty simple and trivial and is about creating a custom resource, one by microservice or runtime to be deployed.
-So, create first a `demo` namespace
+The process is pretty simple and is about creating a custom resource, one by microservice or runtime to be deployed.
+So create first a `demo` namespace
 ```bash
 kubectl create ns demo
 ```
-and next, create a `component's yaml` file with the following information
+and next create using your favorite editor a `component's yaml` file with the following information
 ```bash
-echo "
 apiVersion: devexp.runtime.redhat.com/v1alpha2
 kind: Component
 metadata:
   name: spring-boot
 spec:
   runtime: spring-boot
-  deploymentMode: dev" | kubectl apply -n demo -f -
+  deploymentMode: dev
+```
+
+Deploy it 
+```bash
+kubectl apply -n demo -f my-component.yaml
 ```
 
 Verify if the component has been well created by executing the following kubectl command
@@ -206,11 +207,16 @@ You can now cleanup the project as we will not deploy a Java Microservices or de
 kubectl delete component --all -n demo 
 ```
 
-## A Cool demo
+## A Real demo
   
-TODO: to be reviewed too ;-)
+To play with a `real example` and discover the different features currently supported, we have created within the directory `demo` a project containing 
+2 microservices: a Spring Boot REST client calling a Service exposed by a Spring Boot backend application which access a postgresql database.
 
-### Cleanup the Operator resources
+So jump [here](demo/README.md) in order to see in action How we enhance the Developer Experience on Kubernetes ;-)
+
+## Cleanup the Operator resources
+
+To clean the operator deployed on your favorite Kubernetes cluster, then execute the following kubectl commands:
 
 ```bash
 kubectl delete -n operators -f deploy/sa.yaml
