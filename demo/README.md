@@ -32,9 +32,9 @@ where the `ComponentA` and `ComponentB` correspond respectively to a Spring Boot
 The relation `from -> to` indicates that we will `reference` the `ComponentA`  with the `ComponentB` using a `Link`.
 
 The `link`'s purpose is to inject as `Env var(s)` the information required to by example configure the `HTTP client` of the `ComponentA` to access the 
-`ComponentB` which exposes the logic of the backend's system as CRUD REST operations.
+`ComponentB` which exposes a `HTTP endpoint` that the client `ComponentA`  could use to access the `CRUD` operations.
 
-To let the `ComponentB` to access the database, we will also setup a `link` in order to pass using the `Secret` the parameters which are needed to configure a Java Datasource's bean.
+To let the `ComponentB` to consume a database, we will also setup a `link` in order to pass using the database `Secret` the parameters which are needed to configure a Java Datasource's bean.
 
 To avoid that you must manually generate such `CR`, we will use the project [`Dekorate`](https://dekorate.io) which supports to generate Kubernetes resources from Java Annotations or using parameters defined
 within an `application.properties` file. 
