@@ -86,12 +86,17 @@ jobs:
         name: Deploy the operator
         command: |
           oc login -u admin -p admin
-          oc new-project component-operator
+          oc new-project operators
           CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
-          oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/sa.yaml
-          oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-rbac.yaml
-          oc create -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component_v1alpha2.yaml
-          oc create -f ${CIRCLE_WORKING_DIRECTORY}/examples/operator.yaml
+          oc create ns operators
+          oc apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/sa.yaml -n operators
+          oc apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-role.yaml
+          oc apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/user-rbac.yaml
+          oc apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-role-binding.yaml
+          oc apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/capability_v1alpha2.yaml
+          oc apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component_v1alpha2.yaml
+          oc apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/link_v1alpha2.yaml
+          oc apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/operator.yaml -n operators
     - run:
         name: Perform E2E tests
         command: |
