@@ -30,5 +30,6 @@ spec:
       resourceSpec:
         params:
         - name: url
-          value: docker-registry.default.svc:5000/test/dummy
+          # value: value: docker-registry.default.svc:5000/test/dummy
+          value: kube-registry.kube-system.svc:5000/test/dummy
         type: image
