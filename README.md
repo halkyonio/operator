@@ -34,49 +34,29 @@ The `Custom Resources` contains `METADATA` information about the framework/langu
 ## Prerequisites
 
 In order to use the DevExp Runtime Operator and the CRs, it is needed to install [Tekton Pipelines]() and [KubeDB]() Operators.
-We assume that you have installed a K8s cluster starting from version 1.12.
-
-## Setup
-
-### Local cluster using MiniShift
-
-- Minishift (>= v1.26.1) with Service Catalog feature enabled
-- Launch Minishift VM
-
-```bash
-# if you don't have a minishift VM, start as follows
-minishift addons enable xpaas
-minishift addons enable admin-user
-minishift start
-```
-- Login to MiniShift using `admin`'s user
-```bash
-oc login "https://$(minishift ip):8443" -u admin -p admin
-```
+We assume that you have installed a K8s cluster as of starting from Kubernetes version 1.12.
 
 ### Local cluster using Minikube
 
-Install using brew tool on MacOS the following applications
+Install using `brew tool` on `MacOS` the following software
 ```bash
 brew cask install minikube
 brew install kubernetes-cli
-brew install kubernetes-service-catalog-client
 brew install kubernetes-helm
 ```
 
-Next, create a K8s cluster where ingress addon is enabled
+Next, create a `K8s` cluster where `ingress` and `dashboard` addons are enabled
 ```bash
 minikube config set vm-driver virtualbox
-minikube config set WantReportError true
 minikube config set cpus 4
 minikube config set kubernetes-version v1.14.0
-minikube config set memory 5000
+minikube config set memory 6000
 minikube addons enable ingress
 minikube addons enable dashboard
 minikube start
 ```
 
-When `minikube` is running, initialize the Helm Tiller on ths server
+When `minikube` has started, initialize the Helm tool to install on the cluster `Tiller`
 
 ```bash
 helm init
@@ -86,7 +66,7 @@ kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-adm
 
 Login to the cluster using a user having admin cluster role
 ```bash
-oc login "https://<cluster_ip>:8443" -u admin -p admin
+oc login "https://$(minikube ip):8443" -u admin -p admin
 ```
 
 Install Tekton Pipelines technology
@@ -96,22 +76,16 @@ kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.4.0/
 
 Disable TLS verification
 ```bash
-kubectl config set-cluster <cluster_ip>:8443 --insecure-skip-tls-verify=false
+kubectl config set-cluster $(minikube ip):8443 --insecure-skip-tls-verify=false
 ```
 
 Install KubeDB operator and Postgresql catalog
 ```bash
-kubectl create ns kubedb
-curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh \
-    | bash -s -- --namespace=kubedb --install-catalog=postgres --enable-validating-webhook=false --enable-mutating-webhook=false
-
-OR
-
 KUBEDB_VERSION=0.12.0
 helm repo add appscode https://charts.appscode.com/stable/
 helm repo update
 helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} \
---namespace kubedb --set apiserver.enableValidatingWebhook=false,apiserver.enableMutatingWebhook=false
+  --namespace kubedb --set apiserver.enableValidatingWebhook=false,apiserver.enableMutatingWebhook=false
 
 TIMER=0
 until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions.catalog.kubedb.com mongodbversions.catalog.kubedb.com mysqlversions.catalog.kubedb.com postgresversions.catalog.kubedb.com redisversions.catalog.kubedb.com || [[ ${TIMER} -eq 60 ]]; do
@@ -120,12 +94,12 @@ until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions
 done
 
 helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
---namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
+  --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
 ```
 
-## Installation of the Operator
+## Installation of the DevExp Runtime Operator
 
-- Deploy the resources within the namespace `component-operator` 
+- Deploy the Cluster Role, Role Binding, CRDs, ServiceAccount and Operator within the namespace `component-operator` 
 
 ```bash
 kubectl create ns component-operator
@@ -138,24 +112,12 @@ kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/m
 kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/operator.yaml
 ```
 
-- Give the `privileged` security context to the serviceaccount `postgres-db` used by the KubeDB operator
-```bash
-oc project test
-oc adm policy add-scc-to-user privileged -z postgres-db
-```
-
-- Give also the security context `privileged` to the serviceaccount `build-bot` used to run the Task of the pod. Git ve it to this serviceaccount the role to `edit`
-```bash
-oc adm policy add-scc-to-user privileged -z build-bot
-oc adm policy add-role-to-user edit -z build-bot
-```
-
 ## How to play with it
 
 - Log on to an OpenShift cluster >=3.10 with cluster-admin rights
 - Create a namespace `component-operator`
   ```bash
-  $ oc new-project component-operator
+  $ kubectl new-project component-operator
   ```
   
 - In a separate terminal create a component's yaml file with the following information
@@ -167,12 +129,12 @@ oc adm policy add-role-to-user edit -z build-bot
     name: my-spring-boot
   spec:
     runtime: spring-boot
-    deploymentMode: dev" | oc apply -f -
+    deploymentMode: dev" | kubectl apply -f -
   ```
 
 - Check if the `operator` has created the following kubernetes resources, part of the `dev` deployment mode
   ```bash
-  oc get all,pvc,component
+  kubectl get all,pvc,component
   NAME                         READY     STATUS    RESTARTS   AGE
   pod/my-spring-boot-1-nrszv   1/1       Running   0          41s
   
@@ -198,7 +160,7 @@ oc adm policy add-role-to-user edit -z build-bot
 
 - To cleanup the project installed (component)
   ```bash  
-  $ oc delete components,route,svc,is,pvc,dc --all=true && 
+  $ kubectl delete components,route,svc,is,pvc,dc --all=true && 
   ``` 
   
 ## A more complex scenario   
@@ -207,11 +169,11 @@ In order to play with a more complex scenario where we would like to install 2 c
 like also the `links` needed to update the `DeploymentConfig`, then you should execute the following commands at the root of the github project within a terminal
 
   ```bash
-  oc apply -f examples/demo/component-client.yml
-  oc apply -f examples/demo/component-link-env.yml
-  oc apply -f examples/demo/component-crud.yml
-  oc apply -f examples/demo/component-service.yml
-  oc apply -f examples/demo/component-link.yml
+  kubectl apply -f examples/demo/component-client.yml
+  kubectl apply -f examples/demo/component-link-env.yml
+  kubectl apply -f examples/demo/component-crud.yml
+  kubectl apply -f examples/demo/component-service.yml
+  kubectl apply -f examples/demo/component-link.yml
   ```  
   
 ## Switch from Development to Build/Prod mode
@@ -241,7 +203,7 @@ In order to switch between the 2 modes, execute the following operations:
 - Patch the component when it has been deployed to switch from the `inner` to the `outer` deployment mode
   
   ```bash
-  oc patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
+  kubectl patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"outerloop"}}' --type=merge
   ```   
 
 ## A cool demo
@@ -249,10 +211,10 @@ In order to switch between the 2 modes, execute the following operations:
 ## Cleanup
 
   ```bash
-  oc delete -f deploy/crds/component-v1alpha2.yaml
-  oc delete -f deploy/operator.yaml
-  oc delete -f deploy/rbac.yaml
-  oc delete -f deploy/sa.yaml
+  kubectl delete -f deploy/crds/component-v1alpha2.yaml
+  kubectl delete -f deploy/operator.yaml
+  kubectl delete -f deploy/rbac.yaml
+  kubectl delete -f deploy/sa.yaml
   ```
   
 ## TODO: to be reviewed 
@@ -288,9 +250,9 @@ When this `Custom resource` will be processed by the Kubernetes API Server and p
 
 ### Cleanup
 
-  ```bash
-  oc delete -f deploy/crds/component-v1alpha2.yaml
-  oc delete -f deploy/operator.yaml
-  oc delete -f deploy/rbac.yaml
-  oc delete -f deploy/sa.yaml
-  ```
+```bash
+kubectl delete -f deploy/crds/component-v1alpha2.yaml
+kubectl delete -f deploy/operator.yaml
+kubectl delete -f deploy/rbac.yaml
+kubectl delete -f deploy/sa.yaml
+```

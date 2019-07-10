@@ -12,7 +12,6 @@
      * [Scaffold a project](#scaffold-a-project)
   * [Cleanup](#cleanup)
 
-
 ## Introduction
 
 The purpose of this demo is to showcase how you can use the `Component`, `Link` and `Capability` CRDs combined withe the Kubernetes `operator` to help you to :
