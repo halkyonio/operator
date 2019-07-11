@@ -12,7 +12,6 @@ executors:
       KUBEDB_VERSION: 0.12.0
       MINIKUBE_HOME: $HOME
       KUBECONFIG: $HOME/.kube/config
-      OPERATOR_GIT_REF: master
       NAMESPACE_TESTING: demo
 
 jobs:
@@ -73,23 +72,6 @@ jobs:
 
             kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
 
-      # DEPRECATED as we don't use anymore OABroker
-      # - run:
-      #     name: Install ServiceCatalog using helm & OAB
-      #     command: |
-      #       # Adds the chart repository for the service catalog
-      #       helm repo add svc-cat https://svc-catalog-charts.storage.googleapis.com
-      #
-      #       # Installs the service catalog
-      #       helm install svc-cat/catalog --name catalog --namespace catalog
-      #
-      #       # Wait until the catalog is ready before moving on
-      #       until kubectl get pods -n catalog -l app=catalog-catalog-apiserver | grep 2/2; do sleep 1; done
-      #       until kubectl get pods -n catalog -l app=catalog-catalog-controller-manager | grep 1/1; do sleep 1; done
-      #
-      #       kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/master/deploy/oab-install.yaml
-      #       until kubectl get pods -n automation-broker -l app=automation-broker | grep 2/2; do sleep 10; done
-
       - run:
           name: Install KubeDB Operator using Helm chart
           command: |
@@ -97,6 +79,7 @@ jobs:
             helm repo update
             helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} \
             --namespace kubedb --set apiserver.enableValidatingWebhook=false,apiserver.enableMutatingWebhook=false
+
       - run:
           name: Wait till KubeDB operator is on, CRDs deployed and install KubeDB Catalog using Helm chart
           command: |
@@ -110,21 +93,22 @@ jobs:
             --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
 
       - run:
-          name: Install Component Operator from master branch
-          command: |
-            kubectl create namespace component-operator
-            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/sa.yaml -n component-operator
-            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/cluster-rbac.yaml
-            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/user-rbac.yaml
-            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/crds/capability_v1alpha2.yaml
-            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/crds/component_v1alpha2.yaml
-            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/crds/link_v1alpha2.yaml
-            kubectl apply -f https://raw.githubusercontent.com/snowdrop/component-operator/${OPERATOR_GIT_REF}/deploy/operator.yaml -n component-operator
-
-      - run:
           name: Install Tekton Operator to perform build tasks
           command: |
             kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/${TEKTON_VERSION}/release.yaml
+
+      - run:
+          name: Install Component Operator from master branch
+          command: |
+            kubectl create ns operators
+            kubectl apply -n operators -f deploy/sa.yaml
+            kubectl apply -f deploy/cluster-role.yaml
+            kubectl apply -f deploy/user-rbac.yaml
+            kubectl apply -f deploy/cluster-role-binding.yaml
+            kubectl apply -f deploy/crds/capability_v1alpha2.yaml
+            kubectl apply -f deploy/crds/component_v1alpha2.yaml
+            kubectl apply -f deploy/crds/link_v1alpha2.yaml
+            kubectl apply -n operators -f deploy/operator.yaml
 
       - restore_cache:
           keys:
@@ -133,10 +117,12 @@ jobs:
           name: dependencies
           command: |
             mvn dependency:go-offline || true
+
       - save_cache:
           paths:
             - ~/.m2
           key: demo
+
       - run:
           name: Compile the component-operator-demo project using maven
           command: |
@@ -175,20 +161,21 @@ jobs:
                   value: admin
                 - name: DB_PASSWORD
                   value: admin
+                - name: DB_HOST
+                 value: postgres-db.${NAMESPACE_TESTING}
             - apiVersion: devexp.runtime.redhat.com/v1alpha2
               kind: Component
               metadata:
                 name: fruit-backend-sb
-                labels:
-                  app: fruit-backend-sb
               spec:
                 deploymentMode: dev
                 buildConfig:
-                  url: https://github.com/snowdrop/component-operator-demo.git
+                  url: https://github.com/snowdrop/component-operator.git
                   ref: master
+                  contextPath: demo
                   moduleDirName: fruit-backend-sb
                 runtime: spring-boot
-                version: 2.1.3
+                version: "2.1.3.RELEASE"
                 envs:
                 - name: SPRING_PROFILES_ACTIVE
                   value: postgresql-kubedb
@@ -211,12 +198,14 @@ jobs:
             - apiVersion: "devexp.runtime.redhat.com/v1alpha2"
               kind: "Component"
               metadata:
-                labels:
-                  app: "fruit-client-sb"
-                  version: "0.0.1-SNAPSHOT"
                 name: "fruit-client-sb"
               spec:
                 deploymentMode: "dev"
+                buildConfig:
+                  url: https://github.com/snowdrop/component-operator.git
+                  ref: master
+                  contextPath: demo
+                  moduleDirName: fruit-client-sb
                 runtime: "spring-boot"
                 version: "2.1.3.RELEASE"
                 exposeService: true
@@ -250,8 +239,8 @@ jobs:
       - run:
           name: Log component operator
           command: |
-            pod_id=$(kubectl get pod -l name=component-operator -n component-operator | grep "Running" | awk '{print $1}')
-            kubectl logs -n component-operator ${pod_id} > /home/circleci/project/logs/component-operator.txt
+            pod_id=$(kubectl get pod -l name=component-operator -n operators | grep "Running" | awk '{print $1}')
+            kubectl logs -n operators ${pod_id} > /home/circleci/project/logs/component-operator.txt
 
       - run:
           name: Push now the uber jar file of the frontend, backend
