@@ -97,7 +97,7 @@ items:
       contextPath: demo
       moduleDirName: fruit-backend-sb
     runtime: spring-boot
-    version: 2.1.3
+    version: 2.1.6.RELEASE
     envs:
     - name: SPRING_PROFILES_ACTIVE
       value: postgresql-kubedb
@@ -122,7 +122,6 @@ items:
   metadata:
     labels:
       app: "fruit-client-sb"
-      version: "0.0.1-SNAPSHOT"
     name: "fruit-client-sb"
   spec:
     deploymentMode: $MODE
@@ -132,7 +131,7 @@ items:
       contextPath: demo
       moduleDirName: fruit-client-sb
     runtime: "spring-boot"
-    version: "2.1.3.RELEASE"
+    version: 2.1.6.RELEASE
     exposeService: true
 - apiVersion: "devexp.runtime.redhat.com/v1alpha2"
   kind: "Link"
