@@ -160,6 +160,17 @@ commands:
             ./mvnw package
             ./scripts/end-to-end_fruit_demo.sh << parameters.cluster-ip >> << parameters.namespace >> << parameters.mode >>
             cd ..
+  test-e2e-build:
+    steps:
+      - run:
+          name: Run e2e test in build mode
+          command: |
+            cd demo
+            ./mvnw package
+            sed -i -e 's/\"dev\"/\"build\"/g' fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
+            sed -i -e 's/\"dev\"/\"build\"/g' fruit-client-sb/target/classes/META-INF/dekorate/component.yml
+            ./scripts/end-to-end_fruit_demo.sh 127.0.0.1 test-build build
+            cd ..
 
 jobs:
   # Steps
@@ -206,7 +217,7 @@ jobs:
           docker push quay.io/snowdrop/component-operator:${VERSION}
           docker push quay.io/snowdrop/component-operator:latest
 
-  okd-e2e-dev-test:
+  okd-e2e-test:
     machine: true
     steps:
     - checkout
@@ -231,8 +242,10 @@ jobs:
     - install-tekton
     - test-e2e-with-dekorate-snapshot:
         namespace: e2e-dev-snapshot
+    - test-e2e-build
+>>>>>>> Add build mode e2e test to CircleCI
 
-  k8s-e2e-dev-test:
+  k8s-e2e-test:
     machine: true
     steps:
     - checkout
@@ -261,6 +274,8 @@ jobs:
     - install-tekton
     - test-e2e-with-dekorate-snapshot:
         namespace: e2e-dev-snapshot
+    - test-e2e-build
+>>>>>>> Add build mode e2e test to CircleCI
 
   # Creates a github release and pushes all the assets
   release:
@@ -333,13 +348,13 @@ workflows:
   build-operator:
     jobs:
     - docker-image
-    - okd-e2e-dev-test:
+    - okd-e2e-test:
         requires:
           - docker-image
     - okd-e2e-dev-test-with-dekorate-snapshot:
         requires:
           - docker-image
-    - k8s-e2e-dev-test:
+    - k8s-e2e-test:
         requires:
           - docker-image
     - k8s-e2e-dev-test-with-dekorate-snapshot:
