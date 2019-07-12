@@ -16,9 +16,10 @@
 
 package com.example.demo;
 
-// import io.dekorate.component.annotation.Capability;
+import io.dekorate.component.annotation.Capability;
 import io.dekorate.component.annotation.ComponentApplication;
 import io.dekorate.component.annotation.Link;
+import io.dekorate.component.annotation.Parameter;
 import io.dekorate.component.model.Kind;
 import io.dekorate.kubernetes.annotation.Env;
 import org.springframework.boot.SpringApplication;
@@ -35,8 +36,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     name = "link-to-database",
     componentName = "fruit-backend-sb",
     kind = Kind.Secret,
-    ref = "postgresql-db")
-/*@Capability(
+    ref = "postgres-db-config")
+@Capability(
     name = "postgres-db",
     category = "database",
     kind = "postgres",
@@ -46,7 +47,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
        @Parameter(name = "DB_PASSWORD", value = "admin"),
        @Parameter(name = "DB_NAME", value = "sample-db"),
     }
-)*/
+)
 @SpringBootApplication
 public class CrudApplication {
     public static void main(String[] args) {
