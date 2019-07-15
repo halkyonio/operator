@@ -32,8 +32,8 @@ func (r *ReconcileLink) IsDependentResourceReady(resource v1alpha2.Resource) (de
 	component := &v1alpha2.Component{}
 	component.Name = link.Spec.ComponentName
 	component.Namespace = link.Namespace
-	resource, err := r.Fetch(component)
-	if err != nil || v1alpha2.ComponentReady == component.Status.Phase || v1alpha2.ComponentRunning == component.Status.Phase {
+	_, err := r.Fetch(component)
+	if err != nil || (v1alpha2.ComponentReady != component.Status.Phase && v1alpha2.ComponentRunning != component.Status.Phase) {
 		return "component", false
 	}
 	return component.Name, true
