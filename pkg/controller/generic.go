@@ -75,7 +75,6 @@ func (res DependentResourceHelper) Prototype() runtime.Object {
 
 type ReconcilerFactory interface {
 	PrimaryResourceType() v1alpha2.Resource
-	AsResource(object runtime.Object) v1alpha2.Resource
 	WatchedSecondaryResourceTypes() []runtime.Object
 	Delete(object v1alpha2.Resource) (bool, error)
 	CreateOrUpdate(object v1alpha2.Resource) (bool, error)
@@ -129,11 +128,11 @@ func (b *BaseGenericReconciler) ComputeStatus(current v1alpha2.Resource, err err
 }
 
 func (b *BaseGenericReconciler) PrimaryResourceType() v1alpha2.Resource {
-	return b.AsResource(b.primary.DeepCopyObject())
+	return b.asResource(b.primary.DeepCopyObject())
 }
 
-func (b *BaseGenericReconciler) AsResource(object runtime.Object) v1alpha2.Resource {
-	return b.factory().AsResource(object)
+func (b *BaseGenericReconciler) asResource(object runtime.Object) v1alpha2.Resource {
+	return object.(v1alpha2.Resource)
 }
 
 func (b *BaseGenericReconciler) factory() ReconcilerFactory {
@@ -166,7 +165,7 @@ func (b *BaseGenericReconciler) Fetch(into v1alpha2.Resource) (v1alpha2.Resource
 	if e != nil {
 		return nil, e
 	}
-	return b.AsResource(object), nil
+	return b.asResource(object), nil
 }
 
 func (b *BaseGenericReconciler) MakePending(dependencyName string, resource v1alpha2.Resource) (changed bool, wantsRequeue bool) {
