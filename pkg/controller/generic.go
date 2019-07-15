@@ -338,7 +338,11 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 			return errBuildObject
 		}
 		if errors.IsNotFound(err) {
-			controllerutil.SetControllerReference(resource.Owner(), obj.(v1.Object), b.Scheme)
+			if e := controllerutil.SetControllerReference(owner, obj.(v1.Object), b.Scheme); e != nil {
+				b.ReqLogger.Error(err, "Failed to set owner", "owner", owner, "resource", resource.Name())
+				return e
+			}
+
 			err = b.Client.Create(context.TODO(), obj)
 			if err != nil {
 				b.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
