@@ -172,8 +172,7 @@ func (b *BaseGenericReconciler) MakePending(dependencyName string, resource v1al
 	msg := fmt.Sprintf("'%s' is not ready for %s '%s' in namespace '%s'",
 		dependencyName, util.GetObjectName(resource), resource.GetName(), resource.GetNamespace())
 	b.ReqLogger.Info(msg)
-	resource.SetInitialStatus(msg)
-	return true, true
+	return resource.SetInitialStatus(msg), true
 }
 
 func (b *BaseGenericReconciler) CreateOrUpdate(object v1alpha2.Resource) (bool, error) {

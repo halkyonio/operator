@@ -130,9 +130,14 @@ func (in *Component) IsValid() bool {
 	return true // todo: implement me
 }
 
-func (in *Component) SetErrorStatus(err error) {
-	in.Status.Phase = ComponentFailed
-	in.Status.Message = err.Error()
+func (in *Component) SetErrorStatus(err error) bool {
+	errMsg := err.Error()
+	if ComponentFailed != in.Status.Phase || errMsg != in.Status.Message {
+		in.Status.Phase = ComponentFailed
+		in.Status.Message = errMsg
+		return true
+	}
+	return false
 }
 
 func (in *Component) SetSuccessStatus(dependentName, msg string) bool {

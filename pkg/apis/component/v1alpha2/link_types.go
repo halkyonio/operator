@@ -94,8 +94,14 @@ func (in *Link) IsValid() bool {
 	return true // todo: implement me
 }
 
-func (in *Link) SetErrorStatus(err error) {
-	in.Status.Phase = LinkFailed
+func (in *Link) SetErrorStatus(err error) bool {
+	errMsg := err.Error()
+	if LinkFailed != in.Status.Phase || errMsg != in.Status.Message {
+		in.Status.Phase = LinkFailed
+		in.Status.Message = errMsg
+		return true
+	}
+	return false
 }
 
 func (in *Link) SetSuccessStatus(dependentName, msg string) bool {

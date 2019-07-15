@@ -107,9 +107,14 @@ func (in *Capability) IsValid() bool {
 	return true // todo: implement me
 }
 
-func (in *Capability) SetErrorStatus(err error) {
-	in.Status.Phase = CapabilityFailed
-	in.Status.Message = err.Error()
+func (in *Capability) SetErrorStatus(err error) bool {
+	errMsg := err.Error()
+	if CapabilityFailed != in.Status.Phase || errMsg != in.Status.Message {
+		in.Status.Phase = CapabilityFailed
+		in.Status.Message = errMsg
+		return true
+	}
+	return false
 }
 
 func (in *Capability) SetSuccessStatus(dependentName, msg string) bool {
