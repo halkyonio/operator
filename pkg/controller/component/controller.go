@@ -110,11 +110,11 @@ func (ReconcileComponent) asComponent(object runtime.Object) *v1alpha2.Component
 func (r *ReconcileComponent) IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool) {
 	component := r.asComponent(resource)
 	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
-		taskRun, err := r.fetchTaskRun(component)
-		if err != nil || !r.isBuildSucceed(taskRun) {
+		taskRun, err := r.MustGetDependentResourceFor(resource, &taskRunv1alpha1.TaskRun{}).Fetch(r.Helper())
+		if err != nil || !r.isBuildSucceed(taskRun.(*taskRunv1alpha1.TaskRun)) {
 			return "taskRun job", false
 		}
-		return taskRun.Name, true
+		return taskRun.GetName(), true
 	} else {
 		pod, err := r.fetchPod(component)
 		if err != nil || !r.isPodReady(pod) {
