@@ -36,7 +36,6 @@ type Resource interface {
 	NeedsRequeue() bool
 	SetNeedsRequeue(requeue bool)
 	GetStatusAsString() string
-	SetStatus(status interface{})
 	ShouldDelete() bool
 	SetErrorStatus(err error)
 	SetSuccessStatus(dependentName, msg string) bool
