@@ -37,7 +37,7 @@ type Resource interface {
 	SetNeedsRequeue(requeue bool)
 	GetStatusAsString() string
 	ShouldDelete() bool
-	SetErrorStatus(err error)
+	SetErrorStatus(err error) bool
 	SetSuccessStatus(dependentName, msg string) bool
 	SetInitialStatus(msg string) bool
 	IsValid() bool
