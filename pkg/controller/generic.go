@@ -147,6 +147,14 @@ func (b *BaseGenericReconciler) AddDependentResource(resource DependentResource)
 	b.dependents[key] = resource
 }
 
+func (b *BaseGenericReconciler) MustGetDependentResourceFor(owner v1alpha2.Resource, resourceType runtime.Object) (resource DependentResource) {
+	var e error
+	if resource, e = b.GetDependentResourceFor(owner, resourceType); e != nil {
+		panic(e)
+	}
+	return resource
+}
+
 func (b *BaseGenericReconciler) GetDependentResourceFor(owner v1alpha2.Resource, resourceType runtime.Object) (DependentResource, error) {
 	resource, ok := b.dependents[getKeyFor(resourceType)]
 	if !ok {

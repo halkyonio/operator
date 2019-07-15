@@ -48,12 +48,11 @@ func asCapability(object runtime.Object) *v1alpha2.Capability {
 }
 
 func (r *ReconcileCapability) IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool) {
-	capability := asCapability(resource)
-	db, err := r.fetchKubeDBPostgres(capability)
-	if err != nil || !r.isDBReady(db) {
+	db, err := r.MustGetDependentResourceFor(resource, &kubedbv1.Postgres{}).Fetch(r.Helper())
+	if err != nil || !r.isDBReady(db.(*kubedbv1.Postgres)) {
 		return "postgreSQL db", false
 	}
-	return db.Name, true
+	return db.GetName(), true
 }
 
 func (r *ReconcileCapability) Delete(object v1alpha2.Resource) (bool, error) {

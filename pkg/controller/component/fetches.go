@@ -4,17 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	tektonv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-func (r *ReconcileComponent) fetchTaskRun(c *v1alpha2.Component) (*tektonv1alpha1.TaskRun, error) {
-	taskRun := &tektonv1alpha1.TaskRun{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: c.Name, Namespace: c.Namespace}, taskRun)
-	return taskRun, err
-}
 
 //fetchPod returns the pod resource created for this instance and where label app=component name
 func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod, error) {
