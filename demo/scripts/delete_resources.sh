@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+DIR=$(dirname "$0")
 NS=${1:-test}
 
 function deleteResources() {
@@ -13,4 +14,4 @@ function deleteResources() {
 
 deleteResources $NS
 kubectl delete ns ${NS} --wait=false
-./demo/scripts/kill-ns.sh ${NS}
+${DIR}/kill-ns.sh ${NS}

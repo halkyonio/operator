@@ -118,8 +118,8 @@ commands:
           command: |
             cd demo
             ./mvnw package
+            ./scripts/end-to-end_fruit_demo.sh 127.0.0.1 test dev
             cd ..
-            ./demo/scripts/end-to-end_fruit_demo.sh 127.0.0.1 test dev
 
 jobs:
   # Steps
