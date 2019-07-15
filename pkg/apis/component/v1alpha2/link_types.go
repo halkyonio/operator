@@ -82,9 +82,13 @@ func (in *Link) NeedsRequeue() bool {
 	return in.requeue
 }
 
-func (in *Link) SetInitialStatus(msg string) {
-	in.Status.Phase = LinkPending
-	in.Status.Message = msg
+func (in *Link) SetInitialStatus(msg string) bool {
+	if LinkPending != in.Status.Phase || msg != in.Status.Message {
+		in.Status.Phase = LinkPending
+		in.Status.Message = msg
+		return true
+	}
+	return false
 }
 
 func (in *Link) IsValid() bool {
