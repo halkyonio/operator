@@ -1,7 +1,6 @@
 package v1alpha2
 
 import (
-	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -110,17 +109,6 @@ func (in *Link) SetSuccessStatus(dependentName, msg string) bool {
 
 func (in *Link) GetStatusAsString() string {
 	return in.Status.Phase.String()
-}
-
-func (in *Link) SetStatus(status interface{}) {
-	switch t := status.(type) {
-	case LinkStatus:
-		in.Status = t
-	case LinkPhase:
-		in.Status.Phase = t
-	default:
-		panic(fmt.Errorf("impossible to set status from %T object", t))
-	}
 }
 
 func (in *Link) ShouldDelete() bool {
