@@ -115,7 +115,7 @@ func (in *Component) isPending() bool {
 }
 
 func (in *Component) SetInitialStatus(msg string) bool {
-	if !in.isPending() && in.Status.Message != msg {
+	if !in.isPending() || in.Status.Message != msg {
 		in.Status.Phase = ComponentPending
 		if BuildDeploymentMode == in.Spec.DeploymentMode {
 			in.Status.Phase = ComponentBuilding
