@@ -1,6 +1,6 @@
 .idea
 .DS_Store
-**/*.iml
+*.iml
 tmp/
 build/_output/
 **/target/
