@@ -95,9 +95,13 @@ func (in *Capability) NeedsRequeue() bool {
 	return in.requeue
 }
 
-func (in *Capability) SetInitialStatus(msg string) {
-	in.Status.Phase = CapabilityPending
-	in.Status.Message = msg
+func (in *Capability) SetInitialStatus(msg string) bool {
+	if CapabilityPending != in.Status.Phase && in.Status.Message != msg {
+		in.Status.Phase = CapabilityPending
+		in.Status.Message = msg
+		return true
+	}
+	return false
 }
 
 func (in *Capability) IsValid() bool {

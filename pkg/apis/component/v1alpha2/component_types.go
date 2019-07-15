@@ -107,12 +107,24 @@ func (in *Component) NeedsRequeue() bool {
 	return in.requeue
 }
 
-func (in *Component) SetInitialStatus(msg string) {
-	in.Status.Phase = ComponentPending
+func (in *Component) isPending() bool {
+	status := ComponentPending
 	if BuildDeploymentMode == in.Spec.DeploymentMode {
-		in.Status.Phase = ComponentBuilding
+		status = ComponentBuilding
 	}
-	in.Status.Message = msg
+	return status == in.Status.Phase
+}
+
+func (in *Component) SetInitialStatus(msg string) bool {
+	if !in.isPending() && in.Status.Message != msg {
+		in.Status.Phase = ComponentPending
+		if BuildDeploymentMode == in.Spec.DeploymentMode {
+			in.Status.Phase = ComponentBuilding
+		}
+		in.Status.Message = msg
+		return true
+	}
+	return false
 }
 
 func (in *Component) IsValid() bool {

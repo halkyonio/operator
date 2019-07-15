@@ -40,6 +40,6 @@ type Resource interface {
 	ShouldDelete() bool
 	SetErrorStatus(err error)
 	SetSuccessStatus(dependentName, msg string) bool
-	SetInitialStatus(msg string)
+	SetInitialStatus(msg string) bool
 	IsValid() bool
 }
