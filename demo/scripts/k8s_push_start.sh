@@ -2,6 +2,7 @@
 
 set -x
 
+dir=$(dirname "$0")
 component=$1
 runtime=$2
 project=$component-$runtime
@@ -13,10 +14,10 @@ echo "## $runtime files ${project} pushed ..."
 
 if [ $runtime = "nodejs" ]; then
   cmd="run-node"
-  kubectl rsync demo/$project/ $pod_id:/opt/app-root/src/ --no-perms=true -n ${namespace}
+  kubectl rsync ${dir}/../$project/ $pod_id:/opt/app-root/src/ --no-perms=true -n ${namespace}
 else
   cmd="run-java"
-  kubectl cp demo/${project}/target/${project}-0.0.1-SNAPSHOT.jar $pod_id:/deployments/${project}-0.0.1-SNAPSHOT.jar -n ${namespace}
+  kubectl cp ${dir}/../${project}/target/${project}-0.0.1-SNAPSHOT.jar $pod_id:/deployments/${project}-0.0.1-SNAPSHOT.jar -n ${namespace}
 fi
 
 kubectl exec $pod_id -n ${namespace} /var/lib/supervisord/bin/supervisord ctl stop $cmd

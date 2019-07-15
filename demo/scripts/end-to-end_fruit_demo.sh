@@ -8,6 +8,7 @@
 # Example: ./scripts/end-to-end.sh <CLUSTER_IP> <NAMESPACE> <DEPLOYMENT_MODE>
 # where CLUSTER_IP represents the external IP address exposed top of the VM
 #
+DIR=$(dirname "$0")
 CLUSTER_IP=${1:-192.168.99.50}
 NS=${2:-test}
 MODE=${3:-dev}
@@ -34,122 +35,9 @@ else
     COMPONENT_FRUIT_CLIENT_NAME="fruit-client-sb"
 fi
 
-function deleteResources() {
-  result=$(kubectl api-resources --verbs=list --namespaced -o name)
-  for i in $result[@]
-  do
-    kubectl delete $i --ignore-not-found=true --all -n $1
-  done
-}
-
-function listAllK8sResources() {
-  result=$(kubectl api-resources --verbs=list --namespaced -o name)
-  for i in $result[@]
-  do
-    kubectl get $i --ignore-not-found=true -n $1
-  done
-}
-
 function printTitle {
   r=$(typeset i=${#1} c="=" s="" ; while ((i)) ; do ((i=i-1)) ; s="$s$c" ; done ; echo  "$s" ;)
   printf "$r\n$1\n$r\n"
-}
-
-function createPostgresqlCapability() {
-cat <<EOF | kubectl apply -n ${NS} -f -
-apiVersion: "v1"
-kind: "List"
-items:
-- apiVersion: devexp.runtime.redhat.com/v1alpha2
-  kind: Capability
-  metadata:
-    name: postgres-db
-  spec:
-    category: database
-    kind: postgres
-    version: "10"
-    parameters:
-    - name: DB_USER
-      value: admin
-    - name: DB_PASSWORD
-      value: admin
-    - name: DB_HOST
-      value: postgres-db.$NS
-EOF
-}
-function createFruitBackend() {
-cat <<EOF | kubectl apply -n ${NS} -f -
-apiVersion: "v1"
-kind: "List"
-items:
-- apiVersion: devexp.runtime.redhat.com/v1alpha2
-  kind: Component
-  metadata:
-    name: fruit-backend-sb
-    labels:
-      app: fruit-backend-sb
-  spec:
-    exposeService: true
-    deploymentMode: $MODE
-    buildConfig:
-      url: https://github.com/snowdrop/component-operator.git
-      ref: master
-      contextPath: demo
-      moduleDirName: fruit-backend-sb
-    runtime: spring-boot
-    version: 2.1.6.RELEASE
-    envs:
-    - name: SPRING_PROFILES_ACTIVE
-      value: postgresql-kubedb
-- apiVersion: "devexp.runtime.redhat.com/v1alpha2"
-  kind: "Link"
-  metadata:
-    name: "link-to-postgres-db"
-  spec:
-    componentName: $COMPONENT_FRUIT_BACKEND_NAME
-    kind: "Secret"
-    ref: "postgres-db-config"
-EOF
-}
-function createFruitClient() {
-cat <<EOF | kubectl apply -n ${NS} -f -
----
-apiVersion: "v1"
-kind: "List"
-items:
-- apiVersion: "devexp.runtime.redhat.com/v1alpha2"
-  kind: "Component"
-  metadata:
-    labels:
-      app: "fruit-client-sb"
-    name: "fruit-client-sb"
-  spec:
-    deploymentMode: $MODE
-    buildConfig:
-      url: https://github.com/snowdrop/component-operator.git
-      ref: master
-      contextPath: demo
-      moduleDirName: fruit-client-sb
-    runtime: "spring-boot"
-    version: 2.1.6.RELEASE
-    exposeService: true
-- apiVersion: "devexp.runtime.redhat.com/v1alpha2"
-  kind: "Link"
-  metadata:
-    name: "link-to-fruit-backend"
-  spec:
-    kind: "Env"
-    componentName: $COMPONENT_FRUIT_CLIENT_NAME
-    envs:
-    - name: "ENDPOINT_BACKEND"
-      value: "http://fruit-backend-sb:8080/api/fruits"
-EOF
-}
-
-function createAll() {
-  createPostgresqlCapability
-  createFruitBackend
-  createFruitClient
 }
 
 printTitle "Creating the namespace"
@@ -166,13 +54,12 @@ else
 fi
 
 printTitle "Deploy the component for the fruit-backend, link and capability"
-createPostgresqlCapability
-createFruitBackend
+kubectl apply -n ${NS} -f ${DIR}/../fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
 
 printTitle "Deploy the component for the fruit-client, link"
-createFruitClient
+kubectl apply -n ${NS} -f ${DIR}/../fruit-client-sb/target/classes/META-INF/dekorate/component.yml
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
 
@@ -209,8 +96,8 @@ printf "\n" >> ${REPORT_FILE}
 
 if [ "$MODE" == "dev" ]; then
   printTitle "Push fruit client and backend"
-  ./demo/scripts/k8s_push_start.sh fruit-backend sb ${NS}
-  ./demo/scripts/k8s_push_start.sh fruit-client sb ${NS}
+  ${DIR}/k8s_push_start.sh fruit-backend sb ${NS}
+  ${DIR}/k8s_push_start.sh fruit-client sb ${NS}
 fi
 
 printTitle "Wait until Spring Boot actuator health replies UP for both microservices"
