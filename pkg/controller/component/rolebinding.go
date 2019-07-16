@@ -1,6 +1,7 @@
 package component
 
 import (
+	"fmt"
 	authorizv1 "github.com/openshift/api/authorization/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
@@ -49,31 +50,11 @@ func (res rolebinding) Build() (runtime.Object, error) {
 			Name: "edit",
 		},
 		Subjects: []corev1.ObjectReference{
-			{Kind: "ServiceAccount", Name: "Tekton ServiceAccount -> build-bot", Namespace: c.Namespace},
+			{Kind: "ServiceAccount", Name: serviceAccountName, Namespace: c.Namespace},
 		},
 		UserNames: authorizv1.OptionalNames{
-			"system:serviceaccount:<NAMESPACE>:<TEKTON SA -> build-bot>",
+			fmt.Sprintf("system:serviceaccount:%s:%s", c.Namespace, serviceAccountName),
 		},
 	}
 	return ser, nil
 }
-
-// oc get rolebinding/edit -n gytis-test -o yaml
-//apiVersion: authorization.openshift.io/v1
-//groupNames: null
-//kind: RoleBinding
-//metadata:
-//  creationTimestamp: 2019-07-15T10:45:44Z
-//  name: edit
-//  namespace: gytis-test
-//  resourceVersion: "45987567"
-//  selfLink: /apis/authorization.openshift.io/v1/namespaces/gytis-test/rolebindings/edit
-//  uid: b2c34b19-a6ed-11e9-bbd9-107b44b03540
-//roleRef:
-//  name: edit
-//subjects:
-//- kind: ServiceAccount
-//  name: build-bot
-//  namespace: gytis-test
-//userNames:
-//- system:serviceaccount:gytis-test:build-bot
