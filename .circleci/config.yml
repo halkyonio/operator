@@ -134,9 +134,9 @@ commands:
             sed -i '' -E "s/(<dekorate.version>).+(<\/dekorate.version>)/\1${DEKORATE_VERSION}\2/" pom.xml
             cd ..
       - test-e2e
-          cluster-ip: << parameters.cluster-ip >>
-          namespace: << parameters.namespace >>
-          mode: << parameters.mode >>
+          cluster-ip: "<< parameters.cluster-ip >>"
+          namespace: "<< parameters.namespace >>"
+          mode: "<< parameters.mode >>"
       - run:
           name: Revert Dekorate version in a demo app
           command: git checkout demo/pom.xml
