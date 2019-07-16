@@ -131,7 +131,7 @@ commands:
             DEKORATE_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout -f dekorate/pom.xml | tail -1)
             ./mvnw install -f dekorate/pom.xml -Dmaven.test.skip=true
             rm -rf dekorate
-            sed -i '' -E "s/(<dekorate.version>).+(<\/dekorate.version>)/\1${DEKORATE_VERSION}\2/" pom.xml
+            sed -i -E "s/(<dekorate.version>).+(<\/dekorate.version>)/\1${DEKORATE_VERSION}\2/" pom.xml
             cd ..
       - test-e2e:
           cluster-ip: << parameters.cluster-ip >>
