@@ -133,10 +133,10 @@ commands:
             rm -rf dekorate
             sed -i '' -E "s/(<dekorate.version>).+(<\/dekorate.version>)/\1${DEKORATE_VERSION}\2/" pom.xml
             cd ..
-      - test-e2e
-          cluster-ip: "<< parameters.cluster-ip >>"
-          namespace: "<< parameters.namespace >>"
-          mode: "<< parameters.mode >>"
+      - test-e2e:
+          cluster-ip: << parameters.cluster-ip >>
+          namespace: << parameters.namespace >>
+          mode: << parameters.mode >>
       - run:
           name: Revert Dekorate version in a demo app
           command: git checkout demo/pom.xml
@@ -216,9 +216,9 @@ jobs:
     - install-kubedb-catalog
     - install-component-operator
     - install-tekton
-    - test-e2e
+    - test-e2e:
         namespace: e2e-dev-default
-    - test-e2e-with-dekorate-snapshot
+    - test-e2e-with-dekorate-snapshot:
         namespace: e2e-dev-snapshot
 
   k8s-e2e-dev-test:
@@ -233,9 +233,9 @@ jobs:
     - install-kubedb-catalog
     - install-component-operator
     - install-tekton
-    - test-e2e
+    - test-e2e:
         namespace: e2e-dev-default
-    - test-e2e-with-dekorate-snapshot
+    - test-e2e-with-dekorate-snapshot:
         namespace: e2e-dev-snapshot
 
   # Creates a github release and pushes all the assets
