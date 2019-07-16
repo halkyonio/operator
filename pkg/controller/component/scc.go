@@ -2,8 +2,8 @@ package component
 
 import (
 	securityv1 "github.com/openshift/api/security/v1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -13,7 +13,7 @@ type scc struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res scc) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+func (res scc) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
 	return newOwnedScc(res.reconciler, owner)
 }
 
@@ -21,8 +21,8 @@ func newScc(reconciler *ReconcileComponent) scc {
 	return newOwnedScc(reconciler, nil)
 }
 
-func newOwnedScc(reconciler *ReconcileComponent, owner metav1.Object) scc {
-	dependent := newBaseDependent(&corev1.Service{}, owner)
+func newOwnedScc(reconciler *ReconcileComponent, owner v1alpha2.Resource) scc {
+	dependent := newBaseDependent(&securityv1.SecurityContextConstraints{}, owner)
 	scc := scc{
 		base:       dependent,
 		reconciler: reconciler,
@@ -47,6 +47,10 @@ func (res scc) Build() (runtime.Object, error) {
 		},
 	}
 	return ser, nil
+}
+
+func (res scc) ShouldWatch() bool {
+	return false
 }
 
 //  allowHostDirVolumePlugin: true
