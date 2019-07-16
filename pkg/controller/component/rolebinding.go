@@ -2,6 +2,7 @@ package component
 
 import (
 	authorizv1 "github.com/openshift/api/authorization/v1"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +14,7 @@ type rolebinding struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res rolebinding) NewInstanceWith(owner metav1.Object) controller.DependentResource {
+func (res rolebinding) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
 	return newOwnedRoleBinding(res.reconciler, owner)
 }
 
@@ -21,8 +22,8 @@ func newRoleBinding(reconciler *ReconcileComponent) rolebinding {
 	return newOwnedRoleBinding(reconciler, nil)
 }
 
-func newOwnedRoleBinding(reconciler *ReconcileComponent, owner metav1.Object) rolebinding {
-	dependent := newBaseDependent(&corev1.Service{}, owner)
+func newOwnedRoleBinding(reconciler *ReconcileComponent, owner v1alpha2.Resource) rolebinding {
+	dependent := newBaseDependent(&authorizv1.RoleBinding{}, owner)
 	rolebinding := rolebinding{
 		base:       dependent,
 		reconciler: reconciler,
@@ -41,7 +42,7 @@ func (res rolebinding) Build() (runtime.Object, error) {
 			Kind:       "RoleBinding",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "edit",
+			Name:      "edit",
 			Namespace: c.Namespace,
 		},
 		RoleRef: corev1.ObjectReference{
@@ -56,8 +57,6 @@ func (res rolebinding) Build() (runtime.Object, error) {
 	}
 	return ser, nil
 }
-
-
 
 // oc get rolebinding/edit -n gytis-test -o yaml
 //apiVersion: authorization.openshift.io/v1
