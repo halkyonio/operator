@@ -4,9 +4,6 @@ go 1.12
 
 require (
 	github.com/Azure/azure-sdk-for-go v30.0.0+incompatible // indirect
-	github.com/Azure/go-autorest/autorest v0.1.0 // indirect
-	github.com/Azure/go-autorest/autorest/to v0.2.0 // indirect
-	github.com/Azure/go-autorest/autorest/validation v0.1.0 // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/appscode/go v0.0.0-20190424183524-60025f1135c9
 	github.com/aws/aws-sdk-go v1.19.41 // indirect
@@ -31,18 +28,14 @@ require (
 	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/pflag v1.0.3
 	github.com/tektoncd/pipeline v0.3.1
-	golang.org/x/lint v0.0.0-20190409202823-959b441ac422 // indirect
 	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
 	golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c // indirect
-	google.golang.org/api v0.5.0 // indirect
-	google.golang.org/genproto v0.0.0-20190508193815-b515fa19cec8 // indirect
 	k8s.io/api v0.0.0-20190503110853-61630f889b3c
 	k8s.io/apimachinery v0.0.0-20190508063446-a3da69d3723c
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.0.0-20190419212335-ff26e7842f9d // needed for code generation
 	k8s.io/helm v2.13.1+incompatible // indirect
-	k8s.io/kubernetes v1.14.2
-	kmodules.xyz/client-go v0.0.0-20190524133821-9c8a87771aea
+	k8s.io/kubernetes v1.14.2 // indirect
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec // indirect
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817 // indirect
 	kmodules.xyz/objectstore-api v0.0.0-20190516233206-ea3ba546e348 // indirect
