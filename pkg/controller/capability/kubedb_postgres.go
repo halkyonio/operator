@@ -85,18 +85,18 @@ func replicaNumber(num int) *int32 {
 
 func SetDefaultDatabaseVersionIfEmpty(version string) types.StrYo {
 	if version == "10.6-v2" {
-		return types.StrYo("10.6")
+		return "10.6"
 	} else {
 		// Map DB Version with the KubeDB Version
 		switch version {
 		case "9":
-			return types.StrYo("9.6-v4")
+			return "9.6-v4"
 		case "10":
-			return types.StrYo("10.6-v2")
+			return "10.6-v2"
 		case "11":
-			return types.StrYo("11.2")
+			return "11.2"
 		default:
-			return types.StrYo("10.6-v2")
+			return "10.6-v2"
 		}
 	}
 }
