@@ -33,6 +33,10 @@ func newOwnedRoleBinding(reconciler *ReconcileComponent, owner v1alpha2.Resource
 	return rolebinding
 }
 
+func (res rolebinding) Name() string {
+	return "edit"
+}
+
 func (res rolebinding) Build() (runtime.Object, error) {
 	// oc adm policy add-role-to-user edit -z build-bot
 	// TODO: Fetch Edit Role and check if it exists, if not create it. This resource should be deleted if the build/tekton task is deleted (=> could be owned by tekton task maybe ?)
@@ -43,7 +47,7 @@ func (res rolebinding) Build() (runtime.Object, error) {
 			Kind:       "RoleBinding",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "edit",
+			Name:      res.Name(),
 			Namespace: c.Namespace,
 		},
 		RoleRef: corev1.ObjectReference{
