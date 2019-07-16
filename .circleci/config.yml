@@ -20,11 +20,13 @@ commands:
 
 jobs:
   first-job:
+    machine: true
     steps:
-      - install-kubectl
+    - install-kubectl
   second-job:
+    machine: true
     steps:
-      - print-kubectl-version
+    - print-kubectl-version
 
 workflows:
   version: 2
