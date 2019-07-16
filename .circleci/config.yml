@@ -4,7 +4,7 @@
 version: 2.1
 
 commands:
-  install-kubectl:
+  install:
     steps:
       - run:
           name: Install kubectl
@@ -12,8 +12,14 @@ commands:
             KUBE_VERSION=v1.13.0
             curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
             chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl
-  print-kubectl-version:
+      - persist_to_workspace:
+          root: /usr/local/bin
+          paths:
+            - kubectl
+  use:
     steps:
+      - attach_workspace:
+          at: /usr/local/bin/kubectl
       - run:
           name: Print kubectl version
           command: kubectl version
@@ -22,11 +28,11 @@ jobs:
   first-job:
     machine: true
     steps:
-    - install-kubectl
+    - install
   second-job:
     machine: true
     steps:
-    - print-kubectl-version
+    - use
 
 workflows:
   version: 2
