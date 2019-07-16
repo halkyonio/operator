@@ -111,17 +111,7 @@ commands:
           command: |
             TEKTON_VERSION=v0.4.0
             kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/${TEKTON_VERSION}/release.yaml
-  test-e2e-with-dekorate-snapshot:
-    parameters:
-      cluster-ip:
-        type: string
-        default: 127.0.0.1
-      namespace:
-        type: string
-        default: test
-      mode:
-        type: string
-        default: dev
+  install-dekorate-snapshot:
     steps:
       - run:
           name: Build Dekorate SNAPSHOT and use it in a demo app
@@ -133,13 +123,6 @@ commands:
             rm -rf dekorate
             sed -i -E "s/(<dekorate.version>).+(<\/dekorate.version>)/\1${DEKORATE_VERSION}\2/" pom.xml
             cd ..
-      - test-e2e:
-          cluster-ip: << parameters.cluster-ip >>
-          namespace: << parameters.namespace >>
-          mode: << parameters.mode >>
-      - run:
-          name: Revert Dekorate version in a demo app
-          command: git checkout demo/pom.xml
   test-e2e:
     parameters:
       cluster-ip:
@@ -158,18 +141,12 @@ commands:
             echo "Running e2e test in a '<< parameters.namespace >>' namespace of '<< parameters.cluster-ip >>' in a '<< parameters.mode >>' mode"
             cd demo
             ./mvnw package
+
+            # Set a correct deploymentMode in a component configuration
+            sed -i -E "s/(deploymentMode:).*/\1 \"<< parameters.mode >>\"/g" fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
+            sed -i -E "s/(deploymentMode:).*/\1 \"<< parameters.mode >>\"/g" fruit-client-sb/target/classes/META-INF/dekorate/component.yml
+
             ./scripts/end-to-end_fruit_demo.sh << parameters.cluster-ip >> << parameters.namespace >> << parameters.mode >>
-            cd ..
-  test-e2e-build:
-    steps:
-      - run:
-          name: Run e2e test in build mode
-          command: |
-            cd demo
-            ./mvnw package
-            sed -i -e 's/\"dev\"/\"build\"/g' fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
-            sed -i -e 's/\"dev\"/\"build\"/g' fruit-client-sb/target/classes/META-INF/dekorate/component.yml
-            ./scripts/end-to-end_fruit_demo.sh 127.0.0.1 test-build build
             cd ..
 
 jobs:
@@ -228,9 +205,13 @@ jobs:
     - install-component-operator
     - install-tekton
     - test-e2e:
-        namespace: e2e-dev-default
+        namespace: e2e-dev
+        mode: dev
+    - test-e2e:
+        namespace: e2e-build
+        mode: build
 
-  okd-e2e-dev-test-with-dekorate-snapshot:
+  okd-e2e-test-dekorate-snapshot:
     machine: true
     steps:
     - checkout
@@ -240,10 +221,13 @@ jobs:
     - install-kubedb-catalog
     - install-component-operator
     - install-tekton
-    - test-e2e-with-dekorate-snapshot:
-        namespace: e2e-dev-snapshot
-    - test-e2e-build
->>>>>>> Add build mode e2e test to CircleCI
+    - install-dekorate-snapshot
+    - test-e2e:
+        namespace: e2e-dev
+        mode: dev
+    - test-e2e:
+        namespace: e2e-build
+        mode: build
 
   k8s-e2e-test:
     machine: true
@@ -258,9 +242,13 @@ jobs:
     - install-component-operator
     - install-tekton
     - test-e2e:
-        namespace: e2e-dev-default
+        namespace: e2e-dev
+        mode: dev
+    - test-e2e:
+        namespace: e2e-build
+        mode: build
 
-  k8s-e2e-dev-test-with-dekorate-snapshot:
+  k8s-e2e-test-dekorate-snapshot:
     machine: true
     steps:
     - checkout
@@ -272,10 +260,13 @@ jobs:
     - install-kubedb-catalog
     - install-component-operator
     - install-tekton
-    - test-e2e-with-dekorate-snapshot:
-        namespace: e2e-dev-snapshot
-    - test-e2e-build
->>>>>>> Add build mode e2e test to CircleCI
+    - install-dekorate-snapshot
+    - test-e2e:
+        namespace: e2e-dev
+        mode: dev
+    - test-e2e:
+        namespace: e2e-build
+        mode: build
 
   # Creates a github release and pushes all the assets
   release:
@@ -351,13 +342,13 @@ workflows:
     - okd-e2e-test:
         requires:
           - docker-image
-    - okd-e2e-dev-test-with-dekorate-snapshot:
+    - okd-e2e-test-dekorate-snapshot:
         requires:
           - docker-image
     - k8s-e2e-test:
         requires:
           - docker-image
-    - k8s-e2e-dev-test-with-dekorate-snapshot:
+    - k8s-e2e-test-dekorate-snapshot:
         requires:
           - docker-image
   release-operator:
