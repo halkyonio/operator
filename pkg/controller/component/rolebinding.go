@@ -49,7 +49,7 @@ func (res rolebinding) Build() (runtime.Object, error) {
 			Name: "edit",
 		},
 		Subjects: []corev1.ObjectReference{
-			{Kind: "ServiceAccount", Name: "Tekton ServiceAccoiunt -> build-bot", Namespace: c.Namespace},
+			{Kind: "ServiceAccount", Name: "Tekton ServiceAccount -> build-bot", Namespace: c.Namespace},
 		},
 		UserNames: authorizv1.OptionalNames{
 			"system:serviceaccount:<NAMESPACE>:<TEKTON SA -> build-bot>",
