@@ -111,14 +111,54 @@ commands:
           command: |
             TEKTON_VERSION=v0.4.0
             kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/${TEKTON_VERSION}/release.yaml
-  test-e2e-dev:
+  test-e2e-with-dekorate-snapshot:
+    parameters:
+      cluster-ip:
+        type: string
+        default: 127.0.0.1
+      namespace:
+        type: string
+        default: test
+      mode:
+        type: string
+        default: dev
     steps:
       - run:
-          name: Run e2e test in development mode
+          name: Build Dekorate SNAPSHOT and use it in a demo app
           command: |
             cd demo
+            git clone https://github.com/dekorateio/dekorate.git
+            DEKORATE_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout -f dekorate/pom.xml | tail -1)
+            ./mvnw install -f dekorate/pom.xml -Dmaven.test.skip=true
+            rm -rf dekorate
+            sed -i -E "s/(<dekorate.version>).+(<\/dekorate.version>)/\1${DEKORATE_VERSION}\2/" pom.xml
+            cd ..
+      - test-e2e:
+          cluster-ip: << parameters.cluster-ip >>
+          namespace: << parameters.namespace >>
+          mode: << parameters.mode >>
+      - run:
+          name: Revert Dekorate version in a demo app
+          command: git checkout demo/pom.xml
+  test-e2e:
+    parameters:
+      cluster-ip:
+        type: string
+        default: 127.0.0.1
+      namespace:
+        type: string
+        default: test
+      mode:
+        type: string
+        default: dev
+    steps:
+      - run:
+          name: Run e2e test
+          command: |
+            echo "Running e2e test in a '<< parameters.namespace >>' namespace of '<< parameters.cluster-ip >>' in a '<< parameters.mode >>' mode"
+            cd demo
             ./mvnw package
-            ./scripts/end-to-end_fruit_demo.sh 127.0.0.1 test dev
+            ./scripts/end-to-end_fruit_demo.sh << parameters.cluster-ip >> << parameters.namespace >> << parameters.mode >>
             cd ..
 
 jobs:
@@ -176,7 +216,21 @@ jobs:
     - install-kubedb-catalog
     - install-component-operator
     - install-tekton
-    - test-e2e-dev
+    - test-e2e:
+        namespace: e2e-dev-default
+
+  okd-e2e-dev-test-with-dekorate-snapshot:
+    machine: true
+    steps:
+    - checkout
+    - openshift/launch_openshift
+    - install-helm
+    - install-kubedb
+    - install-kubedb-catalog
+    - install-component-operator
+    - install-tekton
+    - test-e2e-with-dekorate-snapshot:
+        namespace: e2e-dev-snapshot
 
   k8s-e2e-dev-test:
     machine: true
@@ -190,7 +244,23 @@ jobs:
     - install-kubedb-catalog
     - install-component-operator
     - install-tekton
-    - test-e2e-dev
+    - test-e2e:
+        namespace: e2e-dev-default
+
+  k8s-e2e-dev-test-with-dekorate-snapshot:
+    machine: true
+    steps:
+    - checkout
+    - install-kubectl
+    - install-snap
+    - install-microk8s
+    - install-helm
+    - install-kubedb
+    - install-kubedb-catalog
+    - install-component-operator
+    - install-tekton
+    - test-e2e-with-dekorate-snapshot:
+        namespace: e2e-dev-snapshot
 
   # Creates a github release and pushes all the assets
   release:
@@ -266,7 +336,13 @@ workflows:
     - okd-e2e-dev-test:
         requires:
           - docker-image
+    - okd-e2e-dev-test-with-dekorate-snapshot:
+        requires:
+          - docker-image
     - k8s-e2e-dev-test:
+        requires:
+          - docker-image
+    - k8s-e2e-dev-test-with-dekorate-snapshot:
         requires:
           - docker-image
   release-operator:
