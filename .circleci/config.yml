@@ -3,42 +3,35 @@
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2.1
 
-commands:
-  install:
+jobs:
+  build-dekorate:
+    docker:
+      image: circleci/openjdk:9
     steps:
       - run:
-          name: Install kubectl
+          name: Build Dekorate
           command: |
-            KUBE_VERSION=v1.13.0
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
-            chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl
+            git clone https://github.com/dekorateio/dekorate.git
+            cd dekorate
+            mvn install -Dmaven.test.skip=true
       - persist_to_workspace:
-          root: /usr/local
+          root: ~/.m2/repository
           paths:
-            - bin
-  use:
+            - io/dekorate
+  load-maven:
+    docker:
+      image: circleci/openjdk:9
     steps:
       - attach_workspace:
-          at: /usr/local/bin
+          at: ~/.m2/repository
       - run:
-          name: Print kubectl version
-          command: kubectl version
-
-jobs:
-  first-job:
-    machine: true
-    steps:
-    - install
-  second-job:
-    machine: true
-    steps:
-    - use
+          command: ls ~/.m2/repository/io
 
 workflows:
   version: 2
   dummy:
     jobs:
-      - first-job
-      - second-job:
+      - build-dekorate
+      - load-maven:
           requires:
-            - first-job
+            - build-dekorate
