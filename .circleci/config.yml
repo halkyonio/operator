@@ -218,6 +218,17 @@ jobs:
     - install-tekton
     - test-e2e:
         namespace: e2e-dev-default
+
+  okd-e2e-dev-test-with-dekorate-snapshot:
+    machine: true
+    steps:
+    - checkout
+    - openshift/launch_openshift
+    - install-helm
+    - install-kubedb
+    - install-kubedb-catalog
+    - install-component-operator
+    - install-tekton
     - test-e2e-with-dekorate-snapshot:
         namespace: e2e-dev-snapshot
 
@@ -235,6 +246,19 @@ jobs:
     - install-tekton
     - test-e2e:
         namespace: e2e-dev-default
+
+  k8s-e2e-dev-test-with-dekorate-snapshot:
+    machine: true
+    steps:
+    - checkout
+    - install-kubectl
+    - install-snap
+    - install-microk8s
+    - install-helm
+    - install-kubedb
+    - install-kubedb-catalog
+    - install-component-operator
+    - install-tekton
     - test-e2e-with-dekorate-snapshot:
         namespace: e2e-dev-snapshot
 
@@ -312,7 +336,13 @@ workflows:
     - okd-e2e-dev-test:
         requires:
           - docker-image
+    - okd-e2e-dev-test-with-dekorate-snapshot:
+        requires:
+          - docker-image
     - k8s-e2e-dev-test:
+        requires:
+          - docker-image
+    - k8s-e2e-dev-test-with-dekorate-snapshot:
         requires:
           - docker-image
   release-operator:
