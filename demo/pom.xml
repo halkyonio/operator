@@ -13,7 +13,7 @@
         <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
 
         <!-- <dekorate.version>0.7-SNAPSHOT</dekorate.version> -->
-        <dekorate.version>0.7.2</dekorate.version>
+        <dekorate.version>0.7.3</dekorate.version>
     </properties>
 
     <dependencyManagement>
