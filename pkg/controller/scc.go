@@ -57,7 +57,7 @@ func (res scc) Update(toUpdate runtime.Object) (bool, error) {
 	toUpdateSCC := toUpdate.(*securityv1.SecurityContextConstraints)
 	owner := res.Owner()
 	sccUser := fmt.Sprintf("system:serviceaccount:%s:%s", owner.GetNamespace(), res.serviceAccountNamer(owner))
-	if util.Index(toUpdateSCC.Users, sccUser) >= 0 {
+	if util.Index(toUpdateSCC.Users, sccUser) < 0 {
 		toUpdateSCC.Users = append(toUpdateSCC.Users, sccUser)
 		return true, nil
 	}
