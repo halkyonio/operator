@@ -1,6 +1,7 @@
 package component
 
 import (
+	"fmt"
 	securityv1 "github.com/openshift/api/security/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
@@ -31,6 +32,10 @@ func newOwnedScc(reconciler *ReconcileComponent, owner v1alpha2.Resource) scc {
 	return scc
 }
 
+func (res scc) Name() string {
+	return "privileged"
+}
+
 func (res scc) Build() (runtime.Object, error) {
 	// oc adm policy add-scc-to-user privileged -z build-bot
 	// TODO: Fetch SCC Privileged and add to the users's list a new sa if it does not exist. This resource is cluster-wide managed and should not be deleted or owned by us
@@ -40,7 +45,7 @@ func (res scc) Build() (runtime.Object, error) {
 			Kind:       "SecurityContextConstraints",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "privileged",
+			Name: res.Name(),
 		},
 		Users: []string{
 			"system:serviceaccount:<NAMESPACE>:<Tekton -> SA = build-bot>",
