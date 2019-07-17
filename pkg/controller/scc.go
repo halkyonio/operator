@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	securityv1 "github.com/openshift/api/security/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type serviceAccountNamer func(owner v1alpha2.Resource) string
@@ -36,6 +38,15 @@ func newOwnedScc(reconciler *BaseGenericReconciler, owner v1alpha2.Resource, ser
 
 func (res scc) Name() string {
 	return "privileged"
+}
+
+func (res scc) Fetch(helper ReconcilerHelper) (runtime.Object, error) {
+	into := res.Prototype()
+	// SCC are cluster-wide resources so use empty namespace, feels hacky but works…
+	if err := helper.Client.Get(context.TODO(), types.NamespacedName{Name: res.Name(), Namespace: ""}, into); err != nil {
+		return nil, err
+	}
+	return into, nil
 }
 
 func (res scc) Build() (runtime.Object, error) {
