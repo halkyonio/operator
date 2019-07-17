@@ -27,15 +27,14 @@ func (res base) asComponent(object runtime.Object) *v1alpha2.Component {
 	return object.(*v1alpha2.Component)
 }
 
-func buildNamer(component *v1alpha2.Component) string {
-	return util.DefaultDependentResourceNameFor(component) + "-build"
-}
 func buildOrDevNamer(c *v1alpha2.Component) string {
 	return DeploymentNameFor(c, c.Spec.DeploymentMode)
 }
+
 func DeploymentNameFor(c *v1alpha2.Component, mode v1alpha2.DeploymentMode) string {
+	name := util.DefaultDependentResourceNameFor(c)
 	if v1alpha2.BuildDeploymentMode == mode {
-		return buildNamer(c)
+		return name + "-build"
 	}
-	return util.DefaultDependentResourceNameFor(c)
+	return name
 }
