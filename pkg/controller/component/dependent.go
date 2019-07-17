@@ -3,6 +3,7 @@ package component
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
+	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -26,17 +27,15 @@ func (res base) asComponent(object runtime.Object) *v1alpha2.Component {
 	return object.(*v1alpha2.Component)
 }
 
-type namer func(*v1alpha2.Component) string
-
-var defaultNamer namer = func(component *v1alpha2.Component) string {
-	return component.Name
+func buildNamer(component *v1alpha2.Component) string {
+	return util.DefaultDependentResourceNameFor(component) + "-build"
 }
-var buildNamer namer = func(component *v1alpha2.Component) string {
-	return defaultNamer(component) + "-build"
+func buildOrDevNamer(c *v1alpha2.Component) string {
+	return DeploymentNameFor(c, c.Spec.DeploymentMode)
 }
-var buildOrDevNamer = func(c *v1alpha2.Component) string {
-	if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
+func DeploymentNameFor(c *v1alpha2.Component, mode v1alpha2.DeploymentMode) string {
+	if v1alpha2.BuildDeploymentMode == mode {
 		return buildNamer(c)
 	}
-	return defaultNamer(c)
+	return util.DefaultDependentResourceNameFor(c)
 }

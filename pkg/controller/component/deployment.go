@@ -39,9 +39,5 @@ func (res deployment) Build() (runtime.Object, error) {
 }
 
 func (res deployment) Name() string {
-	c := res.ownerAsComponent()
-	if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
-		return buildNamer(c)
-	}
-	return defaultNamer(c)
+	return buildOrDevNamer(res.ownerAsComponent())
 }
