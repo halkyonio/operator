@@ -50,10 +50,10 @@ func (res rolebinding) Build() (runtime.Object, error) {
 			Name: "edit",
 		},
 		Subjects: []corev1.ObjectReference{
-			{Kind: "ServiceAccount", Name: serviceAccountName, Namespace: c.Namespace},
+			{Kind: "ServiceAccount", Name: ServiceAccountName(c), Namespace: c.Namespace},
 		},
 		UserNames: authorizv1.OptionalNames{
-			fmt.Sprintf("system:serviceaccount:%s:%s", c.Namespace, serviceAccountName),
+			fmt.Sprintf("system:serviceaccount:%s:%s", c.Namespace, ServiceAccountName(c)),
 		},
 	}
 	return ser, nil
