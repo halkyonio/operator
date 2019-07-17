@@ -34,10 +34,6 @@ func (res deployment) installBuild() (runtime.Object, error) {
 		runtimeContainer.Env = updateEnv(runtimeContainer.Env, c.Annotations["app.openshift.io/java-app-jar"])
 		runtimeContainer.Ports = devContainer.Ports
 	} else {
-		// Check if Service port exists, otherwise define it
-		if c.Spec.Port == 0 {
-			c.Spec.Port = 8080 // Add a default port if empty
-		}
 		runtimeContainer.Ports = []corev1.ContainerPort{{
 			ContainerPort: c.Spec.Port,
 			Name:          "http",
