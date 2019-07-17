@@ -182,12 +182,12 @@ For local testing purposes, the bundle created previously can be tested using an
 from quay.io the bundle, install it and next to create a subscription in order to deploy the operator.
 
 So log on first to an ocp4 cluster with a user having the `cluster-admin` role.
-Next, deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of the operator.
+Next, deploy the `OperatorSource` in order to add a new registry that OLM will use to fetch from `Quay.io/app` the bundle of the operator.
 
     oc apply -f deploy/olm-catalog/ocp4/operator-source.yaml
 
-Now, using the ocp console, subscribe to the `operator` by clicking on the button `install` of the `Component operatror` that you can select from the screen
-`operatorhub`.
+Now, using the ocp console, subscribe to the `operator` coming from the Quay.io registry by clicking on the button `install` of the `Component operator` that you can select from the screen
+`operatorhub`. The link to access this screen is `https://console-openshift-console.apps.snowdrop.devcluster.openshift.com/operatorhub`
 
 ![select operator](img/select-operator-hub.png)
 ![install operator](img/install-operator.png)
