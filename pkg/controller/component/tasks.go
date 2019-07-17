@@ -9,10 +9,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-const (
-	taskS2iBuildahPushName = "s2i-buildah-push"
-)
-
 type task struct {
 	base
 }
@@ -166,5 +162,9 @@ func (res task) Build() (runtime.Object, error) {
 }
 
 func (res task) Name() string {
-	return taskS2iBuildahPushName
+	return TaskName(res.Owner())
+}
+
+func TaskName(owner v1alpha2.Resource) string {
+	return "s2i-buildah-push"
 }
