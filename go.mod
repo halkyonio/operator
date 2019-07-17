@@ -35,7 +35,7 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.0.0-20190419212335-ff26e7842f9d // needed for code generation
 	k8s.io/helm v2.13.1+incompatible // indirect
-	k8s.io/kubernetes v1.14.2 // indirect
+	k8s.io/kubernetes v1.14.2
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec // indirect
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817 // indirect
 	kmodules.xyz/objectstore-api v0.0.0-20190516233206-ea3ba546e348 // indirect

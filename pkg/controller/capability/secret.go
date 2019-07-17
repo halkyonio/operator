@@ -12,7 +12,7 @@ type secret struct {
 	*controller.DependentResourceHelper
 }
 
-func (res secret) Update(toUpdate metav1.Object) (bool, error) {
+func (res secret) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
