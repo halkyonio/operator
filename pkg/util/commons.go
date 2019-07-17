@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 )
@@ -29,4 +30,8 @@ func Index(vs []string, t string) int {
 		}
 	}
 	return -1
+}
+
+func DefaultDependentResourceNameFor(owner v1alpha2.Resource) string {
+	return owner.GetName()
 }
