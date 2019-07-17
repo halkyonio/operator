@@ -52,7 +52,7 @@ func (r *ReconcileCapability) IsDependentResourceReady(resource v1alpha2.Resourc
 	if err != nil || !r.isDBReady(db.(*kubedbv1.Postgres)) {
 		return "postgreSQL db", false
 	}
-	return db.GetName(), true
+	return db.(*kubedbv1.Postgres).Name, true
 }
 
 func (r *ReconcileCapability) Delete(object v1alpha2.Resource) (bool, error) {

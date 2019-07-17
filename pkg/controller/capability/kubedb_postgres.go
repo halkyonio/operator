@@ -16,7 +16,7 @@ type postgres struct {
 	*controller.DependentResourceHelper
 }
 
-func (res postgres) Update(toUpdate metav1.Object) (bool, error) {
+func (res postgres) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 

@@ -3,7 +3,6 @@ package component
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -11,7 +10,7 @@ type base struct {
 	*controller.DependentResourceHelper
 }
 
-func (res base) Update(toUpdate v1.Object) (bool, error) {
+func (res base) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 

@@ -114,7 +114,7 @@ func (r *ReconcileComponent) IsDependentResourceReady(resource v1alpha2.Resource
 		if err != nil || !r.isBuildSucceed(taskRun.(*taskRunv1alpha1.TaskRun)) {
 			return "taskRun job", false
 		}
-		return taskRun.GetName(), true
+		return taskRun.(*taskRunv1alpha1.TaskRun).Name, true
 	} else {
 		pod, err := r.fetchPod(component)
 		if err != nil || !r.isPodReady(pod) {

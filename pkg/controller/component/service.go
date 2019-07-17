@@ -61,7 +61,7 @@ func (res service) Build() (runtime.Object, error) {
 	return ser, nil
 }
 
-func (res service) Update(toUpdate metav1.Object) (bool, error) {
+func (res service) Update(toUpdate runtime.Object) (bool, error) {
 	c := res.ownerAsComponent()
 	svc := toUpdate.(*corev1.Service)
 	name := buildOrDevNamer(c)
