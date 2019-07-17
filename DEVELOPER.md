@@ -132,14 +132,19 @@ upstream-community-operators
     link_v1alpha2.crd.yaml
 ```
 
+- Submit the PR when the following step has been accomplished
+
+**Remarks**
+
 You can find more info about the definition of the `ClusterServiceVersion` resource and package file [here](https://github.com/snowdrop/community-operators/blob/master/docs/contributing.md#package-your-operator)
 The `bundle` format describing the resources, versions part of the operator are described [here](https://github.com/snowdrop/community-operators/blob/master/docs/contributing.md#bundle-format)
 
-**Warning**: Submit the PR when the following step has been accomplished
+The ClusterServiceVersion yaml resource can be either validated by the `operator-courier` tool or only at this [address](https://operatorhub.io/preview). The online tool will not 
+only check the syntax, mandatory fields but will also display graphically the description, logo, ...
 
-### How to package and install the Operator on Quay.io as an Application
+### How to deploy the bundle as Quay application
 
-One of the requirement to let you to use OLM is to publish first on quay.io the bundle information created previously
+One of the requirement to let you to use your Operator with an OLM registry is to publish first on quay.io the bundle information created previously
 For that purpose, we will use the `operator-courier` tool which can validate or publish the bundle on quay.io
 
 Install first the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`.
@@ -150,6 +155,8 @@ Verify your operator's bundle using the tool.
 
     export BUNDLE_DIR="deploy/olm-catalog/bundle"
     operator-courier verify $BUNDLE_DIR  
+    
+**Remark** The `BUNDLE_DIR` must point to the directory containing the bundle to be tested and not yet published on operatorhub.io    
 
 Next, get from `quay.io` an `Authentication token` using your quay's username OR robot username/pwd to access your namespace.
 
@@ -166,17 +173,20 @@ Push finally the bundle on quay as an `application`.
     export RELEASE="0.10.0"
     operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
     
-**Warning**: The name of the repository must match the name of the operator created under the folder `upstream-community-operators` or `community-operators`    
+**Warning**: The name of the repository must match the name of the operator created under the folder `upstream-community-operators` or `community-operators`. The version, of course, will match the one defined within the `CSV` yaml resource or bundle package
+    
 
-### How to deploy the Component Operator on OCP4
+### How to deploy the Operator on the OLM registry of OCP4
 
-Log on to an ocp4 cluster as a cluster-admin role user.
+For local testing purposes, the bundle created previously can be tested using an ocp4 cluster. For that purpose, we will deploy different resources in order to let the OLM registry to fetch
+from quay.io the bundle, install it and next to create a subscription in order to deploy the operator.
 
-Deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of the operator.
+So log on first to an ocp4 cluster with a user having the `cluster-admin` role.
+Next, deploy the `OperatorSource` in order to install from `Quay.io/app` the bundle of the operator.
 
     oc apply -f deploy/olm-catalog/ocp4/operator-source.yaml
 
-Next, subscribe to the `operator` by clicking on the button `install` of the `Component operatror` that you can select from the screen
+Now, using the ocp console, subscribe to the `operator` by clicking on the button `install` of the `Component operatror` that you can select from the screen
 `operatorhub`.
 
 ![select operator](img/select-operator-hub.png)
