@@ -58,3 +58,7 @@ func (res rolebinding) Build() (runtime.Object, error) {
 	}
 	return ser, nil
 }
+
+func (res rolebinding) ShouldWatch() bool {
+	return false
+}

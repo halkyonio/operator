@@ -77,7 +77,7 @@ func (r *ReconcileComponent) PopulateK8sLabels(component *v1alpha2.Component, co
 }
 
 func (r *ReconcileComponent) dockerImageURL(c *v1alpha2.Component) string {
-	if r.isTargetClusterRunningOpenShift() {
+	if r.IsTargetClusterRunningOpenShift() {
 		return "docker-registry.default.svc:5000/" + c.Namespace + "/" + c.Name
 	} else {
 		return "kube-registry.kube-system.svc:5000/" + c.Namespace + "/" + c.Name

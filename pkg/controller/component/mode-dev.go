@@ -24,46 +24,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	"k8s.io/client-go/discovery"
-	"strings"
 )
-
-func newTrue() *bool {
-	b := true
-	return &b
-}
-
-func newFalse() *bool {
-	b := false
-	return &b
-}
-
-func (r *ReconcileComponent) isTargetClusterRunningOpenShift() bool {
-	if r.onOpenShift == nil {
-		discoveryClient, err := discovery.NewDiscoveryClientForConfig(r.Config)
-		if err != nil {
-			panic(err)
-		}
-		apiList, err := discoveryClient.ServerGroups()
-		if err != nil {
-			panic(err)
-		}
-		apiGroups := apiList.Groups
-		for _, group := range apiGroups {
-			if strings.HasSuffix(group.Name, "openshift.io") {
-				r.onOpenShift = newTrue()
-				break
-			}
-		}
-
-		if r.onOpenShift == nil {
-			// we didn't find any api group with the openshift.io suffix, so we're not on OpenShift!
-			r.onOpenShift = newFalse()
-		}
-	}
-
-	return *r.onOpenShift
-}
 
 func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, namespace string) (e error) {
 	component.ObjectMeta.Namespace = namespace
@@ -92,7 +53,7 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	}
 
 	if component.Spec.ExposeService {
-		if r.isTargetClusterRunningOpenShift() {
+		if r.IsTargetClusterRunningOpenShift() {
 			// Create an OpenShift Route
 			if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
 				return e

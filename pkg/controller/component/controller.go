@@ -102,7 +102,6 @@ type ReconcileComponent struct {
 	*controller2.BaseGenericReconciler
 	runtimeImages map[string]imageInfo
 	supervisor    *v1alpha2.Component
-	onOpenShift   *bool
 }
 
 func (ReconcileComponent) asComponent(object runtime.Object) *v1alpha2.Component {
@@ -137,7 +136,7 @@ func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (wantsRequ
 }
 
 func (r *ReconcileComponent) Delete(resource v1alpha2.Resource) (bool, error) {
-	if r.isTargetClusterRunningOpenShift() {
+	if r.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode
 		imageStream := &unstructured.Unstructured{
