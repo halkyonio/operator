@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	authorizv1 "github.com/openshift/api/authorization/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
+	securityv1 "github.com/openshift/api/security/v1"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
@@ -114,6 +116,12 @@ func main() {
 
 func registerAdditionalResources(m manager.Manager) {
 	scheme := m.GetScheme()
+	if err := authorizv1.Install(scheme); err != nil {
+		log.Error(err, "")
+	}
+	if err := securityv1.Install(scheme); err != nil {
+		log.Error(err, "")
+	}
 	if err := kubedbv1.AddToScheme(scheme); err != nil {
 		log.Error(err, "")
 	}
