@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -37,7 +38,7 @@ func (res *DependentResourceHelper) SetDelegate(delegate DependentResource) {
 }
 
 func (res DependentResourceHelper) Name() string {
-	return res._owner.GetName()
+	return util.DefaultDependentResourceNameFor(res.Owner())
 }
 
 func (res DependentResourceHelper) Fetch(helper ReconcilerHelper) (runtime.Object, error) {
