@@ -202,7 +202,7 @@ Wait a few moments and check if the pod of the operator has been created under t
 To clean-up , execute the following commands
 
     oc delete -n openshift-operators subscriptions/component
-    oc delete -n openshift-marketplace operatorsource/component-operator
+    oc delete -n openshift-marketplace operatorsource/snowdrop-operators
     oc delete crd/components.component.k8s.io
     oc delete -n openshift-operators ClusterServiceVersion/component-operator.v0.10.0
     oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
