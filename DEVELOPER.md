@@ -6,6 +6,7 @@ Table of Contents
   * [How To create the operator, crd](#how-to-create-the-operator-crd)
   * [How to package and install the Operator on Quay.io as an Application](#how-to-package-and-install-the-operator-on-quayio-as-an-application)
      * [How to deploy the Component Operator on OCP4](#how-to-deploy-the-component-operator-on-ocp4)
+  * [Deprecated](#deprecated)
      * [How to install the Operator using OLM, Marketplace on okd 3.x](#how-to-install-the-operator-using-olm-marketplace-on-okd-3x)
         * [Step 1 - Install the new OpenShift console](#step-1---install-the-new-openshift-console)
         * [Step 2 - Install the OLM and Marketplace](#step-2---install-the-olm-and-marketplace)
@@ -14,7 +15,7 @@ Table of Contents
      * [How to install okd 3.11 using the OCP resources](#how-to-install-okd-311-using-the-ocp-resources)
      * [Cleanup](#cleanup)
 
-  
+
 ## How To create the operator, crd
 
 Instructions followed to create the Component's CRD, operator using the `operator-sdk`'s kit
@@ -91,7 +92,51 @@ Instructions followed to create the Component's CRD, operator using the `operato
   oc delete components,route,svc,is,pvc,dc --all=true
   ```  
 
-## How to package and install the Operator on Quay.io as an Application
+## How to package the operator for the OperatorHub
+
+The following section explains the different steps that we must follow in order to do the work to deploy this
+operator on `Operatorhub.io`
+
+- Create a Container image published next on Quay.io
+- Create the OLM Bundle definition containing the CRDs, ClusterServiceVersion & Package resource
+- Push using the tool operator-courier the bundle or application on Quay.io
+- Prepare and submit a PR containing the bundle info using the forked project - github.com:operator-framework/community-operators.git
+
+### Build the docker image of the Operator
+
+The following steps are defined within the .circleci config.yaml file 
+
+```bash
+docker build -t component-operator:${VERSION} -f build/Dockerfile .
+TAG_ID=$(docker images -q component-operator:${VERSION})
+docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
+docker tag ${TAG_ID} quay.io/snowdrop/component-operator:latest
+docker login quay.io -u="${QUAY_ROBOT_USER}" -p="${QUAY_ROBOT_TOKEN}"
+docker push quay.io/snowdrop/component-operator:${VERSION}
+docker push quay.io/snowdrop/component-operator:latest
+```
+
+### Fork the community operators and prepare the OLM bundle
+
+- Git clone locally the snowdrop community-operators project - https://github.com/snowdrop/community-operators
+- Next create under `upstream-community-operators` or `community-operators` or both folders a project having the name of the operator
+with the following resources that you can find by example under the operator project - `deploy/bundle`.
+
+```bash
+upstream-community-operators
+  <operator_name>
+    capability.v1alpha2.crd.yaml
+    component.v1alpha2.crd.yaml
+    kubecomposer.package.yaml
+    kubecomposer.v0.0.1.clusterserviceversion.yaml
+    link_v1alpha2.crd.yaml
+```
+
+You can find more info about the definition of the `ClusterServiceVersion` resource and package file [here](https://github.com/snowdrop/community-operators/blob/master/docs/contributing.md#package-your-operator)
+
+**Warning**: Submit the PR when the following step has been accomplished
+
+### How to package and install the Operator on Quay.io as an Application
 
 Install the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`.
 
@@ -146,6 +191,8 @@ To clean-up , execute the following commands
     oc delete -n openshift-operators ClusterServiceVersion/component-operator.v0.10.0
     oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
     oc delete -n openshift-operators deployment/component-operator
+
+## Deprecated
 
 ### How to install the Operator using OLM, Marketplace on okd 3.x
 
