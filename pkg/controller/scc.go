@@ -16,18 +16,19 @@ type scc struct {
 }
 
 func (res scc) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
-	return newOwnedScc(owner, res.serviceAccountNamer)
+	return newOwnedScc(res.reconciler, owner, res.serviceAccountNamer)
 }
 
-func NewScc(serviceAccountNamer serviceAccountNamer) scc {
-	return newOwnedScc(nil, serviceAccountNamer)
+func NewScc(reconciler *BaseGenericReconciler, serviceAccountNamer serviceAccountNamer) scc {
+	return newOwnedScc(reconciler, nil, serviceAccountNamer)
 }
 
-func newOwnedScc(owner v1alpha2.Resource, serviceAccountNamer serviceAccountNamer) scc {
+func newOwnedScc(reconciler *BaseGenericReconciler, owner v1alpha2.Resource, serviceAccountNamer serviceAccountNamer) scc {
 	dependent := NewDependentResource(&securityv1.SecurityContextConstraints{}, owner)
 	scc := scc{
 		DependentResourceHelper: dependent,
 		serviceAccountNamer:     serviceAccountNamer,
+		reconciler:              reconciler,
 	}
 	dependent.SetDelegate(scc)
 	return scc
