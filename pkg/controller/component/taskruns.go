@@ -43,7 +43,7 @@ func (res taskRun) Build() (runtime.Object, error) {
 		Spec: v1alpha1.TaskRunSpec{
 			ServiceAccount: ServiceAccountName(c),
 			TaskRef: &v1alpha1.TaskRef{
-				Name: taskS2iBuildahPushName,
+				Name: TaskName(c),
 			},
 			Inputs: v1alpha1.TaskRunInputs{
 				Params: []v1alpha1.Param{
