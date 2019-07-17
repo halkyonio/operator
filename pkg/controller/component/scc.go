@@ -48,7 +48,7 @@ func (res scc) Build() (runtime.Object, error) {
 			Name: res.Name(),
 		},
 		Users: []string{
-			"system:serviceaccount:<NAMESPACE>:<Tekton -> SA = build-bot>",
+			fmt.Sprintf("system:serviceaccount:%s:%s", res.Owner().GetNamespace(), serviceAccountName),
 		},
 	}
 	return ser, nil
