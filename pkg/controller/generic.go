@@ -315,6 +315,11 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 		return err
 	}
 
+	// if the resource specifies that it shouldn't be created, exit fast
+	if !resource.CanBeCreatedOrUpdated() {
+		return nil
+	}
+
 	kind := util.GetObjectName(resourceType)
 	res, err := resource.Fetch(b.Helper())
 	if err != nil {

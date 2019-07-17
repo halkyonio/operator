@@ -17,6 +17,7 @@ type DependentResource interface {
 	Owner() v1alpha2.Resource
 	Prototype() runtime.Object
 	ShouldWatch() bool
+	CanBeCreatedOrUpdated() bool
 }
 
 type DependentResourceHelper struct {
@@ -26,6 +27,10 @@ type DependentResourceHelper struct {
 }
 
 func (res DependentResourceHelper) ShouldWatch() bool {
+	return true
+}
+
+func (res DependentResourceHelper) CanBeCreatedOrUpdated() bool {
 	return true
 }
 

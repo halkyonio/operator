@@ -10,10 +10,8 @@ import (
 )
 
 func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (e error) {
-	if r.IsTargetClusterRunningOpenShift() {
-		if e = r.CreateIfNeeded(c, &securityv1.SecurityContextConstraints{}); e != nil {
-			return e
-		}
+	if e = r.CreateIfNeeded(c, &securityv1.SecurityContextConstraints{}); e != nil {
+		return e
 	}
 
 	if e = r.CreateIfNeeded(c, &v1.Secret{}); e != nil {

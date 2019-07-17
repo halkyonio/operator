@@ -29,23 +29,20 @@ import (
 )
 
 func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (e error) {
-	clusterRunningOpenShift := r.IsTargetClusterRunningOpenShift()
-	if clusterRunningOpenShift {
-		if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
-			return e
-		}
-		if e = r.CreateIfNeeded(component, &securityv1.SecurityContextConstraints{}); e != nil {
-			return e
-		}
+	// Create ServiceAccount used by the Task's pod if it does not exists
+	if e = r.CreateIfNeeded(component, &corev1.ServiceAccount{}); e != nil {
+		return e
+	}
+
+	if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
+		return e
+	}
+	if e = r.CreateIfNeeded(component, &securityv1.SecurityContextConstraints{}); e != nil {
+		return e
 	}
 
 	// Create Task s2i Buildah Push if it does not exists
 	if e = r.CreateIfNeeded(component, &pipeline.Task{}); e != nil {
-		return e
-	}
-
-	// Create ServiceAccount used by the Task's pod if it does not exists
-	if e = r.CreateIfNeeded(component, &corev1.ServiceAccount{}); e != nil {
 		return e
 	}
 
@@ -62,18 +59,14 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 		return e
 	}
 
-	if component.Spec.ExposeService {
-		if clusterRunningOpenShift {
-			// Create an OpenShift Route
-			if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
-				return e
-			}
-		} else {
-			// Create an Ingress resource
-			if e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
-				return e
-			}
-		}
+	// Create an OpenShift Route
+	if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
+		return e
+	}
+
+	// Create an Ingress resource
+	if e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
+		return e
 	}
 
 	return

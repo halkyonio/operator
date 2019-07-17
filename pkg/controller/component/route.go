@@ -52,3 +52,7 @@ func (res route) Build() (runtime.Object, error) {
 func (res route) ShouldWatch() bool {
 	return res.reconciler.IsTargetClusterRunningOpenShift()
 }
+
+func (res route) CanBeCreatedOrUpdated() bool {
+	return res.ownerAsComponent().Spec.ExposeService && res.ShouldWatch()
+}

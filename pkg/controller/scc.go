@@ -12,6 +12,7 @@ type serviceAccountNamer func(owner v1alpha2.Resource) string
 type scc struct {
 	*DependentResourceHelper
 	serviceAccountNamer serviceAccountNamer
+	reconciler          *BaseGenericReconciler
 }
 
 func (res scc) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
@@ -53,4 +54,8 @@ func (res scc) Update(toUpdate runtime.Object) (bool, error) {
 
 func (res scc) ShouldWatch() bool {
 	return false
+}
+
+func (res scc) CanBeCreatedOrUpdated() bool {
+	return res.reconciler.IsTargetClusterRunningOpenShift()
 }
