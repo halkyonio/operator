@@ -43,5 +43,9 @@ func (res serviceAccount) Build() (runtime.Object, error) {
 }
 
 func (res serviceAccount) Name() string {
-	return serviceAccountName
+	return ServiceAccountName(res.Owner())
+}
+
+func ServiceAccountName(owner v1alpha2.Resource) string {
+	return "build-bot"
 }

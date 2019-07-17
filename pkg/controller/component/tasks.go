@@ -11,7 +11,6 @@ import (
 
 const (
 	taskS2iBuildahPushName = "s2i-buildah-push"
-	serviceAccountName     = "build-bot"
 )
 
 type task struct {
