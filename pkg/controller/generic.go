@@ -323,12 +323,13 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 	kind := util.GetObjectName(resourceType)
 	res, err := resource.Fetch(b.Helper())
 	if err != nil {
-		// create the object
-		obj, errBuildObject := resource.Build()
-		if errBuildObject != nil {
-			return errBuildObject
-		}
 		if errors.IsNotFound(err) {
+			// create the object
+			obj, errBuildObject := resource.Build()
+			if errBuildObject != nil {
+				return errBuildObject
+			}
+
 			// in most instances, resourceDefinedOwner == owner but some resources might want to return a different one
 			resourceDefinedOwner := resource.Owner()
 			if e := controllerutil.SetControllerReference(resourceDefinedOwner, obj.(v1.Object), b.Scheme); e != nil {
