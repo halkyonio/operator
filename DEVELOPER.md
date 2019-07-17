@@ -120,7 +120,7 @@ docker push quay.io/snowdrop/component-operator:latest
 
 - Git clone locally the snowdrop community-operators project - https://github.com/snowdrop/community-operators
 - Next create under `upstream-community-operators` or `community-operators` or both folders a project having the name of the operator
-with the following resources that you can find by example under the operator project - `deploy/bundle`.
+with the following resources that you can find as example under the operator project - `deploy/olm-catalog/bundle`.
 
 ```bash
 upstream-community-operators
@@ -133,12 +133,16 @@ upstream-community-operators
 ```
 
 You can find more info about the definition of the `ClusterServiceVersion` resource and package file [here](https://github.com/snowdrop/community-operators/blob/master/docs/contributing.md#package-your-operator)
+The `bundle` format describing the resources, versions part of the operator are described [here](https://github.com/snowdrop/community-operators/blob/master/docs/contributing.md#bundle-format)
 
 **Warning**: Submit the PR when the following step has been accomplished
 
 ### How to package and install the Operator on Quay.io as an Application
 
-Install the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`.
+One of the requirement to let you to use OLM is to publish first on quay.io the bundle information created previously
+For that purpose, we will use the `operator-courier` tool which can validate or publish the bundle on quay.io
+
+Install first the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`.
 
     pip3 install operator-courier
     
@@ -147,7 +151,7 @@ Verify your operator's bundle using the tool.
     export BUNDLE_DIR="deploy/olm-catalog/bundle"
     operator-courier verify $BUNDLE_DIR  
 
-Next, get from `quay.io` an Authentication token using your quay's username OR robot username/pwd to access your namespace.
+Next, get from `quay.io` an `Authentication token` using your quay's username OR robot username/pwd to access your namespace.
 
 Next, execute the following `curl` request to get a token (e.g `basic Y2gwMDdtK...A="`).
 
@@ -161,6 +165,8 @@ Push finally the bundle on quay as an `application`.
     export REPOSITORY="component"
     export RELEASE="0.10.0"
     operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
+    
+**Warning**: The name of the repository must match the name of the operator created under the folder `upstream-community-operators` or `community-operators`    
 
 ### How to deploy the Component Operator on OCP4
 
