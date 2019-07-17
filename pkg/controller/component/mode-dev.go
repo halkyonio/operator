@@ -52,18 +52,14 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 		return e
 	}
 
-	if component.Spec.ExposeService {
-		if r.IsTargetClusterRunningOpenShift() {
-			// Create an OpenShift Route
-			if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
-				return e
-			}
-		} else {
-			// Create an Ingress resource
-			if e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
-				return e
-			}
-		}
+	// Create an OpenShift Route
+	if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
+		return e
+	}
+
+	// Create an Ingress resource
+	if e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
+		return e
 	}
 
 	return
