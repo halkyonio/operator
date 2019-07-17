@@ -12,22 +12,20 @@ import (
 
 type rolebinding struct {
 	base
-	reconciler *ReconcileComponent // todo: remove
 }
 
 func (res rolebinding) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
-	return newOwnedRoleBinding(res.reconciler, owner)
+	return newOwnedRoleBinding(owner)
 }
 
-func newRoleBinding(reconciler *ReconcileComponent) rolebinding {
-	return newOwnedRoleBinding(reconciler, nil)
+func newRoleBinding() rolebinding {
+	return newOwnedRoleBinding(nil)
 }
 
-func newOwnedRoleBinding(reconciler *ReconcileComponent, owner v1alpha2.Resource) rolebinding {
+func newOwnedRoleBinding(owner v1alpha2.Resource) rolebinding {
 	dependent := newBaseDependent(&authorizv1.RoleBinding{}, owner)
 	rolebinding := rolebinding{
-		base:       dependent,
-		reconciler: reconciler,
+		base: dependent,
 	}
 	dependent.SetDelegate(rolebinding)
 	return rolebinding
@@ -38,8 +36,6 @@ func (res rolebinding) Name() string {
 }
 
 func (res rolebinding) Build() (runtime.Object, error) {
-	// oc adm policy add-role-to-user edit -z build-bot
-	// TODO: Fetch Edit Role and check if it exists, if not create it. This resource should be deleted if the build/tekton task is deleted (=> could be owned by tekton task maybe ?)
 	c := res.ownerAsComponent()
 	ser := &authorizv1.RoleBinding{
 		TypeMeta: metav1.TypeMeta{
