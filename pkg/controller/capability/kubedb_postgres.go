@@ -5,6 +5,7 @@ import (
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
+	"github.com/snowdrop/component-operator/pkg/util"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,6 +40,14 @@ func (res postgres) ownerAsCapability() *v1alpha2.Capability {
 	return res.Owner().(*v1alpha2.Capability)
 }
 
+func (res postgres) Name() string {
+	return PostgresName(res.Owner())
+}
+
+func PostgresName(owner v1alpha2.Resource) string {
+	return util.DefaultDependentResourceNameFor(owner)
+}
+
 //buildSecret returns the postgres resource
 func (res postgres) Build() (runtime.Object, error) {
 	c := res.ownerAsCapability()
@@ -47,7 +56,7 @@ func (res postgres) Build() (runtime.Object, error) {
 
 	postgres := &kubedbv1.Postgres{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.Name,
+			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
 		},
