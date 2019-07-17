@@ -1,30 +1,32 @@
-package component
+package controller
 
 import (
 	"fmt"
 	securityv1 "github.com/openshift/api/security/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+type serviceAccountNamer func(owner v1alpha2.Resource) string
 type scc struct {
-	base
+	*DependentResourceHelper
+	serviceAccountNamer serviceAccountNamer
 }
 
-func (res scc) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
-	return newOwnedScc(owner)
+func (res scc) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
+	return newOwnedScc(owner, res.serviceAccountNamer)
 }
 
-func newScc() scc {
-	return newOwnedScc(nil)
+func NewScc(serviceAccountNamer serviceAccountNamer) scc {
+	return newOwnedScc(nil, serviceAccountNamer)
 }
 
-func newOwnedScc(owner v1alpha2.Resource) scc {
-	dependent := newBaseDependent(&securityv1.SecurityContextConstraints{}, owner)
+func newOwnedScc(owner v1alpha2.Resource, serviceAccountNamer serviceAccountNamer) scc {
+	dependent := NewDependentResource(&securityv1.SecurityContextConstraints{}, owner)
 	scc := scc{
-		base: dependent,
+		DependentResourceHelper: dependent,
+		serviceAccountNamer:     serviceAccountNamer,
 	}
 	dependent.SetDelegate(scc)
 	return scc
@@ -40,7 +42,8 @@ func (res scc) Build() (runtime.Object, error) {
 
 func (res scc) Update(toUpdate runtime.Object) (bool, error) {
 	toUpdateSCC := toUpdate.(*securityv1.SecurityContextConstraints)
-	sccUser := fmt.Sprintf("system:serviceaccount:%s:%s", res.Owner().GetNamespace(), serviceAccountName)
+	owner := res.Owner()
+	sccUser := fmt.Sprintf("system:serviceaccount:%s:%s", owner.GetNamespace(), res.serviceAccountNamer(owner))
 	if util.Index(toUpdateSCC.Users, sccUser) >= 0 {
 		toUpdateSCC.Users = append(toUpdateSCC.Users, sccUser)
 		return true, nil
