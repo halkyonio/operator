@@ -35,3 +35,13 @@ func Index(vs []string, t string) int {
 func DefaultDependentResourceNameFor(owner v1alpha2.Resource) string {
 	return owner.GetName()
 }
+
+func NewTrue() *bool {
+	b := true
+	return &b
+}
+
+func NewFalse() *bool {
+	b := false
+	return &b
+}

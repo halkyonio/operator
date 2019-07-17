@@ -10,6 +10,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -63,9 +64,37 @@ func (b *BaseGenericReconciler) SetReconcilerFactory(factory ReconcilerFactory) 
 
 type BaseGenericReconciler struct {
 	ReconcilerHelper
-	dependents map[string]DependentResource
-	primary    runtime.Object
-	_factory   ReconcilerFactory
+	dependents  map[string]DependentResource
+	primary     runtime.Object
+	_factory    ReconcilerFactory
+	onOpenShift *bool
+}
+
+func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
+	if b.onOpenShift == nil {
+		discoveryClient, err := discovery.NewDiscoveryClientForConfig(b.Config)
+		if err != nil {
+			panic(err)
+		}
+		apiList, err := discoveryClient.ServerGroups()
+		if err != nil {
+			panic(err)
+		}
+		apiGroups := apiList.Groups
+		for _, group := range apiGroups {
+			if strings.HasSuffix(group.Name, "openshift.io") {
+				b.onOpenShift = util.NewTrue()
+				break
+			}
+		}
+
+		if b.onOpenShift == nil {
+			// we didn't find any api group with the openshift.io suffix, so we're not on OpenShift!
+			b.onOpenShift = util.NewFalse()
+		}
+	}
+
+	return *b.onOpenShift
 }
 
 func (b *BaseGenericReconciler) ComputeStatus(current v1alpha2.Resource, err error) (bool, bool) {

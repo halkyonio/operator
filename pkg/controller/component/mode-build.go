@@ -18,7 +18,9 @@ limitations under the License.
 package component
 
 import (
+	authorizv1 "github.com/openshift/api/authorization/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	securityv1 "github.com/openshift/api/security/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
@@ -27,6 +29,16 @@ import (
 )
 
 func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (e error) {
+	clusterRunningOpenShift := r.IsTargetClusterRunningOpenShift()
+	if clusterRunningOpenShift {
+		if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
+			return e
+		}
+		if e = r.CreateIfNeeded(component, &securityv1.SecurityContextConstraints{}); e != nil {
+			return e
+		}
+	}
+
 	// Create Task s2i Buildah Push if it does not exists
 	if e = r.CreateIfNeeded(component, &pipeline.Task{}); e != nil {
 		return e
@@ -51,10 +63,10 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 	}
 
 	if component.Spec.ExposeService {
-		if r.isTargetClusterRunningOpenShift() {
+		if clusterRunningOpenShift {
 			// Create an OpenShift Route
 			if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
-				return  e
+				return e
 			}
 		} else {
 			// Create an Ingress resource

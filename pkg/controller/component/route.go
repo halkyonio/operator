@@ -50,5 +50,5 @@ func (res route) Build() (runtime.Object, error) {
 }
 
 func (res route) ShouldWatch() bool {
-	return res.reconciler.isTargetClusterRunningOpenShift()
+	return res.reconciler.IsTargetClusterRunningOpenShift()
 }

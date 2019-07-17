@@ -3,6 +3,7 @@ package component
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
+	"github.com/snowdrop/component-operator/pkg/util"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -111,7 +112,7 @@ func (res task) Build() (runtime.Object, error) {
 						},
 					},
 					SecurityContext: &corev1.SecurityContext{
-						Privileged: newTrue(),
+						Privileged: util.NewTrue(),
 					},
 				},
 				// Push the image created to quay.io using as credentials the secret mounted within
@@ -137,7 +138,7 @@ func (res task) Build() (runtime.Object, error) {
 							Name:      "libcontainers"},
 					},
 					SecurityContext: &corev1.SecurityContext{
-						Privileged: newTrue(),
+						Privileged: util.NewTrue(),
 					},
 				},
 			},

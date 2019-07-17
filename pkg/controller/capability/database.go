@@ -3,12 +3,19 @@ package capability
 import (
 	"fmt"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	securityv1 "github.com/openshift/api/security/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	v1 "k8s.io/api/core/v1"
 	"strings"
 )
 
 func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (e error) {
+	if r.IsTargetClusterRunningOpenShift() {
+		if e = r.CreateIfNeeded(c, &securityv1.SecurityContextConstraints{}); e != nil {
+			return e
+		}
+	}
+
 	if e = r.CreateIfNeeded(c, &v1.Secret{}); e != nil {
 		return e
 	}

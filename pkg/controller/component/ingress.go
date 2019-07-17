@@ -67,5 +67,5 @@ func (res ingress) Build() (runtime.Object, error) {
 }
 
 func (res ingress) ShouldWatch() bool {
-	return !res.reconciler.isTargetClusterRunningOpenShift()
+	return !res.reconciler.IsTargetClusterRunningOpenShift()
 }
