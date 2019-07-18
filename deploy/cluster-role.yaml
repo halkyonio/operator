@@ -80,3 +80,9 @@ rules:
   - SecurityContextConstraints
   verbs:
   - "*"
+- apiGroups:
+  - authorization.openshift.io
+  resources:
+  - rolebindings
+  verbs:
+  - "*"
