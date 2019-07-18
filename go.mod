@@ -22,7 +22,7 @@ require (
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/openshift/api v0.0.0-20190322043348-8741ff068a47
-	github.com/operator-framework/operator-sdk v0.7.0
+	github.com/operator-framework/operator-sdk v0.8.1
 	github.com/pkg/errors v0.8.1
 	github.com/rogpeppe/go-internal v1.3.0 // indirect
 	github.com/sirupsen/logrus v1.4.1
