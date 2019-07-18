@@ -8,7 +8,7 @@ spec:
   endpoint: https://quay.io/cnr
   # The registryNamespace corresponds to the Quay user created under this URL : https://quay.io/organization/
   # This org or registry will contain different applications published
-  # Example : https://quay.io/application/ch007m/component
-  registryNamespace: ch007m
+  # Example : https://quay.io/application/snowdrop/kubecomposer
+  registryNamespace: snowdrop
   displayName: "Snowdrop Operators"
   publisher: "Snowdrop"
