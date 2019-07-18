@@ -50,7 +50,7 @@ func (res scc) Fetch(helper ReconcilerHelper) (runtime.Object, error) {
 }
 
 func (res scc) Build() (runtime.Object, error) {
-	panic("scc.Build should never be called: check your code!")
+	return nil, fmt.Errorf("scc.Build should never be called: check your code!")
 }
 
 func (res scc) Update(toUpdate runtime.Object) (bool, error) {
