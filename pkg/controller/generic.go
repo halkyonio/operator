@@ -252,7 +252,7 @@ func (b *BaseGenericReconciler) updateStatus(instance v1alpha2.Resource, err err
 
 	// compute the status and update the resource if the status has changed
 	if needsStatusUpdate, needsRequeue := b.ComputeStatus(current, err); needsStatusUpdate {
-		e = b.Client.Status().Update(context.TODO(), current)
+		e = b.Client.Status().Update(context.Background(), current)
 		if e != nil {
 			b.ReqLogger.Error(e, "failed to update status for component "+current.GetName())
 		}
