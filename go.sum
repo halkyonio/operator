@@ -301,6 +301,8 @@ github.com/openshift/api v0.0.0-20190322043348-8741ff068a47 h1:PAlaAXvwmPxgh8gm0
 github.com/openshift/api v0.0.0-20190322043348-8741ff068a47/go.mod h1:dh9o4Fs58gpFXGSYfnVxGR9PnV53I8TW84pQaJDdGiY=
 github.com/operator-framework/operator-sdk v0.7.0 h1:jRhw5i/x8dn6Uk0VSBg/DohjNNrLdh8WoquoP5Dg50g=
 github.com/operator-framework/operator-sdk v0.7.0/go.mod h1:iVyukRkam5JZa8AnjYf+/G3rk7JI1+M6GsU0sq0B9NA=
+github.com/operator-framework/operator-sdk v0.8.1 h1:TDnWWkYpYuuo53ftRVEsAj0xy7IutkpiUlTsHqNeyiU=
+github.com/operator-framework/operator-sdk v0.8.1/go.mod h1:iVyukRkam5JZa8AnjYf+/G3rk7JI1+M6GsU0sq0B9NA=
 github.com/pborman/uuid v1.2.0 h1:J7Q5mO4ysT1dv8hyrUGHb9+ooztCXu1D8MY8DZYsu3g=
 github.com/pborman/uuid v1.2.0/go.mod h1:X/NO0urCmaxf9VXbdlT7C2Yzkj2IKimNn4k+gtPdI/k=
 github.com/peterbourgon/diskv v2.0.1+incompatible h1:UBdAOUP5p4RWqPBg048CAvpKN+vxiaj6gdUUzhl4XmI=
