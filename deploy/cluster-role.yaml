@@ -46,7 +46,7 @@ rules:
   - deployments
   - ingresses
   verbs:
-    - "*"
+  - "*"
 - apiGroups:
   - apps
   resources:
@@ -83,8 +83,11 @@ rules:
   verbs:
   - "*"
 - apiGroups:
-  - authorization.openshift.io
+  - rbac.authorization.k8s.io
   resources:
+  - clusterroles
+  - roles
+  - clusterrolebindings
   - rolebindings
   verbs:
   - "*"

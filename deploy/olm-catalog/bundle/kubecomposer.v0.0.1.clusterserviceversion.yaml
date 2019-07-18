@@ -331,8 +331,11 @@ spec:
               verbs:
                 - "*"
             - apiGroups:
-                - authorization.openshift.io
+                - rbac.authorization.k8s.io
               resources:
+                - clusterroles
+                - roles
+                - clusterrolebindings
                 - rolebindings
               verbs:
                 - "*"
