@@ -350,8 +350,13 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 	} else {
 		// if the resource defined an updater, use it to try to update the resource
 		updated, err := resource.Update(res)
-		if err = b.Client.Update(context.TODO(), res); err != nil {
-			b.ReqLogger.Error(err, "Failed to update", "kind", kind)
+		if err != nil {
+			return err
+		}
+		if updated {
+			if err = b.Client.Update(context.TODO(), res); err != nil {
+				b.ReqLogger.Error(err, "Failed to update", "kind", kind)
+			}
 		}
 		owner.SetNeedsRequeue(updated)
 		return err
