@@ -18,6 +18,7 @@ limitations under the License.
 package component
 
 import (
+	"fmt"
 	routev1 "github.com/openshift/api/route/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	appsv1 "k8s.io/api/apps/v1"
@@ -68,9 +69,9 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
-	// Check if Service port exists, otherwise define it
+	// Check if Service port exists, otherwise error out
 	if component.Spec.Port == 0 {
-		component.Spec.Port = 8080 // Add a default port if empty
+		return fmt.Errorf("component '%s' must provide a port", component.Name)
 	}
 
 	// Enrich Env Vars with Default values
