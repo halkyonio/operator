@@ -324,8 +324,10 @@ spec:
                 - "*"
             - apiGroups:
                 - security.openshift.io
+              resourceNames:
+                - privileged
               resources:
-                - SecurityContextConstraints
+                - securitycontextconstraints
               verbs:
                 - "*"
             - apiGroups:
