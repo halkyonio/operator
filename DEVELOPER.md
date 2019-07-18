@@ -168,9 +168,9 @@ Next, execute the following `curl` request to get a token (e.g `basic Y2gwMDdtK.
     
 Push finally the bundle on quay as an `application`.
 
-    export QUAY_ORG="quay_organization (e.g ch007m)"
-    export REPOSITORY="component"
-    export RELEASE="0.10.0"
+    export QUAY_ORG="quay_organization (e.g snowdrop)"
+    export REPOSITORY="kubecomposer"
+    export RELEASE="0.0.1"
     operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
     
 **Warning**: The name of the repository must match the name of the operator created under the folder `upstream-community-operators` or `community-operators`. The version, of course, will match the one defined within the `CSV` yaml resource or bundle package

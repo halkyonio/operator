@@ -1,0 +1,4 @@
+packageName: kubecomposer
+channels:
+- name: alpha
+  currentCSV: kubecomposer.v0.0.1

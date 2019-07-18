@@ -4,11 +4,12 @@ metadata:
   labels:
     csc-owner-name: installed-custom-openshift-operators
     csc-owner-namespace: openshift-marketplace
-  name: component
+  name: kubecomposer
+  namespace: openshift-operators
 spec:
   channel: alpha
   installPlanApproval: Automatic
-  name: component
+  name: kubecomposer
   source: installed-custom-openshift-operators
   sourceNamespace: openshift-operators
-  startingCSV: component-operator.v0.10.0
+  startingCSV: kubecomposer.v0.0.1
