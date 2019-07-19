@@ -96,6 +96,15 @@ type Component struct {
 	Spec    ComponentSpec   `json:"spec,omitempty"`
 	Status  ComponentStatus `json:"status,omitempty"`
 	requeue bool
+	changed bool
+}
+
+func (in *Component) HasChanged() bool {
+	return in.changed
+}
+
+func (in *Component) SetHasChanged(changed bool) {
+	in.changed = in.changed || changed
 }
 
 func (in *Component) SetNeedsRequeue(requeue bool) {
@@ -121,6 +130,8 @@ func (in *Component) SetInitialStatus(msg string) bool {
 			in.Status.Phase = ComponentBuilding
 		}
 		in.Status.Message = msg
+		in.SetHasChanged(true)
+		in.SetNeedsRequeue(true)
 		return true
 	}
 	return false
@@ -135,6 +146,8 @@ func (in *Component) SetErrorStatus(err error) bool {
 	if ComponentFailed != in.Status.Phase || errMsg != in.Status.Message {
 		in.Status.Phase = ComponentFailed
 		in.Status.Message = errMsg
+		in.SetHasChanged(true)
+		in.SetNeedsRequeue(true)
 		return true
 	}
 	return false
@@ -145,6 +158,8 @@ func (in *Component) SetSuccessStatus(dependentName, msg string) bool {
 		in.Status.Phase = ComponentReady
 		in.Status.PodName = dependentName
 		in.Status.Message = msg
+		in.SetHasChanged(true)
+		in.requeue = false
 		return true
 	}
 	return false

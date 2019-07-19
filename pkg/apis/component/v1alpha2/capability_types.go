@@ -84,6 +84,15 @@ type Capability struct {
 	Spec    CapabilitySpec   `json:"spec,omitempty"`
 	Status  CapabilityStatus `json:"status,omitempty"`
 	requeue bool
+	changed bool
+}
+
+func (in *Capability) HasChanged() bool {
+	return in.changed
+}
+
+func (in *Capability) SetHasChanged(changed bool) {
+	in.changed = in.changed || changed
 }
 
 func (in *Capability) SetNeedsRequeue(requeue bool) {
@@ -98,6 +107,8 @@ func (in *Capability) SetInitialStatus(msg string) bool {
 	if CapabilityPending != in.Status.Phase || in.Status.Message != msg {
 		in.Status.Phase = CapabilityPending
 		in.Status.Message = msg
+		in.SetHasChanged(true)
+		in.SetNeedsRequeue(true)
 		return true
 	}
 	return false
@@ -112,6 +123,8 @@ func (in *Capability) SetErrorStatus(err error) bool {
 	if CapabilityFailed != in.Status.Phase || errMsg != in.Status.Message {
 		in.Status.Phase = CapabilityFailed
 		in.Status.Message = errMsg
+		in.SetHasChanged(true)
+		in.SetNeedsRequeue(false)
 		return true
 	}
 	return false
@@ -122,6 +135,8 @@ func (in *Capability) SetSuccessStatus(dependentName, msg string) bool {
 		in.Status.Phase = CapabilityReady
 		in.Status.PodName = dependentName
 		in.Status.Message = msg
+		in.SetHasChanged(true)
+		in.requeue = false
 		return true
 	}
 	return false

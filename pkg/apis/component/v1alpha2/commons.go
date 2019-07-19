@@ -35,6 +35,8 @@ type Resource interface {
 	runtime.Object
 	NeedsRequeue() bool
 	SetNeedsRequeue(requeue bool)
+	HasChanged() bool
+	SetHasChanged(changed bool)
 	GetStatusAsString() string
 	ShouldDelete() bool
 	SetErrorStatus(err error) bool
