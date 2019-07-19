@@ -19,8 +19,8 @@ package component
 
 import (
 	"fmt"
+	authorizv1 "github.com/openshift/api/authorization/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	securityv1 "github.com/openshift/api/security/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -39,10 +39,12 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	// Enrich Env Vars with Default values
 	r.populateEnvVar(component)
 
-	if e = r.CreateIfNeeded(component, &securityv1.SecurityContextConstraints{}); e != nil {
+	if e = r.CreateIfNeeded(component, &authorizv1.Role{}); e != nil {
 		return e
 	}
-
+	if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
+		return e
+	}
 	// Create PVC if it does not exists
 	if e = r.CreateIfNeeded(component, &corev1.PersistentVolumeClaim{}); e != nil {
 		return e
