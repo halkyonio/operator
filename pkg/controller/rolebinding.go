@@ -60,3 +60,7 @@ func (res rolebinding) Build() (runtime.Object, error) {
 func (res rolebinding) ShouldWatch() bool {
 	return false
 }
+
+func (res rolebinding) ShouldBeOwned() bool {
+	return false
+}
