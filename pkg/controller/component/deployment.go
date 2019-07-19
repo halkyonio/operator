@@ -39,5 +39,5 @@ func (res deployment) Build() (runtime.Object, error) {
 }
 
 func (res deployment) Name() string {
-	return buildOrDevNamer(res.ownerAsComponent())
+	return controller.DeploymentName(res.ownerAsComponent())
 }

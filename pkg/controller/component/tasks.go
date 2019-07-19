@@ -163,9 +163,5 @@ func (res task) Build() (runtime.Object, error) {
 }
 
 func (res task) Name() string {
-	return TaskName(res.Owner())
-}
-
-func TaskName(owner v1alpha2.Resource) string {
-	return "s2i-buildah-push"
+	return controller.TaskName(res.Owner())
 }
