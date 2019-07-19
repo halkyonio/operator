@@ -20,7 +20,6 @@ package component
 import (
 	authorizv1 "github.com/openshift/api/authorization/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	securityv1 "github.com/openshift/api/security/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
@@ -34,10 +33,10 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 		return e
 	}
 
-	if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
+	if e = r.CreateIfNeeded(component, &authorizv1.Role{}); e != nil {
 		return e
 	}
-	if e = r.CreateIfNeeded(component, &securityv1.SecurityContextConstraints{}); e != nil {
+	if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
 		return e
 	}
 

@@ -3,14 +3,17 @@ package capability
 import (
 	"fmt"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	securityv1 "github.com/openshift/api/security/v1"
+	authorizv1 "github.com/openshift/api/authorization/v1"
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	v1 "k8s.io/api/core/v1"
 	"strings"
 )
 
 func (r *ReconcileCapability) installDB(c *v1alpha2.Capability) (e error) {
-	if e = r.CreateIfNeeded(c, &securityv1.SecurityContextConstraints{}); e != nil {
+	if e = r.CreateIfNeeded(c, &authorizv1.Role{}); e != nil {
+		return e
+	}
+	if e = r.CreateIfNeeded(c, &authorizv1.RoleBinding{}); e != nil {
 		return e
 	}
 
