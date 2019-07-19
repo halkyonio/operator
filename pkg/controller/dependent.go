@@ -17,6 +17,7 @@ type DependentResource interface {
 	Prototype() runtime.Object
 	ShouldWatch() bool
 	CanBeCreatedOrUpdated() bool
+	ShouldBeOwned() bool
 }
 
 type DependentResourceHelper struct {
@@ -26,6 +27,10 @@ type DependentResourceHelper struct {
 }
 
 func (res DependentResourceHelper) ShouldWatch() bool {
+	return true
+}
+
+func (res DependentResourceHelper) ShouldBeOwned() bool {
 	return true
 }
 
