@@ -56,12 +56,7 @@ func (res pvc) Build() (runtime.Object, error) {
 }
 
 func (res pvc) Name() string {
-	c := res.ownerAsComponent()
-	specified := c.Spec.Storage.Name
-	if len(specified) > 0 {
-		return specified
-	}
-	return "m2-data-" + c.Name
+	return controller.PVCName(res.ownerAsComponent())
 }
 
 func getCapacity(c *v1alpha2.Component) resource.Quantity {

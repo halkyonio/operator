@@ -41,9 +41,9 @@ func (res taskRun) Build() (runtime.Object, error) {
 			Labels:    ls,
 		},
 		Spec: v1alpha1.TaskRunSpec{
-			ServiceAccount: ServiceAccountName(c),
+			ServiceAccount: controller.ServiceAccountName(c),
 			TaskRef: &v1alpha1.TaskRef{
-				Name: TaskName(c),
+				Name: controller.TaskName(c),
 			},
 			Inputs: v1alpha1.TaskRunInputs{
 				Params: []v1alpha1.Param{

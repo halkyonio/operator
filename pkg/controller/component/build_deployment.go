@@ -2,6 +2,7 @@ package component
 
 import (
 	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -13,7 +14,7 @@ import (
 //createBuildDeployment returns the Deployment config object to be used for deployment using a container image build by Tekton
 func (res deployment) installBuild() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(buildOrDevNamer(c))
+	ls := getAppLabels(controller.DeploymentName(c))
 
 	// create runtime container using built image (= created by the Tekton build task)
 	// r := res.reconciler
@@ -26,7 +27,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	// and we will enrich the deployment resource of the runtime container
 	// create a "dev" version of the component to be able to check if the dev deployment exists
 	devDeployment := &appsv1.Deployment{}
-	_, err = res.reconciler.Helper().Fetch(DeploymentNameFor(c, v1alpha2.DevDeploymentMode), c.Namespace, devDeployment)
+	_, err = res.reconciler.Helper().Fetch(controller.DeploymentNameFor(c, v1alpha2.DevDeploymentMode), c.Namespace, devDeployment)
 	if err == nil {
 		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
 		runtimeContainer.Env = devContainer.Env

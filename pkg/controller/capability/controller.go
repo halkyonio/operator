@@ -35,7 +35,7 @@ func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
 
 	r.AddDependentResource(newSecret())
 	r.AddDependentResource(newPostgres())
-	r.AddDependentResource(controller2.NewScc(r.BaseGenericReconciler, PostgresName))
+	r.AddDependentResource(controller2.NewScc(r.BaseGenericReconciler, controller2.PostgresName))
 
 	return r
 }

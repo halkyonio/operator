@@ -87,7 +87,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	r.AddDependentResource(newIngress(r))
 	r.AddDependentResource(newTask())
 	r.AddDependentResource(newTaskRun(r))
-	r.AddDependentResource(controller2.NewScc(r.BaseGenericReconciler, ServiceAccountName))
+	r.AddDependentResource(controller2.NewScc(r.BaseGenericReconciler, controller2.ServiceAccountName))
 	r.AddDependentResource(newRoleBinding())
 
 	return r

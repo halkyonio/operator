@@ -36,7 +36,7 @@ func newOwnedService(reconciler *ReconcileComponent, owner v1alpha2.Resource) se
 
 func (res service) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(buildOrDevNamer(c))
+	ls := getAppLabels(controller.DeploymentName(c))
 	ser := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      res.Name(),
@@ -64,7 +64,7 @@ func (res service) Build() (runtime.Object, error) {
 func (res service) Update(toUpdate runtime.Object) (bool, error) {
 	c := res.ownerAsComponent()
 	svc := toUpdate.(*corev1.Service)
-	name := buildOrDevNamer(c)
+	name := controller.DeploymentName(c)
 	if svc.Spec.Selector["app"] != name {
 		svc.Spec.Selector["app"] = name
 		if err := res.reconciler.Client.Update(context.TODO(), svc); err != nil {
