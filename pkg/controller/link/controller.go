@@ -39,23 +39,23 @@ func (r *ReconcileLink) IsDependentResourceReady(resource v1alpha2.Resource) (de
 	return component.Name, true
 }
 
-func (r *ReconcileLink) CreateOrUpdate(object v1alpha2.Resource) (wantsRequeue bool, err error) {
+func (r *ReconcileLink) CreateOrUpdate(object v1alpha2.Resource) (changed bool, err error) {
 	link := r.asLink(object)
 	if link.Status.Phase != v1alpha2.LinkReady {
 		found, err := r.fetchDeployment(link)
 		if err != nil {
 			link.SetNeedsRequeue(true)
-			return link.NeedsRequeue(), err
+			return false, err
 		}
 		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
 		if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers); isModified {
 			found.Spec.Template.Spec.Containers = containers
-			if err := r.updateDeploymentWithLink(found, link); err != nil {
+			if err = r.updateDeploymentWithLink(found, link); err != nil {
 				// As it could be possible that we can't update the Deployment as it has been modified by another
 				// process, then we will requeue
 				link.SetNeedsRequeue(true)
-				return link.NeedsRequeue(), err
 			}
+			return isModified, err
 		}
 	}
 	return false, nil
