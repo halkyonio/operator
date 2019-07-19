@@ -72,6 +72,7 @@ func (res rolebinding) Build() (runtime.Object, error) {
 			Kind:       "Role",
 			Name:       RoleName(c),
 			APIVersion: "rbac.authorization.k8s.io/v1beta1",
+			Namespace:  namespace,
 		},
 		Subjects: []corev1.ObjectReference{
 			{Kind: "ServiceAccount", Name: ServiceAccountName(c), Namespace: namespace},
