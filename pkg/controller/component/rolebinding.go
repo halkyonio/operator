@@ -39,7 +39,7 @@ func (res rolebinding) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	ser := &authorizv1.RoleBinding{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "authorization.openshift.io/v1",
+			APIVersion: "rbac.authorization.k8s.io/v1beta1",
 			Kind:       "RoleBinding",
 		},
 		ObjectMeta: metav1.ObjectMeta{
