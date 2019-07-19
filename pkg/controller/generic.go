@@ -29,7 +29,6 @@ type ReconcilerFactory interface {
 	WatchedSecondaryResourceTypes() []runtime.Object
 	Delete(object v1alpha2.Resource) (bool, error)
 	CreateOrUpdate(object v1alpha2.Resource) (bool, error)
-	ComputeStatus(current v1alpha2.Resource, err error) (statusChanged bool, needRequeue bool)
 	IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool)
 	Helper() ReconcilerHelper
 	GetDependentResourceFor(owner v1alpha2.Resource, resourceType runtime.Object) (DependentResource, error)
@@ -97,13 +96,16 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 	return *b.onOpenShift
 }
 
-func (b *BaseGenericReconciler) ComputeStatus(current v1alpha2.Resource, err error) (bool, bool) {
+func (b *BaseGenericReconciler) computeStatus(current v1alpha2.Resource, err error) bool {
 	depOrTypeName, ready := b.IsDependentResourceReady(current)
 	if !ready {
-		return b.MakePending(depOrTypeName, current)
+		msg := fmt.Sprintf("%s is not ready for %s '%s' in namespace '%s'",
+			depOrTypeName, GetObjectName(current), current.GetName(), current.GetNamespace())
+		b.ReqLogger.Info(msg)
+		return current.SetInitialStatus(msg)
 	}
 
-	return current.SetSuccessStatus(depOrTypeName, "Ready"), false
+	return current.SetSuccessStatus(depOrTypeName, "Ready")
 }
 
 func (b *BaseGenericReconciler) PrimaryResourceType() v1alpha2.Resource {
@@ -147,14 +149,7 @@ func (b *BaseGenericReconciler) Fetch(into v1alpha2.Resource) (v1alpha2.Resource
 	return b.asResource(object), nil
 }
 
-func (b *BaseGenericReconciler) MakePending(dependencyName string, resource v1alpha2.Resource) (changed bool, wantsRequeue bool) {
-	msg := fmt.Sprintf("'%s' is not ready for %s '%s' in namespace '%s'",
-		dependencyName, GetObjectName(resource), resource.GetName(), resource.GetNamespace())
-	b.ReqLogger.Info(msg)
-	return resource.SetInitialStatus(msg), true
-}
-
-func (b *BaseGenericReconciler) CreateOrUpdate(object v1alpha2.Resource) (bool, error) {
+func (b *BaseGenericReconciler) CreateOrUpdate(object v1alpha2.Resource) (changed bool, err error) {
 	return b.factory().CreateOrUpdate(object)
 }
 
@@ -235,30 +230,22 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		err = fmt.Errorf("failed to create or update %s '%s': %s", typeName, resource.GetName(), err.Error())
 	}
 
+	// if the resource changed or an error occurred, we need to update the status
+	if changed || err != nil {
+		b.updateStatus(resource, err)
+	}
+
 	b.ReqLogger.Info("<== Reconciled "+typeName, "name", resource.GetName())
-	changed = changed || b.updateStatus(resource, err)
-	return reconcile.Result{Requeue: changed}, err
+	return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
 }
 
-func (b *BaseGenericReconciler) updateStatus(instance v1alpha2.Resource, err error) bool {
-	// fetch latest version to avoid optimistic lock error
-	current := instance
-	var e error
-	current, e = b.Fetch(instance)
-	if e != nil {
-		b.ReqLogger.Error(e, fmt.Sprintf("failed to fetch latest version of '%s' %s", instance.GetName(), GetObjectName(instance)))
-		return false
-	}
-
+func (b *BaseGenericReconciler) updateStatus(instance v1alpha2.Resource, err error) {
 	// compute the status and update the resource if the status has changed
-	if needsStatusUpdate, needsRequeue := b.ComputeStatus(current, err); needsStatusUpdate {
-		e = b.Client.Status().Update(context.Background(), current)
-		if e != nil {
-			b.ReqLogger.Error(e, "failed to update status for component "+current.GetName())
+	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
+		if e := b.Client.Status().Update(context.Background(), instance); e != nil {
+			b.ReqLogger.Error(e, "failed to update status for component "+instance.GetName())
 		}
-		return needsRequeue
 	}
-	return false
 }
 
 func newHelper(resourceType runtime.Object, mgr manager.Manager) ReconcilerHelper {
@@ -345,7 +332,7 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 				}
 			}
 			b.ReqLogger.Info("Created successfully", "kind", kind)
-			owner.SetNeedsRequeue(true)
+			owner.SetHasChanged(true)
 			return nil
 		}
 		b.ReqLogger.Error(err, "Failed to get", "kind", kind)
@@ -361,7 +348,7 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 				b.ReqLogger.Error(err, "Failed to update", "kind", kind)
 			}
 		}
-		owner.SetNeedsRequeue(updated)
+		owner.SetHasChanged(updated)
 		return err
 	}
 }

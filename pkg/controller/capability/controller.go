@@ -61,7 +61,7 @@ func (r *ReconcileCapability) Delete(object v1alpha2.Resource) (bool, error) {
 	panic("implement me")
 }
 
-func (r *ReconcileCapability) CreateOrUpdate(object v1alpha2.Resource) (wantsRequeue bool, e error) {
+func (r *ReconcileCapability) CreateOrUpdate(object v1alpha2.Resource) (changed bool, e error) {
 	capability := asCapability(object)
 	if strings.ToLower(string(v1alpha2.DatabaseCategory)) == string(capability.Spec.Category) {
 		// Install the 2nd resources and check if the status of the watched resources has changed
@@ -69,7 +69,7 @@ func (r *ReconcileCapability) CreateOrUpdate(object v1alpha2.Resource) (wantsReq
 	} else {
 		e = fmt.Errorf("unsupported '%s' capability category", capability.Spec.Category)
 	}
-	return capability.NeedsRequeue(), e
+	return capability.HasChanged(), e
 }
 
 func (r *ReconcileCapability) isDBReady(p *kubedbv1.Postgres) bool {
