@@ -338,8 +338,11 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 			}
 
 			if err = b.Client.Create(context.TODO(), obj); err != nil {
-				b.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
-				return err
+				// ignore error if it's to state that obj already exists
+				if !errors.IsAlreadyExists(err) {
+					b.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
+					return err
+				}
 			}
 			b.ReqLogger.Info("Created successfully", "kind", kind)
 			owner.SetNeedsRequeue(true)
