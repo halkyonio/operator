@@ -71,6 +71,15 @@ type Link struct {
 	Spec    LinkSpec   `json:"spec,omitempty"`
 	Status  LinkStatus `json:"status,omitempty"`
 	requeue bool
+	changed bool
+}
+
+func (in *Link) HasChanged() bool {
+	return in.changed
+}
+
+func (in *Link) SetHasChanged(changed bool) {
+	in.changed = in.changed || changed
 }
 
 func (in *Link) SetNeedsRequeue(requeue bool) {
@@ -85,6 +94,8 @@ func (in *Link) SetInitialStatus(msg string) bool {
 	if LinkPending != in.Status.Phase || msg != in.Status.Message {
 		in.Status.Phase = LinkPending
 		in.Status.Message = msg
+		in.SetHasChanged(true)
+		in.SetNeedsRequeue(true)
 		return true
 	}
 	return false
@@ -99,6 +110,8 @@ func (in *Link) SetErrorStatus(err error) bool {
 	if LinkFailed != in.Status.Phase || errMsg != in.Status.Message {
 		in.Status.Phase = LinkFailed
 		in.Status.Message = errMsg
+		in.SetHasChanged(true)
+		in.SetNeedsRequeue(true)
 		return true
 	}
 	return false
@@ -108,6 +121,8 @@ func (in *Link) SetSuccessStatus(dependentName, msg string) bool {
 	if LinkReady != in.Status.Phase || msg != in.Status.Message {
 		in.Status.Phase = LinkReady
 		in.Status.Message = msg
+		in.SetHasChanged(true)
+		in.requeue = true
 		return true
 	}
 	return false
