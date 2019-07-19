@@ -60,3 +60,7 @@ func (res role) Build() (runtime.Object, error) {
 func (res role) ShouldWatch() bool {
 	return false
 }
+
+func (res role) ShouldBeOwned() bool {
+	return false
+}
