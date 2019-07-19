@@ -317,11 +317,14 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 				return errBuildObject
 			}
 
-			// in most instances, resourceDefinedOwner == owner but some resources might want to return a different one
-			resourceDefinedOwner := resource.Owner()
-			if e := controllerutil.SetControllerReference(resourceDefinedOwner, obj.(v1.Object), b.Scheme); e != nil {
-				b.ReqLogger.Error(err, "Failed to set owner", "owner", resourceDefinedOwner, "resource", resource.Name())
-				return e
+			// set controller reference if the resource should be owned
+			if resource.ShouldBeOwned() {
+				// in most instances, resourceDefinedOwner == owner but some resources might want to return a different one
+				resourceDefinedOwner := resource.Owner()
+				if e := controllerutil.SetControllerReference(resourceDefinedOwner, obj.(v1.Object), b.Scheme); e != nil {
+					b.ReqLogger.Error(err, "Failed to set owner", "owner", resourceDefinedOwner, "resource", resource.Name())
+					return e
+				}
 			}
 
 			if err = b.Client.Create(context.TODO(), obj); err != nil {
