@@ -34,10 +34,6 @@ func (res ingress) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	ls := getAppLabels(c.Name)
 	ingress := &v1beta1.Ingress{
-		TypeMeta: v1.TypeMeta{
-			APIVersion: "networking.k8s.io/v1beta1",
-			Kind:       "Ingress",
-		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,

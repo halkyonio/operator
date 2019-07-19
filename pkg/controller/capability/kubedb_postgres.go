@@ -46,10 +46,6 @@ func (res postgres) Build() (runtime.Object, error) {
 	paramsMap := parametersAsMap(c.Spec.Parameters)
 
 	postgres := &kubedbv1.Postgres{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "kubedb.com/v1alpha1",
-			Kind:       "Postgres",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      c.Name,
 			Namespace: c.Namespace,

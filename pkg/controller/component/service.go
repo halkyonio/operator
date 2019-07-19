@@ -38,10 +38,6 @@ func (res service) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	ls := getAppLabels(buildOrDevNamer(c))
 	ser := &corev1.Service{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Service",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,

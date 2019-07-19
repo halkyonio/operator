@@ -49,10 +49,6 @@ func (res deployment) installDev() (runtime.Object, error) {
 	supervisorContainer.TerminationMessagePolicy = "File"
 
 	dep := &appsv1.Deployment{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "extensions/v1beta1",
-			Kind:       "Deployment",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
