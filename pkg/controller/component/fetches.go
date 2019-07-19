@@ -16,14 +16,14 @@ func (r *ReconcileComponent) fetchPod(instance *v1alpha2.Component) (*corev1.Pod
 	lo.MatchingLabels(map[string]string{"app": instance.Name})
 	if err := r.Client.List(context.TODO(), lo, pods); err != nil {
 		r.ReqLogger.Info("Pod(s) don't exist")
-		return &corev1.Pod{}, err
+		return nil, err
 	} else {
 		// We assume that there is only one Pod containing the label app=component name AND we return it
 		if len(pods.Items) > 0 {
 			return &pods.Items[0], nil
 		} else {
 			err := fmt.Errorf("failed to get pod created for the component")
-			return &corev1.Pod{}, err
+			return nil, err
 		}
 	}
 }
