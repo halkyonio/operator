@@ -74,8 +74,11 @@ func (res rolebinding) Build() (runtime.Object, error) {
 			APIVersion: "rbac.authorization.k8s.io/v1beta1",
 			Namespace:  namespace,
 		},
+		// todo: the second service account should be added on demand in Update but for some reason the server doesn't accept it
+		//  despite returning 200OK on the operation… :/
 		Subjects: []corev1.ObjectReference{
 			{Kind: "ServiceAccount", Name: ServiceAccountName(c), Namespace: namespace},
+			{Kind: "ServiceAccount", Name: PostgresName(c), Namespace: namespace},
 		},
 	}
 	return ser, nil
