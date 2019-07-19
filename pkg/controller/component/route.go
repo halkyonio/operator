@@ -33,10 +33,6 @@ func (res route) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	ls := getAppLabels(c.Name)
 	route := &routev1.Route{
-		TypeMeta: v1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Route",
-		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,

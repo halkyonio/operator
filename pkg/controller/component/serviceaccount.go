@@ -33,10 +33,6 @@ func (res serviceAccount) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	ls := getAppLabels(c.Name)
 	sa := &corev1.ServiceAccount{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "ServiceAccount",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,

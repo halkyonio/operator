@@ -36,10 +36,6 @@ func newOwnedTask(owner v1alpha2.Resource) task {
 func (res task) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	task := &v1alpha1.Task{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "tekton.dev/v1alpha1",
-			Kind:       "Task",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
 			Name:      res.Name(),

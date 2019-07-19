@@ -35,10 +35,6 @@ func (res taskRun) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	ls := getBuildLabels(c.Name)
 	taskRun := &v1alpha1.TaskRun{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "tekton.dev/v1alpha1",
-			Kind:       "TaskRun",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
 			Name:      res.Name(),

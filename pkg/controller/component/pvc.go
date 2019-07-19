@@ -33,10 +33,6 @@ func (res pvc) Build() (runtime.Object, error) {
 	ls := getAppLabels(c.Name)
 	name := res.Name()
 	pvc := &corev1.PersistentVolumeClaim{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "PersistentVolumeClaim",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: c.Namespace,

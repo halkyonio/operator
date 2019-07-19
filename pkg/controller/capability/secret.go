@@ -41,10 +41,6 @@ func (res secret) Build() (runtime.Object, error) {
 	ls := getAppLabels(c.Name)
 	paramsMap := parametersAsMap(c.Spec.Parameters)
 	secret := &v1.Secret{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Secret",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
