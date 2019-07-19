@@ -13,7 +13,30 @@ type rolebinding struct {
 }
 
 func (res rolebinding) Update(toUpdate runtime.Object) (bool, error) {
-	return false, nil
+	// add appropriate subject for owner
+	rb := toUpdate.(*authorizv1.RoleBinding)
+	owner := res.Owner()
+
+	// check if the binding contains the current owner as subject
+	namespace := owner.GetNamespace()
+	name := ServiceAccountName(owner)
+	found := false
+	for _, subject := range rb.Subjects {
+		if subject.Name == name && subject.Namespace == namespace {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		rb.Subjects = append(rb.Subjects, corev1.ObjectReference{
+			Kind:      "ServiceAccount",
+			Namespace: namespace,
+			Name:      name,
+		})
+	}
+
+	return !found, nil
 }
 
 func (res rolebinding) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
