@@ -327,15 +327,19 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1alpha2.Resource, resource
 				}
 			}
 
+			alreadyExists := false
 			if err = b.Client.Create(context.TODO(), obj); err != nil {
 				// ignore error if it's to state that obj already exists
-				if !errors.IsAlreadyExists(err) {
+				alreadyExists = errors.IsAlreadyExists(err)
+				if !alreadyExists {
 					b.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
 					return err
 				}
 			}
-			b.ReqLogger.Info("Created successfully", "kind", kind)
-			owner.SetHasChanged(true)
+			if !alreadyExists {
+				b.ReqLogger.Info("Created successfully", "kind", kind, "name", obj.(v1.Object).GetName())
+				owner.SetHasChanged(true)
+			}
 			return nil
 		}
 		b.ReqLogger.Error(err, "Failed to get", "kind", kind)
