@@ -32,6 +32,8 @@ rules:
   - configmaps
   - secrets
   - serviceaccounts
+  - roles
+  - rolebindings
   verbs:
   - "*"
 - apiGroups:

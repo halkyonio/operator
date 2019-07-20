@@ -1,5 +1,5 @@
 kind: Role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: component-operator
 rules:
@@ -19,6 +19,8 @@ rules:
   - events
   - configmaps
   - secrets
+  - roles
+  - rolebindings
   verbs:
   - "*"
 - apiGroups:
