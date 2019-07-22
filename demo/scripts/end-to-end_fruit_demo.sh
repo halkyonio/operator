@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-#exit when any command fails
-set -e
-
 #
 # Prerequisite : install tool jq
 # This script assumes that KubeDB & Component operators are installed
@@ -115,12 +112,18 @@ done
 printTitle "2. ENV injected to the fruit backend component"
 printTitle "2. ENV injected to the fruit backend component" >>${REPORT_FILE}
 podName=$(waitForAndGetPodName "${COMPONENT_FRUIT_BACKEND_NAME}")
+if [ $? != 0 ]; then
+  exit 1
+fi
 kubectl exec -n "${NS}" "${podName}" env | grep DB >>${REPORT_FILE}
 printf "\n" >>${REPORT_FILE}
 
 printTitle "3. ENV var defined for the fruit client component"
 printTitle "3. ENV var defined for the fruit client component" >>${REPORT_FILE}
 waitForAndGetPodName "${COMPONENT_FRUIT_CLIENT_NAME}"
+if [ $? != 0 ]; then
+  exit 1
+fi
 for item in $(kubectl get pod -n "${NS}" -lapp=$COMPONENT_FRUIT_CLIENT_NAME --output=name); do
   printf "Envs for %s\n" "$item" | grep --color -E '[^/]+$' && kubectl get "$item" -n "${NS}" --output=json | jq -r -S '.spec.containers[0].env[] | " \(.name)=\(.value)"' 2>/dev/null
   printf "\n"
@@ -139,8 +142,12 @@ httpSleepTime=10
 for i in $COMPONENT_FRUIT_BACKEND_NAME $COMPONENT_FRUIT_CLIENT_NAME; do
   HTTP_BODY=""
   counter=0
+  podName="$(waitForAndGetPodName ${i})"
+  if [ $? != 0 ]; then
+    exit 1
+  fi
   until [ "$counter" -gt "${maxRetries}" ] || [ "$HTTP_BODY" == "$EXPECTED_RESPONSE" ]; do
-    HTTP_RESPONSE=$(kubectl exec -n "${NS}" "$(waitForAndGetPodName ${i})" -- curl -L -w "HTTPSTATUS:%{http_code}" -s localhost:8080/actuator/health 2>&1)
+    HTTP_RESPONSE=$(kubectl exec -n "${NS}" "${podName}" -- curl -L -w "HTTPSTATUS:%{http_code}" -s localhost:8080/actuator/health 2>&1)
     HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
     echo "$i: Response is : $HTTP_BODY, expected is : $EXPECTED_RESPONSE"
     sleep "${httpSleepTime}"
