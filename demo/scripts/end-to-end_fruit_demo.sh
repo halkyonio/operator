@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+#exit when any command fails
+set -e
+
 #
 # Prerequisite : install tool jq
 # This script assumes that KubeDB & Component operators are installed
