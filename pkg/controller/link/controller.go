@@ -39,13 +39,13 @@ func (r *ReconcileLink) IsDependentResourceReady(resource v1alpha2.Resource) (de
 	return component.Name, true
 }
 
-func (r *ReconcileLink) CreateOrUpdate(object v1alpha2.Resource) (changed bool, err error) {
+func (r *ReconcileLink) CreateOrUpdate(object v1alpha2.Resource) error {
 	link := r.asLink(object)
 	if link.Status.Phase != v1alpha2.LinkReady {
 		found, err := r.fetchDeployment(link)
 		if err != nil {
 			link.SetNeedsRequeue(true)
-			return false, err
+			return err
 		}
 		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
 		if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers); isModified {
@@ -55,10 +55,11 @@ func (r *ReconcileLink) CreateOrUpdate(object v1alpha2.Resource) (changed bool, 
 				// process, then we will requeue
 				link.SetNeedsRequeue(true)
 			}
-			return isModified, err
+			link.SetHasChanged(isModified)
+			return err
 		}
 	}
-	return false, nil
+	return nil
 }
 
 func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, containers []v1.Container) ([]v1.Container, bool) {
@@ -73,7 +74,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1alpha2.Link, contai
 		for i := 0; i < len(containers); i++ {
 			var isEnvFromExist = false
 			for _, env := range containers[i].EnvFrom {
-				if env.String() == secretName {
+				if env.SecretRef.Name == secretName {
 					// EnvFrom already exists for the Secret Ref
 					isEnvFromExist = true
 				}

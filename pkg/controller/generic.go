@@ -28,7 +28,7 @@ type ReconcilerFactory interface {
 	PrimaryResourceType() v1alpha2.Resource
 	WatchedSecondaryResourceTypes() []runtime.Object
 	Delete(object v1alpha2.Resource) (bool, error)
-	CreateOrUpdate(object v1alpha2.Resource) (bool, error)
+	CreateOrUpdate(object v1alpha2.Resource) error
 	IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool)
 	Helper() ReconcilerHelper
 	GetDependentResourceFor(owner v1alpha2.Resource, resourceType runtime.Object) (DependentResource, error)
@@ -149,7 +149,7 @@ func (b *BaseGenericReconciler) Fetch(into v1alpha2.Resource) (v1alpha2.Resource
 	return b.asResource(object), nil
 }
 
-func (b *BaseGenericReconciler) CreateOrUpdate(object v1alpha2.Resource) (changed bool, err error) {
+func (b *BaseGenericReconciler) CreateOrUpdate(object v1alpha2.Resource) error {
 	return b.factory().CreateOrUpdate(object)
 }
 
@@ -225,21 +225,19 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		"status", resource.GetStatusAsString(),
 		"created", resource.GetCreationTimestamp())
 
-	changed, err := b.CreateOrUpdate(resource)
+	err = b.CreateOrUpdate(resource)
 	if err != nil {
 		err = fmt.Errorf("failed to create or update %s '%s': %s", typeName, resource.GetName(), err.Error())
 	}
 
-	// if the resource changed or an error occurred, we need to update the status
-	if changed || err != nil {
-		b.updateStatus(resource, err)
-	}
+	// always check status for updates
+	b.updateStatusIfNeeded(resource, err)
 
 	b.ReqLogger.Info("<== Reconciled "+typeName, "name", resource.GetName())
 	return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
 }
 
-func (b *BaseGenericReconciler) updateStatus(instance v1alpha2.Resource, err error) {
+func (b *BaseGenericReconciler) updateStatusIfNeeded(instance v1alpha2.Resource, err error) {
 	// compute the status and update the resource if the status has changed
 	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
 		if e := b.Client.Status().Update(context.Background(), instance); e != nil {
