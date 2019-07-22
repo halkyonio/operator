@@ -43,6 +43,29 @@ function printTitle {
   printf "$r\n$1\n$r\n"
 }
 
+function waitForAndGetPodName() {
+  local -r counterMax=12
+  local -r sleepTime=5
+  local counter=0
+  local pod=""
+  pod="$(kubectl get pods -n ${NS} -l app=${1} 2>/dev/null | grep 'Running')"
+  local status=$?
+  until [ "$counter" -gt "${counterMax}" ] || [ "$status" == 0 ]; do
+    sleep "${sleepTime}"
+    counter=$((counter + 1))
+    pod="$(kubectl get pods -n ${NS} -l app=${1} 2>/dev/null | grep 'Running')"
+    status=$?
+  done
+
+  if [ "$counter" -gt "${counterMax}" ]; then
+    printf >&2 "Timed out waiting %d seconds for pod labeled app=%s to become Running" $((sleepTime * counterMax)) "${1}"
+    exit 1
+  fi
+
+  pod=$(echo "${pod}" | cut -d' ' -f1)
+  echo "${pod}"
+}
+
 printTitle "Creating the namespace"
 kubectl create ns ${NS}
 
@@ -86,16 +109,19 @@ else
 fi
 
 printTitle "2. ENV injected to the fruit backend component"
-printTitle "2. ENV injected to the fruit backend component" >> ${REPORT_FILE}
-until kubectl get pods -n $NS -l app=$COMPONENT_FRUIT_BACKEND_NAME | grep "Running"; do sleep 5; done
-kubectl exec -n ${NS} $(kubectl get pod -n ${NS} -lapp=$COMPONENT_FRUIT_BACKEND_NAME | grep "Running" | awk '{print $1}') env | grep DB >> ${REPORT_FILE}
-printf "\n" >> ${REPORT_FILE}
+printTitle "2. ENV injected to the fruit backend component" >>${REPORT_FILE}
+podName=$(waitForAndGetPodName "${COMPONENT_FRUIT_BACKEND_NAME}")
+kubectl exec -n "${NS}" "${podName}" env | grep DB >>${REPORT_FILE}
+printf "\n" >>${REPORT_FILE}
 
 printTitle "3. ENV var defined for the fruit client component"
-printTitle "3. ENV var defined for the fruit client component" >> ${REPORT_FILE}
-until kubectl get pods -n $NS -l app=$COMPONENT_FRUIT_CLIENT_NAME | grep "Running"; do sleep 5; done
-for item in $(kubectl get pod -n ${NS} -lapp=$COMPONENT_FRUIT_CLIENT_NAME --output=name); do printf "Envs for %s\n" "$item" | grep --color -E '[^/]+$' && kubectl get "$item" -n ${NS} --output=json | jq -r -S '.spec.containers[0].env[] | " \(.name)=\(.value)"' 2>/dev/null; printf "\n"; done >> ${REPORT_FILE}
-printf "\n" >> ${REPORT_FILE}
+printTitle "3. ENV var defined for the fruit client component" >>${REPORT_FILE}
+waitForAndGetPodName "${COMPONENT_FRUIT_CLIENT_NAME}"
+for item in $(kubectl get pod -n "${NS}" -lapp=$COMPONENT_FRUIT_CLIENT_NAME --output=name); do
+  printf "Envs for %s\n" "$item" | grep --color -E '[^/]+$' && kubectl get "$item" -n "${NS}" --output=json | jq -r -S '.spec.containers[0].env[] | " \(.name)=\(.value)"' 2>/dev/null
+  printf "\n"
+done >>${REPORT_FILE}
+printf "\n" >>${REPORT_FILE}
 
 if [ "$MODE" == "dev" ]; then
   printTitle "Push fruit client and backend"
