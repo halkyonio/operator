@@ -127,15 +127,22 @@ if [ "$MODE" == "dev" ]; then
 fi
 
 printTitle "Wait until Spring Boot actuator health replies UP for both microservices"
-for i in $COMPONENT_FRUIT_BACKEND_NAME $COMPONENT_FRUIT_CLIENT_NAME
-do
+maxRetries=12
+httpSleepTime=10
+for i in $COMPONENT_FRUIT_BACKEND_NAME $COMPONENT_FRUIT_CLIENT_NAME; do
   HTTP_BODY=""
-  until [ "$HTTP_BODY" == "$EXPECTED_RESPONSE" ]; do
-    HTTP_RESPONSE=$(kubectl exec -n $NS $(kubectl get pod -n $NS -lapp=$i | grep "Running" | awk '{print $1}') -- curl -L -w "HTTPSTATUS:%{http_code}" -s localhost:8080/actuator/health 2>&1)
+  counter=0
+  until [ "$counter" -gt "${maxRetries}" ] || [ "$HTTP_BODY" == "$EXPECTED_RESPONSE" ]; do
+    HTTP_RESPONSE=$(kubectl exec -n "${NS}" "$(waitForAndGetPodName ${NS})" -- curl -L -w "HTTPSTATUS:%{http_code}" -s localhost:8080/actuator/health 2>&1)
     HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
     echo "$i: Response is : $HTTP_BODY, expected is : $EXPECTED_RESPONSE"
-    sleep 10s
+    sleep "${httpSleepTime}"
+    counter=$((counter + 1))
   done
+  if [ "$counter" -gt "${maxRetries}" ]; then
+    printf "Timed out waiting %d seconds for %s microservice to become UP" $((httpSleepTime * maxRetries)) "${i}"
+    exit 1
+  fi
 done
 
 printTitle "Curl Fruit service"
