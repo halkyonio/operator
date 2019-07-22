@@ -48,7 +48,7 @@ function printTitle() {
 }
 
 function waitForAndGetPodName() {
-  local -r counterMax=12
+  local -r counterMax=24
   local -r sleepTime=5
   local counter=0
   local pod=""
