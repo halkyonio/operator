@@ -15,7 +15,7 @@ MODE=${3:-dev}
 
 SLEEP_TIME=30s
 TIME=$(date +"%Y-%m-%d_%H-%M")
-REPORT_FILE="result_${TIME}.txt"
+REPORT_FILE="report.txt"
 EXPECTED_RESPONSE='{"status":"UP"}'
 EXPECTED_FRUITS='[{"id":1,"name":"Cherry"},{"id":2,"name":"Apple"},{"id":3,"name":"Banana"}]'
 
