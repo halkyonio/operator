@@ -218,6 +218,7 @@ func (b *BaseGenericReconciler) updateStatus(instance v1alpha2.Resource, err err
 	current, e = b.Fetch(instance)
 	if e != nil {
 		b.ReqLogger.Error(e, fmt.Sprintf("failed to fetch latest version of '%s' %s", instance.GetName(), util.GetObjectName(instance)))
+		return false
 	}
 
 	// compute the status and update the resource if the status has changed
