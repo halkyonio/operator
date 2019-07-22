@@ -91,22 +91,19 @@ sleep ${SLEEP_TIME}
 
 printTitle "Report status : ${TIME}" > ${REPORT_FILE}
 
-printTitle "1. Status of the resources created using the CRDs : Component, Link or Capability" >> ${REPORT_FILE}
+printTitle "1. Status of the resources created using the CRDs : Component, Link or Capability" >>${REPORT_FILE}
+declare -a resources=()
 if [ "$isOpenShift" == "true" ]; then
-  for i in components links capabilities pods deployments deploymentconfigs services routes pvc postgreses secret/postgres-db-config
-  do
-    printTitle "$(echo $i | tr a-z A-Z)" >> ${REPORT_FILE}
-    kubectl get $i -n ${NS} >> ${REPORT_FILE}
-    printf "\n" >> ${REPORT_FILE}
-  done
+  resources=(components links capabilities pods deployments services routes pvc postgreses secret/postgres-db-config)
 else
-  for i in components links capabilities pods deployments services ingresses pvc postgreses secret/postgres-db-config
-  do
-    printTitle "$(echo $i | tr a-z A-Z)" >> ${REPORT_FILE}
-    kubectl get $i -n ${NS} >> ${REPORT_FILE}
-    printf "\n" >> ${REPORT_FILE}
-  done
+  resources=(components links capabilities pods deployments services ingresses pvc postgreses secret/postgres-db-config)
 fi
+for i in "${resources[@]}"; do
+  printf "Checking %s\n" "$i"
+  printTitle "$(echo $i | tr a-z A-Z)" >>${REPORT_FILE}
+  kubectl get "$i" -n "${NS}" >>${REPORT_FILE}
+  printf "\n" >>${REPORT_FILE}
+done
 
 printTitle "2. ENV injected to the fruit backend component"
 printTitle "2. ENV injected to the fruit backend component" >>${REPORT_FILE}
