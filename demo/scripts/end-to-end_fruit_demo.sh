@@ -13,7 +13,7 @@ set -e
 #
 DIR=$(dirname "$0")
 CLUSTER_IP=${1:-192.168.99.50}
-NS=${2:-test}
+NS=${2:-claprun-test}
 MODE=${3:-dev}
 
 SLEEP_TIME=30s
@@ -31,16 +31,23 @@ else
 fi
 
 if [ "$MODE" == "build" ]; then
-    COMPONENT_FRUIT_BACKEND_NAME="fruit-backend-sb-build"
-    COMPONENT_FRUIT_CLIENT_NAME="fruit-client-sb-build"
+  COMPONENT_FRUIT_BACKEND_NAME="fruit-backend-sb-build"
+  COMPONENT_FRUIT_CLIENT_NAME="fruit-client-sb-build"
 else
-    COMPONENT_FRUIT_BACKEND_NAME="fruit-backend-sb"
-    COMPONENT_FRUIT_CLIENT_NAME="fruit-client-sb"
+  COMPONENT_FRUIT_BACKEND_NAME="fruit-backend-sb"
+  COMPONENT_FRUIT_CLIENT_NAME="fruit-client-sb"
 fi
 
-function printTitle {
-  r=$(typeset i=${#1} c="=" s="" ; while ((i)) ; do ((i=i-1)) ; s="$s$c" ; done ; echo  "$s" ;)
-  printf "$r\n$1\n$r\n"
+function printTitle() {
+  r=$(
+    typeset i=${#1} c="=" s=""
+    while ((i)); do
+      ((i = i - 1))
+      s="$s$c"
+    done
+    echo "$s"
+  )
+  printf "\n%s\n%s\n" "$1" "$r"
 }
 
 function waitForAndGetPodName() {
@@ -67,29 +74,29 @@ function waitForAndGetPodName() {
 }
 
 printTitle "Creating the namespace"
-kubectl create ns ${NS}
+kubectl create ns "${NS}"
 
 printTitle "Add privileged SCC to the serviceaccount postgres-db and buildbot. Required for the operators Tekton and KubeDB"
 if [ "$isOpenShift" == "true" ]; then
   echo "We run on Openshift. So we will apply the SCC rule"
-  oc adm policy add-scc-to-user privileged system:serviceaccount:${NS}:postgres-db
-  oc adm policy add-scc-to-user privileged system:serviceaccount:${NS}:build-bot
-  oc adm policy add-role-to-user edit system:serviceaccount:${NS}:build-bot
+  oc adm policy add-scc-to-user privileged system:serviceaccount:"${NS}":postgres-db
+  oc adm policy add-scc-to-user privileged system:serviceaccount:"${NS}":build-bot
+  oc adm policy add-role-to-user edit system:serviceaccount:"${NS}":build-bot
 else
   echo "We DON'T run on OpenShift. So need to change SCC"
 fi
 
 printTitle "Deploy the component for the fruit-backend, link and capability"
-kubectl apply -n ${NS} -f ${DIR}/../fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
+kubectl apply -n "${NS}" -f "${DIR}"/../fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
 
 printTitle "Deploy the component for the fruit-client, link"
-kubectl apply -n ${NS} -f ${DIR}/../fruit-client-sb/target/classes/META-INF/dekorate/component.yml
+kubectl apply -n "${NS}" -f "${DIR}"/../fruit-client-sb/target/classes/META-INF/dekorate/component.yml
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
 
-printTitle "Report status : ${TIME}" > ${REPORT_FILE}
+printTitle "Report status : ${TIME}" >${REPORT_FILE}
 
 printTitle "1. Status of the resources created using the CRDs : Component, Link or Capability" >>${REPORT_FILE}
 declare -a resources=()
@@ -122,8 +129,8 @@ printf "\n" >>${REPORT_FILE}
 
 if [ "$MODE" == "dev" ]; then
   printTitle "Push fruit client and backend"
-  ${DIR}/k8s_push_start.sh fruit-backend sb ${NS}
-  ${DIR}/k8s_push_start.sh fruit-client sb ${NS}
+  "${DIR}"/k8s_push_start.sh fruit-backend sb "${NS}"
+  "${DIR}"/k8s_push_start.sh fruit-client sb "${NS}"
 fi
 
 printTitle "Wait until Spring Boot actuator health replies UP for both microservices"
@@ -146,23 +153,23 @@ for i in $COMPONENT_FRUIT_BACKEND_NAME $COMPONENT_FRUIT_CLIENT_NAME; do
 done
 
 printTitle "Curl Fruit service"
-printTitle "4. Curl Fruit Endpoint service"  >> ${REPORT_FILE}
+printTitle "4. Curl Fruit Endpoint service" >>${REPORT_FILE}
 
 if [ "$isOpenShift" == "true" ]; then
-    echo "No ingress resources found. We run on OpenShift" >> ${REPORT_FILE}
-    FRONTEND_ROUTE_URL=$(kubectl get route/fruit-client-sb -o jsonpath='{.spec.host}' -n ${NS})
-    CURL_RESPONSE=$(curl http://$FRONTEND_ROUTE_URL/api/client)
-    echo $CURL_RESPONSE >> ${REPORT_FILE}
+  echo "No ingress resources found. We run on OpenShift" >>${REPORT_FILE}
+  FRONTEND_ROUTE_URL=$(kubectl get route/fruit-client-sb -o jsonpath='{.spec.host}' -n ${NS})
+  CURL_RESPONSE=$(curl http://$FRONTEND_ROUTE_URL/api/client)
+  echo $CURL_RESPONSE >>${REPORT_FILE}
 else
-    CURL_RESPONSE=$(curl -H "Host: fruit-client-sb" http://${CLUSTER_IP}/api/client)
-    echo $CURL_RESPONSE >> ${REPORT_FILE}
+  CURL_RESPONSE=$(curl -H "Host: fruit-client-sb" http://${CLUSTER_IP}/api/client)
+  echo $CURL_RESPONSE >>${REPORT_FILE}
 fi
 
 if [ "$CURL_RESPONSE" == "$EXPECTED_FRUITS" ]; then
-   printTitle "CALLING FRUIT ENDPOINT SUCCEEDED USING MODE : $MODE :-)"
+  printTitle "CALLING FRUIT ENDPOINT SUCCEEDED USING MODE : $MODE :-)"
 else
-   printTitle "FAILED TO CALL FRUIT ENDPOINT USING MODE : $MODE :-("
-   exit 1
+  printTitle "FAILED TO CALL FRUIT ENDPOINT USING MODE : $MODE :-("
+  exit 1
 fi
 
 printTitle "Delete the resources components, links and capabilities"
