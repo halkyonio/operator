@@ -125,14 +125,14 @@ func (r *ReconcileComponent) IsDependentResourceReady(resource v1alpha2.Resource
 	}
 }
 
-func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (changed bool, err error) {
+func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (err error) {
 	component := r.asComponent(object)
 	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
 		err = r.installBuildMode(component, component.Namespace)
 	} else {
 		err = r.installDevMode(component, component.Namespace)
 	}
-	return component.HasChanged(), err
+	return err
 }
 
 func (r *ReconcileComponent) Delete(resource v1alpha2.Resource) (bool, error) {
