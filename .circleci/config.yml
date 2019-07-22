@@ -160,6 +160,8 @@ commands:
             ./mvnw package
             ./scripts/end-to-end_fruit_demo.sh << parameters.cluster-ip >> << parameters.namespace >> << parameters.mode >>
             cd ..
+      - store_artifacts:
+          path: ./demo/report.txt
 
 jobs:
   # Steps
@@ -205,8 +207,6 @@ jobs:
           docker login quay.io -u="${QUAY_ROBOT_USER}" -p="${QUAY_ROBOT_TOKEN}"
           docker push quay.io/snowdrop/component-operator:${VERSION}
           docker push quay.io/snowdrop/component-operator:latest
-    - store_artifacts:
-        path: ./demo/report.txt
 
   okd-e2e-dev-test:
     machine: true
