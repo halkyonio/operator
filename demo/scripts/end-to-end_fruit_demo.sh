@@ -13,7 +13,7 @@ set -e
 #
 DIR=$(dirname "$0")
 CLUSTER_IP=${1:-192.168.99.50}
-NS=${2:-claprun-test}
+NS=${2:-test}
 MODE=${3:-dev}
 
 SLEEP_TIME=30s
