@@ -19,8 +19,6 @@ rules:
   - events
   - configmaps
   - secrets
-  - roles
-  - rolebindings
   verbs:
   - "*"
 - apiGroups:
@@ -32,6 +30,13 @@ rules:
   - statefulsets
   verbs:
   - "*"
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+    - roles
+    - rolebindings
+  verbs:
+    - "*"
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
