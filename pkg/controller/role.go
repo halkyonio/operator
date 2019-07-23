@@ -9,6 +9,7 @@ import (
 
 type role struct {
 	*DependentResourceHelper
+	reconciler *BaseGenericReconciler
 }
 
 func (res role) Update(toUpdate runtime.Object) (bool, error) {
@@ -16,16 +17,19 @@ func (res role) Update(toUpdate runtime.Object) (bool, error) {
 }
 
 func (res role) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
-	return newOwnedRole(owner)
+	return newOwnedRole(res.reconciler, owner)
 }
 
-func NewRole() role {
-	return newOwnedRole(nil)
+func NewRole(reconciler *BaseGenericReconciler) role {
+	return newOwnedRole(reconciler, nil)
 }
 
-func newOwnedRole(owner v1alpha2.Resource) role {
+func newOwnedRole(reconciler *BaseGenericReconciler, owner v1alpha2.Resource) role {
 	dependent := NewDependentResource(&authorizv1.Role{}, owner)
-	role := role{DependentResourceHelper: dependent}
+	role := role{
+		DependentResourceHelper: dependent,
+		reconciler:              reconciler,
+	}
 	dependent.SetDelegate(role)
 	return role
 }
@@ -63,4 +67,8 @@ func (res role) ShouldWatch() bool {
 
 func (res role) ShouldBeOwned() bool {
 	return false
+}
+
+func (res role) CanBeCreatedOrUpdated() bool {
+	return res.reconciler.IsTargetClusterRunningOpenShift()
 }
