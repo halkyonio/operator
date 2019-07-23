@@ -10,6 +10,7 @@ import (
 
 type rolebinding struct {
 	*DependentResourceHelper
+	reconciler *BaseGenericReconciler
 }
 
 func (res rolebinding) Update(toUpdate runtime.Object) (bool, error) {
@@ -40,17 +41,18 @@ func (res rolebinding) Update(toUpdate runtime.Object) (bool, error) {
 }
 
 func (res rolebinding) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
-	return newOwnedRoleBinding(owner)
+	return newOwnedRoleBinding(res.reconciler, owner)
 }
 
-func NewRoleBinding() rolebinding {
-	return newOwnedRoleBinding(nil)
+func NewRoleBinding(reconciler *BaseGenericReconciler) rolebinding {
+	return newOwnedRoleBinding(reconciler, nil)
 }
 
-func newOwnedRoleBinding(owner v1alpha2.Resource) rolebinding {
+func newOwnedRoleBinding(reconciler *BaseGenericReconciler, owner v1alpha2.Resource) rolebinding {
 	dependent := NewDependentResource(&authorizv1.RoleBinding{}, owner)
 	rolebinding := rolebinding{
 		DependentResourceHelper: dependent,
+		reconciler:              reconciler,
 	}
 	dependent.SetDelegate(rolebinding)
 	return rolebinding
@@ -90,4 +92,8 @@ func (res rolebinding) ShouldWatch() bool {
 
 func (res rolebinding) ShouldBeOwned() bool {
 	return false
+}
+
+func (res rolebinding) CanBeCreatedOrUpdated() bool {
+	return res.reconciler.IsTargetClusterRunningOpenShift()
 }
