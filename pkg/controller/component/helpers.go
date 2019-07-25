@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-api/pkg/apis/component/v1alpha2"
 )
 
 func (r *ReconcileComponent) getEnvAsMap(component v1alpha2.ComponentSpec) (map[string]string, error) {

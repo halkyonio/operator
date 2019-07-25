@@ -8,7 +8,7 @@ import (
 	route "github.com/openshift/api/route/v1"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-api/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	"github.com/snowdrop/component-operator/pkg/controller/capability"
 	"github.com/snowdrop/component-operator/pkg/controller/component"

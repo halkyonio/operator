@@ -3,7 +3,7 @@ package capability
 import (
 	"github.com/appscode/go/encoding/json/types"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-api/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"

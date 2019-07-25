@@ -3,7 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-api/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

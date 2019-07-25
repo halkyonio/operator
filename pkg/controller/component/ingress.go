@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-api/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -19,7 +19,7 @@ package component
 
 import (
 	routev1 "github.com/openshift/api/route/v1"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-api/pkg/apis/component/v1alpha2"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -54,7 +54,7 @@ func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, nam
 		if r.isTargetClusterRunningOpenShift() {
 			// Create an OpenShift Route
 			if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
-				return  e
+				return e
 			}
 		} else {
 			// Create an Ingress resource

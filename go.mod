@@ -26,14 +26,14 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/rogpeppe/go-internal v1.3.0 // indirect
 	github.com/sirupsen/logrus v1.4.1
+	github.com/snowdrop/component-api v0.0.0-20190725095146-d7a15af76ffc
 	github.com/spf13/pflag v1.0.3
 	github.com/tektoncd/pipeline v0.3.1
-	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
+	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c // indirect
-	k8s.io/api v0.0.0-20190503110853-61630f889b3c
-	k8s.io/apimachinery v0.0.0-20190508063446-a3da69d3723c
+	k8s.io/api v0.0.0-20190725062911-6607c48751ae
+	k8s.io/apimachinery v0.0.0-20190719140911-bfcf53abc9f8
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/code-generator v0.0.0-20190419212335-ff26e7842f9d // needed for code generation
 	k8s.io/helm v2.13.1+incompatible // indirect
 	k8s.io/kubernetes v1.14.2 // indirect
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec // indirect

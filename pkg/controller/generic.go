@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/snowdrop/component-api/pkg/apis/component/v1alpha2"
 	"github.com/snowdrop/component-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
