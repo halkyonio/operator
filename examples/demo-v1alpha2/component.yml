@@ -8,6 +8,7 @@ spec:
   deploymentMode: dev
   runtime: spring-boot
   version: 1.5.16
+  port: 8080
   envs:
     - name: SPRING_PROFILES_ACTIVE
       value: openshift-catalog

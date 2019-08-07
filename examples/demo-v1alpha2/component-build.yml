@@ -10,9 +10,11 @@ metadata:
 spec:
   deploymentMode: build
   exposeService: true
+  port: 8080
   buildConfig:
-    url: https://github.com/snowdrop/rest-http-example.git
-    ref: 2.1.6-1
-    moduleDirName: .
+    type: "s2i"
+    url: "https://github.com/snowdrop/rest-http-example.git"
+    ref: "2.1.6-1"
+    moduleDirName: "."
   runtime: spring-boot
   version: 2.1.6
