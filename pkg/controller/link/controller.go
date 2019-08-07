@@ -124,11 +124,13 @@ func (r *ReconcileLink) update(d *appsv1.Deployment) error {
 func (r *ReconcileLink) fetchDeployment(link *v1alpha2.Link) (*appsv1.Deployment, error) {
 	deployment := &appsv1.Deployment{}
 	name := link.Spec.ComponentName
-	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err != nil {
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err == nil {
+		return deployment, nil
+	} else if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name + "-build", Namespace: link.Namespace}, deployment); err == nil {
+		return deployment, nil
+	} else {
 		r.ReqLogger.Info("Deployment doesn't exist", "Name", name)
 		return deployment, err
-	} else {
-		return deployment, nil
 	}
 }
 
