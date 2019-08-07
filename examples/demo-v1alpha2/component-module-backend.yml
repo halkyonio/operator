@@ -10,6 +10,7 @@ metadata:
   name: fruit-backend-sb
 spec:
   deploymentMode: build
+  port: 8080
   buildConfig:
     url: https://github.com/snowdrop/component-operator-demo.git
     ref: master

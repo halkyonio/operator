@@ -10,6 +10,7 @@ metadata:
   name: fruit-client-sb
 spec:
   deploymentMode: build
+  port: 8080
   buildConfig:
     url: https://github.com/snowdrop/component-operator-demo/
     ref: 0.0.2
