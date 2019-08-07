@@ -9,7 +9,6 @@ import (
 
 type k8srole struct {
 	*DependentResourceHelper
-	reconciler *BaseGenericReconciler
 }
 
 func (res k8srole) Update(toUpdate runtime.Object) (bool, error) {
@@ -17,14 +16,14 @@ func (res k8srole) Update(toUpdate runtime.Object) (bool, error) {
 }
 
 func (res k8srole) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
-	return newOwnedk8sRole(res.reconciler, owner)
+	return newOwnedK8sRole(owner)
 }
 
-func Newk8sRole(reconciler *BaseGenericReconciler) k8srole {
-	return newOwnedk8sRole(reconciler, nil)
+func NewK8sRole() k8srole {
+	return newOwnedK8sRole(nil)
 }
 
-func newOwnedk8sRole(reconciler *BaseGenericReconciler, owner v1alpha2.Resource) k8srole {
+func newOwnedK8sRole(owner v1alpha2.Resource) k8srole {
 	dependent := NewDependentResource(&authorizv1.Role{}, owner)
 	role := k8srole{DependentResourceHelper: dependent}
 	dependent.SetDelegate(role)
