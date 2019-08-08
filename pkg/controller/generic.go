@@ -63,10 +63,15 @@ func (b *BaseGenericReconciler) SetReconcilerFactory(factory ReconcilerFactory) 
 
 type BaseGenericReconciler struct {
 	ReconcilerHelper
-	dependents  map[string]DependentResource
-	primary     runtime.Object
-	_factory    ReconcilerFactory
-	onOpenShift *bool
+	dependents       map[string]DependentResource
+	primary          runtime.Object
+	_factory         ReconcilerFactory
+	onOpenShift      *bool
+	openShiftVersion int
+}
+
+func (b *BaseGenericReconciler) OpenShiftVersion() int {
+	return b.openShiftVersion
 }
 
 func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
@@ -85,6 +90,18 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 				b.onOpenShift = util.NewTrue()
 				break
 			}
+		}
+
+		for _, group := range apiGroups {
+			if strings.HasSuffix(group.Name, "config.openshift.io") {
+				b.openShiftVersion = 4
+				break
+			}
+		}
+
+		if *b.onOpenShift && b.openShiftVersion == 0 {
+			// We are running on OpenShift but not on Version 4
+			b.openShiftVersion = 3
 		}
 
 		if b.onOpenShift == nil {
