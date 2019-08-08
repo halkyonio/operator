@@ -12,7 +12,30 @@ type k8srolebinding struct {
 }
 
 func (res k8srolebinding) Update(toUpdate runtime.Object) (bool, error) {
-	return false, nil
+	// add appropriate subject for owner
+	rb := toUpdate.(*authorizv1.RoleBinding)
+	owner := res.Owner()
+
+	// check if the binding contains the current owner as subject
+	namespace := owner.GetNamespace()
+	name := ServiceAccountName(owner)
+	found := false
+	for _, subject := range rb.Subjects {
+		if subject.Name == name && subject.Namespace == namespace {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		rb.Subjects = append(rb.Subjects, authorizv1.Subject{
+			Kind:      "ServiceAccount",
+			Namespace: namespace,
+			Name:      name,
+		})
+	}
+
+	return !found, nil
 }
 
 func (res k8srolebinding) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
@@ -50,6 +73,7 @@ func (res k8srolebinding) Build() (runtime.Object, error) {
 		},
 		Subjects: []authorizv1.Subject{
 			{Kind: "ServiceAccount", Name: ServiceAccountName(c), Namespace: namespace},
+			{Kind: "ServiceAccount", Name: PostgresName(c), Namespace: namespace},
 		},
 	}
 	return ser, nil
