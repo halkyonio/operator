@@ -53,7 +53,7 @@ func (res k8simageprivilegedrole) Build() (runtime.Object, error) {
 				Verbs:         []string{"use"},
 			},
 			{
-				APIGroups:     []string{"","image.openshift.io"},
+				APIGroups:     []string{"image.openshift.io"},
 				Resources:     []string{"imagestreams","imagestreams/layers"},
 				Verbs:         []string{"*"},
 			},
