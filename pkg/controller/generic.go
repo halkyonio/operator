@@ -101,6 +101,7 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 			// We are running on OpenShift
 			b.openShiftVersion = util.NewVersion(3)
 			for _, group := range apiGroups {
+				// The API - config.openshift.io only exists since ocp4
 				if group.Name == "config.openshift.io" {
 					b.openShiftVersion = util.NewVersion(4)
 					break
