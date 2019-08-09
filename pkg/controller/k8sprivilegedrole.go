@@ -7,34 +7,38 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type k8srole struct {
+type k8sprivilegedrole struct {
 	*DependentResourceHelper
 }
 
-func (res k8srole) Update(toUpdate runtime.Object) (bool, error) {
+func (res k8sprivilegedrole) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res k8srole) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
-	return newOwnedK8sRole(owner)
+func (res k8sprivilegedrole) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
+	return newOwnedK8sPrivilegedRole(owner)
 }
 
-func NewK8sRole() k8srole {
-	return newOwnedK8sRole(nil)
+func NewK8sPrivilegedRole() k8sprivilegedrole {
+	return newOwnedK8sPrivilegedRole(nil)
 }
 
-func newOwnedK8sRole(owner v1alpha2.Resource) k8srole {
+func newOwnedK8sPrivilegedRole(owner v1alpha2.Resource) k8sprivilegedrole {
 	dependent := NewDependentResource(&authorizv1.Role{}, owner)
-	role := k8srole{DependentResourceHelper: dependent}
+	role := k8sprivilegedrole{DependentResourceHelper: dependent}
 	dependent.SetDelegate(role)
 	return role
 }
 
-func (res k8srole) Name() string {
-	return RoleName(res.Owner())
+func PrivilegedRoleName(owner v1alpha2.Resource) string {
+	return "scc-privileged-role"
 }
 
-func (res k8srole) Build() (runtime.Object, error) {
+func (res k8sprivilegedrole) Name() string {
+	return PrivilegedRoleName(res.Owner())
+}
+
+func (res k8sprivilegedrole) Build() (runtime.Object, error) {
 	c := res.Owner()
 	ser := &authorizv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
@@ -53,6 +57,6 @@ func (res k8srole) Build() (runtime.Object, error) {
 	return ser, nil
 }
 
-func (res k8srole) ShouldWatch() bool {
+func (res k8sprivilegedrole) ShouldWatch() bool {
 	return false
 }

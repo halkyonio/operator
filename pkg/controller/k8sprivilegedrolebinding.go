@@ -7,11 +7,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type k8srolebinding struct {
+type k8sprivilegedrolebinding struct {
 	*DependentResourceHelper
 }
 
-func (res k8srolebinding) Update(toUpdate runtime.Object) (bool, error) {
+func (res k8sprivilegedrolebinding) Update(toUpdate runtime.Object) (bool, error) {
 	// add appropriate subject for owner
 	rb := toUpdate.(*authorizv1.RoleBinding)
 	owner := res.Owner()
@@ -38,28 +38,28 @@ func (res k8srolebinding) Update(toUpdate runtime.Object) (bool, error) {
 	return !found, nil
 }
 
-func (res k8srolebinding) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
-	return newOwnedK8sRoleBinding(owner)
+func (res k8sprivilegedrolebinding) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
+	return newOwnedK8sPrivilegedRoleBinding(owner)
 }
 
-func NewK8sRoleBinding() k8srolebinding {
-	return newOwnedK8sRoleBinding(nil)
+func NewK8sPrivilegedRoleBinding() k8sprivilegedrolebinding {
+	return newOwnedK8sPrivilegedRoleBinding(nil)
 }
 
-func newOwnedK8sRoleBinding(owner v1alpha2.Resource) k8srolebinding {
+func newOwnedK8sPrivilegedRoleBinding(owner v1alpha2.Resource) k8sprivilegedrolebinding {
 	dependent := NewDependentResource(&authorizv1.RoleBinding{}, owner)
-	rolebinding := k8srolebinding{
+	rolebinding := k8sprivilegedrolebinding{
 		DependentResourceHelper: dependent,
 	}
 	dependent.SetDelegate(rolebinding)
 	return rolebinding
 }
 
-func (res k8srolebinding) Name() string {
+func (res k8sprivilegedrolebinding) Name() string {
 	return "use-scc-privileged"
 }
 
-func (res k8srolebinding) Build() (runtime.Object, error) {
+func (res k8sprivilegedrolebinding) Build() (runtime.Object, error) {
 	c := res.Owner()
 	namespace := c.GetNamespace()
 	ser := &authorizv1.RoleBinding{
@@ -68,8 +68,8 @@ func (res k8srolebinding) Build() (runtime.Object, error) {
 			Namespace: namespace,
 		},
 		RoleRef: authorizv1.RoleRef{
-			Kind:       "Role",
-			Name:       RoleName(c),
+			Kind: "Role",
+			Name: ImageAndPrivilegedRoleName(c),
 		},
 		Subjects: []authorizv1.Subject{
 			{Kind: "ServiceAccount", Name: ServiceAccountName(c), Namespace: namespace},
@@ -79,6 +79,6 @@ func (res k8srolebinding) Build() (runtime.Object, error) {
 	return ser, nil
 }
 
-func (res k8srolebinding) ShouldWatch() bool {
+func (res k8sprivilegedrolebinding) ShouldWatch() bool {
 	return false
 }
