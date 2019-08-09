@@ -21,6 +21,10 @@ func Index(vs []string, t string) int {
 	return -1
 }
 
+func NewVersion(v int) *int {
+	return &v
+}
+
 func NewTrue() *bool {
 	b := true
 	return &b
