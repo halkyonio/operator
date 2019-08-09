@@ -92,21 +92,20 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 			}
 		}
 
-		for _, group := range apiGroups {
-			if strings.HasSuffix(group.Name, "config.openshift.io") {
-				b.openShiftVersion = util.NewVersion(4)
-				break
-			}
-		}
-
-		if b.onOpenShift != nil && b.openShiftVersion == nil {
-			// We are running on OpenShift but not on Version 4
-			b.openShiftVersion = util.NewVersion(3)
-		}
-
 		if b.onOpenShift == nil {
 			// we didn't find any api group with the openshift.io suffix, so we're not on OpenShift!
 			b.onOpenShift = util.NewFalse()
+		}
+
+		if *b.onOpenShift {
+			// We are running on OpenShift
+			b.openShiftVersion = util.NewVersion(3)
+			for _, group := range apiGroups {
+				if strings.HasSuffix(group.Name, "config.openshift.io") {
+					b.openShiftVersion = util.NewVersion(4)
+					break
+				}
+			}
 		}
 	}
 
