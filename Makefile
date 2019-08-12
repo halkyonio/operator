@@ -1,8 +1,8 @@
 VERSION     ?= unset
 GITCOMMIT    := $(shell git rev-parse --short HEAD 2>/dev/null)
-PROJECT_NAME := component-operator
+PROJECT_NAME := operator
 BIN_DIR      := ./build/_output/bin
-REPO_PATH    := github.com/snowdrop/$(PROJECT_NAME)
+REPO_PATH    := github.com/halkyonio/$(PROJECT_NAME)
 BUILD_PATH   := $(REPO_PATH)/cmd/manager
 BUILD_FLAGS  := -ldflags="-w -X main.Version=$(VERSION) -X main.GitCommit=$(GITCOMMIT)"
 PKGS         := $(shell go list  ./... | grep -v $(PROJECT)/vendor)

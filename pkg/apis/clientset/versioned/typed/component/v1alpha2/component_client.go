@@ -19,8 +19,8 @@ limitations under the License.
 package v1alpha2
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/clientset/versioned/scheme"
-	v1alpha2 "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/clientset/versioned/scheme"
+	v1alpha2 "github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 )

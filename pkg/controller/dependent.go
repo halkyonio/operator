@@ -2,7 +2,7 @@ package controller
 
 import (
 	"context"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
