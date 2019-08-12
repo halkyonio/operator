@@ -35,7 +35,7 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.0.0-20190419212335-ff26e7842f9d // needed for code generation
 	k8s.io/helm v2.13.1+incompatible // indirect
-	k8s.io/kubernetes v1.14.2
+	k8s.io/kubernetes v1.14.5
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec // indirect
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817 // indirect
 	kmodules.xyz/objectstore-api v0.0.0-20190516233206-ea3ba546e348 // indirect
@@ -49,8 +49,8 @@ replace (
 	github.com/graymeta/stow => github.com/appscode/stow v0.0.0-20190506085026-ca5baa008ea3
 	k8s.io/api => k8s.io/api v0.0.0-20181126151915-b503174bad59
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
-	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.0.0-20190508045248-a52a97a7a2bf
-	k8s.io/apiserver => github.com/kmodules/apiserver v0.0.0-20190508082252-8397d761d4b5
+	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.0.0-20190423074438-a3cbe62563e6
+	k8s.io/apiserver => github.com/kmodules/apiserver v0.0.0-20190423074744-1ff296932385
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20181126152608-d082d5923d3c
 	k8s.io/code-generator => k8s.io/code-generator v0.0.0-20190311093542-50b561225d70
 )
