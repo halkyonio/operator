@@ -4,4 +4,4 @@ RUN apk upgrade --update --no-cache
 
 USER nobody
 
-ADD build/_output/bin/component-operator /usr/local/bin/component-operator
+ADD build/_output/bin/operator /usr/local/bin/halkyon-operator
