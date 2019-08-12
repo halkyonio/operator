@@ -19,7 +19,7 @@ func TestComponent(t *testing.T) {
 
 var _ = Describe("ComponentE2E", func() {
 
-	tmpDir, _ := ioutil.TempDir("", "component-operator")
+	tmpDir, _ := ioutil.TempDir("", "halkyon-operator")
 	namespace := "my-spring-boot"
 	compA := "my-spring-boot"
 	fmt.Print("Temp dir : ", tmpDir, "\n")

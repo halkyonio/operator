@@ -89,8 +89,8 @@ func TestComponentCRD(t *testing.T) {
 	// get global framework variables
 	f := f.Global
 
-	// wait for component-operator to be ready
-	err = WaitForDeployment(t, f.KubeClient, namespace, "component-operator", 1, retryInterval, timeout)
+	// wait for halkyon-operator to be ready
+	err = WaitForDeployment(t, f.KubeClient, namespace, "halkyon-operator", 1, retryInterval, timeout)
 	if err != nil {
 		t.Fatal(err)
 	}

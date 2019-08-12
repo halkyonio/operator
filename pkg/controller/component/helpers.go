@@ -72,7 +72,7 @@ func (r *ReconcileComponent) PopulateK8sLabels(component *v1alpha2.Component, co
 	labels[v1alpha2.RuntimeVersionLabelKey] = component.Spec.Version
 	labels[v1alpha2.ComponentLabelKey] = componentType
 	labels[v1alpha2.NameLabelKey] = component.Name
-	labels[v1alpha2.ManagedByLabelKey] = "component-operator"
+	labels[v1alpha2.ManagedByLabelKey] = "halkyon-operator"
 	return labels
 }
 
