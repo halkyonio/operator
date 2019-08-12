@@ -19,13 +19,13 @@ package component
 
 import (
 	// authorizv1 "github.com/openshift/api/authorization/v1"
-	authorizv1 "k8s.io/api/rbac/v1"
+	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
 	routev1 "github.com/openshift/api/route/v1"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	authorizv1 "k8s.io/api/rbac/v1"
 )
 
 func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (e error) {

@@ -19,7 +19,7 @@ limitations under the License.
 package versioned
 
 import (
-	devexpv1alpha2 "github.com/snowdrop/component-operator/pkg/apis/clientset/versioned/typed/component/v1alpha2"
+	devexpv1alpha2 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/component/v1alpha2"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

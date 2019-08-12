@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	devexpv1alpha2 "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	devexpv1alpha2 "github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

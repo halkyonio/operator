@@ -19,9 +19,9 @@ package component
 
 import (
 	"context"
+	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	controller2 "github.com/halkyonio/operator/pkg/controller"
 	"github.com/knative/pkg/apis"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	controller2 "github.com/snowdrop/component-operator/pkg/controller"
 	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

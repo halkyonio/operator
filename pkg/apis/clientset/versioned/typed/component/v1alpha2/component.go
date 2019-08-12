@@ -21,8 +21,8 @@ package v1alpha2
 import (
 	"time"
 
-	scheme "github.com/snowdrop/component-operator/pkg/apis/clientset/versioned/scheme"
-	v1alpha2 "github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	scheme "github.com/halkyonio/operator/pkg/apis/clientset/versioned/scheme"
+	v1alpha2 "github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

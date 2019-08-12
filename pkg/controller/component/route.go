@@ -1,9 +1,9 @@
 package component
 
 import (
+	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/controller"
 	routev1 "github.com/openshift/api/route/v1"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"github.com/snowdrop/component-operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

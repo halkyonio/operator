@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 )

@@ -1,8 +1,8 @@
 package component
 
 import (
-	"github.com/snowdrop/component-operator/pkg/apis/component/v1alpha2"
-	"github.com/snowdrop/component-operator/pkg/controller"
+	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
