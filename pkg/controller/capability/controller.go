@@ -35,8 +35,8 @@ func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
 
 	r.AddDependentResource(newSecret())
 	r.AddDependentResource(newPostgres())
-	r.AddDependentResource(controller2.NewK8sPrivilegedRole())
-	r.AddDependentResource(controller2.NewK8sPrivilegedRoleBinding())
+	r.AddDependentResource(controller2.NewRole())
+	r.AddDependentResource(controller2.NewRoleBinding())
 	return r
 }
 
