@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: component-operator
+  name: halkyon-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: component-operator
+      name: halkyon-operator
   template:
     metadata:
       labels:
-        name: component-operator
+        name: halkyon-operator
     spec:
-      serviceAccountName: component-operator
+      serviceAccountName: halkyon-operator
       containers:
-        - name: component-operator
+        - name: halkyon-operator
           image: quay.io/snowdrop/component-operator:latest
           ports:
           - containerPort: 60000
             name: metrics
           command:
-          - component-operator
+          - halkyon-operator
           args:
             - --zap-encoder
             - $(ZAP_ENCODER)
@@ -31,6 +31,6 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "component-operator"
+              value: "halkyon-operator"
             - name: ZAP_ENCODER
               value: "console"
