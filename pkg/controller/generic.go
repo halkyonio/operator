@@ -67,11 +67,12 @@ type BaseGenericReconciler struct {
 	primary          runtime.Object
 	_factory         ReconcilerFactory
 	onOpenShift      *bool
-	openShiftVersion *int
+	openShiftVersion int
 }
 
 func (b *BaseGenericReconciler) OpenShiftVersion() int {
-	return *b.openShiftVersion
+	b.IsTargetClusterRunningOpenShift() // make sure things are properly initialized
+	return b.openShiftVersion
 }
 
 func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
@@ -85,28 +86,25 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 			panic(err)
 		}
 		apiGroups := apiList.Groups
+		const openShiftGroupSuffix = ".openshift.io"
+		const openShift4GroupName = "config" + openShiftGroupSuffix
 		for _, group := range apiGroups {
-			if strings.HasSuffix(group.Name, "openshift.io") {
-				b.onOpenShift = util.NewTrue()
-				break
+			if strings.HasSuffix(group.Name, openShiftGroupSuffix) {
+				if b.onOpenShift == nil {
+					b.onOpenShift = util.NewTrue()
+					b.openShiftVersion = 3
+				}
+				if group.Name == openShift4GroupName {
+					b.openShiftVersion = 4
+					break
+				}
 			}
 		}
 
 		if b.onOpenShift == nil {
 			// we didn't find any api group with the openshift.io suffix, so we're not on OpenShift!
 			b.onOpenShift = util.NewFalse()
-		}
-
-		if *b.onOpenShift {
-			// We are running on OpenShift
-			b.openShiftVersion = util.NewVersion(3)
-			for _, group := range apiGroups {
-				// The API - config.openshift.io only exists since ocp4
-				if group.Name == "config.openshift.io" {
-					b.openShiftVersion = util.NewVersion(4)
-					break
-				}
-			}
+			b.openShiftVersion = 0
 		}
 	}
 
