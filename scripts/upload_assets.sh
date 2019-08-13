@@ -8,8 +8,8 @@ for line in $CONFIG; do
   eval "$line"
 done
 
-owner="snowdrop"
-repo="component-operator"
+owner="halkyonio"
+repo="operator"
 
 AUTH="Authorization: token $GITHUB_API_TOKEN"
 

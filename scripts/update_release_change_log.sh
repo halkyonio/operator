@@ -3,8 +3,8 @@
 GITHUB_API_TOKEN=$1
 CURRENT_TAG=$2
 
-OWNER="snowdrop"
-REPO="component-operator"
+OWNER="halkyonio"
+REPO="operator"
 AUTH="Authorization: token $GITHUB_API_TOKEN"
 GH_API="https://api.github.com"
 GH_REPO="$GH_API/repos/$OWNER/$REPO"
