@@ -1,4 +1,4 @@
-# Developer Experience Runtime Operator
+# Halkyon Operator
 
 [![CircleCI](https://circleci.com/gh/halkyonio/operator/tree/master.svg?style=shield)](https://circleci.com/gh/halkyonio/operator/tree/master)
 
@@ -7,34 +7,34 @@ Table of Contents
   * [Introduction](#introduction)
   * [Prerequisites](#prerequisites)
      * [Local cluster using Minikube](#local-cluster-using-minikube)
-  * [Installation of the DevExp Runtime Operator](#installation-of-the-devexp-runtime-operator)
+  * [Installation of the Halkyon Operator](#installation-of-the-halkyon-operator)
   * [How to play with it](#how-to-play-with-it)
   * [A Real demo](#a-real-demo)
   * [Cleanup the Operator resources](#cleanup-the-operator-resources)
 
 ## Introduction
 
-Deploying modern microservices style applications that utilize the [12-factor](https://12factor.net/) guidelines on to Kubernetes is difficult, mainly due to the host of different and complex Kubernetes Resources involved. In such scenarios developer experience becomes very important. 
+Deploying modern micro-services applications that utilize the [12-factor](https://12factor.net/) guidelines to Kubernetes is difficult, mainly due to the host of different and complex Kubernetes Resources involved. In such scenarios developer experience becomes very important. 
 
-This projects aims to tackle said complexity and vastly **simplify** the process of deploying microservices style applications on to Kubernetes.
+This projects aims to tackle said complexity and vastly **simplify** the process of deploying micro-service applications to Kubernetes.
 
-By provising various easy to use Kubernetes [Custom Resources - CR](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
-an [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) to handle them, the project provides the following features:
-- Install different `runtimes` (aka microservices) such as `Spring Boot, Vert.x, Thorntail, Quarkus or Nodejs`
-- Manage the relations which exist between the `Microservices` using a `link` CR allowing one microservice for example to consume a REST endpoint provided by another
-- Deploy various infrastructure services like a database (like postgresql) which are bound to a microservice via the `capability` CR.
+By providing several, easy-to-use Kubernetes [Custom Resources - CR](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
+an [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) to handle them, the Halkyon project provides the following features:
+- Install micro-services (`components` in Halkyon's parlance) utilizing `runtimes` such as Spring Boot, Vert.x, Thorntail, Quarkus or Nodejs, serving as base building blocks for your application
+- Manage the relations between the different components of the using a `link` CR allowing one micro-service for example to consume a REST endpoint provided by another
+- Deploy various infrastructure services like a database which are bound to a `component` via the `capability` CR.
 
-The `Custom Resource` contains `METADATA` information about the framework/language to be used to either:
+Custom resources contains metadata about the framework/language to be used to either:
 - Configure the strategy that we want to adopt to deploy the application: `Development mode` or `Building/Prod mode`
 - Select the container image to be used to launch the application: java for `Spring Boot, Eclipse Vert.x, Thorntail`; node for `nodejs` 
-- Configure the `Microservice` in order to inject `env var, secret, ...`
-- Create a service or capability such as database: postgresql
+- Configure the `component` in order to inject `env var, secret, ...`
+- Create a service or capability such as database
 
-To define what a microservices is, if a URL should be created to access it from outside of the cluster or simply to specify some `ENV` vars to be used by the 
-container's image when the pod is created, then create a `component.yaml` file containing the following information: 
+To add a micro-service to your application is, if a URL should be created to access it from outside of the cluster or simply to specify some `ENV` vars to be used by the 
+container's image when the pod is created, then create a `component.yaml` file such as the following: 
  
 ```bash
-apiVersion: devexp.runtime.redhat.com/v1alpha2
+apiVersion: halkyon.io/v1beta1
 kind: Component
 metadata:
   name: spring-boot-demo
@@ -48,7 +48,7 @@ spec:
   deploymentMode: dev
   # Runtime type that the operator will map with a docker image (java, nodejs, ...)
   runtime: spring-boot
-  version: 1.5.16
+  version: 2.1.16
   # To been able to create a Kubernetes Ingress resource or OpenShift Route
   exposeService: true
   envs:
@@ -57,24 +57,24 @@ spec:
 ```
 
 **Remarks**: 
-- The `DevExp Runtime` Operator runs top of `Kubernetes >= 1.11` or `OpenShift >= 3.11`.
-- You can find more information about the `Custom Resources` and their `fields` under this folder `pkg/apis/component/v1alpha2` like also the others `CRs` supported : `link` and `capability`
+- The Halkyon Operator runs top of `Kubernetes >= 1.13` or `OpenShift >= 3.11`.
+- You can find more information about the Custom Resources and their fields under this folder `pkg/apis/component/v1alpha2` like also the others `CRs` supported : `link` and `capability`
 
 ## Prerequisites
 
-In order to use the DevExp Runtime Operator and the CRs, it is needed to install [Tekton Pipelines](https://tekton.dev/) and [KubeDB](http://kubedb.com) Operators.
-We assume that you have installed a K8s cluster as of starting from Kubernetes version 1.12.
+In order to use the Halkyon Operator and the CRs, it is needed to install [Tekton Pipelines](https://tekton.dev/) and [KubeDB](http://kubedb.com) Operators.
+We assume that you have installed a K8s cluster as of starting from Kubernetes version 1.13.
 
 ### Local cluster using Minikube
 
-Install using `brew tool` on `MacOS` the following software
+Install using Homebrew on `macOS` the following software:
 ```bash
 brew cask install minikube
 brew install kubernetes-cli
 brew install kubernetes-helm
 ```
 
-Next, create a `K8s` cluster where `ingress` and `dashboard` addons are enabled
+Next, create a Kubernetes cluster where `ingress` and `dashboard` addons are enabled
 ```bash
 minikube config set vm-driver virtualbox
 minikube config set cpus 4
@@ -134,9 +134,9 @@ helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VE
   --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
 ```
 
-## Installation of the DevExp Runtime Operator
+## Installation of the Halkyon Operator
 
-Deploy the `Cluster Role`, `Role Binding`, `CRDs`, `ServiceAccount` and `Operator` within the namespace `component-operator` 
+Deploy the `Cluster Role`, `Role Binding`, `CRDs`, `ServiceAccount` and `Operator` within the namespace `operators` 
 
 ```bash
 kubectl create ns operators
@@ -152,27 +152,27 @@ kubectl apply -n operators -f deploy/operator.yaml
 
 Wait till the Operator's pod is ready and running before to continue
 ```bash
-until kubectl get pods -n operators -l name=component-operator | grep 1/1; do sleep 1; done
+until kubectl get pods -n operators -l name=halkyon-operator | grep 1/1; do sleep 1; done
 ```
 
-Control if the operator is runnign correctly
+Control if the operator is running correctly
 ```bash
-pod_id=$(kubectl get pods -n operators -l name=component-operator -o=name)
+pod_id=$(kubectl get pods -n operators -l name=halkyon-operator -o=name)
 kubectl logs $pod_id -n operators
 ```
 
-Enjoy now to play with the DevExp Runtime Operator !
+Enjoy the Halkyon Operator!
 
 ## How to play with it
 
-The process is pretty simple and is about creating a custom resource, one by microservice or runtime to be deployed.
+The process is pretty simple and is about creating a custom resource, one by micro-service or runtime to be deployed.
 So create first a `demo` namespace
 ```bash
 kubectl create ns demo
 ```
-and next create using your favorite editor a `component's yaml` file with the following information
+and next create using your favorite editor, create a `component` resource with the following information:
 ```bash
-apiVersion: devexp.runtime.redhat.com/v1alpha2
+apiVersion: halkyon.io/v1beta1
 kind: Component
 metadata:
   name: spring-boot
@@ -186,7 +186,7 @@ Deploy it
 kubectl apply -n demo -f my-component.yaml
 ```
 
-Verify if the component has been well created by executing the following kubectl command
+Verify if the component has been well created by executing the following `kubectl` command
 ```bash
 kubectl get components -n demo
 NAME          RUNTIME       VERSION   AGE   MODE   STATUS    MESSAGE                                                            REVISION
@@ -217,7 +217,7 @@ NAME                                        STATUS   VOLUME                     
 persistentvolumeclaim/m2-data-spring-boot   Bound    pvc-dab00dfe-a2f6-11e9-98d1-08002798bb5f   1Gi        RWO            standard       4m18s
 ```
 
-You can now cleanup the project as we will not deploy a Java Microservices or delegate the build to the Operator. So cleanup the project installed (component)
+You can now cleanup the project as we will not deploy a Java micro-services or delegate the build to the Operator. So cleanup the project installed (component)
 ```bash  
 kubectl delete component --all -n demo 
 ```
@@ -225,7 +225,7 @@ kubectl delete component --all -n demo
 ## A Real demo
   
 To play with a `real example` and discover the different features currently supported, we have created within the directory `demo` a project containing 
-2 microservices: a Spring Boot REST client calling a Service exposed by a Spring Boot backend application which access a postgresql database.
+2 micro-services: a Spring Boot REST client calling a Service exposed by a Spring Boot backend application which access a postgresql database.
 
 So jump [here](demo/README.md) in order to see in action How we enhance the Developer Experience on Kubernetes ;-)
 
@@ -238,8 +238,8 @@ kubectl delete -n operators -f deploy/sa.yaml
 kubectl delete -f deploy/cluster-role.yaml
 kubectl delete -f deploy/user-rbac.yaml
 kubectl delete -f deploy/cluster-role-binding.yaml
-kubectl delete -f deploy/crds/capability_v1alpha2.yaml
-kubectl delete -f deploy/crds/component_v1alpha2.yaml
-kubectl delete -f deploy/crds/link_v1alpha2.yaml
+kubectl delete -f deploy/crds/capability.yaml
+kubectl delete -f deploy/crds/component.yaml
+kubectl delete -f deploy/crds/link.yaml
 kubectl delete -n operators -f deploy/operator.yaml
 ```
