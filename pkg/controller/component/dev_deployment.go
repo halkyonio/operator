@@ -2,7 +2,7 @@ package component
 
 import (
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/util"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -83,7 +83,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 	return dep, nil
 }
 
-func (r *ReconcileComponent) getBaseContainerFor(component *v1alpha2.Component) (corev1.Container, error) {
+func (r *ReconcileComponent) getBaseContainerFor(component *v1beta1.Component) (corev1.Container, error) {
 	runtimeImage, err := r.getImageReference(component.Spec)
 	if err != nil {
 		return corev1.Container{}, err
@@ -101,7 +101,7 @@ func (r *ReconcileComponent) getBaseContainerFor(component *v1alpha2.Component) 
 	return container, nil
 }
 
-func (r *ReconcileComponent) getImageInfo(component v1alpha2.ComponentSpec) (imageInfo, error) {
+func (r *ReconcileComponent) getImageInfo(component v1beta1.ComponentSpec) (imageInfo, error) {
 	image, ok := r.runtimeImages[component.Runtime]
 	if !ok {
 		return imageInfo{}, fmt.Errorf("unknown image identifier: %s", component.Runtime)
@@ -109,7 +109,7 @@ func (r *ReconcileComponent) getImageInfo(component v1alpha2.ComponentSpec) (ima
 	return image, nil
 }
 
-func (r *ReconcileComponent) getImageReference(component v1alpha2.ComponentSpec) (string, error) {
+func (r *ReconcileComponent) getImageReference(component v1beta1.ComponentSpec) (string, error) {
 	image, err := r.getImageInfo(component)
 	if err != nil {
 		return "", err
@@ -121,7 +121,7 @@ func (r *ReconcileComponent) getImageReference(component v1alpha2.ComponentSpec)
 	return util.GetImageReference(image.registryRef, v), nil
 }
 
-func (r *ReconcileComponent) populatePodEnvVar(component v1alpha2.ComponentSpec) []corev1.EnvVar {
+func (r *ReconcileComponent) populatePodEnvVar(component v1beta1.ComponentSpec) []corev1.EnvVar {
 	tmpEnvVar, err := r.getEnvAsMap(component)
 	if err != nil {
 		panic(err)

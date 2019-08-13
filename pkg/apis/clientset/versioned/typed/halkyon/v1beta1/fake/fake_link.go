@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha2 "github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	v1beta1 "github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -30,29 +30,29 @@ import (
 
 // FakeLinks implements LinkInterface
 type FakeLinks struct {
-	Fake *FakeDevexpV1alpha2
+	Fake *FakeHalkyonV1beta1
 	ns   string
 }
 
-var linksResource = schema.GroupVersionResource{Group: "devexp.runtime.redhat.com", Version: "v1alpha2", Resource: "links"}
+var linksResource = schema.GroupVersionResource{Group: "halkyon.io", Version: "v1beta1", Resource: "links"}
 
-var linksKind = schema.GroupVersionKind{Group: "devexp.runtime.redhat.com", Version: "v1alpha2", Kind: "Link"}
+var linksKind = schema.GroupVersionKind{Group: "halkyon.io", Version: "v1beta1", Kind: "Link"}
 
 // Get takes name of the link, and returns the corresponding link object, and an error if there is any.
-func (c *FakeLinks) Get(name string, options v1.GetOptions) (result *v1alpha2.Link, err error) {
+func (c *FakeLinks) Get(name string, options v1.GetOptions) (result *v1beta1.Link, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(linksResource, c.ns, name), &v1alpha2.Link{})
+		Invokes(testing.NewGetAction(linksResource, c.ns, name), &v1beta1.Link{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Link), err
+	return obj.(*v1beta1.Link), err
 }
 
 // List takes label and field selectors, and returns the list of Links that match those selectors.
-func (c *FakeLinks) List(opts v1.ListOptions) (result *v1alpha2.LinkList, err error) {
+func (c *FakeLinks) List(opts v1.ListOptions) (result *v1beta1.LinkList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(linksResource, linksKind, c.ns, opts), &v1alpha2.LinkList{})
+		Invokes(testing.NewListAction(linksResource, linksKind, c.ns, opts), &v1beta1.LinkList{})
 
 	if obj == nil {
 		return nil, err
@@ -62,8 +62,8 @@ func (c *FakeLinks) List(opts v1.ListOptions) (result *v1alpha2.LinkList, err er
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha2.LinkList{ListMeta: obj.(*v1alpha2.LinkList).ListMeta}
-	for _, item := range obj.(*v1alpha2.LinkList).Items {
+	list := &v1beta1.LinkList{ListMeta: obj.(*v1beta1.LinkList).ListMeta}
+	for _, item := range obj.(*v1beta1.LinkList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)
 		}
@@ -79,43 +79,43 @@ func (c *FakeLinks) Watch(opts v1.ListOptions) (watch.Interface, error) {
 }
 
 // Create takes the representation of a link and creates it.  Returns the server's representation of the link, and an error, if there is any.
-func (c *FakeLinks) Create(link *v1alpha2.Link) (result *v1alpha2.Link, err error) {
+func (c *FakeLinks) Create(link *v1beta1.Link) (result *v1beta1.Link, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(linksResource, c.ns, link), &v1alpha2.Link{})
+		Invokes(testing.NewCreateAction(linksResource, c.ns, link), &v1beta1.Link{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Link), err
+	return obj.(*v1beta1.Link), err
 }
 
 // Update takes the representation of a link and updates it. Returns the server's representation of the link, and an error, if there is any.
-func (c *FakeLinks) Update(link *v1alpha2.Link) (result *v1alpha2.Link, err error) {
+func (c *FakeLinks) Update(link *v1beta1.Link) (result *v1beta1.Link, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(linksResource, c.ns, link), &v1alpha2.Link{})
+		Invokes(testing.NewUpdateAction(linksResource, c.ns, link), &v1beta1.Link{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Link), err
+	return obj.(*v1beta1.Link), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeLinks) UpdateStatus(link *v1alpha2.Link) (*v1alpha2.Link, error) {
+func (c *FakeLinks) UpdateStatus(link *v1beta1.Link) (*v1beta1.Link, error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(linksResource, "status", c.ns, link), &v1alpha2.Link{})
+		Invokes(testing.NewUpdateSubresourceAction(linksResource, "status", c.ns, link), &v1beta1.Link{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Link), err
+	return obj.(*v1beta1.Link), err
 }
 
 // Delete takes name of the link and deletes it. Returns an error if one occurs.
 func (c *FakeLinks) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(linksResource, c.ns, name), &v1alpha2.Link{})
+		Invokes(testing.NewDeleteAction(linksResource, c.ns, name), &v1beta1.Link{})
 
 	return err
 }
@@ -124,17 +124,17 @@ func (c *FakeLinks) Delete(name string, options *v1.DeleteOptions) error {
 func (c *FakeLinks) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	action := testing.NewDeleteCollectionAction(linksResource, c.ns, listOptions)
 
-	_, err := c.Fake.Invokes(action, &v1alpha2.LinkList{})
+	_, err := c.Fake.Invokes(action, &v1beta1.LinkList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched link.
-func (c *FakeLinks) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha2.Link, err error) {
+func (c *FakeLinks) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.Link, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(linksResource, c.ns, name, pt, data, subresources...), &v1alpha2.Link{})
+		Invokes(testing.NewPatchSubresourceAction(linksResource, c.ns, name, pt, data, subresources...), &v1beta1.Link{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Link), err
+	return obj.(*v1beta1.Link), err
 }

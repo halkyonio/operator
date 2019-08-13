@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -12,7 +12,7 @@ type deployment struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res deployment) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
+func (res deployment) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
 	return newOwnedDeployment(res.reconciler, owner)
 }
 
@@ -20,7 +20,7 @@ func newDeployment(reconciler *ReconcileComponent) deployment {
 	return newOwnedDeployment(reconciler, nil)
 }
 
-func newOwnedDeployment(reconciler *ReconcileComponent, owner v1alpha2.Resource) deployment {
+func newOwnedDeployment(reconciler *ReconcileComponent, owner v1beta1.Resource) deployment {
 	dependent := newBaseDependent(&appsv1.Deployment{}, owner)
 	d := deployment{
 		base:       dependent,
@@ -32,7 +32,7 @@ func newOwnedDeployment(reconciler *ReconcileComponent, owner v1alpha2.Resource)
 
 func (res deployment) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	if v1alpha2.BuildDeploymentMode == c.Spec.DeploymentMode {
+	if v1beta1.BuildDeploymentMode == c.Spec.DeploymentMode {
 		return res.installBuild()
 	}
 	return res.installDev()

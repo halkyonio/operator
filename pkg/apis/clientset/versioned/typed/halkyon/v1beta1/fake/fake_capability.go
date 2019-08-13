@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha2 "github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	v1beta1 "github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -30,29 +30,29 @@ import (
 
 // FakeCapabilities implements CapabilityInterface
 type FakeCapabilities struct {
-	Fake *FakeDevexpV1alpha2
+	Fake *FakeHalkyonV1beta1
 	ns   string
 }
 
-var capabilitiesResource = schema.GroupVersionResource{Group: "devexp.runtime.redhat.com", Version: "v1alpha2", Resource: "capabilities"}
+var capabilitiesResource = schema.GroupVersionResource{Group: "halkyon.io", Version: "v1beta1", Resource: "capabilities"}
 
-var capabilitiesKind = schema.GroupVersionKind{Group: "devexp.runtime.redhat.com", Version: "v1alpha2", Kind: "Capability"}
+var capabilitiesKind = schema.GroupVersionKind{Group: "halkyon.io", Version: "v1beta1", Kind: "Capability"}
 
 // Get takes name of the capability, and returns the corresponding capability object, and an error if there is any.
-func (c *FakeCapabilities) Get(name string, options v1.GetOptions) (result *v1alpha2.Capability, err error) {
+func (c *FakeCapabilities) Get(name string, options v1.GetOptions) (result *v1beta1.Capability, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(capabilitiesResource, c.ns, name), &v1alpha2.Capability{})
+		Invokes(testing.NewGetAction(capabilitiesResource, c.ns, name), &v1beta1.Capability{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Capability), err
+	return obj.(*v1beta1.Capability), err
 }
 
 // List takes label and field selectors, and returns the list of Capabilities that match those selectors.
-func (c *FakeCapabilities) List(opts v1.ListOptions) (result *v1alpha2.CapabilityList, err error) {
+func (c *FakeCapabilities) List(opts v1.ListOptions) (result *v1beta1.CapabilityList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(capabilitiesResource, capabilitiesKind, c.ns, opts), &v1alpha2.CapabilityList{})
+		Invokes(testing.NewListAction(capabilitiesResource, capabilitiesKind, c.ns, opts), &v1beta1.CapabilityList{})
 
 	if obj == nil {
 		return nil, err
@@ -62,8 +62,8 @@ func (c *FakeCapabilities) List(opts v1.ListOptions) (result *v1alpha2.Capabilit
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha2.CapabilityList{ListMeta: obj.(*v1alpha2.CapabilityList).ListMeta}
-	for _, item := range obj.(*v1alpha2.CapabilityList).Items {
+	list := &v1beta1.CapabilityList{ListMeta: obj.(*v1beta1.CapabilityList).ListMeta}
+	for _, item := range obj.(*v1beta1.CapabilityList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)
 		}
@@ -79,43 +79,43 @@ func (c *FakeCapabilities) Watch(opts v1.ListOptions) (watch.Interface, error) {
 }
 
 // Create takes the representation of a capability and creates it.  Returns the server's representation of the capability, and an error, if there is any.
-func (c *FakeCapabilities) Create(capability *v1alpha2.Capability) (result *v1alpha2.Capability, err error) {
+func (c *FakeCapabilities) Create(capability *v1beta1.Capability) (result *v1beta1.Capability, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(capabilitiesResource, c.ns, capability), &v1alpha2.Capability{})
+		Invokes(testing.NewCreateAction(capabilitiesResource, c.ns, capability), &v1beta1.Capability{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Capability), err
+	return obj.(*v1beta1.Capability), err
 }
 
 // Update takes the representation of a capability and updates it. Returns the server's representation of the capability, and an error, if there is any.
-func (c *FakeCapabilities) Update(capability *v1alpha2.Capability) (result *v1alpha2.Capability, err error) {
+func (c *FakeCapabilities) Update(capability *v1beta1.Capability) (result *v1beta1.Capability, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(capabilitiesResource, c.ns, capability), &v1alpha2.Capability{})
+		Invokes(testing.NewUpdateAction(capabilitiesResource, c.ns, capability), &v1beta1.Capability{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Capability), err
+	return obj.(*v1beta1.Capability), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeCapabilities) UpdateStatus(capability *v1alpha2.Capability) (*v1alpha2.Capability, error) {
+func (c *FakeCapabilities) UpdateStatus(capability *v1beta1.Capability) (*v1beta1.Capability, error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(capabilitiesResource, "status", c.ns, capability), &v1alpha2.Capability{})
+		Invokes(testing.NewUpdateSubresourceAction(capabilitiesResource, "status", c.ns, capability), &v1beta1.Capability{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Capability), err
+	return obj.(*v1beta1.Capability), err
 }
 
 // Delete takes name of the capability and deletes it. Returns an error if one occurs.
 func (c *FakeCapabilities) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(capabilitiesResource, c.ns, name), &v1alpha2.Capability{})
+		Invokes(testing.NewDeleteAction(capabilitiesResource, c.ns, name), &v1beta1.Capability{})
 
 	return err
 }
@@ -124,17 +124,17 @@ func (c *FakeCapabilities) Delete(name string, options *v1.DeleteOptions) error 
 func (c *FakeCapabilities) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	action := testing.NewDeleteCollectionAction(capabilitiesResource, c.ns, listOptions)
 
-	_, err := c.Fake.Invokes(action, &v1alpha2.CapabilityList{})
+	_, err := c.Fake.Invokes(action, &v1beta1.CapabilityList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched capability.
-func (c *FakeCapabilities) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha2.Capability, err error) {
+func (c *FakeCapabilities) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.Capability, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(capabilitiesResource, c.ns, name, pt, data, subresources...), &v1alpha2.Capability{})
+		Invokes(testing.NewPatchSubresourceAction(capabilitiesResource, c.ns, name, pt, data, subresources...), &v1beta1.Capability{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*v1alpha2.Capability), err
+	return obj.(*v1beta1.Capability), err
 }

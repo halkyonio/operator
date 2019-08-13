@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/controller"
 	"github.com/halkyonio/operator/pkg/controller/capability"
 	"github.com/halkyonio/operator/pkg/controller/component"
@@ -86,7 +86,7 @@ func main() {
 
 	// Setup Scheme for all resources
 	log.Info("Registering Components")
-	if err := v1alpha2.AddToScheme(mgr.GetScheme()); err != nil {
+	if err := v1beta1.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 	}
 

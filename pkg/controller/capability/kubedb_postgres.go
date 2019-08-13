@@ -2,7 +2,7 @@ package capability
 
 import (
 	"github.com/appscode/go/encoding/json/types"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/controller"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	apps "k8s.io/api/apps/v1"
@@ -20,7 +20,7 @@ func (res postgres) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res postgres) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
+func (res postgres) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
 	return newOwnedPostgres(owner)
 }
 
@@ -28,15 +28,15 @@ func newPostgres() postgres {
 	return newOwnedPostgres(nil)
 }
 
-func newOwnedPostgres(owner v1alpha2.Resource) postgres {
+func newOwnedPostgres(owner v1beta1.Resource) postgres {
 	resource := controller.NewDependentResource(&kubedbv1.Postgres{}, owner)
 	p := postgres{DependentResourceHelper: resource}
 	resource.SetDelegate(p)
 	return p
 }
 
-func (res postgres) ownerAsCapability() *v1alpha2.Capability {
-	return res.Owner().(*v1alpha2.Capability)
+func (res postgres) ownerAsCapability() *v1beta1.Capability {
+	return res.Owner().(*v1beta1.Capability)
 }
 
 func (res postgres) Name() string {

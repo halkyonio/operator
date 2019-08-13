@@ -2,7 +2,7 @@ package controller
 
 import (
 	"context"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -12,8 +12,8 @@ type DependentResource interface {
 	Fetch(helper ReconcilerHelper) (runtime.Object, error)
 	Build() (runtime.Object, error)
 	Update(toUpdate runtime.Object) (bool, error)
-	NewInstanceWith(owner v1alpha2.Resource) DependentResource
-	Owner() v1alpha2.Resource
+	NewInstanceWith(owner v1beta1.Resource) DependentResource
+	Owner() v1beta1.Resource
 	Prototype() runtime.Object
 	ShouldWatch() bool
 	CanBeCreatedOrUpdated() bool
@@ -21,7 +21,7 @@ type DependentResource interface {
 }
 
 type DependentResourceHelper struct {
-	_owner     v1alpha2.Resource
+	_owner     v1beta1.Resource
 	_prototype runtime.Object
 	_delegate  DependentResource
 }
@@ -38,7 +38,7 @@ func (res DependentResourceHelper) CanBeCreatedOrUpdated() bool {
 	return true
 }
 
-func NewDependentResource(primaryResourceType runtime.Object, owner v1alpha2.Resource) *DependentResourceHelper {
+func NewDependentResource(primaryResourceType runtime.Object, owner v1beta1.Resource) *DependentResourceHelper {
 	return &DependentResourceHelper{_prototype: primaryResourceType, _owner: owner}
 }
 
@@ -59,7 +59,7 @@ func (res DependentResourceHelper) Fetch(helper ReconcilerHelper) (runtime.Objec
 	return into, nil
 }
 
-func (res DependentResourceHelper) Owner() v1alpha2.Resource {
+func (res DependentResourceHelper) Owner() v1beta1.Resource {
 	return res._owner
 }
 

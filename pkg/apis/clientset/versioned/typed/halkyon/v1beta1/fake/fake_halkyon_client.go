@@ -19,30 +19,30 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha2 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/component/v1alpha2"
+	v1beta1 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )
 
-type FakeDevexpV1alpha2 struct {
+type FakeHalkyonV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeDevexpV1alpha2) Capabilities(namespace string) v1alpha2.CapabilityInterface {
+func (c *FakeHalkyonV1beta1) Capabilities(namespace string) v1beta1.CapabilityInterface {
 	return &FakeCapabilities{c, namespace}
 }
 
-func (c *FakeDevexpV1alpha2) Components(namespace string) v1alpha2.ComponentInterface {
+func (c *FakeHalkyonV1beta1) Components(namespace string) v1beta1.ComponentInterface {
 	return &FakeComponents{c, namespace}
 }
 
-func (c *FakeDevexpV1alpha2) Links(namespace string) v1alpha2.LinkInterface {
+func (c *FakeHalkyonV1beta1) Links(namespace string) v1beta1.LinkInterface {
 	return &FakeLinks{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeDevexpV1alpha2) RESTClient() rest.Interface {
+func (c *FakeHalkyonV1beta1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

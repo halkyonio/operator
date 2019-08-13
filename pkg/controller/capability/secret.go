@@ -1,7 +1,7 @@
 package capability
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/controller"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,7 +16,7 @@ func (res secret) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res secret) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
+func (res secret) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
 	return newOwnedSecret(owner)
 }
 
@@ -24,15 +24,15 @@ func newSecret() secret {
 	return newOwnedSecret(nil)
 }
 
-func newOwnedSecret(owner v1alpha2.Resource) secret {
+func newOwnedSecret(owner v1beta1.Resource) secret {
 	resource := controller.NewDependentResource(&v1.Secret{}, owner)
 	s := secret{DependentResourceHelper: resource}
 	resource.SetDelegate(s)
 	return s
 }
 
-func (res secret) ownerAsCapability() *v1alpha2.Capability {
-	return res.Owner().(*v1alpha2.Capability)
+func (res secret) ownerAsCapability() *v1beta1.Capability {
+	return res.Owner().(*v1beta1.Capability)
 }
 
 //buildSecret returns the secret resource
