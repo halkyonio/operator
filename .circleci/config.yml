@@ -200,13 +200,13 @@ jobs:
         command: |
           VERSION=master
           make build-linux
-          docker build -t component-operator:${VERSION} -f build/Dockerfile .
-          TAG_ID=$(docker images -q component-operator:${VERSION})
-          docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
-          docker tag ${TAG_ID} quay.io/snowdrop/component-operator:latest
+          docker build -t operator:${VERSION} -f build/Dockerfile .
+          TAG_ID=$(docker images -q operator:${VERSION})
+          docker tag ${TAG_ID} quay.io/halkyonio/operator:${VERSION}
+          docker tag ${TAG_ID} quay.io/halkyonio/operator:latest
           docker login quay.io -u="${QUAY_ROBOT_USER}" -p="${QUAY_ROBOT_TOKEN}"
-          docker push quay.io/snowdrop/component-operator:${VERSION}
-          docker push quay.io/snowdrop/component-operator:latest
+          docker push quay.io/halkyonio/operator:${VERSION}
+          docker push quay.io/halkyonio/operator:latest
 
   okd-e2e-dev-test:
     machine: true
