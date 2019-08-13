@@ -92,7 +92,7 @@ commands:
   install-component-operator:
     steps:
       - run:
-          name: Install component operator
+          name: Install halkyon operator
           command: |
             kubectl create namespace operators
             CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
@@ -100,9 +100,9 @@ commands:
             kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-role.yaml
             kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/user-rbac.yaml
             kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-role-binding.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/capability_v1alpha2.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component_v1alpha2.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/link_v1alpha2.yaml
+            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/capability.yaml
+            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component.yaml
+            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/link.yaml
             kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/operator.yaml -n operators
   install-tekton:
     steps:
