@@ -6,7 +6,7 @@ set -e
 
 BIN_DIR="./build/_output/bin/bin"
 RELEASE_DIR="./build/_output/bin/release"
-APP="component-operator"
+APP="halkyon-operator"
 
 mkdir -p $RELEASE_DIR
 
