@@ -1,4 +1,4 @@
-package v1alpha2
+package v1beta1
 
 type BuildConfig struct {
 	// Type is the mode that we would like to use to perform a container image build.

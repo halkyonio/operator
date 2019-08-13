@@ -20,8 +20,8 @@ package fake
 
 import (
 	clientset "github.com/halkyonio/operator/pkg/apis/clientset/versioned"
-	devexpv1alpha2 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/component/v1alpha2"
-	fakedevexpv1alpha2 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/component/v1alpha2/fake"
+	halkyonv1beta1 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
+	fakehalkyonv1beta1 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -71,7 +71,7 @@ func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 
 var _ clientset.Interface = &Clientset{}
 
-// DevexpV1alpha2 retrieves the DevexpV1alpha2Client
-func (c *Clientset) DevexpV1alpha2() devexpv1alpha2.DevexpV1alpha2Interface {
-	return &fakedevexpv1alpha2.FakeDevexpV1alpha2{Fake: &c.Fake}
+// HalkyonV1beta1 retrieves the HalkyonV1beta1Client
+func (c *Clientset) HalkyonV1beta1() halkyonv1beta1.HalkyonV1beta1Interface {
+	return &fakehalkyonv1beta1.FakeHalkyonV1beta1{Fake: &c.Fake}
 }

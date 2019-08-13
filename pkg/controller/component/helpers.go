@@ -1,10 +1,10 @@
 package component
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 )
 
-func (r *ReconcileComponent) getEnvAsMap(component v1alpha2.ComponentSpec) (map[string]string, error) {
+func (r *ReconcileComponent) getEnvAsMap(component v1beta1.ComponentSpec) (map[string]string, error) {
 	envs := component.Envs
 	tmpEnvVar := make(map[string]string)
 
@@ -27,16 +27,16 @@ func (r *ReconcileComponent) getEnvAsMap(component v1alpha2.ComponentSpec) (map[
 	return tmpEnvVar, nil
 }
 
-func (r *ReconcileComponent) populateEnvVar(component *v1alpha2.Component) {
+func (r *ReconcileComponent) populateEnvVar(component *v1beta1.Component) {
 	tmpEnvVar, err := r.getEnvAsMap(component.Spec)
 	if err != nil {
 		panic(err)
 	}
 
 	// Convert Map to Slice
-	newEnvVars := make([]v1alpha2.Env, 0, len(tmpEnvVar))
+	newEnvVars := make([]v1beta1.Env, 0, len(tmpEnvVar))
 	for k, v := range tmpEnvVar {
-		newEnvVars = append(newEnvVars, v1alpha2.Env{Name: k, Value: v})
+		newEnvVars = append(newEnvVars, v1beta1.Env{Name: k, Value: v})
 	}
 
 	// Store result
@@ -61,22 +61,22 @@ func getBuildLabels(name string) map[string]string {
 }
 
 //Check if the mandatory specs are filled
-func (r *ReconcileComponent) hasMandatorySpecs(instance *v1alpha2.Component) bool {
+func (r *ReconcileComponent) hasMandatorySpecs(instance *v1beta1.Component) bool {
 	// TODO
 	return true
 }
 
-func (r *ReconcileComponent) PopulateK8sLabels(component *v1alpha2.Component, componentType string) map[string]string {
+func (r *ReconcileComponent) PopulateK8sLabels(component *v1beta1.Component, componentType string) map[string]string {
 	labels := map[string]string{}
-	labels[v1alpha2.RuntimeLabelKey] = component.Spec.Runtime
-	labels[v1alpha2.RuntimeVersionLabelKey] = component.Spec.Version
-	labels[v1alpha2.ComponentLabelKey] = componentType
-	labels[v1alpha2.NameLabelKey] = component.Name
-	labels[v1alpha2.ManagedByLabelKey] = "halkyon-operator"
+	labels[v1beta1.RuntimeLabelKey] = component.Spec.Runtime
+	labels[v1beta1.RuntimeVersionLabelKey] = component.Spec.Version
+	labels[v1beta1.ComponentLabelKey] = componentType
+	labels[v1beta1.NameLabelKey] = component.Name
+	labels[v1beta1.ManagedByLabelKey] = "halkyon-operator"
 	return labels
 }
 
-func (r *ReconcileComponent) dockerImageURL(c *v1alpha2.Component) string {
+func (r *ReconcileComponent) dockerImageURL(c *v1beta1.Component) string {
 	if r.IsTargetClusterRunningOpenShift() {
 		if r.OpenShiftVersion() == 4 {
 			return "image-registry.openshift-image-registry.svc:5000/" + c.Namespace + "/" + c.Name

@@ -2,28 +2,28 @@ package controller
 
 import (
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 )
 
-func PostgresName(owner v1alpha2.Resource) string {
+func PostgresName(owner v1beta1.Resource) string {
 	return DefaultDependentResourceNameFor(owner)
 }
 
-func DeploymentName(c *v1alpha2.Component) string {
+func DeploymentName(c *v1beta1.Component) string {
 	return DeploymentNameFor(c, c.Spec.DeploymentMode)
 }
 
-func DeploymentNameFor(c *v1alpha2.Component, mode v1alpha2.DeploymentMode) string {
+func DeploymentNameFor(c *v1beta1.Component, mode v1beta1.DeploymentMode) string {
 	name := DefaultDependentResourceNameFor(c)
-	if v1alpha2.BuildDeploymentMode == mode {
+	if v1beta1.BuildDeploymentMode == mode {
 		return name + "-build"
 	}
 	return name
 }
 
-func PVCName(c *v1alpha2.Component) string {
+func PVCName(c *v1beta1.Component) string {
 	specified := c.Spec.Storage.Name
 	if len(specified) > 0 {
 		return specified
@@ -31,15 +31,15 @@ func PVCName(c *v1alpha2.Component) string {
 	return "m2-data-" + c.Name // todo: use better default name?
 }
 
-func DefaultDependentResourceNameFor(owner v1alpha2.Resource) string {
+func DefaultDependentResourceNameFor(owner v1beta1.Resource) string {
 	return owner.GetName()
 }
 
-func ServiceAccountName(owner v1alpha2.Resource) string {
+func ServiceAccountName(owner v1beta1.Resource) string {
 	switch owner.(type) {
-	case *v1alpha2.Capability:
+	case *v1beta1.Capability:
 		return PostgresName(owner) // todo: fix me
-	case *v1alpha2.Component:
+	case *v1beta1.Component:
 		return "build-bot"
 	default:
 		panic(fmt.Sprintf("a service account shouldn't be created for '%s' %s owner", owner.GetName(), GetObjectName(owner)))
@@ -54,6 +54,6 @@ func GetObjectName(object runtime.Object) string {
 	return t.Name()
 }
 
-func TaskName(owner v1alpha2.Resource) string {
+func TaskName(owner v1beta1.Resource) string {
 	return "s2i-buildah-push"
 }

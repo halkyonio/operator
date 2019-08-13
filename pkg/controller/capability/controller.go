@@ -2,7 +2,7 @@ package capability
 
 import (
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	controller2 "github.com/halkyonio/operator/pkg/controller"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,7 +27,7 @@ const (
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
-	baseReconciler := controller2.NewBaseGenericReconciler(&v1alpha2.Capability{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&v1beta1.Capability{}, mgr)
 	r := &ReconcileCapability{
 		BaseGenericReconciler: baseReconciler,
 	}
@@ -44,11 +44,11 @@ type ReconcileCapability struct {
 	*controller2.BaseGenericReconciler
 }
 
-func asCapability(object runtime.Object) *v1alpha2.Capability {
-	return object.(*v1alpha2.Capability)
+func asCapability(object runtime.Object) *v1beta1.Capability {
+	return object.(*v1beta1.Capability)
 }
 
-func (r *ReconcileCapability) IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool) {
+func (r *ReconcileCapability) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
 	db, err := r.MustGetDependentResourceFor(resource, &kubedbv1.Postgres{}).Fetch(r.Helper())
 	if err != nil || !r.isDBReady(db.(*kubedbv1.Postgres)) {
 		return "postgreSQL db", false
@@ -56,13 +56,13 @@ func (r *ReconcileCapability) IsDependentResourceReady(resource v1alpha2.Resourc
 	return db.(*kubedbv1.Postgres).Name, true
 }
 
-func (r *ReconcileCapability) Delete(object v1alpha2.Resource) (bool, error) {
+func (r *ReconcileCapability) Delete(object v1beta1.Resource) (bool, error) {
 	panic("implement me")
 }
 
-func (r *ReconcileCapability) CreateOrUpdate(object v1alpha2.Resource) (e error) {
+func (r *ReconcileCapability) CreateOrUpdate(object v1beta1.Resource) (e error) {
 	capability := asCapability(object)
-	if strings.ToLower(string(v1alpha2.DatabaseCategory)) == string(capability.Spec.Category) {
+	if strings.ToLower(string(v1beta1.DatabaseCategory)) == string(capability.Spec.Category) {
 		// Install the 2nd resources and check if the status of the watched resources has changed
 		e = r.installDB(capability)
 	} else {

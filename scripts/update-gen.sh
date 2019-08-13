@@ -5,8 +5,8 @@ set -o nounset
 set -o pipefail
 
 TMP_DIR=$(mktemp -d)
-KIND=component
-API_VERSION=v1alpha2
+KIND=halkyon
+API_VERSION=v1beta1
 
 cleanup() {
   rm -rf "${TMP_DIR}"
@@ -39,12 +39,12 @@ git clone https://github.com/kubernetes/code-generator.git "${TMP_DIR}"
 
 
 "${TMP_DIR}"/generate-groups.sh deepcopy,client \
-  github.com/snowdrop/component-operator/pkg/apis \
-  github.com/snowdrop/component-operator/pkg/apis \
+  github.com/halkyonio/operator/pkg/apis \
+  github.com/halkyonio/operator/pkg/apis \
   ${KIND}:${API_VERSION} \
   --go-header-file "${TMP_DIR}"/hack/boilerplate.go.txt
 
 # NOT NEEDED IF WE INSTALL THE PROJECT UNDER GOPATH AND THAT WE SET GO111MODULE=on
 # export GO111MODULE=on
 # GEN_FILE_PATH=${KIND}/${API_VERSION}/${GEN_FILE}
-# cp $GOPATH/src/github.com/snowdrop/component-operator/pkg/apis/${GEN_FILE_PATH} $CURRENT_DIR/pkg/apis/${GEN_FILE_PATH}
+# cp $GOPATH/src/github.com/halkyonio/operator/pkg/apis/${GEN_FILE_PATH} $CURRENT_DIR/pkg/apis/${GEN_FILE_PATH}

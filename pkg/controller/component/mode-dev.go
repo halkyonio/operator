@@ -19,16 +19,14 @@ package component
 
 import (
 	"fmt"
-	// authorizv1 "github.com/openshift/api/authorization/v1"
-	// authorizv1 "k8s.io/api/rbac/v1"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	halkyon "github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, namespace string) (e error) {
+func (r *ReconcileComponent) installDevMode(component *halkyon.Component, namespace string) (e error) {
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
@@ -41,12 +39,12 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	r.populateEnvVar(component)
 
 	/*	AFAIK THIS IS NIT NEEDED AS WE DON'T BUILD or INSTALL A CAPABILITY
-	    if e = r.CreateIfNeeded(component, &authorizv1.Role{}); e != nil {
-			return e
-		}
-		if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
-			return e
-		}*/
+		    if e = r.CreateIfNeeded(component, &authorizv1.Role{}); e != nil {
+				return e
+			}
+			if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
+				return e
+			}*/
 
 	// Create PVC if it does not exists
 	if e = r.CreateIfNeeded(component, &corev1.PersistentVolumeClaim{}); e != nil {
@@ -75,7 +73,7 @@ func (r *ReconcileComponent) installDevMode(component *v1alpha2.Component, names
 	return
 }
 
-func (r *ReconcileComponent) deleteDevMode(component *v1alpha2.Component, namespace string) error {
+func (r *ReconcileComponent) deleteDevMode(component *halkyon.Component, namespace string) error {
 	// todo
 	return nil
 }

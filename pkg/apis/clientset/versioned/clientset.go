@@ -19,7 +19,7 @@ limitations under the License.
 package versioned
 
 import (
-	devexpv1alpha2 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/component/v1alpha2"
+	halkyonv1beta1 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -27,19 +27,19 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	DevexpV1alpha2() devexpv1alpha2.DevexpV1alpha2Interface
+	HalkyonV1beta1() halkyonv1beta1.HalkyonV1beta1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	devexpV1alpha2 *devexpv1alpha2.DevexpV1alpha2Client
+	halkyonV1beta1 *halkyonv1beta1.HalkyonV1beta1Client
 }
 
-// DevexpV1alpha2 retrieves the DevexpV1alpha2Client
-func (c *Clientset) DevexpV1alpha2() devexpv1alpha2.DevexpV1alpha2Interface {
-	return c.devexpV1alpha2
+// HalkyonV1beta1 retrieves the HalkyonV1beta1Client
+func (c *Clientset) HalkyonV1beta1() halkyonv1beta1.HalkyonV1beta1Interface {
+	return c.halkyonV1beta1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -58,7 +58,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.devexpV1alpha2, err = devexpv1alpha2.NewForConfig(&configShallowCopy)
+	cs.halkyonV1beta1, err = halkyonv1beta1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.devexpV1alpha2 = devexpv1alpha2.NewForConfigOrDie(c)
+	cs.halkyonV1beta1 = halkyonv1beta1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -83,7 +83,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.devexpV1alpha2 = devexpv1alpha2.New(c)
+	cs.halkyonV1beta1 = halkyonv1beta1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -16,7 +16,7 @@ func (res role) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res role) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
+func (res role) NewInstanceWith(owner v1beta1.Resource) DependentResource {
 	return newOwnedRole(owner)
 }
 
@@ -24,18 +24,18 @@ func NewRole() role {
 	return newOwnedRole(nil)
 }
 
-func newOwnedRole(owner v1alpha2.Resource) role {
+func newOwnedRole(owner v1beta1.Resource) role {
 	dependent := NewDependentResource(&authorizv1.Role{}, owner)
 	role := role{DependentResourceHelper: dependent}
 	dependent.SetDelegate(role)
 	return role
 }
 
-func RoleName(owner v1alpha2.Resource) string {
+func RoleName(owner v1beta1.Resource) string {
 	switch owner.(type) {
-	case *v1alpha2.Component:
+	case *v1beta1.Component:
 		return "image-scc-privileged-role"
-	case *v1alpha2.Capability:
+	case *v1beta1.Capability:
 		return "scc-privileged-role"
 	default:
 		panic(fmt.Sprintf("unknown type '%s' for role owner", GetObjectName(owner)))
@@ -63,7 +63,7 @@ func (res role) Build() (runtime.Object, error) {
 		},
 	}
 
-	if _, ok := c.(*v1alpha2.Component); ok {
+	if _, ok := c.(*v1beta1.Component); ok {
 		ser.Rules = append(ser.Rules, authorizv1.PolicyRule{
 			APIGroups: []string{"image.openshift.io"},
 			Resources: []string{"imagestreams", "imagestreams/layers"},

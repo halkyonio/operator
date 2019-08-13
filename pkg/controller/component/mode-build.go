@@ -18,8 +18,7 @@ limitations under the License.
 package component
 
 import (
-	// authorizv1 "github.com/openshift/api/authorization/v1"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	halkyon "github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	routev1 "github.com/openshift/api/route/v1"
 	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
@@ -28,7 +27,7 @@ import (
 	authorizv1 "k8s.io/api/rbac/v1"
 )
 
-func (r *ReconcileComponent) installBuildMode(component *v1alpha2.Component, namespace string) (e error) {
+func (r *ReconcileComponent) installBuildMode(component *halkyon.Component, namespace string) (e error) {
 	// Create ServiceAccount used by the Task's pod if it does not exists
 	if e = r.CreateIfNeeded(component, &corev1.ServiceAccount{}); e != nil {
 		return e

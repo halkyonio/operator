@@ -1,4 +1,4 @@
-package v1alpha2
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	version   = "v1alpha2"
-	groupName = "devexp.runtime.redhat.com"
+	version   = "v1beta1"
+	groupName = "halkyon.io"
 )
 
 var (

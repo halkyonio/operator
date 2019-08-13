@@ -19,7 +19,7 @@ package component
 
 import (
 	"context"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	controller2 "github.com/halkyonio/operator/pkg/controller"
 	"github.com/knative/pkg/apis"
 	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
@@ -54,14 +54,14 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	images["nodejs"] = imageInfo{registryRef: "nodeshift/centos7-s2i-nodejs"}
 	images[supervisorImageId] = imageInfo{registryRef: "quay.io/snowdrop/supervisord"}
 
-	supervisor := v1alpha2.Component{
+	supervisor := v1beta1.Component{
 		ObjectMeta: v1.ObjectMeta{
 			Name: supervisorContainerName,
 		},
-		Spec: v1alpha2.ComponentSpec{
+		Spec: v1beta1.ComponentSpec{
 			Runtime: supervisorImageId,
 			Version: latestVersionTag,
-			Envs: []v1alpha2.Env{
+			Envs: []v1beta1.Env{
 				{
 					Name: "CMDS",
 					Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i" +
@@ -71,7 +71,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		},
 	}
 
-	baseReconciler := controller2.NewBaseGenericReconciler(&v1alpha2.Component{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&v1beta1.Component{}, mgr)
 	r := &ReconcileComponent{
 		BaseGenericReconciler: baseReconciler,
 		runtimeImages:         images,
@@ -100,16 +100,16 @@ type imageInfo struct {
 type ReconcileComponent struct {
 	*controller2.BaseGenericReconciler
 	runtimeImages map[string]imageInfo
-	supervisor    *v1alpha2.Component
+	supervisor    *v1beta1.Component
 }
 
-func (ReconcileComponent) asComponent(object runtime.Object) *v1alpha2.Component {
-	return object.(*v1alpha2.Component)
+func (ReconcileComponent) asComponent(object runtime.Object) *v1beta1.Component {
+	return object.(*v1beta1.Component)
 }
 
-func (r *ReconcileComponent) IsDependentResourceReady(resource v1alpha2.Resource) (depOrTypeName string, ready bool) {
+func (r *ReconcileComponent) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
 	component := r.asComponent(resource)
-	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
+	if v1beta1.BuildDeploymentMode == component.Spec.DeploymentMode {
 		taskRun, err := r.MustGetDependentResourceFor(resource, &taskRunv1alpha1.TaskRun{}).Fetch(r.Helper())
 		if err != nil || !r.isBuildSucceed(taskRun.(*taskRunv1alpha1.TaskRun)) {
 			return "taskRun job", false
@@ -124,9 +124,9 @@ func (r *ReconcileComponent) IsDependentResourceReady(resource v1alpha2.Resource
 	}
 }
 
-func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (err error) {
+func (r *ReconcileComponent) CreateOrUpdate(object v1beta1.Resource) (err error) {
 	component := r.asComponent(object)
-	if v1alpha2.BuildDeploymentMode == component.Spec.DeploymentMode {
+	if v1beta1.BuildDeploymentMode == component.Spec.DeploymentMode {
 		err = r.installBuildMode(component, component.Namespace)
 	} else {
 		err = r.installDevMode(component, component.Namespace)
@@ -134,7 +134,7 @@ func (r *ReconcileComponent) CreateOrUpdate(object v1alpha2.Resource) (err error
 	return err
 }
 
-func (r *ReconcileComponent) Delete(resource v1alpha2.Resource) (bool, error) {
+func (r *ReconcileComponent) Delete(resource v1beta1.Resource) (bool, error) {
 	if r.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode

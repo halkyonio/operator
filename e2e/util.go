@@ -3,7 +3,7 @@ package e2e
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -43,7 +43,7 @@ func crudClient() client.Client {
 	// Register the core k8s types
 	k8sscheme.AddToScheme(scheme)
 	// Register custom resource type
-	v1alpha2.AddToScheme(scheme)
+	v1beta1.AddToScheme(scheme)
 
 	kubeconfig, err := config.GetConfig()
 	if err != nil {
@@ -56,18 +56,18 @@ func crudClient() client.Client {
 	return runtimeClient
 }
 
-func springBootComponent(name, ns string) *v1alpha2.Component {
-	return &v1alpha2.Component{
+func springBootComponent(name, ns string) *v1beta1.Component {
+	return &v1beta1.Component{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha2.SchemeGroupVersion.String(),
-			Kind:       v1alpha2.ComponentKind,
+			APIVersion: v1beta1.SchemeGroupVersion.String(),
+			Kind:       v1beta1.ComponentKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
 		},
-		Spec: v1alpha2.ComponentSpec{
-			DeploymentMode: v1alpha2.DevDeploymentMode,
+		Spec: v1beta1.ComponentSpec{
+			DeploymentMode: v1beta1.DevDeploymentMode,
 			Runtime:        "spring-boot",
 		},
 	}

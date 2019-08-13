@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/controller"
 	routev1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +13,7 @@ type route struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res route) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
+func (res route) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
 	return newOwnedRoute(res.reconciler, owner)
 }
 
@@ -21,7 +21,7 @@ func newRoute(reconciler *ReconcileComponent) route {
 	return newOwnedRoute(reconciler, nil)
 }
 
-func newOwnedRoute(reconciler *ReconcileComponent, owner v1alpha2.Resource) route {
+func newOwnedRoute(reconciler *ReconcileComponent, owner v1beta1.Resource) route {
 	dependent := newBaseDependent(&routev1.Route{}, owner)
 	r := route{base: dependent, reconciler: reconciler}
 	dependent.SetDelegate(r)

@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -13,11 +13,11 @@ type pvc struct {
 	base
 }
 
-func (res pvc) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
+func (res pvc) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
 	return newOwnedPvc(owner)
 }
 
-func newOwnedPvc(owner v1alpha2.Resource) pvc {
+func newOwnedPvc(owner v1beta1.Resource) pvc {
 	dependent := newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)
 	p := pvc{base: dependent}
 	dependent.SetDelegate(p)
@@ -59,7 +59,7 @@ func (res pvc) Name() string {
 	return controller.PVCName(res.ownerAsComponent())
 }
 
-func getCapacity(c *v1alpha2.Component) resource.Quantity {
+func getCapacity(c *v1beta1.Component) resource.Quantity {
 	specified := c.Spec.Storage.Capacity
 	if len(specified) == 0 {
 		specified = "1Gi"
@@ -68,7 +68,7 @@ func getCapacity(c *v1alpha2.Component) resource.Quantity {
 	return resource.MustParse(specified)
 }
 
-func getAccessMode(c *v1alpha2.Component) corev1.PersistentVolumeAccessMode {
+func getAccessMode(c *v1beta1.Component) corev1.PersistentVolumeAccessMode {
 	storage := c.Spec.Storage.Mode
 	mode := corev1.ReadWriteOnce
 	switch storage {

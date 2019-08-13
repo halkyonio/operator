@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/controller"
 	"github.com/halkyonio/operator/pkg/util"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
@@ -14,7 +14,7 @@ type task struct {
 	base
 }
 
-func (res task) NewInstanceWith(owner v1alpha2.Resource) controller.DependentResource {
+func (res task) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
 	return newOwnedTask(owner)
 }
 
@@ -22,7 +22,7 @@ func newTask() task {
 	return newOwnedTask(nil)
 }
 
-func newOwnedTask(owner v1alpha2.Resource) task {
+func newOwnedTask(owner v1beta1.Resource) task {
 	dependent := newBaseDependent(&v1alpha1.Task{}, owner)
 	t := task{base: dependent}
 	dependent.SetDelegate(t)

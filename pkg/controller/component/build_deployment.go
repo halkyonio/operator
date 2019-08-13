@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	"github.com/halkyonio/operator/pkg/controller"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -27,7 +27,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	// and we will enrich the deployment resource of the runtime container
 	// create a "dev" version of the component to be able to check if the dev deployment exists
 	devDeployment := &appsv1.Deployment{}
-	_, err = res.reconciler.Helper().Fetch(controller.DeploymentNameFor(c, v1alpha2.DevDeploymentMode), c.Namespace, devDeployment)
+	_, err = res.reconciler.Helper().Fetch(controller.DeploymentNameFor(c, v1beta1.DevDeploymentMode), c.Namespace, devDeployment)
 	if err == nil {
 		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
 		runtimeContainer.Env = devContainer.Env
@@ -70,7 +70,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	return dep, nil
 }
 
-func (r *ReconcileComponent) getRuntimeContainerFor(component *v1alpha2.Component) (corev1.Container, error) {
+func (r *ReconcileComponent) getRuntimeContainerFor(component *v1beta1.Component) (corev1.Container, error) {
 	container := corev1.Container{
 		Env:             r.populatePodEnvVar(component.Spec),
 		Image:           r.dockerImageURL(component),

@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/component/v1alpha2"
+	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,7 +39,7 @@ func (res roleBinding) Update(toUpdate runtime.Object) (bool, error) {
 	return !found, nil
 }
 
-func (res roleBinding) NewInstanceWith(owner v1alpha2.Resource) DependentResource {
+func (res roleBinding) NewInstanceWith(owner v1beta1.Resource) DependentResource {
 	return newOwnedRoleBinding(owner)
 }
 
@@ -47,7 +47,7 @@ func NewRoleBinding() roleBinding {
 	return newOwnedRoleBinding(nil)
 }
 
-func newOwnedRoleBinding(owner v1alpha2.Resource) roleBinding {
+func newOwnedRoleBinding(owner v1beta1.Resource) roleBinding {
 	dependent := NewDependentResource(&authorizv1.RoleBinding{}, owner)
 	rolebinding := roleBinding{
 		DependentResourceHelper: dependent,
@@ -56,11 +56,11 @@ func newOwnedRoleBinding(owner v1alpha2.Resource) roleBinding {
 	return rolebinding
 }
 
-func RoleBindingName(owner v1alpha2.Resource) string {
+func RoleBindingName(owner v1beta1.Resource) string {
 	switch owner.(type) {
-	case *v1alpha2.Component:
+	case *v1beta1.Component:
 		return "use-image-scc-privileged"
-	case *v1alpha2.Capability:
+	case *v1beta1.Capability:
 		return "use-scc-privileged"
 	default:
 		panic(fmt.Sprintf("unknown type '%s' for role owner", GetObjectName(owner)))
@@ -88,7 +88,7 @@ func (res roleBinding) Build() (runtime.Object, error) {
 		},
 	}
 
-	if _, ok := c.(*v1alpha2.Capability); ok {
+	if _, ok := c.(*v1beta1.Capability); ok {
 		ser.Subjects = append(ser.Subjects, authorizv1.Subject{Kind: "ServiceAccount", Name: PostgresName(c), Namespace: namespace})
 	}
 
