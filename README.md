@@ -144,9 +144,9 @@ kubectl apply -n operators -f deploy/sa.yaml
 kubectl apply -f deploy/cluster-role.yaml
 kubectl apply -f deploy/user-rbac.yaml
 kubectl apply -f deploy/cluster-role-binding.yaml
-kubectl apply -f deploy/crds/capability_v1alpha2.yaml
-kubectl apply -f deploy/crds/component_v1alpha2.yaml
-kubectl apply -f deploy/crds/link_v1alpha2.yaml
+kubectl apply -f deploy/crds/capability.yaml
+kubectl apply -f deploy/crds/component.yaml
+kubectl apply -f deploy/crds/link.yaml
 kubectl apply -n operators -f deploy/operator.yaml
 ```
 
