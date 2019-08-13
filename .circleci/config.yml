@@ -89,7 +89,7 @@ commands:
             KUBEDB_VERSION=0.12.0
             helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
             --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
-  install-component-operator:
+  install-halkyon-operator:
     steps:
       - run:
           name: Install halkyon operator
@@ -216,7 +216,7 @@ jobs:
     - install-helm
     - install-kubedb
     - install-kubedb-catalog
-    - install-component-operator
+    - install-halkyon-operator
     - install-tekton
     - test-e2e:
         namespace: e2e-dev-default
@@ -229,7 +229,7 @@ jobs:
     - install-helm
     - install-kubedb
     - install-kubedb-catalog
-    - install-component-operator
+    - install-halkyon-operator
     - install-tekton
     - test-e2e-with-dekorate-snapshot:
         namespace: e2e-dev-snapshot
@@ -244,7 +244,7 @@ jobs:
     - install-helm
     - install-kubedb
     - install-kubedb-catalog
-    - install-component-operator
+    - install-halkyon-operator
     - install-tekton
     - test-e2e:
         namespace: e2e-dev-default
@@ -259,7 +259,7 @@ jobs:
     - install-helm
     - install-kubedb
     - install-kubedb-catalog
-    - install-component-operator
+    - install-halkyon-operator
     - install-tekton
     - test-e2e-with-dekorate-snapshot:
         namespace: e2e-dev-snapshot
