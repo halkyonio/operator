@@ -201,7 +201,7 @@ NAME          RUNTIME       VERSION   AGE     MODE   STATUS   MESSAGE   REVISION
 spring-boot   spring-boot             2m19s   dev    Ready              
 ```
 
-When, the DevExp operator will read the content of the Custom Resource `Component`, then it will create several K8s resources that you can discover if you execute the following command
+When, the Halkyon operator will read the content of the Custom Resource `Component`, then it will create several K8s resources that you can discover if you execute the following command
 ```bash
 kubectl get pods,services,deployments,pvc -n demo
 NAME                              READY   STATUS    RESTARTS   AGE
