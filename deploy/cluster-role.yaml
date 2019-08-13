@@ -16,7 +16,7 @@ rules:
   verbs:
   - "*"
 - apiGroups:
-  - devexp.runtime.redhat.com
+  - halkyon.io
   resources:
   - "*"
   verbs:
