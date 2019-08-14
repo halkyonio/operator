@@ -84,12 +84,12 @@ else
 fi
 
 printTitle "Deploy the component for the fruit-backend, link and capability"
-kubectl apply -n "${NS}" -f "${DIR}"/../fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
+kubectl apply -n "${NS}" -f "${DIR}"/../fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
 
 printTitle "Deploy the component for the fruit-client, link"
-kubectl apply -n "${NS}" -f "${DIR}"/../fruit-client-sb/target/classes/META-INF/dekorate/component.yml
+kubectl apply -n "${NS}" -f "${DIR}"/../fruit-client-sb/target/classes/META-INF/dekorate/halkyon.yml
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
 

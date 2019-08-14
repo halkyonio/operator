@@ -139,8 +139,8 @@ configure the database, the user, password and database name.
 Deploy the generated resource files
 ```bash
 kubectl create ns demo
-kubectl apply -f fruit-client-sb/target/classes/META-INF/dekorate/component.yml
-kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
+kubectl apply -f fruit-client-sb/target/classes/META-INF/dekorate/halkyon.yml
+kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
 ``` 
 
 Wait a few moment and verify if the status of the components deployed is ready
