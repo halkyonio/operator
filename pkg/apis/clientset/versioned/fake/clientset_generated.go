@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/halkyonio/operator/pkg/apis/clientset/versioned"
-	halkyonv1beta1 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
-	fakehalkyonv1beta1 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1/fake"
+	clientset "halkyon.io/operator/pkg/apis/clientset/versioned"
+	halkyonv1beta1 "halkyon.io/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
+	fakehalkyonv1beta1 "halkyon.io/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

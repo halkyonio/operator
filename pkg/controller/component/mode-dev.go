@@ -19,8 +19,8 @@ package component
 
 import (
 	"fmt"
-	halkyon "github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	routev1 "github.com/openshift/api/route/v1"
+	halkyon "halkyon.io/operator/pkg/apis/halkyon/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"

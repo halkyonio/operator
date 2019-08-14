@@ -3,8 +3,8 @@ package link
 import (
 	"context"
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
-	controller2 "github.com/halkyonio/operator/pkg/controller"
+	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	controller2 "halkyon.io/operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"

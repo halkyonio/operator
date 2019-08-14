@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1beta1 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
+	v1beta1 "halkyon.io/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

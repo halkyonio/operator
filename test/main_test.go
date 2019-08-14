@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	f "github.com/operator-framework/operator-sdk/pkg/test"
+	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 	"time"

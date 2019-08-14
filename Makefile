@@ -2,7 +2,7 @@ VERSION     ?= unset
 GITCOMMIT    := $(shell git rev-parse --short HEAD 2>/dev/null)
 PROJECT_NAME := operator
 BIN_DIR      := ./build/_output/bin
-REPO_PATH    := github.com/halkyonio/$(PROJECT_NAME)
+REPO_PATH    := halkyon.io/$(PROJECT_NAME)
 BUILD_PATH   := $(REPO_PATH)/cmd/manager
 BUILD_FLAGS  := -ldflags="-w -X main.Version=$(VERSION) -X main.GitCommit=$(GITCOMMIT)"
 PKGS         := $(shell go list  ./... | grep -v $(PROJECT)/vendor)
@@ -61,7 +61,7 @@ test-e2e:
 # Tests using operator deployed in a cluster
 .PHONY: unit-test
 unit-test:
-	go test ./test/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crds/component_v1alpha2.yaml
+	go test ./test/main_test.go -root=$(PREFIX) -kubeconfig=$$HOME/.kube/config -namespacedMan deploy/namespace-init.yaml -globalMan deploy/crds/component.yaml
 
 .PHONY: test
 test:

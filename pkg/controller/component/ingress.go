@@ -1,8 +1,8 @@
 package component
 
 import (
-	halkyon "github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
-	"github.com/halkyonio/operator/pkg/controller"
+	halkyon "halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/operator/pkg/controller"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

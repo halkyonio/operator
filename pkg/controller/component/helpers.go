@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
 )
 
 func (r *ReconcileComponent) getEnvAsMap(component v1beta1.ComponentSpec) (map[string]string, error) {

@@ -3,11 +3,11 @@ package e2e
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pkg/errors"
+	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
 	"io"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
