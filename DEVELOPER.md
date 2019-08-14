@@ -1,110 +1,32 @@
-# Developer information
+# Halkyon Developer information
 
 Table of Contents
 =================
 
-  * [How To create the operator, crd](#how-to-create-the-operator-crd)
-  * [How to package and install the Operator on Quay.io as an Application](#how-to-package-and-install-the-operator-on-quayio-as-an-application)
-     * [How to deploy the Component Operator on OCP4](#how-to-deploy-the-component-operator-on-ocp4)
+  * [How to package the operator for OperatorHub](#how-to-package-the-operator-for-operatorhub)
   * [Deprecated](#deprecated)
+     * [How to create the operator, crd](#how-to-create-the-operator-crd)
      * [How to install the Operator using OLM, Marketplace on okd 3.x](#how-to-install-the-operator-using-olm-marketplace-on-okd-3x)
         * [Step 1 - Install the new OpenShift console](#step-1---install-the-new-openshift-console)
         * [Step 2 - Install the OLM and Marketplace](#step-2---install-the-olm-and-marketplace)
         * [Step 3 - Install our Component Operator Source](#step-3---install-our-component-operator-source)
         * [Step 4 - Deploy the Component Operator using a Subscription](#step-4---deploy-the-component-operator-using-a-subscription)
      * [How to install okd 3.11 using the OCP resources](#how-to-install-okd-311-using-the-ocp-resources)
-     * [Cleanup](#cleanup)
+     * [Cleanup](#cleanup)  
 
-
-## How To create the operator, crd
-
-Instructions followed to create the Component's CRD, operator using the `operator-sdk`'s kit
-
-- Install the `operator-sdk` 
-  ```bash
-  brew install operator-sdk
-  ```
-
-- Execute this command within the `$GOPATH/github.com/$ORG/` folder in a terminal
-  ```bash
-  operator-sdk new component-operator --api-version=devexp.runtime.redhat.com/v1alpha2 --kind=Component --skip-git-init
-  operator-sdk add api --api-version=devexp.runtime.redhat.com/v1alpha2 --kind=Component 
-  ```
-  using the following parameters 
-
-  - Name of the folder to be created : `component-operator`
-  - Api Group Name   : `component.k8s.io`
-  - Api Version      : `v1alpha2`
-  - Kind of Resource : `Component`
-
-- Build and push the `component-operator` image to `quai.io`s registry
-  ```bash
-  $ operator-sdk build quay.io/snowdrop/component-operator
-  $ docker push quay.io/snowdrop/component-operator
-  ```
-  
-- Update the operator's manifest to use the built image name
-  ```bash
-  sed -i 's|REPLACE_IMAGE|quay.io/snowdrop/component-operator|g' deploy/operator.yaml
-  ```
-- Create a namespace `component-operator`
-
-- Deploy the component-operator
-  ```bash
-  oc new-project component-operator
-  oc create -f deploy/sa.yaml
-  oc create -f deploy/cluster-rbac.yaml
-  oc create -f deploy/crds/component_v1alpha2.yaml
-  oc create -f deploy/operator.yaml
-  ```
-
-- By default, creating a custom resource triggers the `component-operator` to deploy a busybox pod
-  ```bash
-  oc create -f deploy/component/cr.yaml
-  ```
-
-- Verify that the busybox pod is created
-  ```bash
-  oc get pod -l app=busy-box
-  NAME            READY     STATUS    RESTARTS   AGE
-  busy-box   1/1       Running   0          50s
-  ```
-
-- Cleanup
-  ```bash
-  oc delete -f deploy/crds/component_v1alpha2.yaml
-  oc delete -f deploy/operator.yaml
-  oc delete -f deploy/cluster-rbac.yaml
-  oc delete -f deploy/sa.yaml
-  ```
-
-- Start operator locally
-
-  ```bash
-  $ oc new-project my-spring-app
-  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=/Users/dabou/.kube/config go run cmd/manager/main.go
-  
-  $ oc delete components,route,svc,is,pvc,dc --all=true && go run cmd/sd/sd.go create my-spring-boot
-  OR
-  $ oc apply -f deploy/component1.yml
-  $ oc get all,pvc,components,dc
-  
-  oc delete components,route,svc,is,pvc,dc --all=true
-  ```  
-
-## How to package the operator for the OperatorHub
+## How to package the operator for OperatorHub
 
 The following section explains the different steps that we must follow in order to do the work to deploy this
-operator on `Operatorhub.io`
+operator on `operatorhub.io`
 
 - Create a Container image published next on Quay.io
 - Create the OLM Bundle definition containing the CRDs, ClusterServiceVersion & Package resource
-- Push using the tool operator-courier the bundle or application on Quay.io
+- Push using the `operator-courier` tool the bundle or application on Quay.io
 - Prepare and submit a PR containing the bundle info using the forked project - github.com:operator-framework/community-operators.git
 
 ### Build the docker image of the Operator
 
-The following steps are defined within the .circleci config.yaml file 
+The following steps are defined within the `.circleci/config.yml` file 
 
 ```bash
 docker build -t component-operator:${VERSION} -f build/Dockerfile .
@@ -209,6 +131,82 @@ To clean-up , execute the following commands
     oc delete -n openshift-operators deployment/component-operator
 
 ## Deprecated
+
+### How to create the operator, crd
+
+Instructions followed to create the Component's CRD, operator using the `operator-sdk`'s kit
+
+- Install the `operator-sdk` 
+  ```bash
+  brew install operator-sdk
+  ```
+
+- Execute this command within the `$GOPATH/github.com/$ORG/` folder in a terminal
+  ```bash
+  operator-sdk new component-operator --api-version=devexp.runtime.redhat.com/v1alpha2 --kind=Component --skip-git-init
+  operator-sdk add api --api-version=devexp.runtime.redhat.com/v1alpha2 --kind=Component 
+  ```
+  using the following parameters 
+
+  - Name of the folder to be created : `component-operator`
+  - Api Group Name   : `component.k8s.io`
+  - Api Version      : `v1alpha2`
+  - Kind of Resource : `Component`
+
+- Build and push the `component-operator` image to `quai.io`s registry
+  ```bash
+  $ operator-sdk build quay.io/snowdrop/component-operator
+  $ docker push quay.io/snowdrop/component-operator
+  ```
+  
+- Update the operator's manifest to use the built image name
+  ```bash
+  sed -i 's|REPLACE_IMAGE|quay.io/snowdrop/component-operator|g' deploy/operator.yaml
+  ```
+- Create a namespace `component-operator`
+
+- Deploy the component-operator
+  ```bash
+  oc new-project component-operator
+  oc create -f deploy/sa.yaml
+  oc create -f deploy/cluster-rbac.yaml
+  oc create -f deploy/crds/component_v1alpha2.yaml
+  oc create -f deploy/operator.yaml
+  ```
+
+- By default, creating a custom resource triggers the `component-operator` to deploy a busybox pod
+  ```bash
+  oc create -f deploy/component/cr.yaml
+  ```
+
+- Verify that the busybox pod is created
+  ```bash
+  oc get pod -l app=busy-box
+  NAME            READY     STATUS    RESTARTS   AGE
+  busy-box   1/1       Running   0          50s
+  ```
+
+- Cleanup
+  ```bash
+  oc delete -f deploy/crds/component_v1alpha2.yaml
+  oc delete -f deploy/operator.yaml
+  oc delete -f deploy/cluster-rbac.yaml
+  oc delete -f deploy/sa.yaml
+  ```
+
+- Start operator locally
+
+  ```bash
+  $ oc new-project my-spring-app
+  $ OPERATOR_NAME=component-operator WATCH_NAMESPACE=my-spring-app KUBERNETES_CONFIG=/Users/dabou/.kube/config go run cmd/manager/main.go
+  
+  $ oc delete components,route,svc,is,pvc,dc --all=true && go run cmd/sd/sd.go create my-spring-boot
+  OR
+  $ oc apply -f deploy/component1.yml
+  $ oc get all,pvc,components,dc
+  
+  oc delete components,route,svc,is,pvc,dc --all=true
+  ```
 
 ### How to install the Operator using OLM, Marketplace on okd 3.x
 
