@@ -11,6 +11,7 @@
     <properties>
         <snowdrop-bom.version>2.1.6.Final</snowdrop-bom.version>
         <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
+        <dekorate.version>0.7.5</dekorate.version>
     </properties>
 
     <dependencyManagement>
@@ -21,6 +22,30 @@
                 <version>${snowdrop-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>halkyon-annotations</artifactId>
+                <scope>compile</scope>
+                <version>${dekorate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>dekorate-spring-boot</artifactId>
+                <scope>compile</scope>
+                <version>${dekorate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>dekorate-core</artifactId>
+                <scope>compile</scope>
+                <version>${dekorate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>kubernetes-annotations</artifactId>
+                <scope>compile</scope>
+                <version>${dekorate.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -29,7 +29,7 @@
         <!-- To generate CRD -->
         <dependency>
             <groupId>io.dekorate</groupId>
-            <artifactId>component-annotations</artifactId>
+            <artifactId>halkyon-annotations</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
