@@ -16,28 +16,28 @@
 
 package com.example.demo;
 
-import io.dekorate.component.annotation.Capability;
-import io.dekorate.component.annotation.ComponentApplication;
-import io.dekorate.component.annotation.Link;
-import io.dekorate.component.annotation.Parameter;
-import io.dekorate.component.model.Kind;
+import io.dekorate.halkyon.annotation.HalkyonCapability;
+import io.dekorate.halkyon.annotation.HalkyonComponent;
+import io.dekorate.halkyon.annotation.HalkyonLink;
+import io.dekorate.halkyon.annotation.Parameter;
+import io.dekorate.halkyon.model.Kind;
 import io.dekorate.kubernetes.annotation.Env;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@ComponentApplication(
+@HalkyonComponent(
     name = "fruit-backend-sb",
     exposeService = true,
     envs = @Env(
         name = "SPRING_PROFILES_ACTIVE",
         value = "postgresql-kubedb")
 )
-@Link(
+@HalkyonLink(
     name = "link-to-database",
     componentName = "fruit-backend-sb",
     kind = Kind.Secret,
     ref = "postgres-db-config")
-@Capability(
+@HalkyonCapability(
     name = "postgres-db",
     category = "database",
     kind = "postgres",
