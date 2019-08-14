@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

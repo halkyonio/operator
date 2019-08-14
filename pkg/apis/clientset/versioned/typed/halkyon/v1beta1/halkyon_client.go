@@ -19,8 +19,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/clientset/versioned/scheme"
-	v1beta1 "github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/operator/pkg/apis/clientset/versioned/scheme"
+	v1beta1 "halkyon.io/operator/pkg/apis/halkyon/v1beta1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 )

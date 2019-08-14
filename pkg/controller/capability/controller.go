@@ -2,9 +2,9 @@ package capability
 
 import (
 	"fmt"
-	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
-	controller2 "github.com/halkyonio/operator/pkg/controller"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	controller2 "halkyon.io/operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strings"

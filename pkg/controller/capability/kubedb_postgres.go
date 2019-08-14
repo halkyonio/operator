@@ -2,9 +2,9 @@ package capability
 
 import (
 	"github.com/appscode/go/encoding/json/types"
-	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
-	"github.com/halkyonio/operator/pkg/controller"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/operator/pkg/controller"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

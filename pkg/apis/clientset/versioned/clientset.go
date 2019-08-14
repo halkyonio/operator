@@ -19,7 +19,7 @@ limitations under the License.
 package versioned
 
 import (
-	halkyonv1beta1 "github.com/halkyonio/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
+	halkyonv1beta1 "halkyon.io/operator/pkg/apis/clientset/versioned/typed/halkyon/v1beta1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

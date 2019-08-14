@@ -1,10 +1,10 @@
 package component
 
 import (
-	"github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
-	"github.com/halkyonio/operator/pkg/controller"
-	"github.com/halkyonio/operator/pkg/util"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

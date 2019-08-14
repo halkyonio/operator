@@ -14,7 +14,7 @@ executors:
       GO111MODULE: "on"
     docker:
       - image: circleci/golang:1.12.5
-    working_directory: /go/src/github.com/halkyonio/operator
+    working_directory: /go/src/halkyon.io/operator
 
 commands:
   install-kubectl:

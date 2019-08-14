@@ -1,4 +1,4 @@
-module github.com/halkyonio/operator
+module halkyon.io/operator
 
 go 1.12
 

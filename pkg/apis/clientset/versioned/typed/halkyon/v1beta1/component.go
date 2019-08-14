@@ -21,8 +21,8 @@ package v1beta1
 import (
 	"time"
 
-	scheme "github.com/halkyonio/operator/pkg/apis/clientset/versioned/scheme"
-	v1beta1 "github.com/halkyonio/operator/pkg/apis/halkyon/v1beta1"
+	scheme "halkyon.io/operator/pkg/apis/clientset/versioned/scheme"
+	v1beta1 "halkyon.io/operator/pkg/apis/halkyon/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
