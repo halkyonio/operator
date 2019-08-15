@@ -4,7 +4,7 @@
 # oc adm policy add-role-to-user edit -z build-bot
 #
 #
-apiVersion: devexp.runtime.redhat.com/v1alpha2
+apiVersion: halkyon.io/v1beta1
 kind: Component
 metadata:
   name: fruit-client-sb

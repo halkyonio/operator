@@ -1,5 +1,5 @@
-apiVersion: "devexp.runtime.redhat.com/v1alpha2"
-kind: "Link"
+apiVersion: halkyon.io/v1beta1
+kind: Link
 metadata:
   name: "link-to-postgres"
 spec:

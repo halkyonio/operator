@@ -1,6 +1,6 @@
 # TODO: Check how we could specify such securty context
 # oc adm policy add-scc-to-user privileged -z postgres-db
-apiVersion: devexp.runtime.redhat.com/v1alpha2
+apiVersion: halkyon.io/v1beta1
 kind: Capability
 metadata:
   name: postgres-db

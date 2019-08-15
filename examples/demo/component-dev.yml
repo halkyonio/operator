@@ -1,4 +1,4 @@
-apiVersion: devexp.runtime.redhat.com/v1alpha2
+apiVersion: halkyon.io/v1beta1
 kind: Component
 metadata:
   name: fruit-client-sb
@@ -9,6 +9,7 @@ spec:
   runtime: spring-boot
   version: 1.5.16
   port: 8080
+  expose: true
   envs:
     - name: SPRING_PROFILES_ACTIVE
       value: openshift-catalog
