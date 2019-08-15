@@ -59,17 +59,39 @@ func (res task) Build() (runtime.Object, error) {
 				}},
 			},
 			Steps: []corev1.Container{
+				/*{
+					Name: "ls",
+					Image: "ubuntu",
+					Command: []string{
+						"bash",
+					},
+					Args: []string{
+						"-c",
+						"pwd",
+					},
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							MountPath: "/sources",
+							Name:      "generatedsources"},
+					},
+				},*/
 				// # Generate a Dockerfile using the s2i tool
 				{
 					Name:  "generate",
-					Image: "quay.io/openshift-pipeline/s2i-buildah",
+					Image: "quay.io/openshift-pipeline/s2i",
+					Command: []string{
+						"s2i",
+						"build",
+					},
 					Args: []string{
-						"${inputs.params.contextPath}",
+						"${inputs.params.workspacePath}",
 						"${inputs.params.baseImage}",
 						"--as-dockerfile",
 						"/sources/Dockerfile.gen",
 						"--image-scripts-url",
 						"image:///usr/local/s2i",
+						"--loglevel",
+						"5",
 						"--env",
 						"MAVEN_ARGS_APPEND=-pl ${inputs.params.moduleDirName}",
 						"--env",
@@ -77,7 +99,6 @@ func (res task) Build() (runtime.Object, error) {
 						"--env",
 						"S2I_SOURCE_DEPLOYMENTS_FILTER=*.jar",
 					},
-					WorkingDir: "${inputs.params.workspacePath}",
 					VolumeMounts: []corev1.VolumeMount{
 						{
 							MountPath: "/sources",
