@@ -15,6 +15,6 @@ spec:
     type: s2i
     url: https://github.com/snowdrop/rest-http-example.git
     ref: 2.1.6-4
-    moduleDirName: "."
+    moduleDirName: .
   runtime: spring-boot
   version: 2.1.6
