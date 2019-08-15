@@ -2,7 +2,7 @@ package component
 
 import (
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"

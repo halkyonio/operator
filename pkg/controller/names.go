@@ -2,7 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	capability "halkyon.io/api/capability/v1beta1"
+	component "halkyon.io/api/component/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 )
@@ -11,19 +13,19 @@ func PostgresName(owner v1beta1.Resource) string {
 	return DefaultDependentResourceNameFor(owner)
 }
 
-func DeploymentName(c *v1beta1.Component) string {
+func DeploymentName(c *component.Component) string {
 	return DeploymentNameFor(c, c.Spec.DeploymentMode)
 }
 
-func DeploymentNameFor(c *v1beta1.Component, mode v1beta1.DeploymentMode) string {
+func DeploymentNameFor(c *component.Component, mode component.DeploymentMode) string {
 	name := DefaultDependentResourceNameFor(c)
-	if v1beta1.BuildDeploymentMode == mode {
+	if component.BuildDeploymentMode == mode {
 		return name + "-build"
 	}
 	return name
 }
 
-func PVCName(c *v1beta1.Component) string {
+func PVCName(c *component.Component) string {
 	specified := c.Spec.Storage.Name
 	if len(specified) > 0 {
 		return specified
@@ -37,9 +39,9 @@ func DefaultDependentResourceNameFor(owner v1beta1.Resource) string {
 
 func ServiceAccountName(owner v1beta1.Resource) string {
 	switch owner.(type) {
-	case *v1beta1.Capability:
+	case *capability.Capability:
 		return PostgresName(owner) // todo: fix me
-	case *v1beta1.Component:
+	case *component.Component:
 		return "build-bot"
 	default:
 		panic(fmt.Sprintf("a service account shouldn't be created for '%s' %s owner", owner.GetName(), GetObjectName(owner)))

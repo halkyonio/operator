@@ -2,7 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	capability "halkyon.io/api/capability/v1beta1"
+	component "halkyon.io/api/component/v1beta1"
+	"halkyon.io/api/v1beta1"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -58,9 +60,9 @@ func newOwnedRoleBinding(owner v1beta1.Resource) roleBinding {
 
 func RoleBindingName(owner v1beta1.Resource) string {
 	switch owner.(type) {
-	case *v1beta1.Component:
+	case *component.Component:
 		return "use-image-scc-privileged"
-	case *v1beta1.Capability:
+	case *capability.Capability:
 		return "use-scc-privileged"
 	default:
 		panic(fmt.Sprintf("unknown type '%s' for role owner", GetObjectName(owner)))
@@ -88,7 +90,7 @@ func (res roleBinding) Build() (runtime.Object, error) {
 		},
 	}
 
-	if _, ok := c.(*v1beta1.Capability); ok {
+	if _, ok := c.(*capability.Capability); ok {
 		ser.Subjects = append(ser.Subjects, authorizv1.Subject{Kind: "ServiceAccount", Name: PostgresName(c), Namespace: namespace})
 	}
 

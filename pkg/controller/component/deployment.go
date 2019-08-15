@@ -1,7 +1,8 @@
 package component
 
 import (
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	component "halkyon.io/api/component/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,7 +33,7 @@ func newOwnedDeployment(reconciler *ReconcileComponent, owner v1beta1.Resource) 
 
 func (res deployment) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	if v1beta1.BuildDeploymentMode == c.Spec.DeploymentMode {
+	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
 		return res.installBuild()
 	}
 	return res.installDev()

@@ -8,7 +8,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	f "github.com/operator-framework/operator-sdk/pkg/test"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	halkyon "halkyon.io/api"
+	component "halkyon.io/api/component/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 	"time"
@@ -26,13 +27,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestTypeMetaComponent(t *testing.T) {
-	component := &v1beta1.Component{
+	component := &component.Component{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "Component",
-			APIVersion: "halkyon.io/v1beta1",
+			Kind:       component.Kind,
+			APIVersion: halkyon.SchemeGroupVersion.String(),
 		},
 	}
-	err := f.AddToFrameworkScheme(v1beta1.AddToScheme, component)
+	err := f.AddToFrameworkScheme(halkyon.AddToScheme, component)
 	if err != nil {
 		t.Fatalf("failed to add custom resource scheme to framework: %v", err)
 	}
@@ -45,16 +46,16 @@ func componentTest(t *testing.T, f *f.Framework, ctx *f.TestCtx) error {
 	}
 
 	// Create Component CRD
-	component := &v1beta1.Component{
+	component := &component.Component{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "Component",
-			APIVersion: "halkyon.io/v1beta1",
+			Kind:       component.Kind,
+			APIVersion: halkyon.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example-component",
 			Namespace: namespace,
 		},
-		Spec: v1beta1.ComponentSpec{
+		Spec: component.ComponentSpec{
 			Runtime: "Spring Boot",
 		},
 	}

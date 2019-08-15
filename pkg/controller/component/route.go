@@ -2,7 +2,7 @@ package component
 
 import (
 	routev1 "github.com/openshift/api/route/v1"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

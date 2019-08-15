@@ -2,7 +2,7 @@ package capability
 
 import (
 	"encoding/json"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"strings"
 )
