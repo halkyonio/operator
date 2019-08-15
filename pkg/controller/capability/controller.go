@@ -3,7 +3,8 @@ package capability
 import (
 	"fmt"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	capability "halkyon.io/api/capability/v1beta1"
+	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -27,7 +28,7 @@ const (
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
-	baseReconciler := controller2.NewBaseGenericReconciler(&v1beta1.Capability{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&capability.Capability{}, mgr)
 	r := &ReconcileCapability{
 		BaseGenericReconciler: baseReconciler,
 	}
@@ -44,8 +45,8 @@ type ReconcileCapability struct {
 	*controller2.BaseGenericReconciler
 }
 
-func asCapability(object runtime.Object) *v1beta1.Capability {
-	return object.(*v1beta1.Capability)
+func asCapability(object runtime.Object) *capability.Capability {
+	return object.(*capability.Capability)
 }
 
 func (r *ReconcileCapability) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
@@ -61,12 +62,12 @@ func (r *ReconcileCapability) Delete(object v1beta1.Resource) error {
 }
 
 func (r *ReconcileCapability) CreateOrUpdate(object v1beta1.Resource) (e error) {
-	capability := asCapability(object)
-	if strings.ToLower(string(v1beta1.DatabaseCategory)) == string(capability.Spec.Category) {
+	c := asCapability(object)
+	if strings.ToLower(string(capability.DatabaseCategory)) == string(c.Spec.Category) {
 		// Install the 2nd resources and check if the status of the watched resources has changed
-		e = r.installDB(capability)
+		e = r.installDB(c)
 	} else {
-		e = fmt.Errorf("unsupported '%s' capability category", capability.Spec.Category)
+		e = fmt.Errorf("unsupported '%s' capability category", c.Spec.Category)
 	}
 	return e
 }

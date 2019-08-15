@@ -12,7 +12,7 @@ import (
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
 	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	halkyon "halkyon.io/api"
 	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/capability"
 	"halkyon.io/operator/pkg/controller/component"
@@ -86,7 +86,7 @@ func main() {
 
 	// Setup Scheme for all resources
 	log.Info("Registering Components")
-	if err := v1beta1.AddToScheme(mgr.GetScheme()); err != nil {
+	if err := halkyon.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 	}
 

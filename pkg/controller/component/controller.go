@@ -21,7 +21,8 @@ import (
 	"context"
 	"github.com/knative/pkg/apis"
 	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	component "halkyon.io/api/component/v1beta1"
+	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -54,11 +55,11 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	images["nodejs"] = imageInfo{registryRef: "nodeshift/centos7-s2i-nodejs"}
 	images[supervisorImageId] = imageInfo{registryRef: "quay.io/halkyonio/supervisord"}
 
-	supervisor := v1beta1.Component{
+	supervisor := component.Component{
 		ObjectMeta: v1.ObjectMeta{
 			Name: supervisorContainerName,
 		},
-		Spec: v1beta1.ComponentSpec{
+		Spec: component.ComponentSpec{
 			Runtime: supervisorImageId,
 			Version: latestVersionTag,
 			Envs: []v1beta1.Env{
@@ -71,7 +72,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		},
 	}
 
-	baseReconciler := controller2.NewBaseGenericReconciler(&v1beta1.Component{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&component.Component{}, mgr)
 	r := &ReconcileComponent{
 		BaseGenericReconciler: baseReconciler,
 		runtimeImages:         images,
@@ -100,23 +101,23 @@ type imageInfo struct {
 type ReconcileComponent struct {
 	*controller2.BaseGenericReconciler
 	runtimeImages map[string]imageInfo
-	supervisor    *v1beta1.Component
+	supervisor    *component.Component
 }
 
-func (ReconcileComponent) asComponent(object runtime.Object) *v1beta1.Component {
-	return object.(*v1beta1.Component)
+func (ReconcileComponent) asComponent(object runtime.Object) *component.Component {
+	return object.(*component.Component)
 }
 
 func (r *ReconcileComponent) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
-	component := r.asComponent(resource)
-	if v1beta1.BuildDeploymentMode == component.Spec.DeploymentMode {
+	c := r.asComponent(resource)
+	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
 		taskRun, err := r.MustGetDependentResourceFor(resource, &taskRunv1alpha1.TaskRun{}).Fetch(r.Helper())
 		if err != nil || !r.isBuildSucceed(taskRun.(*taskRunv1alpha1.TaskRun)) {
 			return "taskRun job", false
 		}
 		return taskRun.(*taskRunv1alpha1.TaskRun).Name, true
 	} else {
-		pod, err := r.fetchPod(component)
+		pod, err := r.fetchPod(c)
 		if err != nil || !r.isPodReady(pod) {
 			return "pod", false
 		}
@@ -125,11 +126,11 @@ func (r *ReconcileComponent) IsDependentResourceReady(resource v1beta1.Resource)
 }
 
 func (r *ReconcileComponent) CreateOrUpdate(object v1beta1.Resource) (err error) {
-	component := r.asComponent(object)
-	if v1beta1.BuildDeploymentMode == component.Spec.DeploymentMode {
-		err = r.installBuildMode(component, component.Namespace)
+	c := r.asComponent(object)
+	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
+		err = r.installBuildMode(c, c.Namespace)
 	} else {
-		err = r.installDevMode(component, component.Namespace)
+		err = r.installDevMode(c, c.Namespace)
 	}
 	return err
 }

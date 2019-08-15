@@ -3,13 +3,13 @@ package component
 import (
 	"context"
 	"fmt"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	component "halkyon.io/api/component/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 //fetchPod returns the pod resource created for this instance and where label app=component name
-func (r *ReconcileComponent) fetchPod(instance *v1beta1.Component) (*corev1.Pod, error) {
+func (r *ReconcileComponent) fetchPod(instance *component.Component) (*corev1.Pod, error) {
 	pods := &corev1.PodList{}
 	lo := &client.ListOptions{}
 	lo.InNamespace(instance.Namespace)

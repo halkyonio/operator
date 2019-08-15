@@ -1,7 +1,8 @@
 package component
 
 import (
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	component "halkyon.io/api/component/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"os"
 )
 
@@ -10,7 +11,7 @@ const (
 	BaseS2iImage = "BASE_S2I_IMAGE"
 )
 
-func (r *ReconcileComponent) getEnvAsMap(component v1beta1.ComponentSpec) (map[string]string, error) {
+func (r *ReconcileComponent) getEnvAsMap(component component.ComponentSpec) (map[string]string, error) {
 	envs := component.Envs
 	tmpEnvVar := make(map[string]string)
 
@@ -33,7 +34,7 @@ func (r *ReconcileComponent) getEnvAsMap(component v1beta1.ComponentSpec) (map[s
 	return tmpEnvVar, nil
 }
 
-func (r *ReconcileComponent) populateEnvVar(component *v1beta1.Component) {
+func (r *ReconcileComponent) populateEnvVar(component *component.Component) {
 	tmpEnvVar, err := r.getEnvAsMap(component.Spec)
 	if err != nil {
 		panic(err)
@@ -67,12 +68,12 @@ func getBuildLabels(name string) map[string]string {
 }
 
 //Check if the mandatory specs are filled
-func (r *ReconcileComponent) hasMandatorySpecs(instance *v1beta1.Component) bool {
+func (r *ReconcileComponent) hasMandatorySpecs(instance *component.Component) bool {
 	// TODO
 	return true
 }
 
-func (r *ReconcileComponent) PopulateK8sLabels(component *v1beta1.Component, componentType string) map[string]string {
+func (r *ReconcileComponent) PopulateK8sLabels(component *component.Component, componentType string) map[string]string {
 	labels := map[string]string{}
 	labels[v1beta1.RuntimeLabelKey] = component.Spec.Runtime
 	labels[v1beta1.RuntimeVersionLabelKey] = component.Spec.Version
@@ -82,7 +83,7 @@ func (r *ReconcileComponent) PopulateK8sLabels(component *v1beta1.Component, com
 	return labels
 }
 
-func (r *ReconcileComponent) baseImage(c *v1beta1.Component) string {
+func (r *ReconcileComponent) baseImage(c *component.Component) string {
 	if c.Spec.BuildConfig.BaseImage != "" {
 		return c.Spec.BuildConfig.BaseImage
 	} else {
@@ -96,7 +97,7 @@ func (r *ReconcileComponent) baseImage(c *v1beta1.Component) string {
 	}
 }
 
-func (r *ReconcileComponent) gitRevision(c *v1beta1.Component) string {
+func (r *ReconcileComponent) gitRevision(c *component.Component) string {
 	if c.Spec.BuildConfig.Ref == "" {
 		return "master"
 	} else {
@@ -104,7 +105,7 @@ func (r *ReconcileComponent) gitRevision(c *v1beta1.Component) string {
 	}
 }
 
-func (r *ReconcileComponent) dockerImageURL(c *v1beta1.Component) string {
+func (r *ReconcileComponent) dockerImageURL(c *component.Component) string {
 	// Try to find the registry env var
 	registry, found := os.LookupEnv(RegistryAddressEnvVar)
 	if found {

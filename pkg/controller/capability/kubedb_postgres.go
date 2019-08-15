@@ -3,7 +3,8 @@ package capability
 import (
 	"github.com/appscode/go/encoding/json/types"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	capability "halkyon.io/api/capability/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -35,8 +36,8 @@ func newOwnedPostgres(owner v1beta1.Resource) postgres {
 	return p
 }
 
-func (res postgres) ownerAsCapability() *v1beta1.Capability {
-	return res.Owner().(*v1beta1.Capability)
+func (res postgres) ownerAsCapability() *capability.Capability {
+	return res.Owner().(*capability.Capability)
 }
 
 func (res postgres) Name() string {

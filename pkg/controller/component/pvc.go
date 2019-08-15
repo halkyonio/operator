@@ -1,7 +1,8 @@
 package component
 
 import (
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	component "halkyon.io/api/component/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -59,7 +60,7 @@ func (res pvc) Name() string {
 	return controller.PVCName(res.ownerAsComponent())
 }
 
-func getCapacity(c *v1beta1.Component) resource.Quantity {
+func getCapacity(c *component.Component) resource.Quantity {
 	specified := c.Spec.Storage.Capacity
 	if len(specified) == 0 {
 		specified = "1Gi"
@@ -68,7 +69,7 @@ func getCapacity(c *v1beta1.Component) resource.Quantity {
 	return resource.MustParse(specified)
 }
 
-func getAccessMode(c *v1beta1.Component) corev1.PersistentVolumeAccessMode {
+func getAccessMode(c *component.Component) corev1.PersistentVolumeAccessMode {
 	storage := c.Spec.Storage.Mode
 	mode := corev1.ReadWriteOnce
 	switch storage {

@@ -3,7 +3,9 @@ package link
 import (
 	"context"
 	"fmt"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	component "halkyon.io/api/component/v1beta1"
+	link "halkyon.io/api/link/v1beta1"
+	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
@@ -13,7 +15,7 @@ import (
 )
 
 func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
-	baseReconciler := controller2.NewBaseGenericReconciler(&v1beta1.Link{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&link.Link{}, mgr)
 	r := &ReconcileLink{BaseGenericReconciler: baseReconciler}
 	baseReconciler.SetReconcilerFactory(r)
 	return r
@@ -23,51 +25,51 @@ type ReconcileLink struct {
 	*controller2.BaseGenericReconciler
 }
 
-func (ReconcileLink) asLink(object runtime.Object) *v1beta1.Link {
-	return object.(*v1beta1.Link)
+func (ReconcileLink) asLink(object runtime.Object) *link.Link {
+	return object.(*link.Link)
 }
 
 func (r *ReconcileLink) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
-	link := r.asLink(resource)
-	component := &v1beta1.Component{}
-	component.Name = link.Spec.ComponentName
-	component.Namespace = link.Namespace
-	_, err := r.Fetch(component)
-	if err != nil || (v1beta1.ComponentReady != component.Status.Phase && v1beta1.ComponentRunning != component.Status.Phase) {
+	l := r.asLink(resource)
+	c := &component.Component{}
+	c.Name = l.Spec.ComponentName
+	c.Namespace = l.Namespace
+	_, err := r.Fetch(c)
+	if err != nil || (component.ComponentReady != c.Status.Phase && component.ComponentRunning != c.Status.Phase) {
 		return "component", false
 	}
-	return component.Name, true
+	return c.Name, true
 }
 
 func (r *ReconcileLink) CreateOrUpdate(object v1beta1.Resource) error {
-	link := r.asLink(object)
-	if link.Status.Phase != v1beta1.LinkReady {
-		found, err := r.fetchDeployment(link)
+	l := r.asLink(object)
+	if l.Status.Phase != link.LinkReady {
+		found, err := r.fetchDeployment(l)
 		if err != nil {
-			link.SetNeedsRequeue(true)
+			l.SetNeedsRequeue(true)
 			return err
 		}
 		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
-		if containers, isModified := r.updateContainersWithLinkInfo(link, found.Spec.Template.Spec.Containers); isModified {
+		if containers, isModified := r.updateContainersWithLinkInfo(l, found.Spec.Template.Spec.Containers); isModified {
 			found.Spec.Template.Spec.Containers = containers
-			if err = r.updateDeploymentWithLink(found, link); err != nil {
+			if err = r.updateDeploymentWithLink(found, l); err != nil {
 				// As it could be possible that we can't update the Deployment as it has been modified by another
 				// process, then we will requeue
-				link.SetNeedsRequeue(true)
+				l.SetNeedsRequeue(true)
 			}
-			link.SetHasChanged(isModified)
+			l.SetHasChanged(isModified)
 			return err
 		}
 	}
 	return nil
 }
 
-func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1beta1.Link, containers []v1.Container) ([]v1.Container, bool) {
+func (r *ReconcileLink) updateContainersWithLinkInfo(l *link.Link, containers []v1.Container) ([]v1.Container, bool) {
 	var isModified = false
-	kind := link.Spec.Kind
+	kind := l.Spec.Kind
 	switch kind {
-	case v1beta1.SecretLinkKind:
-		secretName := link.Spec.Ref
+	case link.SecretLinkKind:
+		secretName := l.Spec.Ref
 
 		// Check if EnvFrom already exists
 		// If this is the case, exit without error
@@ -86,12 +88,12 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(link *v1beta1.Link, contain
 			}
 		}
 
-	case v1beta1.EnvLinkKind:
+	case link.EnvLinkKind:
 		// Check if Env already exists
 		// If this is the case, exit without error
 		for i := 0; i < len(containers); i++ {
 			var isEnvExist = false
-			for _, specEnv := range link.Spec.Envs {
+			for _, specEnv := range l.Spec.Envs {
 				for _, env := range containers[i].Env {
 					if specEnv.Name == env.Name && specEnv.Value == env.Value {
 						// EnvFrom already exists for the Secret Ref
@@ -121,7 +123,7 @@ func (r *ReconcileLink) update(d *appsv1.Deployment) error {
 }
 
 //fetchDeployment returns the deployment resource created for this instance
-func (r *ReconcileLink) fetchDeployment(link *v1beta1.Link) (*appsv1.Deployment, error) {
+func (r *ReconcileLink) fetchDeployment(link *link.Link) (*appsv1.Deployment, error) {
 	deployment := &appsv1.Deployment{}
 	name := link.Spec.ComponentName
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err == nil {
@@ -134,7 +136,7 @@ func (r *ReconcileLink) fetchDeployment(link *v1beta1.Link) (*appsv1.Deployment,
 	}
 }
 
-func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *v1beta1.Link) error {
+func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *link.Link) error {
 	// Update the Deployment of the component
 	if err := r.update(d); err != nil {
 		r.ReqLogger.Info("Failed to update deployment.")

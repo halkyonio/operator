@@ -7,7 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pkg/errors"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	halkyon "halkyon.io/api"
+	component "halkyon.io/api/component/v1beta1"
 	"io"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,7 +44,7 @@ func crudClient() client.Client {
 	// Register the core k8s types
 	k8sscheme.AddToScheme(scheme)
 	// Register custom resource type
-	v1beta1.AddToScheme(scheme)
+	halkyon.AddToScheme(scheme)
 
 	kubeconfig, err := config.GetConfig()
 	if err != nil {
@@ -56,18 +57,18 @@ func crudClient() client.Client {
 	return runtimeClient
 }
 
-func springBootComponent(name, ns string) *v1beta1.Component {
-	return &v1beta1.Component{
+func springBootComponent(name, ns string) *component.Component {
+	return &component.Component{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1beta1.SchemeGroupVersion.String(),
-			Kind:       v1beta1.ComponentKind,
+			APIVersion: halkyon.SchemeGroupVersion.String(),
+			Kind:       component.Kind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
 		},
-		Spec: v1beta1.ComponentSpec{
-			DeploymentMode: v1beta1.DevDeploymentMode,
+		Spec: component.ComponentSpec{
+			DeploymentMode: component.DevDeploymentMode,
 			Runtime:        "spring-boot",
 		},
 	}

@@ -3,7 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
-	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
