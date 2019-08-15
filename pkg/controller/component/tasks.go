@@ -59,22 +59,6 @@ func (res task) Build() (runtime.Object, error) {
 				}},
 			},
 			Steps: []corev1.Container{
-				/*{
-					Name: "ls",
-					Image: "ubuntu",
-					Command: []string{
-						"bash",
-					},
-					Args: []string{
-						"-c",
-						"pwd",
-					},
-					VolumeMounts: []corev1.VolumeMount{
-						{
-							MountPath: "/sources",
-							Name:      "generatedsources"},
-					},
-				},*/
 				// # Generate a Dockerfile using the s2i tool
 				{
 					Name:  "generate",
