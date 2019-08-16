@@ -79,16 +79,6 @@ fi
 printTitle "Creating the namespace"
 kubectl create ns "${NS}"
 
-printTitle "Add privileged SCC to the serviceaccount postgres-db and buildbot. Required for the operators Tekton and KubeDB"
-if [ "$isOpenShift" == "true" ]; then
-  echo "We run on Openshift. So we will apply the SCC rule"
-  oc adm policy add-scc-to-user privileged system:serviceaccount:${NS}:postgres-db
-  oc adm policy add-scc-to-user privileged system:serviceaccount:${NS}:build-bot
-  oc adm policy add-role-to-user edit system:serviceaccount:${NS}:build-bot
-else
-  echo "We DON'T run on OpenShift. So need to change SCC"
-fi
-
 printTitle "Deploy the component for the fruit-backend, link and capability"
 kubectl apply -n "${NS}" -f "${DIR}"/../fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
 echo "Sleep ${SLEEP_TIME}"
