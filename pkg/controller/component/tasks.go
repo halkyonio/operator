@@ -68,7 +68,7 @@ func (res task) Build() (runtime.Object, error) {
 						"build",
 					},
 					Args: []string{
-						"${inputs.params.workspacePath}",
+						"${inputs.params.workspacePath}/${inputs.params.contextPath}",
 						"${inputs.params.baseImage}",
 						"--as-dockerfile",
 						"/sources/Dockerfile.gen",
