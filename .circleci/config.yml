@@ -152,8 +152,8 @@ commands:
             ./mvnw clean package
 
             # Set a correct deploymentMode in a component configuration
-            sed -i -E "s/(deploymentMode:).*/\1 \"<< parameters.mode >>\"/g" fruit-backend-sb/target/classes/META-INF/dekorate/component.yml
-            sed -i -E "s/(deploymentMode:).*/\1 \"<< parameters.mode >>\"/g" fruit-client-sb/target/classes/META-INF/dekorate/component.yml
+            sed -i -E "s/(deploymentMode:).*/\1 \"<< parameters.mode >>\"/g" fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
+            sed -i -E "s/(deploymentMode:).*/\1 \"<< parameters.mode >>\"/g" fruit-client-sb/target/classes/META-INF/dekorate/halkyon.yml
 
             ./scripts/end-to-end_fruit_demo.sh 127.0.0.1 << parameters.namespace >> << parameters.mode >>
             cd ..
