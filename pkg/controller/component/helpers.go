@@ -2,6 +2,11 @@ package component
 
 import (
 	"halkyon.io/operator/pkg/apis/halkyon/v1beta1"
+	"os"
+)
+
+const (
+	RegistryAddressEnvVar = "REGISTRY_ADDRESS"
 )
 
 func (r *ReconcileComponent) getEnvAsMap(component v1beta1.ComponentSpec) (map[string]string, error) {
@@ -77,6 +82,12 @@ func (r *ReconcileComponent) PopulateK8sLabels(component *v1beta1.Component, com
 }
 
 func (r *ReconcileComponent) dockerImageURL(c *v1beta1.Component) string {
+	// Try to find the registry env var
+	registry, found := os.LookupEnv(RegistryAddressEnvVar)
+	if found {
+		return registry + "/" + c.Namespace + "/" + c.Name
+	}
+	// Revert to default values if no ENV var is set
 	if r.IsTargetClusterRunningOpenShift() {
 		if r.OpenShiftVersion() == 4 {
 			return "image-registry.openshift-image-registry.svc:5000/" + c.Namespace + "/" + c.Name
