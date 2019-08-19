@@ -34,17 +34,7 @@
         </dependency>
         <dependency>
             <groupId>io.dekorate</groupId>
-            <artifactId>dekorate-spring-boot</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>dekorate-core</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>kubernetes-annotations</artifactId>
+            <artifactId>kubernetes-spring-starter</artifactId>
             <scope>compile</scope>
         </dependency>
     </dependencies>

@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 # Endpoint property to access the backend microservice
 endpoint:
   fruit: ${ENDPOINT_BACKEND}

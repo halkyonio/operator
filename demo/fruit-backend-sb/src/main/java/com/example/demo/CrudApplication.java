@@ -22,15 +22,14 @@ import io.dekorate.halkyon.annotation.HalkyonLink;
 import io.dekorate.halkyon.annotation.Parameter;
 import io.dekorate.halkyon.model.Kind;
 import io.dekorate.kubernetes.annotation.Env;
-import io.dekorate.kubernetes.annotation.KubernetesApplication;
+//import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@KubernetesApplication(ports = @Port(name = "http", containerPort = 8080))
+//@KubernetesApplication(ports = @Port(name = "http", containerPort = 8080))
 @HalkyonComponent(
     name = "fruit-backend-sb",
-    exposeService = true,
-    port = 8080
+    exposeService = true
 )
 @HalkyonLink(
     name = "link-to-database",
