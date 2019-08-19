@@ -27,8 +27,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @HalkyonComponent(
-    name = "fruit-backend-sb",
-    exposeService = true
+    name = "fruit-backend-sb"
 )
 @HalkyonLink(
     name = "link-to-database",

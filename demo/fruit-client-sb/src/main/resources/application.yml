@@ -9,3 +9,4 @@ endpoint:
 dekorate:
   component:
     deploymentMode: build
+    exposeService: true

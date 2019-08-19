@@ -5,6 +5,7 @@ server:
 dekorate:
   component:
     deploymentMode: build
+    exposeService: true
 
 spring:
   datasource:
