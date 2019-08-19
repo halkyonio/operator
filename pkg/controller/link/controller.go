@@ -66,9 +66,9 @@ func (r *ReconcileLink) CreateOrUpdate(object v1beta1.Resource) error {
 
 func (r *ReconcileLink) updateContainersWithLinkInfo(l *link.Link, containers []v1.Container) ([]v1.Container, bool) {
 	var isModified = false
-	kind := l.Spec.Kind
-	switch kind {
-	case link.SecretLinkKind:
+	linkType := l.Spec.Type
+	switch linkType {
+	case link.SecretLinkType:
 		secretName := l.Spec.Ref
 
 		// Check if EnvFrom already exists
@@ -88,7 +88,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(l *link.Link, containers []
 			}
 		}
 
-	case link.EnvLinkKind:
+	case link.EnvLinkType:
 		// Check if Env already exists
 		// If this is the case, exit without error
 		for i := 0; i < len(containers); i++ {
