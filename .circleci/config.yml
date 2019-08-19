@@ -29,7 +29,9 @@ commands:
     steps:
       - run:
           name: Install snap
-          command: sudo apt-get install snapd
+          command: |
+            sudo apt update -y
+            sudo apt install snapd -y
   install-microk8s:
     steps:
       - run:
