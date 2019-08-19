@@ -22,11 +22,10 @@ import io.dekorate.halkyon.annotation.HalkyonLink;
 import io.dekorate.halkyon.annotation.Parameter;
 import io.dekorate.halkyon.model.Kind;
 import io.dekorate.kubernetes.annotation.Env;
-//import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-//@KubernetesApplication(ports = @Port(name = "http", containerPort = 8080))
+@SpringBootApplication
 @HalkyonComponent(
     name = "fruit-backend-sb",
     exposeService = true
@@ -47,7 +46,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
        @Parameter(name = "DB_NAME", value = "sample-db"),
     }
 )
-@SpringBootApplication
 public class CrudApplication {
     public static void main(String[] args) {
         SpringApplication.run(CrudApplication.class, args);

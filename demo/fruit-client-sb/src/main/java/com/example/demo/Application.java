@@ -20,7 +20,6 @@ import io.dekorate.halkyon.annotation.HalkyonComponent;
 import io.dekorate.halkyon.annotation.HalkyonLink;
 import io.dekorate.halkyon.model.Kind;
 import io.dekorate.kubernetes.annotation.Env;
-//import io.dekorate.kubernetes.annotation.KubernetesApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -28,7 +27,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Entry point to the application.
  */
 @SpringBootApplication
-//@KubernetesApplication(ports = @Port(name = "http", containerPort = 8080))
 @HalkyonComponent(
     name = "fruit-client-sb",
     exposeService = true
