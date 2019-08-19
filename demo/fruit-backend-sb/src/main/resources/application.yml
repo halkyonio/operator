@@ -1,7 +1,7 @@
 # Halkyon properties to configure the component, link or capability
 dekorate:
   component:
-    deploymentMode: "dev"
+    deploymentMode: build
 
 spring:
   datasource:

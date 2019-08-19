@@ -29,7 +29,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 @HalkyonComponent(
     name = "fruit-client-sb",
-    exposeService = true
+    exposeService = true,
+    port = 8080
 )
 @HalkyonLink(
     name = "link-to-fruit-backend",
