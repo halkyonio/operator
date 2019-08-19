@@ -10,9 +10,9 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-   jpa:
-     hibernate:
-       ddl-auto: create
-       # Caused by: java.sql.SQLFeatureNotSupportedException: Method org.postgresql.jdbc.PgConnection.createClob() is not yet implemented.
-       jdbc:
-         lob.non_contextual_creation: true
+    jpa:
+      hibernate:
+        ddl-auto: create
+        # Caused by: java.sql.SQLFeatureNotSupportedException: Method org.postgresql.jdbc.PgConnection.createClob() is not yet implemented.
+        jdbc:
+          lob.non_contextual_creation: true
