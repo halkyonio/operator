@@ -2,3 +2,17 @@
 dekorate:
   component:
     deploymentMode: "dev"
+
+spring:
+  datasource:
+    url: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+   jpa:
+     hibernate:
+       ddl-auto: create
+       # Caused by: java.sql.SQLFeatureNotSupportedException: Method org.postgresql.jdbc.PgConnection.createClob() is not yet implemented.
+       jdbc:
+         lob.non_contextual_creation: true

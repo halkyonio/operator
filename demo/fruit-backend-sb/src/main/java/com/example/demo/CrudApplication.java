@@ -27,10 +27,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @HalkyonComponent(
     name = "fruit-backend-sb",
-    exposeService = true,
-    envs = @Env(
-        name = "SPRING_PROFILES_ACTIVE",
-        value = "postgresql-kubedb")
+    exposeService = true
 )
 @HalkyonLink(
     name = "link-to-database",
