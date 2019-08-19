@@ -11,7 +11,7 @@
     <properties>
         <snowdrop-bom.version>2.1.6.Final</snowdrop-bom.version>
         <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
-        <dekorate.version>0.7.5</dekorate.version>
+        <dekorate.version>0.8.0</dekorate.version>
     </properties>
 
     <dependencyManagement>
