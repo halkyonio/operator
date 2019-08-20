@@ -20,8 +20,7 @@ import io.dekorate.halkyon.annotation.HalkyonCapability;
 import io.dekorate.halkyon.annotation.HalkyonComponent;
 import io.dekorate.halkyon.annotation.HalkyonLink;
 import io.dekorate.halkyon.annotation.Parameter;
-import io.dekorate.halkyon.model.Kind;
-import io.dekorate.kubernetes.annotation.Env;
+import io.dekorate.halkyon.model.Type;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -32,7 +31,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @HalkyonLink(
     name = "link-to-database",
     componentName = "fruit-backend-sb",
-    kind = Kind.Secret,
+    type = Type.Secret,
     ref = "postgres-db-config")
 @HalkyonCapability(
     name = "postgres-db",
