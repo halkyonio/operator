@@ -188,6 +188,8 @@ github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoA
 github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
 github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc h1:f8eY6cV/x1x+HLjOp4r72s/31/V2aTUtg5oKRRPf8/Q=
 github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
+github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 h1:+ngKgrYPPJrOjhax5N+uePQ0Fh1Z7PheYoUI/0nzkPA=
+github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.0/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
 github.com/grpc-ecosystem/grpc-gateway v1.8.5 h1:2+KSC78XiO6Qy0hIjfc1OD9H+hsaJdJlb8Kqsd41CTE=
@@ -521,6 +523,8 @@ halkyon.io/api v0.0.0-20190814202033-5bd5531fd953 h1:WCQmpBzutp+a7lVRoK85k+cBxQ+
 halkyon.io/api v0.0.0-20190814202033-5bd5531fd953/go.mod h1:hcImaa2PeABBChkmWxhGjM5p1oFyjzJy5mFOOMDG1Ns=
 halkyon.io/api v1.0.0-beta.1 h1:MtcJslUjYUBymUfGHZrMzRYc6PByBIgiumqjfFMaH84=
 halkyon.io/api v1.0.0-beta.1/go.mod h1:hcImaa2PeABBChkmWxhGjM5p1oFyjzJy5mFOOMDG1Ns=
+halkyon.io/api v1.0.0-beta.2 h1:vPvGjyHsa/16qRFRMDxzSxKTIfyrp+L3EDMNP08JbFI=
+halkyon.io/api v1.0.0-beta.2/go.mod h1:cO9/hBS8zlmn/tcLFyZdbs03TwZHrRyDQSgvYQf9+fM=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 k8s.io/api v0.0.0-20181126151915-b503174bad59 h1:uXjIvSvNtNUQjqpBznXm29/Ntx/6Aezf/wa0yAFryWE=
