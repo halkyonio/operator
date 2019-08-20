@@ -13,4 +13,12 @@
     <description>Spring Boot - Fruit Configuration</description>
     <version>0.0.1-SNAPSHOT</version>
 
+    <dependencies>
+        <!-- To generate CRD -->
+        <dependency>
+            <groupId>io.dekorate</groupId>
+            <artifactId>halkyon-annotations</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
