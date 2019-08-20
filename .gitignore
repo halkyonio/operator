@@ -6,3 +6,7 @@ build/_output/
 **/target/
 package-lock.json
 report.txt
+.project
+.settings
+.classpath
+.factorypath
