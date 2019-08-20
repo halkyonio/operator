@@ -8,5 +8,5 @@ endpoint:
 # Halkyon properties to configure the component, link or capability
 dekorate:
   component:
-    deploymentMode: build
+    deploymentMode: dev
     exposeService: true
