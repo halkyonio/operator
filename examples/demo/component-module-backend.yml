@@ -12,11 +12,10 @@ spec:
   deploymentMode: build
   port: 8080
   buildConfig:
-    url: https://github.com/snowdrop/component-operator-demo.git
-    ref: master
-    moduleDirName: fruit-backend-sb
+    type: "s2i"
+    url: "https://github.com/halkyonio/operator.git"
+    ref: "master"
+    contextPath: "demo/"
+    moduleDirName: "fruit-backend-sb"
   runtime: spring-boot
-  version: 2.1.3
-  envs:
-  - name: SPRING_PROFILES_ACTIVE
-    value: postgresql-kubedb
+  version: 2.1.6
