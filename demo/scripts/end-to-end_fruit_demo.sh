@@ -70,6 +70,12 @@ function waitForAndGetPodName() {
   echo "${pod}"
 }
 
+if [ "$isOpenShift" == "true" ]; then
+  printTitle "Running on OCP using '$MODE' deployment mode" >> ${REPORT_FILE}
+else
+  printTitle "Running on K8S using '$MODE' deployment mode" >> ${REPORT_FILE}
+fi
+
 printTitle "Creating the namespace"
 kubectl create ns "${NS}"
 
