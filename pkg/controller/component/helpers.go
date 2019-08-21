@@ -81,6 +81,14 @@ func (r *ReconcileComponent) PopulateK8sLabels(component *v1beta1.Component, com
 	return labels
 }
 
+func (r *ReconcileComponent) gitRevision(c *v1beta1.Component) string {
+	if c.Spec.BuildConfig.Ref == "" {
+		return "master"
+	} else {
+		return c.Spec.BuildConfig.Ref
+	}
+}
+
 func (r *ReconcileComponent) dockerImageURL(c *v1beta1.Component) string {
 	// Try to find the registry env var
 	registry, found := os.LookupEnv(RegistryAddressEnvVar)

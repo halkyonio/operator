@@ -61,7 +61,7 @@ func (res taskRun) Build() (runtime.Object, error) {
 							Params: []v1alpha1.Param{
 								{
 									Name:  "revision",
-									Value: c.Spec.BuildConfig.Ref,
+									Value: res.reconciler.gitRevision(c),
 								},
 								{
 									Name:  "url",
