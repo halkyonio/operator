@@ -38,21 +38,21 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	defaultEnvVar := make(map[string]string, 7)
 	// defaultEnvVar["JAVA_APP_JAR"] = "app.jar"
 	images["spring-boot"] = imageInfo{
-		registryRef: "quay.io/snowdrop/spring-boot-s2i",
+		registryRef: "quay.io/halkyonio/spring-boot-s2i",
 		defaultEnv:  defaultEnvVar,
 	}
 	images["vert.x"] = imageInfo{
-		registryRef: "quay.io/snowdrop/spring-boot-s2i",
+		registryRef: "quay.io/halkyonio/spring-boot-s2i",
 		defaultEnv:  defaultEnvVar,
 	}
 	images["thorntail"] = imageInfo{
-		registryRef: "quay.io/snowdrop/spring-boot-s2i",
+		registryRef: "quay.io/halkyonio/spring-boot-s2i",
 		defaultEnv:  defaultEnvVar,
 	}
 	// References images
 	images["openjdk8"] = imageInfo{registryRef: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"}
 	images["nodejs"] = imageInfo{registryRef: "nodeshift/centos7-s2i-nodejs"}
-	images[supervisorImageId] = imageInfo{registryRef: "quay.io/snowdrop/supervisord"}
+	images[supervisorImageId] = imageInfo{registryRef: "quay.io/halkyonio/supervisord"}
 
 	supervisor := v1beta1.Component{
 		ObjectMeta: v1.ObjectMeta{

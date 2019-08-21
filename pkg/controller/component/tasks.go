@@ -46,7 +46,7 @@ func (res task) Build() (runtime.Object, error) {
 					Type: "git",
 				}},
 				Params: []v1alpha1.TaskParam{
-					{Name: "baseImage", Default: "quay.io/snowdrop/spring-boot-maven-s2i", Description: "S2i base image"},
+					{Name: "baseImage", Default: "quay.io/halkyonio/spring-boot-maven-s2i", Description: "S2i base image"},
 					{Name: "contextPath", Default: ".", Description: "The location of the path to run s2i from"},
 					{Name: "moduleDirName", Default: ".", Description: "The name of the directory containing the project (maven, ...) to be compiled"},
 					{Name: "verifyTLS", Default: "false", Description: "Verify registry certificates"},
