@@ -359,15 +359,15 @@ workflows:
     - okd-e2e-test:
         requires:
           - docker-image
-    - okd-e2e-test-dekorate-snapshot:
-        requires:
-          - docker-image
+    # - okd-e2e-test-dekorate-snapshot:
+    #     requires:
+    #       - docker-image
     - k8s-e2e-test:
         requires:
           - docker-image
-    - k8s-e2e-test-dekorate-snapshot:
-        requires:
-          - docker-image
+    # - k8s-e2e-test-dekorate-snapshot:
+    #     requires:
+    #       - docker-image
   release-operator:
     jobs:
     - release:
