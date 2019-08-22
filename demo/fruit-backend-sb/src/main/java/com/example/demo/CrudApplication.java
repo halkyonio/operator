@@ -36,7 +36,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @HalkyonCapability(
     name = "postgres-db",
     category = "database",
-    kind = "postgres",
+    type = "postgres",
     version = "10",
     parameters = {
        @Parameter(name = "DB_USER", value = "admin"),
