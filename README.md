@@ -170,7 +170,7 @@ So create first a `demo` namespace
 ```bash
 kubectl create ns demo
 ```
-and next create using your favorite editor, create a `component` resource with the following information:
+and next create using your favorite editor, a `component` resource with the following information:
 ```bash
 apiVersion: halkyon.io/v1beta1
 kind: Component
@@ -193,7 +193,7 @@ NAME          RUNTIME       VERSION   AGE   MODE   STATUS    MESSAGE            
 spring-boot   spring-boot             14s   dev    Pending   pod is not ready for component 'spring-boot' in namespace 'demo'                        
 ```
 
-**Remark** Don't worry about the status which is reported the first time as downloading the first time the needed images from external docker registry could take time !
+**Remark** Don't worry about the status which is reported the first time as downloading the needed images from a nexternal docker registry could take time !
 
 ```bash
 kubectl get components -n demo   
@@ -217,7 +217,7 @@ NAME                                        STATUS   VOLUME                     
 persistentvolumeclaim/m2-data-spring-boot   Bound    pvc-dab00dfe-a2f6-11e9-98d1-08002798bb5f   1Gi        RWO            standard       4m18s
 ```
 
-You can now cleanup the project as we will not deploy a Java micro-services or delegate the build to the Operator. So cleanup the project installed (component)
+You can now cleanup the project as we will not deploy additional micro-services. So you can cleanup the project installed (component)
 ```bash  
 kubectl delete component --all -n demo 
 ```
