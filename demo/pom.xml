@@ -58,6 +58,5 @@
     <modules>
         <module>fruit-client-sb</module>
         <module>fruit-backend-sb</module>
-        <module>fruit-configuration</module>
     </modules>
 </project>
