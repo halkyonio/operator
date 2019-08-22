@@ -4,18 +4,18 @@ metadata:
   annotations:
     capabilities: Full Lifecycle
     categories: "Developer Tools"
-    containerImage: quay.io/snowdrop/component-operator:latest
-    createdAt: 2019-03-07
+    containerImage: quay.io/halkyonio/operator:latest
+    createdAt: 2019-08-21
     certified: "false"
     support: Snowdrop
-    repository: https://github.com/snowdrop/component-operator
+    repository: https://github.com/halkyonio/operator
     alm-examples: |-
       [
         {
           "apiVersion" : "v1",
           "kind" : "List",
           "items" : [ {
-            "apiVersion" : "devexp.runtime.redhat.com/v1alpha1",
+            "apiVersion" : ".halkyon.io/v1alpha1",
             "kind" : "Component",
             "metadata" : {
               "name" : "fruit-client-sb"
@@ -42,7 +42,7 @@ metadata:
           "apiVersion" : "v1",
           "kind" : "List",
           "items" : [ {
-            "apiVersion" : "devexp.runtime.redhat.com/v1alpha1",
+            "apiVersion" : ".halkyon.io/v1alpha1",
             "kind" : "Component",
             "metadata" : {
               "annotations" : {
@@ -101,7 +101,7 @@ metadata:
       ]
     description: |-
       Developer Operator aiming to generate/install k8s resources of a microservice (aka component) on Kubernetes/ OpenShift
-  name: kubecomposer.v0.0.1
+  name: halkyon.v0.0.1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -127,7 +127,7 @@ spec:
 
     Simple example to install a Development pod where a Spring Boot application is deployed and can be accessed either using a kubernetes Ingress or Openshift route address
 
-        apiVersion: devexp.runtime.redhat.com/v1alpha1
+        apiVersion: halkyon.io/v1alpha1
         kind: Component
         metadata:
           name: fruit-backend
@@ -142,7 +142,7 @@ spec:
 
     To configure a Service from the Openshift Automation Broker
 
-        apiVersion: devexp.runtime.redhat.com/v1alpha1
+        apiVersion: halkyon.io/v1alpha1
         kind: Component
         metadata:
           name: fruit-database
@@ -182,18 +182,18 @@ spec:
   customresourcedefinitions:
     owned:
       - kind: Component
-        name: components.devexp.runtime.redhat.com
-        version: v1alpha2
+        name: components.halkyon.io
+        version: v1beta1
         description: Component CRD
         displayName: Component CRD to compose microservices on k8s, openshift
       - kind: Capability
-        name: capabilities.devexp.runtime.redhat.com
-        version: v1alpha2
+        name: capabilities.halkyon.io
+        version: v1beta1
         description: Capability CRD
         displayName: Capability CRD to deploy a service such as a Database, .... on k8s, openshift
       - kind: Link
-        name: links.devexp.runtime.redhat.com
-        version: v1alpha2
+        name: links.halkyon.io
+        version: v1beta1
         description: Link CRD
         displayName: Link CRD to link or inject ENVvars, secrets to microservices deployed on k8s, openshift
     required:
@@ -212,20 +212,20 @@ spec:
   install:
     spec:
       deployments:
-        - name: kubecomposer-operator
+        - name: halkyon-operator
           spec:
             replicas: 1
             selector:
               matchLabels:
-                name: kubecomposer-operator
+                name: halkyon-operator
             template:
               metadata:
                 labels:
-                  name: kubecomposer-operator
+                  name: halkyon-operator
               spec:
                 containers:
                   - command:
-                      - component-operator
+                      - halkyon-operator
                     args:
                       - --zap-encoder
                       - $(ZAP_ENCODER)
@@ -239,16 +239,20 @@ spec:
                           fieldRef:
                             fieldPath: metadata.name
                       - name: OPERATOR_NAME
-                        value: kubecomposer-operator
+                        value: halkyon-operator
                       - name: ZAP_ENCODER
                         value: "console"
-                    image: quay.io/snowdrop/component-operator:latest
+                     # - name: BASE_S2I_IMAGE
+                     #   value: "quay.io/halkyonio/spring-boot-maven-s2i"
+                     # - name: REGISTRY_ADDRESS
+                     #   value: "docker-registry.default.svc:5000"
+                    image: quay.io/halkyonio/operator:latest
                     imagePullPolicy: Always
-                    name: kubecomposer-operator
+                    name: halkyon-operator
                     ports:
                       - containerPort: 60000
                         name: metrics
-                serviceAccountName: kubecomposer-operator
+                serviceAccountName: halkyon-operator
       clusterPermissions:
         - rules:
             - apiGroups:
@@ -264,7 +268,7 @@ spec:
               verbs:
                 - "*"
             - apiGroups:
-                - devexp.runtime.redhat.com
+                - halkyon.io
               resources:
                 - "*"
               verbs:
@@ -314,6 +318,7 @@ spec:
                 - image.openshift.io
               resources:
                 - imagestreams
+                - imagestreams/layers
               verbs:
                 - "*"
             - apiGroups:
@@ -339,7 +344,7 @@ spec:
                 - rolebindings
               verbs:
                 - "*"
-          serviceAccountName: kubecomposer-operator
+          serviceAccountName: halkyon-operator
     strategy: deployment
   installModes:
     - supported: true
