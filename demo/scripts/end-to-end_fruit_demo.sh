@@ -105,6 +105,22 @@ for i in "${resources[@]}"; do
   printf "\n" >>${REPORT_FILE}
 done
 
+if [ "$MODE" == "build" ]; then
+   printTitle "1. Log of the Tekton's task pod and containers executing the steps" >> ${REPORT_FILE}
+   for i in fruit-backend-sb fruit-client-sb; do
+   until kubectl get pods -n $NS -ltekton.dev/task=s2i-buildah-push | grep "Running"; do sleep 5; done
+   printTitle "1.1. Step generate Dockerfile for $i" >> ${REPORT_FILE}
+   kubectl logs -f -n ${NS} $(kubectl get pods -n $NS -ltekton.dev/task=s2i-buildah-push,build=$i -o name) -c step-generate >> ${REPORT_FILE}
+   printf "\n" >> ${REPORT_FILE}
+   printTitle "1.2. Step s2i maven build for $i" >> ${REPORT_FILE}
+   kubectl logs -f -n ${NS} $(kubectl get pods -n $NS -ltekton.dev/task=s2i-buildah-push,build=$i -o name) -c step-build >> ${REPORT_FILE}
+   printf "\n" >> ${REPORT_FILE}
+   printTitle "1.3. Step docker push for $i" >> ${REPORT_FILE}
+   kubectl logs -f -n ${NS} $(kubectl get pods -n $NS -ltekton.dev/task=s2i-buildah-push,build=$i -o name) -c step-push >> ${REPORT_FILE}
+   printf "\n" >> ${REPORT_FILE}
+   done
+fi
+
 printTitle "2. ENV injected to the fruit backend component"
 printTitle "2. ENV injected to the fruit backend component" >>${REPORT_FILE}
 podName=$(waitForAndGetPodName "${COMPONENT_FRUIT_BACKEND_NAME}")
