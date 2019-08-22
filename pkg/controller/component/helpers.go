@@ -90,8 +90,8 @@ func (r *ReconcileComponent) baseImage(c *v1beta1.Component) string {
 		if found {
 			return baseImage
 		} else {
-			// We return the default image
-			return "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"
+			// We return the default image which is out jdk8 image packaging some spring boot starters
+			return "quay.io/repository/halkyonio/spring-boot-maven-s2i"
 		}
 	}
 }
