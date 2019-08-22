@@ -21,13 +21,13 @@ func (r *ReconcileCapability) installDB(c *capability.Capability) (e error) {
 		return e
 	}
 
-	if string(c.Spec.Kind) == strings.ToLower(string(capability.PostgresKind)) {
+	if string(c.Spec.Type) == strings.ToLower(string(capability.PostgresType)) {
 		// Check if the KubeDB - Postgres exists
 		if e = r.CreateIfNeeded(c, &kubedbv1.Postgres{}); e != nil {
 			return e
 		}
 	} else {
-		return fmt.Errorf("unsupported '%s' database kind", c.Spec.Kind)
+		return fmt.Errorf("unsupported '%s' database kind", c.Spec.Type)
 	}
 
 	return
