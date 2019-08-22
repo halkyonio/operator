@@ -86,7 +86,7 @@ func (r *ReconcileComponent) baseImage(c *v1beta1.Component) string {
 	if c.Spec.BuildConfig.BaseImage != "" {
 		return c.Spec.BuildConfig.BaseImage
 	} else {
-		baseImage, found := os.LookupEnv("BaseS2iImage")
+		baseImage, found := os.LookupEnv(BaseS2iImage)
 		if found {
 			return baseImage
 		} else {
