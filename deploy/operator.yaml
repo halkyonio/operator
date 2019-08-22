@@ -34,6 +34,7 @@ spec:
               value: "halkyon-operator"
             - name: ZAP_ENCODER
               value: "console"
-            - name: BASE_S2I_IMAGE
-              value: "quay.io/halkyonio/spring-boot-maven-s2i"
-            - name: REGISTRY_ADDRESS
+            # - name: BASE_S2I_IMAGE
+            #   value: "quay.io/halkyonio/spring-boot-maven-s2i"
+            # - name: REGISTRY_ADDRESS
+            #   value: "docker-registry.default.svc:5000"
