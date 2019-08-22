@@ -34,3 +34,6 @@ spec:
               value: "halkyon-operator"
             - name: ZAP_ENCODER
               value: "console"
+            - name: BASE_S2I_IMAGE
+              value: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"
+            - name: REGISTRY_ADDRESS

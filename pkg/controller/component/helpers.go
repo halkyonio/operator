@@ -7,6 +7,7 @@ import (
 
 const (
 	RegistryAddressEnvVar = "REGISTRY_ADDRESS"
+	BaseS2iImage = "BASE_S2I_IMAGE"
 )
 
 func (r *ReconcileComponent) getEnvAsMap(component v1beta1.ComponentSpec) (map[string]string, error) {
@@ -79,6 +80,20 @@ func (r *ReconcileComponent) PopulateK8sLabels(component *v1beta1.Component, com
 	labels[v1beta1.NameLabelKey] = component.Name
 	labels[v1beta1.ManagedByLabelKey] = "halkyon-operator"
 	return labels
+}
+
+func (r *ReconcileComponent) baseImage(c *v1beta1.Component) string {
+	if c.Spec.BuildConfig.BaseImage != "" {
+		return c.Spec.BuildConfig.BaseImage
+	} else {
+		baseImage, found := os.LookupEnv("BaseS2iImage")
+		if found {
+			return baseImage
+		} else {
+			// We return the default image
+			return "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"
+		}
+	}
 }
 
 func (r *ReconcileComponent) gitRevision(c *v1beta1.Component) string {

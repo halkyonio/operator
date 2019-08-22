@@ -49,7 +49,7 @@ func (res taskRun) Build() (runtime.Object, error) {
 				Params: []v1alpha1.Param{
 					// See description of the parameters within the Tasks
 					// We only override parameters here. Defaults are defined within the Tasks
-					//{Name: "baseImage", Value: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"},
+					{Name: "baseImage", Value: c.Spec.BuildConfig.BaseImage},
 					{Name: "moduleDirName", Value: c.Spec.BuildConfig.ModuleDirName},
 					{Name: "contextPath", Value: c.Spec.BuildConfig.ContextPath},
 				},
