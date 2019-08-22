@@ -30,8 +30,8 @@ Custom resources contains metadata about the framework/language to be used to ei
 - Configure the `component` in order to inject `env var, secret, ...`
 - Create a service or capability such as database
 
-To add a micro-service to your application is, if a URL should be created to access it from outside of the cluster or simply to specify some `ENV` vars to be used by the 
-container's image when the pod is created, then create a `component.yaml` file such as the following: 
+To add a micro-service to your project, to generate optionally a Route URL to access it from outside of the cluster or simply to specify some `ENV` vars to be by the runtime 
+the pod is created, then create a `halkyon.yml` file such as the following and deploy it on a cluster provisioned by the Halkyon operator.
  
 ```bash
 apiVersion: halkyon.io/v1beta1
@@ -58,7 +58,7 @@ spec:
 
 **Remarks**: 
 - The Halkyon Operator runs top of `Kubernetes >= 1.13` or `OpenShift >= 3.11`.
-- You can find more information about the Custom Resources and their fields under this folder `pkg/apis/component/v1alpha2` like also the others `CRs` supported : `link` and `capability`
+- You can find more information about the Custom Resources and their fields under the project https://github.com/halkyonio/api like also the others `CRs` supported : `link` and `capability`
 
 ## Prerequisites
 
