@@ -25,31 +25,19 @@
             </dependency>
             <dependency>
                 <groupId>io.dekorate</groupId>
-                <artifactId>halkyon-annotations</artifactId>
+                <artifactId>halkyon-spring-starter</artifactId>
                 <scope>compile</scope>
                 <version>${dekorate.version}</version>
             </dependency>
+            <!--  Override version from BOM -->
             <dependency>
                 <groupId>io.dekorate</groupId>
-                <artifactId>kubernetes-spring-starter</artifactId>
+                <artifactId>dekorate-core</artifactId>
                 <version>${dekorate.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.dekorate</groupId>
                 <artifactId>dekorate-spring-boot</artifactId>
-                <scope>compile</scope>
-                <version>${dekorate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>dekorate-core</artifactId>
-                <scope>compile</scope>
-                <version>${dekorate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>kubernetes-annotations</artifactId>
-                <scope>compile</scope>
                 <version>${dekorate.version}</version>
             </dependency>
         </dependencies>

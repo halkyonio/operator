@@ -29,12 +29,7 @@
         <!-- To generate CRD -->
         <dependency>
             <groupId>io.dekorate</groupId>
-            <artifactId>halkyon-annotations</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dekorate</groupId>
-            <artifactId>kubernetes-spring-starter</artifactId>
+            <artifactId>halkyon-spring-starter</artifactId>
             <scope>compile</scope>
         </dependency>
     </dependencies>
