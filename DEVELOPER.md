@@ -26,34 +26,34 @@ operator on `operatorhub.io`
 
 ### Build the docker image of the Operator
 
-The following steps are defined within the `.circleci/config.yml` file 
+The following steps are executed byt the `.circleci/config.yml` job's file and can also be used
+locally to build your own docker image. 
 
 ```bash
-docker build -t component-operator:${VERSION} -f build/Dockerfile .
-TAG_ID=$(docker images -q component-operator:${VERSION})
-docker tag ${TAG_ID} quay.io/snowdrop/component-operator:${VERSION}
-docker tag ${TAG_ID} quay.io/snowdrop/component-operator:latest
+docker build -t operator:${VERSION} -f build/Dockerfile .
+TAG_ID=$(docker images -q operator:${VERSION})
+docker tag ${TAG_ID} quay.io/halkyonio/operator:${VERSION}
+docker tag ${TAG_ID} quay.io/halkyonio/operator:latest
 docker login quay.io -u="${QUAY_ROBOT_USER}" -p="${QUAY_ROBOT_TOKEN}"
-docker push quay.io/snowdrop/component-operator:${VERSION}
-docker push quay.io/snowdrop/component-operator:latest
+docker push quay.io/halkyonio/operator:${VERSION}
+docker push quay.io/halkyonio/operator:latest
 ```
 
 ### Fork the community operators and prepare the OLM bundle
 
-- Git clone locally the snowdrop community-operators project - https://github.com/snowdrop/community-operators
+- Git clone locally the forked community-operators project - https://github.com/halkyionis/community-operators
 - Next create under `upstream-community-operators` or `community-operators` or both folders a project having the name of the operator
 with the following resources that you can find as example under the operator project - `deploy/olm-catalog/bundle`.
 
 ```bash
 upstream-community-operators
   <operator_name>
-    capability.v1alpha2.crd.yaml
-    component.v1alpha2.crd.yaml
-    kubecomposer.package.yaml
-    kubecomposer.v0.0.1.clusterserviceversion.yaml
-    link_v1alpha2.crd.yaml
+    capability.v1beta1.crd.yaml
+    component.v1beta1.crd.yaml
+    link_v1beta1.crd.yaml
+    halkyon.package.yaml
+    halkyon.v0.0.1.clusterserviceversion.yaml
 ```
-
 - Submit the PR when the following step has been accomplished
 
 **Remarks**
@@ -66,7 +66,7 @@ only check the syntax, mandatory fields but will also display graphically the de
 
 ### How to deploy the bundle as Quay application
 
-One of the requirement to let you to use your Operator with an OLM registry is to publish first on quay.io the bundle information created previously
+One of the requirement to let you to use an Operator with an OLM registry is to publish first it on `quay.io` the bundle information created previously
 For that purpose, we will use the `operator-courier` tool which can validate or publish the bundle on quay.io
 
 Install first the [tool](https://github.com/operator-framework/operator-courier) `operator-courier`.
@@ -78,9 +78,9 @@ Verify your operator's bundle using the tool.
     export BUNDLE_DIR="deploy/olm-catalog/bundle"
     operator-courier verify $BUNDLE_DIR  
     
-**Remark** The `BUNDLE_DIR` must point to the directory containing the bundle to be tested and not yet published on operatorhub.io    
+**Remark** The `BUNDLE_DIR` must point to the directory containing the bundle to be tested and not yet published on `operatorhub.io`    
 
-Next, get from `quay.io` an `Authentication token` using your quay's username OR robot username/pwd to access your namespace.
+Next, get from `quay.io` an `Authentication token` using your `quay's username` OR `robot username` and password to access your namespace.
 
 Next, execute the following `curl` request to get a token (e.g `basic Y2gwMDdtK...A="`).
 
@@ -90,14 +90,13 @@ Next, execute the following `curl` request to get a token (e.g `basic Y2gwMDdtK.
     
 Push finally the bundle on quay as an `application`.
 
-    export QUAY_ORG="quay_organization (e.g snowdrop)"
-    export REPOSITORY="kubecomposer"
+    export QUAY_ORG="quay_organization (e.g halkyionio)"
+    export REPOSITORY="halkyon"
     export RELEASE="0.0.1"
     operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
     
 **Warning**: The name of the repository must match the name of the operator created under the folder `upstream-community-operators` or `community-operators`. The version, of course, will match the one defined within the `CSV` yaml resource or bundle package
     
-
 ### How to deploy the Operator on the OLM registry of OCP4
 
 For local testing purposes, the bundle created previously can be tested using an ocp4 cluster. For that purpose, we will deploy different resources in order to let the OLM registry to fetch
@@ -119,16 +118,16 @@ Wait a few moments and check if the pod of the operator has been created under t
 
     oc get -n openshift-operators pods
     NAME                                  READY     STATUS    RESTARTS   AGE
-    component-operator-85fcbdf6fc-r4fmf   1/1       Running   0          9m
+    halkyon-operator-85fcbdf6fc-r4fmf   1/1       Running   0          9m
     
 To clean-up , execute the following commands
 
-    oc delete -n openshift-operators subscriptions/component
-    oc delete -n openshift-marketplace operatorsource/snowdrop-operators
-    oc delete crd/components.component.k8s.io
-    oc delete -n openshift-operators ClusterServiceVersion/component-operator.v0.10.0
+    oc delete -n openshift-operators subscriptions/halkyon
+    oc delete -n openshift-marketplace operatorsource/halkyon-operators
+    oc delete crd/components.halkyon.io
+    oc delete -n openshift-operators ClusterServiceVersion/operator.v0.1.0
     oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
-    oc delete -n openshift-operators deployment/component-operator
+    oc delete -n openshift-operators deployment/halkyon-operator
 
 ## Deprecated
 
