@@ -145,3 +145,7 @@ func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *v1b
 	link.SetSuccessStatus(name, fmt.Sprintf("linked to '%s' component", name))
 	return nil
 }
+
+func (r *ReconcileLink) Delete(resource v1beta1.Resource) error {
+	return nil
+}

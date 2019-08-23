@@ -56,8 +56,8 @@ func (r *ReconcileCapability) IsDependentResourceReady(resource v1beta1.Resource
 	return db.(*kubedbv1.Postgres).Name, true
 }
 
-func (r *ReconcileCapability) Delete(object v1beta1.Resource) (bool, error) {
-	panic("implement me")
+func (r *ReconcileCapability) Delete(object v1beta1.Resource) error {
+	return nil
 }
 
 func (r *ReconcileCapability) CreateOrUpdate(object v1beta1.Resource) (e error) {
