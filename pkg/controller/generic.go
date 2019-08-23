@@ -27,7 +27,7 @@ import (
 type ReconcilerFactory interface {
 	PrimaryResourceType() v1beta1.Resource
 	WatchedSecondaryResourceTypes() []runtime.Object
-	Delete(object v1beta1.Resource) (bool, error)
+	Delete(object v1beta1.Resource) error
 	CreateOrUpdate(object v1beta1.Resource) error
 	IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool)
 	Helper() ReconcilerHelper
@@ -152,7 +152,7 @@ func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object
 	return watched
 }
 
-func (b *BaseGenericReconciler) Delete(object v1beta1.Resource) (bool, error) {
+func (b *BaseGenericReconciler) Delete(object v1beta1.Resource) error {
 	return b.factory().Delete(object)
 }
 
@@ -217,8 +217,8 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 			b.ReqLogger.Info(typeName + " resource not found.")
 			if resource.ShouldDelete() {
 				b.ReqLogger.Info(typeName + " resource is marked for deletion. Running clean-up.")
-				requeue, err := b.Delete(resource)
-				return reconcile.Result{Requeue: requeue}, err
+				err := b.Delete(resource)
+				return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
 			}
 			return reconcile.Result{}, nil
 		}

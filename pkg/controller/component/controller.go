@@ -134,7 +134,7 @@ func (r *ReconcileComponent) CreateOrUpdate(object v1beta1.Resource) (err error)
 	return err
 }
 
-func (r *ReconcileComponent) Delete(resource v1beta1.Resource) (bool, error) {
+func (r *ReconcileComponent) Delete(resource v1beta1.Resource) error {
 	if r.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode
@@ -151,10 +151,10 @@ func (r *ReconcileComponent) Delete(resource v1beta1.Resource) (bool, error) {
 
 		// attempt to delete the imagestream if it exists
 		if e := r.Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
-			return false, e
+			return e
 		}
 	}
-	return false, nil
+	return nil
 }
 
 // Check if the Pod Condition is Type = Ready and Status = True
