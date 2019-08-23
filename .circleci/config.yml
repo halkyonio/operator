@@ -145,6 +145,7 @@ commands:
     steps:
       - run:
           name: Run e2e test
+          no_output_timeout: 15m
           command: |
             echo "Running '<< parameters.mode >>' mode e2e test in a '<< parameters.namespace >>' namespace"
             cd demo
@@ -275,9 +276,6 @@ jobs:
     - test-e2e:
         namespace: e2e-dev
         mode: dev
-    # - test-e2e:
-    #     namespace: e2e-build
-    #     mode: build
 
   k8s-e2e-test-dekorate-snapshot:
     machine: true
