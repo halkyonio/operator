@@ -153,7 +153,7 @@ commands:
             # Set a correct deploymentMode in a component configuration
             sed -i -E "s/(deploymentMode:).*/\1 << parameters.mode >>/g" fruit-backend-sb/src/main/resources/application.yml
             sed -i -E "s/(deploymentMode:).*/\1 << parameters.mode >>/g" fruit-client-sb/src/main/resources/application.yml
-            ./mvnw clean package
+            ./mvnw -B clean package
 
             ./scripts/end-to-end_fruit_demo.sh 127.0.0.1 << parameters.namespace >> << parameters.mode >>
             cd ..
