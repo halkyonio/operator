@@ -73,7 +73,7 @@ metadata:
         }
       ]
     description: |-
-      HalKyon: To get back to the halcyon days of local development in a modern kubernetes setting of microservices!
+      Halkyon: To get back to the halcyon days of local development in a modern kubernetes setting of microservices!
   name: halkyon.v0.0.1
   namespace: placeholder
 spec:
@@ -97,6 +97,11 @@ spec:
     - Select the container image to be used to launch the application: java for `Spring Boot, Eclipse Vert.x, Thorntail`; node for `nodejs`
     - Configure the `component` in order to inject `env var, secret, ...`
     - Create a service or capability such as database
+
+    ## Prerequisite
+
+    In order to use the Halkyon Operator and the CRs, it is mandatory to install [Tekton Pipelines](https://tekton.dev/) and [KubeDB](http://kubedb.com) Operators.
+    Otherwise, it will fail start !!
 
     ## How to use it
 
