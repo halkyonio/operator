@@ -371,9 +371,9 @@ workflows:
     - okd-dev-e2e-test:
         requires:
           - docker-image
-    - okd-build-e2e-test:
-        requires:
-          - docker-image
+    #- okd-build-e2e-test:
+    #    requires:
+    #      - docker-image
     # - okd-e2e-test-dekorate-snapshot:
     #     requires:
     #       - docker-image

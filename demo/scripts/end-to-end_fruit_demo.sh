@@ -107,8 +107,8 @@ done
 
 if [ "$MODE" == "build" ]; then
    printTitle "1. Log of the Tekton's task pod and containers executing the steps" >> ${REPORT_FILE}
+   until kubectl get pods -n $NS -ltekton.dev/task=s2i-buildah-push | grep "Running"; do sleep 5; done
    for i in fruit-backend-sb fruit-client-sb; do
-     until kubectl get pods -n $NS -ltekton.dev/task=s2i-buildah-push,build=$i | grep "Running"; do sleep 5; done
      printTitle "1.1. Step generate Dockerfile for $i" >> ${REPORT_FILE}
      kubectl logs -f -n ${NS} $(kubectl get pods -n $NS -ltekton.dev/task=s2i-buildah-push,build=$i -o name) -c step-generate >> ${REPORT_FILE}
      printf "\n" >> ${REPORT_FILE}
