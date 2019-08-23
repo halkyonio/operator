@@ -145,7 +145,7 @@ commands:
     steps:
       - run:
           name: Run e2e test
-          no_output_timeout: 15m
+          no_output_timeout: 20m
           command: |
             echo "Running '<< parameters.mode >>' mode e2e test in a '<< parameters.namespace >>' namespace"
             cd demo
@@ -371,9 +371,9 @@ workflows:
     - okd-dev-e2e-test:
         requires:
           - docker-image
-    #- okd-build-e2e-test:
-    #    requires:
-    #      - docker-image
+    - okd-build-e2e-test:
+        requires:
+          - docker-image
     # - okd-e2e-test-dekorate-snapshot:
     #     requires:
     #       - docker-image
