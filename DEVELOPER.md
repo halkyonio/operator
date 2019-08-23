@@ -123,10 +123,10 @@ Wait a few moments and check if the pod of the operator has been created under t
 To clean-up , execute the following commands
 
     oc delete -n openshift-operators subscriptions/halkyon
-    oc delete -n openshift-marketplace operatorsource/halkyon-operators
-    oc delete crd/components.halkyon.io
-    oc delete -n openshift-operators ClusterServiceVersion/operator.v0.1.0
-    oc delete -n openshift-marketplace CatalogSourceConfig/installed-custom-openshift-operators 
+    oc delete  -n openshift-marketplace operatorsource/halkyon-operators
+    oc delete crd/components.halkyon.io,crd/links.halkyon.io,crd/capabilities.halkyon.io
+    oc delete -n openshift-operators ClusterServiceVersion/halkyon.v0.0.1
+    oc delete -n openshift-marketplace CatalogSourceConfig/halkyon-operators
     oc delete -n openshift-operators deployment/halkyon-operator
 
 ## Deprecated
