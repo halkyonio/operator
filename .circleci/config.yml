@@ -205,7 +205,7 @@ jobs:
           docker push quay.io/halkyonio/operator:${VERSION}
           docker push quay.io/halkyonio/operator:latest
 
-  okd-e2e-test:
+  okd-dev-e2e-test:
     machine: true
     steps:
     - checkout
@@ -221,9 +221,23 @@ jobs:
     - test-e2e:
         namespace: e2e-dev
         mode: dev
-    - test-e2e:
-        namespace: e2e-build
-        mode: build
+
+  okd-build-e2e-test:
+    machine: true
+    steps:
+      - checkout
+      - openshift/launch_openshift
+      - install-helm
+      - install-kubedb
+      - install-kubedb-catalog
+      - install-halkyon-operator
+      - install-tekton
+      - setup-registry-dns:
+          ns: default
+          svc: docker-registry
+      - test-e2e:
+          namespace: e2e-build
+          mode: build
 
   okd-e2e-test-dekorate-snapshot:
     machine: true
@@ -246,7 +260,7 @@ jobs:
         namespace: e2e-build
         mode: build
 
-  k8s-e2e-test:
+  k8s-dev-e2e-test:
     machine: true
     steps:
     - checkout
@@ -356,13 +370,16 @@ workflows:
   build-operator:
     jobs:
     - docker-image
-    - okd-e2e-test:
+    - okd-dev-e2e-test:
+        requires:
+          - docker-image
+    - okd-build-e2e-test:
         requires:
           - docker-image
     # - okd-e2e-test-dekorate-snapshot:
     #     requires:
     #       - docker-image
-    - k8s-e2e-test:
+    - k8s-dev-e2e-test:
         requires:
           - docker-image
     # - k8s-e2e-test-dekorate-snapshot:
