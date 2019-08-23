@@ -133,7 +133,7 @@ func (in *Link) GetStatusAsString() string {
 }
 
 func (in *Link) ShouldDelete() bool {
-	return !in.DeletionTimestamp.IsZero()
+	return true
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
