@@ -3,11 +3,12 @@ kind: CatalogSourceConfig
 metadata:
   labels:
     opsrc-datastore: "true"
-    opsrc-owner-name: component-operator
+    opsrc-owner-name: halkyon-operators
     opsrc-owner-namespace: openshift-marketplace
-  name: component-operator
+  name: halkyon-operators
+  namespace: openshift-marketplace
 spec:
-  csDisplayName: Component Operator
+  csDisplayName: Halkyon Operators
   csPublisher: Snowdrop
-  packages: component
-  targetNamespace: openshift-marketplace
+  packages: halkyon
+  targetNamespace: openshift-operators

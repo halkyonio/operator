@@ -4,6 +4,7 @@ metadata:
   name: links.halkyon.io
 spec:
   group: halkyon.io
+  version: v1beta1
   versions:
     - name: v1beta1
       served: true

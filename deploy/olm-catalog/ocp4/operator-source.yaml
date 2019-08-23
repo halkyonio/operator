@@ -1,14 +1,14 @@
 apiVersion: operators.coreos.com/v1
 kind: OperatorSource
 metadata:
-  name: snowdrop-operators
+  name: halkyon-operators
   namespace: openshift-marketplace
 spec:
   type: appregistry
   endpoint: https://quay.io/cnr
   # The registryNamespace corresponds to the Quay user created under this URL : https://quay.io/organization/
   # This org or registry will contain different applications published
-  # Example : https://quay.io/application/snowdrop/kubecomposer
-  registryNamespace: snowdrop
-  displayName: "Snowdrop Operators"
+  # Example : https://quay.io/application/halkyonio/halkyon
+  registryNamespace: halkyonio
+  displayName: "Halkyon Operators"
   publisher: "Snowdrop"

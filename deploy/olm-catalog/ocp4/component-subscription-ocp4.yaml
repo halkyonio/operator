@@ -4,12 +4,12 @@ metadata:
   labels:
     csc-owner-name: installed-custom-openshift-operators
     csc-owner-namespace: openshift-marketplace
-  name: kubecomposer
+  name: halkyon
   namespace: openshift-operators
 spec:
   channel: alpha
   installPlanApproval: Automatic
-  name: kubecomposer
+  name: halkyon
   source: installed-custom-openshift-operators
   sourceNamespace: openshift-operators
-  startingCSV: kubecomposer.v0.0.1
+  startingCSV: halkyon.v0.0.1
