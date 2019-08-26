@@ -70,7 +70,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	return dep, nil
 }
 
-func (r *ReconcileComponent) getRuntimeContainerFor(component *component.Component) (corev1.Container, error) {
+func (r *ReconcileComponent) getRuntimeContainerFor(component *controller.Component) (corev1.Container, error) {
 	container := corev1.Container{
 		Env:             r.populatePodEnvVar(component.Spec),
 		Image:           r.dockerImageURL(component),

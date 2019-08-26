@@ -5,7 +5,6 @@ import (
 	"fmt"
 	component "halkyon.io/api/component/v1beta1"
 	link "halkyon.io/api/link/v1beta1"
-	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
@@ -15,7 +14,7 @@ import (
 )
 
 func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
-	baseReconciler := controller2.NewBaseGenericReconciler(&link.Link{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&controller2.Link{}, mgr)
 	r := &ReconcileLink{BaseGenericReconciler: baseReconciler}
 	baseReconciler.SetReconcilerFactory(r)
 	return r
@@ -25,13 +24,13 @@ type ReconcileLink struct {
 	*controller2.BaseGenericReconciler
 }
 
-func (ReconcileLink) asLink(object runtime.Object) *link.Link {
-	return object.(*link.Link)
+func (ReconcileLink) asLink(object runtime.Object) *controller2.Link {
+	return object.(*controller2.Link)
 }
 
-func (r *ReconcileLink) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
+func (r *ReconcileLink) IsDependentResourceReady(resource controller2.Resource) (depOrTypeName string, ready bool) {
 	l := r.asLink(resource)
-	c := &component.Component{}
+	c := &controller2.Component{}
 	c.Name = l.Spec.ComponentName
 	c.Namespace = l.Namespace
 	_, err := r.Fetch(c)
@@ -41,23 +40,22 @@ func (r *ReconcileLink) IsDependentResourceReady(resource v1beta1.Resource) (dep
 	return c.Name, true
 }
 
-func (r *ReconcileLink) CreateOrUpdate(object v1beta1.Resource) error {
+func (r *ReconcileLink) CreateOrUpdate(object controller2.Resource) error {
 	l := r.asLink(object)
 	if l.Status.Phase != link.LinkReady {
-		found, err := r.fetchDeployment(l)
+		found, err := r.fetchDeployment(l.Link)
 		if err != nil {
 			l.SetNeedsRequeue(true)
 			return err
 		}
 		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
-		if containers, isModified := r.updateContainersWithLinkInfo(l, found.Spec.Template.Spec.Containers); isModified {
+		if containers, isModified := r.updateContainersWithLinkInfo(l.Link, found.Spec.Template.Spec.Containers); isModified {
 			found.Spec.Template.Spec.Containers = containers
 			if err = r.updateDeploymentWithLink(found, l); err != nil {
 				// As it could be possible that we can't update the Deployment as it has been modified by another
 				// process, then we will requeue
 				l.SetNeedsRequeue(true)
 			}
-			l.SetHasChanged(isModified)
 			return err
 		}
 	}
@@ -136,7 +134,7 @@ func (r *ReconcileLink) fetchDeployment(link *link.Link) (*appsv1.Deployment, er
 	}
 }
 
-func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *link.Link) error {
+func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *controller2.Link) error {
 	// Update the Deployment of the component
 	if err := r.update(d); err != nil {
 		r.ReqLogger.Info("Failed to update deployment.")

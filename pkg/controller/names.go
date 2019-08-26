@@ -2,30 +2,28 @@ package controller
 
 import (
 	"fmt"
-	capability "halkyon.io/api/capability/v1beta1"
-	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/api/v1beta1"
+	halkyon "halkyon.io/api/component/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 )
 
-func PostgresName(owner v1beta1.Resource) string {
+func PostgresName(owner Resource) string {
 	return DefaultDependentResourceNameFor(owner)
 }
 
-func DeploymentName(c *component.Component) string {
+func DeploymentName(c *Component) string {
 	return DeploymentNameFor(c, c.Spec.DeploymentMode)
 }
 
-func DeploymentNameFor(c *component.Component, mode component.DeploymentMode) string {
+func DeploymentNameFor(c *Component, mode halkyon.DeploymentMode) string {
 	name := DefaultDependentResourceNameFor(c)
-	if component.BuildDeploymentMode == mode {
+	if halkyon.BuildDeploymentMode == mode {
 		return name + "-build"
 	}
 	return name
 }
 
-func PVCName(c *component.Component) string {
+func PVCName(c *Component) string {
 	specified := c.Spec.Storage.Name
 	if len(specified) > 0 {
 		return specified
@@ -33,15 +31,15 @@ func PVCName(c *component.Component) string {
 	return "m2-data-" + c.Name // todo: use better default name?
 }
 
-func DefaultDependentResourceNameFor(owner v1beta1.Resource) string {
+func DefaultDependentResourceNameFor(owner Resource) string {
 	return owner.GetName()
 }
 
-func ServiceAccountName(owner v1beta1.Resource) string {
+func ServiceAccountName(owner Resource) string {
 	switch owner.(type) {
-	case *capability.Capability:
+	case *Capability:
 		return PostgresName(owner) // todo: fix me
-	case *component.Component:
+	case *Component:
 		return "build-bot"
 	default:
 		panic(fmt.Sprintf("a service account shouldn't be created for '%s' %s owner", owner.GetName(), GetObjectName(owner)))
@@ -56,6 +54,6 @@ func GetObjectName(object runtime.Object) string {
 	return t.Name()
 }
 
-func TaskName(owner v1beta1.Resource) string {
+func TaskName(owner Resource) string {
 	return "s2i-buildah-push"
 }

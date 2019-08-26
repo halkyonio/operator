@@ -1,7 +1,6 @@
 package component
 
 import (
-	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -13,7 +12,7 @@ type serviceAccount struct {
 	base
 }
 
-func (res serviceAccount) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
+func (res serviceAccount) NewInstanceWith(owner controller.Resource) controller.DependentResource {
 	return newOwnedServiceAccount(owner)
 }
 
@@ -21,7 +20,7 @@ func newServiceAccount() serviceAccount {
 	return newOwnedServiceAccount(nil)
 }
 
-func newOwnedServiceAccount(owner v1beta1.Resource) serviceAccount {
+func newOwnedServiceAccount(owner controller.Resource) serviceAccount {
 	dependent := newBaseDependent(&corev1.ServiceAccount{}, owner)
 	s := serviceAccount{base: dependent}
 	dependent.SetDelegate(s)

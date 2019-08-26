@@ -24,7 +24,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 
 	// create runtime container
 	r := res.reconciler
-	runtimeContainer, err := r.getBaseContainerFor(c)
+	runtimeContainer, err := r.getBaseContainerFor(c.Component)
 	if err != nil {
 		return nil, err
 	}

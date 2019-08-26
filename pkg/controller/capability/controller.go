@@ -4,7 +4,6 @@ import (
 	"fmt"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	capability "halkyon.io/api/capability/v1beta1"
-	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -28,7 +27,7 @@ const (
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
-	baseReconciler := controller2.NewBaseGenericReconciler(&capability.Capability{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&controller2.Capability{}, mgr)
 	r := &ReconcileCapability{
 		BaseGenericReconciler: baseReconciler,
 	}
@@ -45,11 +44,11 @@ type ReconcileCapability struct {
 	*controller2.BaseGenericReconciler
 }
 
-func asCapability(object runtime.Object) *capability.Capability {
-	return object.(*capability.Capability)
+func asCapability(object runtime.Object) *controller2.Capability {
+	return object.(*controller2.Capability)
 }
 
-func (r *ReconcileCapability) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
+func (r *ReconcileCapability) IsDependentResourceReady(resource controller2.Resource) (depOrTypeName string, ready bool) {
 	db, err := r.MustGetDependentResourceFor(resource, &kubedbv1.Postgres{}).Fetch(r.Helper())
 	if err != nil || !r.isDBReady(db.(*kubedbv1.Postgres)) {
 		return "postgreSQL db", false
@@ -57,11 +56,11 @@ func (r *ReconcileCapability) IsDependentResourceReady(resource v1beta1.Resource
 	return db.(*kubedbv1.Postgres).Name, true
 }
 
-func (r *ReconcileCapability) Delete(object v1beta1.Resource) error {
+func (r *ReconcileCapability) Delete(object controller2.Resource) error {
 	return nil
 }
 
-func (r *ReconcileCapability) CreateOrUpdate(object v1beta1.Resource) (e error) {
+func (r *ReconcileCapability) CreateOrUpdate(object controller2.Resource) (e error) {
 	c := asCapability(object)
 	if strings.ToLower(string(capability.DatabaseCategory)) == string(c.Spec.Category) {
 		// Install the 2nd resources and check if the status of the watched resources has changed

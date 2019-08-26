@@ -72,7 +72,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		},
 	}
 
-	baseReconciler := controller2.NewBaseGenericReconciler(&component.Component{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(&controller2.Component{}, mgr)
 	r := &ReconcileComponent{
 		BaseGenericReconciler: baseReconciler,
 		runtimeImages:         images,
@@ -104,11 +104,11 @@ type ReconcileComponent struct {
 	supervisor    *component.Component
 }
 
-func (ReconcileComponent) asComponent(object runtime.Object) *component.Component {
-	return object.(*component.Component)
+func (ReconcileComponent) asComponent(object runtime.Object) *controller2.Component {
+	return object.(*controller2.Component)
 }
 
-func (r *ReconcileComponent) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
+func (r *ReconcileComponent) IsDependentResourceReady(resource controller2.Resource) (depOrTypeName string, ready bool) {
 	c := r.asComponent(resource)
 	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
 		taskRun, err := r.MustGetDependentResourceFor(resource, &taskRunv1alpha1.TaskRun{}).Fetch(r.Helper())
@@ -125,7 +125,7 @@ func (r *ReconcileComponent) IsDependentResourceReady(resource v1beta1.Resource)
 	}
 }
 
-func (r *ReconcileComponent) CreateOrUpdate(object v1beta1.Resource) (err error) {
+func (r *ReconcileComponent) CreateOrUpdate(object controller2.Resource) (err error) {
 	c := r.asComponent(object)
 	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
 		err = r.installBuildMode(c, c.Namespace)
@@ -135,7 +135,7 @@ func (r *ReconcileComponent) CreateOrUpdate(object v1beta1.Resource) (err error)
 	return err
 }
 
-func (r *ReconcileComponent) Delete(resource v1beta1.Resource) error {
+func (r *ReconcileComponent) Delete(resource controller2.Resource) error {
 	if r.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode
