@@ -72,7 +72,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		},
 	}
 
-	baseReconciler := controller2.NewBaseGenericReconciler(&controller2.Component{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(controller2.NewComponent(), mgr)
 	r := &ReconcileComponent{
 		BaseGenericReconciler: baseReconciler,
 		runtimeImages:         images,

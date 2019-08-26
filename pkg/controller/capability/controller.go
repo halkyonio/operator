@@ -27,7 +27,7 @@ const (
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
-	baseReconciler := controller2.NewBaseGenericReconciler(&controller2.Capability{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(controller2.NewCapability(), mgr)
 	r := &ReconcileCapability{
 		BaseGenericReconciler: baseReconciler,
 	}

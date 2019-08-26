@@ -14,7 +14,7 @@ import (
 )
 
 func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
-	baseReconciler := controller2.NewBaseGenericReconciler(&controller2.Link{}, mgr)
+	baseReconciler := controller2.NewBaseGenericReconciler(controller2.NewLink(), mgr)
 	r := &ReconcileLink{BaseGenericReconciler: baseReconciler}
 	baseReconciler.SetReconcilerFactory(r)
 	return r
@@ -30,7 +30,7 @@ func (ReconcileLink) asLink(object runtime.Object) *controller2.Link {
 
 func (r *ReconcileLink) IsDependentResourceReady(resource controller2.Resource) (depOrTypeName string, ready bool) {
 	l := r.asLink(resource)
-	c := &controller2.Component{}
+	c := controller2.NewComponent(&component.Component{})
 	c.Name = l.Spec.ComponentName
 	c.Namespace = l.Namespace
 	_, err := r.Fetch(c)

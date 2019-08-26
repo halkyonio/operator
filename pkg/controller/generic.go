@@ -63,7 +63,7 @@ func (b *BaseGenericReconciler) SetReconcilerFactory(factory ReconcilerFactory) 
 type BaseGenericReconciler struct {
 	ReconcilerHelper
 	dependents       map[string]DependentResource
-	primary          runtime.Object
+	primary          Resource
 	_factory         ReconcilerFactory
 	onOpenShift      *bool
 	openShiftVersion int
@@ -123,11 +123,7 @@ func (b *BaseGenericReconciler) computeStatus(current Resource, err error) bool 
 }
 
 func (b *BaseGenericReconciler) PrimaryResourceType() Resource {
-	return b.asResource(b.primary.DeepCopyObject())
-}
-
-func (b *BaseGenericReconciler) asResource(object runtime.Object) Resource {
-	return object.(Resource)
+	return b.primary.Clone()
 }
 
 func (b *BaseGenericReconciler) factory() ReconcilerFactory {
@@ -156,11 +152,12 @@ func (b *BaseGenericReconciler) Delete(object Resource) error {
 }
 
 func (b *BaseGenericReconciler) Fetch(into Resource) (Resource, error) {
-	object, e := b.Helper().Fetch(into.GetName(), into.GetNamespace(), into)
+	object, e := b.Helper().Fetch(into.GetName(), into.GetNamespace(), into.GetAPIObject())
 	if e != nil {
 		return nil, e
 	}
-	return b.asResource(object), nil
+	into.SetAPIObject(object)
+	return into, nil
 }
 
 func (b *BaseGenericReconciler) CreateOrUpdate(object Resource) error {
@@ -209,7 +206,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	resource.SetName(request.Name)
 	resource.SetNamespace(request.Namespace)
 	typeName := b.primaryResourceTypeName()
-	err := b.Client.Get(context.TODO(), request.NamespacedName, resource)
+	resource, err := b.Fetch(resource)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
@@ -254,7 +251,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	// compute the status and update the resource if the status has changed
 	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
-		if e := b.Client.Status().Update(context.Background(), instance); e != nil {
+		if e := b.Client.Status().Update(context.Background(), instance.GetAPIObject()); e != nil {
 			b.ReqLogger.Error(e, "failed to update status for component "+instance.GetName())
 		}
 	}
@@ -276,7 +273,7 @@ type GenericReconciler interface {
 }
 
 func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error {
-	resourceType := factory.PrimaryResourceType()
+	resourceType := factory.PrimaryResourceType().GetAPIObject()
 
 	// Create a new controller
 	c, err := controller.New(controllerNameFor(resourceType), mgr, controller.Options{Reconciler: factory})
@@ -333,7 +330,7 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner Resource, resourceType runt
 			if resource.ShouldBeOwned() {
 				// in most instances, resourceDefinedOwner == owner but some resources might want to return a different one
 				resourceDefinedOwner := resource.Owner()
-				if e := controllerutil.SetControllerReference(resourceDefinedOwner, obj.(v1.Object), b.Scheme); e != nil {
+				if e := controllerutil.SetControllerReference(resourceDefinedOwner.GetAPIObject().(v1.Object), obj.(v1.Object), b.Scheme); e != nil {
 					b.ReqLogger.Error(err, "Failed to set owner", "owner", resourceDefinedOwner, "resource", resource.Name())
 					return e
 				}

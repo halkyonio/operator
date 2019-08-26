@@ -2,11 +2,37 @@ package controller
 
 import (
 	halkyon "halkyon.io/api/component/v1beta1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type Component struct {
 	*halkyon.Component
 	requeue bool
+}
+
+func (in *Component) SetAPIObject(object runtime.Object) {
+	in.Component = object.(*halkyon.Component)
+}
+
+func (in *Component) GetAPIObject() runtime.Object {
+	return in.Component
+}
+
+func (in *Component) Clone() Resource {
+	component := NewComponent(in.Component)
+	component.requeue = in.requeue
+	return component
+}
+
+func NewComponent(component ...*halkyon.Component) *Component {
+	c := &halkyon.Component{}
+	if component != nil {
+		c = component[0]
+	}
+	return &Component{
+		Component: c,
+		requeue:   false,
+	}
 }
 
 func (in *Component) SetNeedsRequeue(requeue bool) {
