@@ -57,5 +57,5 @@ func (in *Link) GetStatusAsString() string {
 }
 
 func (in *Link) ShouldDelete() bool {
-	return !in.DeletionTimestamp.IsZero()
+	return true
 }
