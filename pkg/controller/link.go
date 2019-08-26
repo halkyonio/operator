@@ -2,11 +2,37 @@ package controller
 
 import (
 	halkyon "halkyon.io/api/link/v1beta1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type Link struct {
 	*halkyon.Link
 	requeue bool
+}
+
+func (in *Link) SetAPIObject(object runtime.Object) {
+	in.Link = object.(*halkyon.Link)
+}
+
+func (in *Link) GetAPIObject() runtime.Object {
+	return in.Link
+}
+
+func (in *Link) Clone() Resource {
+	link := NewLink(in.Link)
+	link.requeue = in.requeue
+	return link
+}
+
+func NewLink(link ...*halkyon.Link) *Link {
+	l := &halkyon.Link{}
+	if link != nil {
+		l = link[0]
+	}
+	return &Link{
+		Link:    l,
+		requeue: false,
+	}
 }
 
 func (in *Link) SetNeedsRequeue(requeue bool) {

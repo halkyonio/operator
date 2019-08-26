@@ -2,11 +2,37 @@ package controller
 
 import (
 	halkyon "halkyon.io/api/capability/v1beta1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type Capability struct {
 	*halkyon.Capability
 	requeue bool
+}
+
+func (in *Capability) SetAPIObject(object runtime.Object) {
+	in.Capability = object.(*halkyon.Capability)
+}
+
+func (in *Capability) GetAPIObject() runtime.Object {
+	return in.Capability
+}
+
+func (in *Capability) Clone() Resource {
+	capability := NewCapability(in.Capability)
+	capability.requeue = in.requeue
+	return capability
+}
+
+func NewCapability(capability ...*halkyon.Capability) *Capability {
+	c := &halkyon.Capability{}
+	if capability != nil {
+		c = capability[0]
+	}
+	return &Capability{
+		Capability: c,
+		requeue:    false,
+	}
 }
 
 func (in *Capability) SetNeedsRequeue(requeue bool) {

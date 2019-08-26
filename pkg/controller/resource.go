@@ -16,4 +16,7 @@ type Resource interface {
 	SetSuccessStatus(dependentName, msg string) bool
 	SetInitialStatus(msg string) bool
 	IsValid() bool
+	Clone() Resource
+	GetAPIObject() runtime.Object
+	SetAPIObject(object runtime.Object)
 }
