@@ -2,9 +2,6 @@ package controller
 
 import (
 	"fmt"
-	capability "halkyon.io/api/capability/v1beta1"
-	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/api/v1beta1"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -41,7 +38,7 @@ func (res roleBinding) Update(toUpdate runtime.Object) (bool, error) {
 	return !found, nil
 }
 
-func (res roleBinding) NewInstanceWith(owner v1beta1.Resource) DependentResource {
+func (res roleBinding) NewInstanceWith(owner Resource) DependentResource {
 	return newOwnedRoleBinding(owner)
 }
 
@@ -49,7 +46,7 @@ func NewRoleBinding() roleBinding {
 	return newOwnedRoleBinding(nil)
 }
 
-func newOwnedRoleBinding(owner v1beta1.Resource) roleBinding {
+func newOwnedRoleBinding(owner Resource) roleBinding {
 	dependent := NewDependentResource(&authorizv1.RoleBinding{}, owner)
 	rolebinding := roleBinding{
 		DependentResourceHelper: dependent,
@@ -58,11 +55,11 @@ func newOwnedRoleBinding(owner v1beta1.Resource) roleBinding {
 	return rolebinding
 }
 
-func RoleBindingName(owner v1beta1.Resource) string {
+func RoleBindingName(owner Resource) string {
 	switch owner.(type) {
-	case *component.Component:
+	case *Component:
 		return "use-image-scc-privileged"
-	case *capability.Capability:
+	case *Capability:
 		return "use-scc-privileged"
 	default:
 		panic(fmt.Sprintf("unknown type '%s' for role owner", GetObjectName(owner)))
@@ -90,7 +87,7 @@ func (res roleBinding) Build() (runtime.Object, error) {
 		},
 	}
 
-	if _, ok := c.(*capability.Capability); ok {
+	if _, ok := c.(*Capability); ok {
 		ser.Subjects = append(ser.Subjects, authorizv1.Subject{Kind: "ServiceAccount", Name: PostgresName(c), Namespace: namespace})
 	}
 

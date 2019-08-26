@@ -2,7 +2,6 @@ package component
 
 import (
 	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -14,11 +13,11 @@ type pvc struct {
 	base
 }
 
-func (res pvc) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
+func (res pvc) NewInstanceWith(owner controller.Resource) controller.DependentResource {
 	return newOwnedPvc(owner)
 }
 
-func newOwnedPvc(owner v1beta1.Resource) pvc {
+func newOwnedPvc(owner controller.Resource) pvc {
 	dependent := newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)
 	p := pvc{base: dependent}
 	dependent.SetDelegate(p)
@@ -41,11 +40,11 @@ func (res pvc) Build() (runtime.Object, error) {
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{
-				getAccessMode(c),
+				getAccessMode(c.Component),
 			},
 			Resources: corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
-					corev1.ResourceStorage: getCapacity(c),
+					corev1.ResourceStorage: getCapacity(c.Component),
 				},
 			},
 		},

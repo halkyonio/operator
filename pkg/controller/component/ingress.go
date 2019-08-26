@@ -1,7 +1,6 @@
 package component
 
 import (
-	halkyon "halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +13,7 @@ type ingress struct {
 	reconciler *ReconcileComponent
 }
 
-func (res ingress) NewInstanceWith(owner halkyon.Resource) controller.DependentResource {
+func (res ingress) NewInstanceWith(owner controller.Resource) controller.DependentResource {
 	return newOwnedIngress(res.reconciler, owner)
 }
 
@@ -22,7 +21,7 @@ func newIngress(reconciler *ReconcileComponent) ingress {
 	return newOwnedIngress(reconciler, nil)
 }
 
-func newOwnedIngress(reconciler *ReconcileComponent, owner halkyon.Resource) ingress {
+func newOwnedIngress(reconciler *ReconcileComponent, owner controller.Resource) ingress {
 	dependent := newBaseDependent(&v1beta1.Ingress{}, owner)
 	i := ingress{base: dependent, reconciler: reconciler}
 	dependent.SetDelegate(i)

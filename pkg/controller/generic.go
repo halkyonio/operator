@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,13 +24,13 @@ import (
 )
 
 type ReconcilerFactory interface {
-	PrimaryResourceType() v1beta1.Resource
+	PrimaryResourceType() Resource
 	WatchedSecondaryResourceTypes() []runtime.Object
-	Delete(object v1beta1.Resource) error
-	CreateOrUpdate(object v1beta1.Resource) error
-	IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool)
+	Delete(object Resource) error
+	CreateOrUpdate(object Resource) error
+	IsDependentResourceReady(resource Resource) (depOrTypeName string, ready bool)
 	Helper() ReconcilerHelper
-	GetDependentResourceFor(owner v1beta1.Resource, resourceType runtime.Object) (DependentResource, error)
+	GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error)
 	AddDependentResource(resource DependentResource)
 }
 
@@ -49,7 +48,7 @@ func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (r
 	return into, nil
 }
 
-func NewBaseGenericReconciler(primaryResourceType v1beta1.Resource, mgr manager.Manager) *BaseGenericReconciler {
+func NewBaseGenericReconciler(primaryResourceType Resource, mgr manager.Manager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
 		ReconcilerHelper: newHelper(primaryResourceType, mgr),
 		dependents:       make(map[string]DependentResource, 7),
@@ -111,7 +110,7 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 	return *b.onOpenShift
 }
 
-func (b *BaseGenericReconciler) computeStatus(current v1beta1.Resource, err error) bool {
+func (b *BaseGenericReconciler) computeStatus(current Resource, err error) bool {
 	depOrTypeName, ready := b.IsDependentResourceReady(current)
 	if !ready {
 		msg := fmt.Sprintf("%s is not ready for %s '%s' in namespace '%s'",
@@ -123,12 +122,12 @@ func (b *BaseGenericReconciler) computeStatus(current v1beta1.Resource, err erro
 	return current.SetSuccessStatus(depOrTypeName, "Ready")
 }
 
-func (b *BaseGenericReconciler) PrimaryResourceType() v1beta1.Resource {
+func (b *BaseGenericReconciler) PrimaryResourceType() Resource {
 	return b.asResource(b.primary.DeepCopyObject())
 }
 
-func (b *BaseGenericReconciler) asResource(object runtime.Object) v1beta1.Resource {
-	return object.(v1beta1.Resource)
+func (b *BaseGenericReconciler) asResource(object runtime.Object) Resource {
+	return object.(Resource)
 }
 
 func (b *BaseGenericReconciler) factory() ReconcilerFactory {
@@ -152,11 +151,11 @@ func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object
 	return watched
 }
 
-func (b *BaseGenericReconciler) Delete(object v1beta1.Resource) error {
+func (b *BaseGenericReconciler) Delete(object Resource) error {
 	return b.factory().Delete(object)
 }
 
-func (b *BaseGenericReconciler) Fetch(into v1beta1.Resource) (v1beta1.Resource, error) {
+func (b *BaseGenericReconciler) Fetch(into Resource) (Resource, error) {
 	object, e := b.Helper().Fetch(into.GetName(), into.GetNamespace(), into)
 	if e != nil {
 		return nil, e
@@ -164,7 +163,7 @@ func (b *BaseGenericReconciler) Fetch(into v1beta1.Resource) (v1beta1.Resource, 
 	return b.asResource(object), nil
 }
 
-func (b *BaseGenericReconciler) CreateOrUpdate(object v1beta1.Resource) error {
+func (b *BaseGenericReconciler) CreateOrUpdate(object Resource) error {
 	return b.factory().CreateOrUpdate(object)
 }
 
@@ -186,7 +185,7 @@ func (b *BaseGenericReconciler) AddDependentResource(resource DependentResource)
 	b.dependents[key] = resource
 }
 
-func (b *BaseGenericReconciler) MustGetDependentResourceFor(owner v1beta1.Resource, resourceType runtime.Object) (resource DependentResource) {
+func (b *BaseGenericReconciler) MustGetDependentResourceFor(owner Resource, resourceType runtime.Object) (resource DependentResource) {
 	var e error
 	if resource, e = b.GetDependentResourceFor(owner, resourceType); e != nil {
 		panic(e)
@@ -194,7 +193,7 @@ func (b *BaseGenericReconciler) MustGetDependentResourceFor(owner v1beta1.Resour
 	return resource
 }
 
-func (b *BaseGenericReconciler) GetDependentResourceFor(owner v1beta1.Resource, resourceType runtime.Object) (DependentResource, error) {
+func (b *BaseGenericReconciler) GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error) {
 	resource, ok := b.dependents[getKeyFor(resourceType)]
 	if !ok {
 		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", GetObjectName(resourceType))
@@ -252,7 +251,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
 }
 
-func (b *BaseGenericReconciler) updateStatusIfNeeded(instance v1beta1.Resource, err error) {
+func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	// compute the status and update the resource if the status has changed
 	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
 		if e := b.Client.Status().Update(context.Background(), instance); e != nil {
@@ -309,7 +308,7 @@ func controllerNameFor(resource runtime.Object) string {
 	return strings.ToLower(GetObjectName(resource)) + "-controller"
 }
 
-func (b *BaseGenericReconciler) CreateIfNeeded(owner v1beta1.Resource, resourceType runtime.Object) error {
+func (b *BaseGenericReconciler) CreateIfNeeded(owner Resource, resourceType runtime.Object) error {
 	resource, err := b.GetDependentResourceFor(owner, resourceType)
 	if err != nil {
 		return err
@@ -351,7 +350,6 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1beta1.Resource, resourceT
 			}
 			if !alreadyExists {
 				b.ReqLogger.Info("Created successfully", "kind", kind, "name", obj.(v1.Object).GetName())
-				owner.SetHasChanged(true)
 			}
 			return nil
 		}
@@ -368,11 +366,10 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner v1beta1.Resource, resourceT
 				b.ReqLogger.Error(err, "Failed to update", "kind", kind)
 			}
 		}
-		owner.SetHasChanged(updated)
 		return err
 	}
 }
 
-func (b *BaseGenericReconciler) IsDependentResourceReady(resource v1beta1.Resource) (depOrTypeName string, ready bool) {
+func (b *BaseGenericReconciler) IsDependentResourceReady(resource Resource) (depOrTypeName string, ready bool) {
 	return b.factory().IsDependentResourceReady(resource)
 }

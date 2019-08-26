@@ -2,7 +2,6 @@ package component
 
 import (
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
-	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -13,7 +12,7 @@ type taskRun struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res taskRun) NewInstanceWith(owner v1beta1.Resource) controller.DependentResource {
+func (res taskRun) NewInstanceWith(owner controller.Resource) controller.DependentResource {
 	return newOwnedTaskRun(res.reconciler, owner)
 }
 
@@ -21,7 +20,7 @@ func newTaskRun(reconciler *ReconcileComponent) taskRun {
 	return newOwnedTaskRun(reconciler, nil)
 }
 
-func newOwnedTaskRun(reconciler *ReconcileComponent, owner v1beta1.Resource) taskRun {
+func newOwnedTaskRun(reconciler *ReconcileComponent, owner controller.Resource) taskRun {
 	dependent := newBaseDependent(&v1alpha1.TaskRun{}, owner)
 	t := taskRun{
 		base:       dependent,
