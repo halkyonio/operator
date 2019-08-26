@@ -146,6 +146,6 @@ func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *con
 	return nil
 }
 
-func (r *ReconcileLink) Delete(resource v1beta1.Resource) error {
+func (r *ReconcileLink) Delete(resource controller2.Resource) error {
 	return nil
 }
