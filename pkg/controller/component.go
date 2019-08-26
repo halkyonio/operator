@@ -69,5 +69,5 @@ func (in *Component) GetStatusAsString() string {
 }
 
 func (in *Component) ShouldDelete() bool {
-	return !in.DeletionTimestamp.IsZero()
+	return true
 }

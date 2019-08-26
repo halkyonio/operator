@@ -58,5 +58,5 @@ func (in *Capability) GetStatusAsString() string {
 }
 
 func (in *Capability) ShouldDelete() bool {
-	return !in.DeletionTimestamp.IsZero()
+	return true
 }
