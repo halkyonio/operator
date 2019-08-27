@@ -30,7 +30,7 @@ Custom resources contain metadata about the framework/language to be used to eit
 - Configure the `component` in order to inject `env var, secret, ...`
 - Create a service or capability such as a database
 
-As an example of it's usage, by deploying a CR such as the following to a cluster that has the Halkyon operator installed, Halkyon is able to add a micro-service to your project, to generate a Route URL providing access to the service outside the cluster and to add environment variables to the created pod.
+As an example of its usage, by deploying a CR such as the following to a cluster that has the Halkyon operator installed, Halkyon is able to add a micro-service to your project, to generate a Route URL providing access to the service outside the cluster and to add environment variables to the created pod.
  
 ```bash
 apiVersion: halkyon.io/v1beta1
