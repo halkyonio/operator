@@ -1,6 +1,7 @@
 # Halkyon Operator
 
 [![CircleCI](https://circleci.com/gh/halkyonio/operator/tree/master.svg?style=shield)](https://circleci.com/gh/halkyonio/operator/tree/master)
+[![GitHub release](https://img.shields.io/github/v/release/halkyonio/operator.svg)](https://github.com/halkyonio/operator/releases/latest)
 
 Table of Contents
 =================
@@ -11,6 +12,7 @@ Table of Contents
   * [How to play with it](#how-to-play-with-it)
   * [A Real demo](#a-real-demo)
   * [Cleanup the Operator resources](#cleanup-the-operator-resources)
+  * [Support](#support)
 
 ## Introduction
 
@@ -242,3 +244,13 @@ kubectl delete -f deploy/crds/component.yaml
 kubectl delete -f deploy/crds/link.yaml
 kubectl delete -n operators -f deploy/operator.yaml
 ```
+
+## Support
+
+If you need support, reach out to us via [zulip].
+
+If you run into issues, don't hesitate to raise an [issue].
+
+[website]: https://halkyion.io
+[zulip]: https://snowdrop.zulipchat.com/#narrow/stream/207165-halkyon
+[issue]: https://github.com/halkyonio/operator/issues/new
