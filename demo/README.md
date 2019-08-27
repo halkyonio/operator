@@ -169,22 +169,43 @@ kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
 
 Wait a few moment and verify if the status of the `components` deployed are ready
 ```bash
-TODO - add resources deployed here
+oc get cp -n test
+NAME               RUNTIME       VERSION         AGE       MODE      STATUS    MESSAGE   REVISION
+fruit-backend-sb   spring-boot   2.1.6.RELEASE   6m        dev       Ready     Ready     
+fruit-client-sb    spring-boot   2.1.6.RELEASE   5m        dev       Ready     Ready     
+
+oc get links -n test
+NAME                    AGE       STATUS    MESSAGE
+link-to-database        6m        Ready     Ready
+link-to-fruit-backend   5m        Ready     Ready
+
+oc get capabilities -n test
+NAME          CATEGORY   KIND      AGE       STATUS    MESSAGE   REVISION
+postgres-db   database             6m        Ready     Ready     
 ```
 
 Then push the uber jar file within the pod using the following bash script 
 ```bash
-./scripts/k8s_push_start.sh fruit-backend sb demo
-./scripts/k8s_push_start.sh fruit-client sb demo
+./demo/scripts/k8s_push_start.sh fruit-backend sb demo
+./demo/scripts/k8s_push_start.sh fruit-client sb demo
 ```
 
 Check now if the `Component` Client is replying and calls its `HTTP Endpoint` exposed in order to fetch the `fruits` data from the database consumed by the 
-other microservice.
+other microservice. The syntax to be used is not the same if the project is running on kubernetes vs openshift as k8s is creating an ingress resource while openshift a route
 
 ```bash
+# Openshift Route
 # export FRONTEND_ROUTE_URL=<service_name>.<hostname_or_ip>.<domain_name>
-export FRONTEND_ROUTE_URL=fruit-client-sb.10.0.76.186.nip.io
-curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client
+# oc get route/fruit-client-sb -n demo
+export FRONTEND_ROUTE_URL=fruit-client-sb-test.195.201.87.126.nip.io 
+curl http://${FRONTEND_ROUTE_URL}/api/client
+[{"id":1,"name":"Cherry"},{"id":2,"name":"Apple"},{"id":3,"name":"Banana"}]%  
+
+# Kubernetes Ingress
+# export FRONTEND_ROUTE_UR=<CLUSTER_IP>
+export FRONTEND_ROUTE_URL=195.201.87.126
+curl -H "Host: fruit-client-sb" http://${FRONTEND_ROUTE_URL}/api/client
+[{"id":1,"name":"Cherry"},{"id":2,"name":"Apple"},{"id":3,"name":"Banana"}]%  
 ```
 
 ### Switch from Dev to Build mode
