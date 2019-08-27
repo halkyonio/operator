@@ -26,9 +26,20 @@ BIN_DIR="./build/_output/bin/bin/"
 RELEASE_DIR="./build/_output/bin/release/"
 APP="component-operator"
 
-echo "git tag using snowbot account"
+OPERATOR_DEPLOYMENT_FILE="./deploy/operator.yaml"
+
 git config user.email "snow-bot@snowdrop.me"
 git config user.name "Snow-bot"
+# revert CircleCI global setting
+git config --remove-section url.ssh://git@github.com
+
+git checkout -b update-operator-yaml-${TAG}
+
+echo "update operator deploment file"
+sed -i "s/operator:latest/operator:${TAG}/g" ${OPERATOR_DEPLOYMENT_FILE}
+
+echo "commit and tag"
+git commit -m "Update operator deployment file to ${TAG}" ${OPERATOR_DEPLOYMENT_FILE}
 git tag -a $TAG -m "$TAG release"
 
 echo "Create Release for tag $TAG"
