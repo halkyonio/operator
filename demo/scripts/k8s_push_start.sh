@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 dir=$(dirname "$0")
 component=$1
 runtime=$2
@@ -10,7 +8,7 @@ namespace=${3:-my-spring-app}
 
 pod_id=$(kubectl get pod -lapp=${project} -n ${namespace} | grep "Running" | awk '{print $1}')
 
-echo "## $runtime files ${project} pushed ..."
+echo "## Pushing $runtime file ${project} to the pod $pod_id ..."
 
 if [ $runtime = "nodejs" ]; then
   cmd="run-node"
