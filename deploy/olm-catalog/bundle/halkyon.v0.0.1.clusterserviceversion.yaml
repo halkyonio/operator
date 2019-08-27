@@ -140,6 +140,16 @@ spec:
 
     [Community](https://snowdrop.zulipchat.com/#narrow/stream/207165-halkyon): https://snowdrop.zulipchat.com/#narrow/stream/207165-halkyon
 
+    ## Contributing
+
+    If you've got some great features, use cases for the Halkyon operator and project, open a ticket !
+
+    * Raise issues on [GitHub](https://github.com/halkyonio/operator/issues).
+
+    ## License
+
+    Halkyon is licensed under the [Apache License, Version 2.0](https://github.com/halkyonio/operator/blob/master/LICENSE) license.
+
   displayName: Halkyon Operator
   keywords: ['component','microservices','composition']
   version: 0.0.1
