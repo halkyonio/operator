@@ -30,7 +30,7 @@ func newPvc() pvc {
 
 func (res pvc) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(c.Name)
+	ls := getAppLabels(controller.DeploymentName(c))
 	name := res.Name()
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{

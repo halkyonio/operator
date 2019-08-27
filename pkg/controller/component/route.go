@@ -30,7 +30,7 @@ func newOwnedRoute(reconciler *ReconcileComponent, owner controller.Resource) ro
 //buildRoute returns the route resource
 func (res route) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(c.Name)
+	ls := getAppLabels(controller.DeploymentName(c))
 	route := &routev1.Route{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      res.Name(),

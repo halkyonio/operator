@@ -3,6 +3,7 @@ package component
 import (
 	"fmt"
 	component "halkyon.io/api/component/v1beta1"
+	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/util"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -20,7 +21,7 @@ const (
 //buildDevDeployment returns the Deployment config object
 func (res deployment) installDev() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(c.Name)
+	ls := getAppLabels(controller.DeploymentName(c))
 
 	// create runtime container
 	r := res.reconciler
