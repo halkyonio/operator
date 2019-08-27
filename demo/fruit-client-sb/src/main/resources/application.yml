@@ -8,5 +8,13 @@ endpoint:
 # Halkyon properties to configure the component, link or capability
 dekorate:
   component:
+    name: fruit-client-sb
     deploymentMode: dev
     exposeService: true
+  link:
+    name: link-to-fruit-backend
+    componentName: fruit-client-sb
+    type: Env
+    envs:
+    - name: ENDPOINT_BACKEND
+      value: http://fruit-backend-sb:8080/api/fruits

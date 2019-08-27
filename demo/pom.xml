@@ -40,6 +40,17 @@
                 <artifactId>dekorate-spring-boot</artifactId>
                 <version>${dekorate.version}</version>
             </dependency>
+            <!-- Add them to use the proper versions of dekorate even if they will not impact the generated manifests for halkyon -->
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>crd-annotations</artifactId>
+                <version>${dekorate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dekorate</groupId>
+                <artifactId>prometheus-annotations</artifactId>
+                <version>${dekorate.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

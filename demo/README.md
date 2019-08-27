@@ -46,50 +46,52 @@ Build the `frontend` and the `Backend` using `maven` tool to generate their resp
 mvn clean package
 ``` 
 
-As our different Spring Boot maven projects use the `dekorate` maven dependencies
+As our different Spring Boot maven projects use the `dekorate` halkyon starter
 
 ```xml
- <dependency>
-     <groupId>io.dekorate</groupId>
-     <artifactId>component-annotations</artifactId>
-     <scope>compile</scope>
- </dependency>
- <dependency>
-     <groupId>io.dekorate</groupId>
-     <artifactId>dekorate-spring-boot</artifactId>
-     <scope>compile</scope>
- </dependency>
+<dependency>
+    <groupId>io.dekorate</groupId>
+    <artifactId>halkyon-spring-starter</artifactId>
+    <scope>compile</scope>
+</dependency>
 ```
 
-then during the `mvn package` phase, additional yaml resources will be created under the 
-directory `dekorate`. They will be next used to deploy the different components on the cluster with the help of the `kubectl` client tool.
+then during the `mvn package` phase, a `halkyon.yml|json` file will be created under the 
+directory `target/classes/META-INF/dekorate`. They will be next used to deploy the different `components` on the cluster with the help of the `kubectl` client tool.
 
 ```bash
 <maven_project>/target/classes/META-INF/dekorate/
 ```
 
-A few explanation is certainly needed here in order to understand what we did within the different projects to configure them :-)
+A few explanation is needed here in order to understand what we did within the different projects to configure them
+and to simplify the process to delpoy such a complex application on a cluster :-).
 
-The `@ComponentApplication` has been added within the `Application.java` java classes and they will be scanned by `dekorate` to generate a `Component.yaml` resource
-which contains the definition of the runtime, the name of the component, if a route is needed.
+As [Dekorate](http://dekorate.io) project supports 2 configuration's mode: `Java Annotation` or `Annotationless using property file`.
+When you prefer to use the `Java annotations`, then follow the instructions defined here after.
+
+The `@HalkyonComponent` annotation has been added within the Spring Boot `Application` java class part of each Apache maven project. 
 
 **client**
 ```java
-@ComponentApplication(
+@HalkyonComponent(
     name = "fruit-client-sb",
     exposeService = true
 )
 ```
 
-The `@Link` annotation express using an `@Env` the name of the variable to be injected within the pod in order to let the Spring Boot Application
-to configure its HTTP Client to access the HTTP endpoint exposed by the backend service.
+When `dekorate` dependency will be called, it will scan the java classes, search about such annotations and if they exist, it will generate from the information provided a `halkyon.yml` file.
+Additional information could also be calculated automatically as `Dekorate` supports different frameworks.
+When we use Spring Boot, then the following parameters `runtime` and `version` will be set respectively to `spring-boot` and `2.1.6.RELEASE`.
+
+The `@HalkyonLink` annotation express,  using an `@Env`, the name of the variable to be injected within the pod in order to let the Spring Boot Application
+to configure its `HTTP Client` to access the `HTTP endpoint` exposed by the backend service.
  
 **client**
 ```java
-@Link(
+@HalkyonLink(
     name = "link-to-fruit-backend",
     componentName = "fruit-client-sb",
-    kind = Kind.Env,
+    type = Type.Env,
     envs = @Env(
         name = "ENDPOINT_BACKEND",
         value = "http://fruit-backend-sb:8080/api/fruits"
@@ -97,33 +99,30 @@ to configure its HTTP Client to access the HTTP endpoint exposed by the backend 
 )
 ```
 
-Like for the Client's component, we will define a `@ComponentApplication` and `@Link` annotations for the `Backend` component. The link will inject from the secret referenced, the parameters that the application
+Like for the Client's component, we will define a `@HalkyonComponent` and `@HalkyonLink` annotations for the `Backend` component. The link will inject from the secret referenced, the parameters that the application
 will use to create a `DataSource`'s java bean able to call the `PostgreSQL` instance.
 
 **Backend**
 ```java
-@ComponentApplication(
+@HalkyonComponent(
     name = "fruit-backend-sb",
-    exposeService = true,
-    envs = @Env(
-        name = "SPRING_PROFILES_ACTIVE",
-        value = "postgresql-kubedb")
+    exposeService = true
 )
 ```
 
 ```java
-@Link(
+@HalkyonLink(
     name = "link-to-database",
     componentName = "fruit-backend-sb",
-    kind = Kind.Secret,
+    type = Type.Secret,
     ref = "postgresql-db")
 ```             
                 
-To configure the postgresql database to be used by the backend, we will use the `@Capability` annotation to 
+To configure the postgresql database to be used by the backend, we will use the `@HalkyonCapability` annotation to 
 configure the database, the user, password and database name.
                 
 ```java
-@Capability(
+@HalkyonCapability(
     name = "postgres-db",
     category = "database",
     kind = "postgres",
@@ -134,16 +133,45 @@ configure the database, the user, password and database name.
        @Parameter(name = "DB_NAME", value = "sample-db"),
     }
 )
-```  
+```
 
-Deploy the generated resource files
+If now, as defined within this emo project, you prefer to use the `Annotationless` mode, then simply enrich the `application.yml` file of Spring Boot
+with the corresponding `halkyon` paramaters.
+
+By example the `Backend` component will be defined as such
+```yaml
+dekorate:
+  component:
+    name: fruit-backend-sb
+    deploymentMode: dev
+    exposeService: true
+  link:
+    name: link-to-database
+    componentName: fruit-backend-sb
+    type: Secret
+    ref: postgres-db-config
+  capability:
+    name: postgres-db
+    category: database
+    type: postgres
+    version: "10"
+    parameters:
+    - name: DB_USER
+      value: admin
+    - name: DB_PASSWORD
+      value: admin
+    - name: DB_NAME
+      value: sample-db
+```
+
+To deploy the generated resource files on an existing cluster, execute the following commands:
 ```bash
 kubectl create ns demo
 kubectl apply -f fruit-client-sb/target/classes/META-INF/dekorate/halkyon.yml
 kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
 ``` 
 
-Wait a few moment and verify if the status of the components deployed is ready
+Wait a few moment and verify if the status of the `components` deployed are ready
 ```bash
 TODO - add resources deployed here
 ```
@@ -167,122 +195,11 @@ curl -H "Host: fruit-client-sb" ${FRONTEND_ROUTE_URL}/api/client
 
 TODO: To be reviewed !
 
-Decorate the Component with the following values in order to specify the git info needed to perform a Build, like the name of the component to be selected to switch from
-the dev loop to the publish loop
-
-```bash
- annotations:
-   app.openshift.io/git-uri: https://github.com/snowdrop/component-operator-demo.git
-   app.openshift.io/git-ref: master
-   app.openshift.io/git-dir: fruit-backend-sb
-   app.openshift.io/artifact-copy-args: "*.jar"
-   app.openshift.io/runtime-image: "fruit-backend-sb"
-   app.openshift.io/component-name: "fruit-backend-sb"
-   app.openshift.io/java-app-jar: "fruit-backend-sb-0.0.1-SNAPSHOT.jar"
-``` 
-  
-**Remark** : When the maven project does not contain multi modules, then replace the name of the folder / module with `.` using the annotation `app.openshift.io/git-dir`
-  
-Patch the component when it has been deployed to switch from `dev` to `build`
+Patch the Component which has been deployed and change the deploymentMode from `dev` to `build`. Next, wait till the Halkyon operator will create a
+Tekton Build's pod responsible to git clone the project and to perform a s2i build. When the image is pushed to the internal docker registry, then the 
+pod of the runtime is created and the service's label will change to use the new service
   
 ```bash
 kubectl patch cp fruit-backend-sb -p '{"spec":{"deploymentMode":"build"}}' --type=merge
-```   
-
-### Nodejs deployment
-
-TODO : To be reviewed !
-
-Build node project locally
-```bash
-cd fruit-client-nodejs
-nvm use v10.1.0
-npm audit fix
-npm install -s --only=production
-```
-
-Run locally
-```bash
-export ENDPOINT_BACKEND=http://fruit-backend-sb.my-spring-app.195.201.87.126.nip.io/api/fruits
-npm run -d start      
-```
-
-Deploy the node's component and link it to the Spring Boot fruit backend
-```bash
-kubectl apply -f fruit-client-nodejs/component.yml
-kubectl apply -f fruit-client-nodejs/env-backend-endpoint.yml
-```
-
-Push the code and start the nodejs application
-```bash
-./scripts/push_start.sh fruit-client nodejs
-```
-
-Test it locally or remotely
-```bash
-# locally
-http :8080/api/client
-http :8080/api/client/1 
-
-#Remotely
-route_address=$(kubectl get route/fruit-client-nodejs -o jsonpath='{.spec.host}')
-curl http://$route_address/api/client
-or 
-
-using httpie client
-http http://$route_address/api/client
-http http://$route_address/api/client/1
-http http://$route_address/api/client/2
-http http://$route_address/api/client/3
-```
-
-### Scaffold a project
-
-TODO: To be reviewed using `kreate` tool
-
-```bash
-git clone git@github.com:snowdrop/scaffold-command.git && cd scaffold-command
-go build -o scaffold cmd/scaffold.go
-export PATH=$PATH:/Users/dabou/Code/snowdrop/scaffold-command
-
- scaffold   
-? Create from template Yes
-? Available templates rest
-? Group Id me.snowdrop
-? Artifact Id myproject
-? Version 1.0.0-SNAPSHOT
-? Package name me.snowdrop.myproject
-? Spring Boot version 2.1.2.RELEASE
-? Use supported version No
-? Where should we create your new project ./fruit-demo
-
-cd demo
-
-add to the pom.xml file
-
-<properties>
-  ...
-  <dekorate.version>0.3.2</dekorate.version>
-</properties>
-  
-and 
-
-<dependencies>
-  <dependency>
-    <groupId>io.dekorate</groupId>
-    <artifactId>component-annotations</artifactId>
-    <version>${dekorate.version}</version>
-  </dependency>
-  <dependency>
-    <groupId>io.dekorate</groupId>
-    <artifactId>kubernetes-annotations</artifactId>
-    <version>${dekorate.version}</version>
-  </dependency>
-  <dependency>
-    <groupId>io.dekorate</groupId>
-    <artifactId>dekorate-spring-boot</artifactId>
-    <version>${dekorate.version}</version>
-  </dependency>
-  <!-- spring Boot -->
-```
+``` 
 
