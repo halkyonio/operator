@@ -176,6 +176,7 @@ jobs:
     - run:
         name: Build go operator
         command: |
+          git remote -v
           make build
           make test
           make cross
