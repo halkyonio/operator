@@ -24,14 +24,13 @@ an [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operator
 - Manage the relations between the different components of the using a `link` CR allowing one micro-service for example to consume a REST endpoint provided by another
 - Deploy various infrastructure services like a database which are bound to a `component` via the `capability` CR.
 
-Custom resources contains metadata about the framework/language to be used to either:
-- Configure the strategy that we want to adopt to deploy the application: `Development mode` or `Building/Prod mode`
+Custom resources contain metadata about the framework/language to be used to either:
+- Configure the deployment strategy used to deploy the application: `Development mode` or `Building/Prod mode`
 - Select the container image to be used to launch the application: java for `Spring Boot, Eclipse Vert.x, Thorntail`; node for `nodejs` 
 - Configure the `component` in order to inject `env var, secret, ...`
-- Create a service or capability such as database
+- Create a service or capability such as a database
 
-To add a micro-service to your project, to generate optionally a Route URL to access it from outside of the cluster or simply to specify some `ENV` vars to be by the runtime 
-the pod is created, then create a `halkyon.yml` file such as the following and deploy it on a cluster provisioned by the Halkyon operator.
+As an example of it's usage, by deploying a CR such as the following to a cluster that has the Halkyon operator installed, Halkyon is able to add a micro-service to your project, to generate a Route URL providing access to the service outside the cluster and to add environment variables to the created pod.
  
 ```bash
 apiVersion: halkyon.io/v1beta1
