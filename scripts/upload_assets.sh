@@ -26,13 +26,28 @@ BIN_DIR="./build/_output/bin/bin/"
 RELEASE_DIR="./build/_output/bin/release/"
 APP="component-operator"
 
-echo "git tag using snowbot account"
+TEMP_BRANCH="update-operator-yaml-${TAG}"
+OPERATOR_DEPLOYMENT_FILE="./deploy/operator.yaml"
+
 git config user.email "snow-bot@snowdrop.me"
 git config user.name "Snow-bot"
+# revert CircleCI global setting
+git config --remove-section url.ssh://git@github.com 2> /dev/null || true
+# ensure that the CI user can make changes
+git remote set-url origin https://${GITHUB_USER}:${GITHUB_API_TOKEN}@github.com/halkyonio/operator.git
+
+git checkout -b ${TEMP_BRANCH}
+
+echo "update operator deploment file"
+sed -i "s/operator:latest/operator:${VERSION}/g" ${OPERATOR_DEPLOYMENT_FILE}
+
+echo "commit, push and tag"
+git commit -m "[ci skip] Update operator deployment file to ${TAG}" ${OPERATOR_DEPLOYMENT_FILE}
+git push --set-upstream origin ${TEMP_BRANCH}
 git tag -a $TAG -m "$TAG release"
 
 echo "Create Release for tag $TAG"
-JSON='{"tag_name": "'"$TAG"'","target_commitish": "master","name": "'"$TAG"'","body": "'"$TAG"'-release","draft": false,"prerelease": false}'
+JSON='{"tag_name": "'"$TAG"'","target_commitish": "'"$TEMP_BRANCH"'","name": "'"$TAG"'","body": "'"$TAG"'-release","draft": false,"prerelease": false}'
 
 curl -H "$AUTH" \
   -H "Content-Type: application/json" \
@@ -74,3 +89,6 @@ for arch in $(ls -1 $BIN_DIR/); do
       $GH_ASSET_URL
   done
 done
+
+# delete the temporary branch
+git push --delete origin ${TEMP_BRANCH}
