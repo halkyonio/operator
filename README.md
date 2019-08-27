@@ -2,6 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/halkyonio/operator/tree/master.svg?style=shield)](https://circleci.com/gh/halkyonio/operator/tree/master)
 [![GitHub release](https://img.shields.io/github/v/release/halkyonio/operator.svg)](https://github.com/halkyonio/operator/releases/latest)
+[![Licensed under Apache License version 2.0](https://img.shields.io/github/license/halkyonio/operator?maxAge=2592000)](https://www.apache.org/licenses/LICENSE-2.0)
 
 Table of Contents
 =================
