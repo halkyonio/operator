@@ -210,8 +210,6 @@ curl -H "Host: fruit-client-sb" http://${FRONTEND_ROUTE_URL}/api/client
 
 ### Switch from Dev to Build mode
 
-TODO: To be reviewed !
-
 Patch the Component which has been deployed and change the deploymentMode from `dev` to `build`. Next, wait till the Halkyon operator will create a
 Tekton Build's pod responsible to git clone the project and to perform a s2i build. When the image is pushed to the internal docker registry, then the 
 pod of the runtime is created and the service's label will change to use the new service
