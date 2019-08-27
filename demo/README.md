@@ -5,12 +5,7 @@
      * [Build the application](#build-the-application)
      * [Install the components on the cluster](#install-the-components-on-the-cluster)
      * [Check if the Component Client is replying](#check-if-the-component-client-is-replying)
-     * [Using K8s](#using-k8s)
      * [Switch from Dev to Build mode](#switch-from-dev-to-build-mode)
-     * [Nodejs deployment](#nodejs-deployment)
-     * [Scaffold a project](#scaffold-a-project)
-  * [Cleanup](#cleanup)
-
 
 ## Introduction
 
