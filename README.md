@@ -252,6 +252,9 @@ If you need support, reach out to us via [zulip].
 
 If you run into issues, don't hesitate to raise an [issue].
 
+Follow us on [twitter].
+
 [website]: https://halkyion.io
 [zulip]: https://snowdrop.zulipchat.com/#narrow/stream/207165-halkyon
 [issue]: https://github.com/halkyonio/operator/issues/new
+[twitter]: https://twitter.com/halkyonio
