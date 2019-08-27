@@ -1,8 +1,6 @@
 package component
 
 import (
-	"context"
-	"fmt"
 	"halkyon.io/operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,9 +63,9 @@ func (res service) Update(toUpdate runtime.Object) (bool, error) {
 	svc := toUpdate.(*corev1.Service)
 	name := controller.DeploymentName(c)
 	if svc.Spec.Selector["app"] != name {
-		svc.Spec.Selector["app"] = name
-		if err := res.reconciler.Client.Update(context.TODO(), svc); err != nil {
-			return false, fmt.Errorf("couldn't update service '%s' selector", svc.Name)
+		labels := getAppLabels(name)
+		for key, value := range labels {
+			svc.Spec.Selector[key] = value
 		}
 		return true, nil
 	}
