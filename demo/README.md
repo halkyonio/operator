@@ -9,7 +9,7 @@
 
 ## Introduction
 
-The purpose of this demo is to showcase how you can use the `Component`, `Link` and `Capability` CRs combined with the Kubernetes `operator` to help you to :
+The purpose of this demo is to showcase how you can use the `Component`, `Link` and `Capability` CRs combined with the Halkyon `operator` to help you to :
 - Install your Microservices - Spring Boot applications,
 - Instantiate a PostgreSQL database
 - Inject the required information to the different Microservices to let a Spring Boot application to access a service which is a http endpoint or to consume a database
@@ -38,7 +38,7 @@ within an `application.properties` file.
 
 Build the `frontend` and the `Backend` using `maven` tool to generate their respective Spring Boot uber jar file
 ```bash
-mvn clean package
+mvn clean package -f demo
 ``` 
 
 As our different Spring Boot maven projects use the `dekorate` halkyon starter
@@ -59,7 +59,7 @@ directory `target/classes/META-INF/dekorate`. They will be next used to deploy t
 ```
 
 A few explanation is needed here in order to understand what we did within the different projects to configure them
-and to simplify the process to delpoy such a complex application on a cluster :-).
+and to simplify the process to deploy such a complex application on a cluster :-).
 
 As [Dekorate](http://dekorate.io) project supports 2 configuration's mode: `Java Annotation` or `Annotationless using property file`.
 When you prefer to use the `Java annotations`, then follow the instructions defined here after.
@@ -75,8 +75,9 @@ The `@HalkyonComponent` annotation has been added within the Spring Boot `Applic
 ```
 
 When `dekorate` dependency will be called, it will scan the java classes, search about such annotations and if they exist, it will generate from the information provided a `halkyon.yml` file.
+
 Additional information could also be calculated automatically as `Dekorate` supports different frameworks.
-When we use Spring Boot, then the following parameters `runtime` and `version` will be set respectively to `spring-boot` and `2.1.6.RELEASE`.
+When we use Spring Boot Dekorate, then the following parameters `runtime` and `version` will be set respectively to `spring-boot` and `2.1.6.RELEASE`.
 
 The `@HalkyonLink` annotation express,  using an `@Env`, the name of the variable to be injected within the pod in order to let the Spring Boot Application
 to configure its `HTTP Client` to access the `HTTP endpoint` exposed by the backend service.
@@ -130,8 +131,8 @@ configure the database, the user, password and database name.
 )
 ```
 
-If now, as defined within this emo project, you prefer to use the `Annotationless` mode, then simply enrich the `application.yml` file of Spring Boot
-with the corresponding `halkyon` paramaters.
+If now, as defined within this demo project, you prefer to use the `Annotationless` mode supported by [dekorate](https://github.com/dekorateio/dekorate#annotation-less-configuration), then simply enrich the `application.yml` file of Spring Boot
+with the corresponding `halkyon` parameters.
 
 By example the `Backend` component will be defined as such
 ```yaml
