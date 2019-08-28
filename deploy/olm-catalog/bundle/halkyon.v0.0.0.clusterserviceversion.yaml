@@ -74,7 +74,7 @@ metadata:
       ]
     description: |-
       Halkyon: To get back to the halcyon days of local development in a modern kubernetes setting of microservices!
-  name: halkyon.0.0.0
+  name: halkyon.v0.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
