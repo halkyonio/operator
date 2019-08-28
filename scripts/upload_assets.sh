@@ -45,11 +45,11 @@ git checkout -b ${TEMP_BRANCH}
 cp -R /tmp/operator/_output/ ./build/
 
 echo "update all necessary operator related files"
-sed -i "s/:latest/:${TAG}/g" ./deploy/operator.yaml
-sed -i "s/:latest/:${TAG}/g" ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml
-sed -i "s/v0.0.0/${TAG}/g" ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml
+sed -i "s/:latest/:${VERSION}/g" ./deploy/operator.yaml
+sed -i "s/:latest/:${VERSION}/g" ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml
+sed -i "s/0.0.0/${VERSION}/g" ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml
 mv ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml ./deploy/olm-catalog/bundle/halkyon.${TAG}.clusterserviceversion.yaml
-sed -i "s/v0.0.0/${TAG}/g" ./deploy/olm-catalog/bundle/halkyon.package.yaml
+sed -i "s/0.0.0/${VERSION}/g" ./deploy/olm-catalog/bundle/halkyon.package.yaml
 
 echo "commit, push and tag"
 git add .
