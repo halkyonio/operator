@@ -27,7 +27,6 @@ RELEASE_DIR="./build/_output/bin/release/"
 APP="component-operator"
 
 TEMP_BRANCH="update-operator-yaml-${TAG}"
-OPERATOR_DEPLOYMENT_FILE="./deploy/operator.yaml"
 
 git config user.email "snow-bot@snowdrop.me"
 git config user.name "Snow-bot"
@@ -38,11 +37,16 @@ git remote set-url origin https://${GITHUB_USER}:${GITHUB_API_TOKEN}@github.com/
 
 git checkout -b ${TEMP_BRANCH}
 
-echo "update operator deploment file"
-sed -i "s/operator:latest/operator:${TAG}/g" ${OPERATOR_DEPLOYMENT_FILE}
+echo "update all necessary operator related files"
+sed -i "s/:latest/:${TAG}/g" ./deploy/operator.yaml
+sed -i "s/:latest/:${TAG}/g" ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml
+sed -i "s/v0.0.0/:${TAG}/g" ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml
+mv ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml ./deploy/olm-catalog/bundle/halkyon.${TAG}.clusterserviceversion.yaml
+sed -i "s/v0.0.0/:${TAG}/g" ./deploy/olm-catalog/bundle/halkyon.package.yaml
 
 echo "commit, push and tag"
-git commit -m "[ci skip] Update operator deployment file to ${TAG}" ${OPERATOR_DEPLOYMENT_FILE}
+git add .
+git commit -am "[ci skip] Update operator deployment file to ${TAG}"
 git push --set-upstream origin ${TEMP_BRANCH}
 git tag -a $TAG -m "$TAG release"
 
