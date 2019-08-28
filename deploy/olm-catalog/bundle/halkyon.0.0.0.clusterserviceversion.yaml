@@ -74,7 +74,7 @@ metadata:
       ]
     description: |-
       Halkyon: To get back to the halcyon days of local development in a modern kubernetes setting of microservices!
-  name: halkyon.v0.0.0
+  name: halkyon.0.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -152,7 +152,7 @@ spec:
 
   displayName: Halkyon Operator
   keywords: ['component','microservices','composition']
-  version: v0.0.0
+  version: 0.0.0
   maturity: alpha
   maintainers:
     - name: Halkyon Owner
