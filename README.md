@@ -109,7 +109,7 @@ echo '<IP_ADDRESS> kube-registry.kube-system kube-registry.kube-system.svc kube-
 
 Install Tekton Pipelines technology
 ```bash
-kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.4.0/release.yaml
+kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.5.2/release.yaml
 ```
 
 Install the `KubeDB` operator and its `PostgreSQL` catalog supporting different database versions
@@ -118,7 +118,7 @@ KUBEDB_VERSION=0.12.0
 helm repo add appscode https://charts.appscode.com/stable/
 helm repo update
 helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} \
-  --namespace kubedb --set apiserver.enableValidatingWebhook=false,apiserver.enableMutatingWebhook=false
+  --namespace kubedb --set apiserver.enableValidatingWebhook=true,apiserver.enableMutatingWebhook=true
 ```
 
 Wait till the Operator has started before to install the Catalog
