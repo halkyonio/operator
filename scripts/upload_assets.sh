@@ -22,7 +22,7 @@ CURL_ARGS="-LJO#"
 TAG="v$VERSION"
 GH_TAGS="$GH_REPO/releases/tags/$TAG"
 
-BIN_DIR="./build/_output/bin/bin/"
+BIN_DIR="./build/_output/bin/"
 RELEASE_DIR="./build/_output/bin/release/"
 APP="component-operator"
 
@@ -35,7 +35,14 @@ git config --remove-section url.ssh://git@github.com 2> /dev/null || true
 # ensure that the CI user can make changes
 git remote set-url origin https://${GITHUB_USER}:${GITHUB_API_TOKEN}@github.com/halkyonio/operator.git
 
+# "stash" the build output
+mkdir -p /tmp/operator
+cp -R build/_output /tmp/operator/
+
 git checkout -b ${TEMP_BRANCH}
+
+# "unstash" the build output
+cp -R /tmp/operator/_output/ ./build/
 
 echo "update all necessary operator related files"
 sed -i "s/:latest/:${TAG}/g" ./deploy/operator.yaml
