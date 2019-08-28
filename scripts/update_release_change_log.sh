@@ -21,7 +21,7 @@ eval $(echo "$response" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:al
 git fetch --tags
 git fetch --prune origin "+refs/tags/*:refs/tags/*"
 
-PREVIOUS_TAG=$(git describe --abbrev=0 ${CURRENT_TAG}^ --tags)
+PREVIOUS_TAG=$(git describe --abbrev=0 ${CURRENT_TAG}~2 --tags)
 
 # we use the contents of the commits between the current and previous tag as the release body
 RELEASE_BODY=$(git log --decorate=short --pretty=format:'%h %d%  %s\n' ${PREVIOUS_TAG}..${CURRENT_TAG} | sed -e "s/(.*tag: ${CURRENT_TAG}.*) /(tag: ${CURRENT_TAG}) /g" | paste -sd "" -)
