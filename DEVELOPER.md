@@ -91,11 +91,17 @@ Next, execute the following `curl` request to get a token (e.g `basic Y2gwMDdtK.
 Push finally the bundle on quay as an `application`.
 
     export QUAY_ORG="quay_organization (e.g halkyionio)"
-    export REPOSITORY="halkyon"
+    export APP_REPOSITORY="halkyon"
     export RELEASE="0.0.1"
-    operator-courier push $BUNDLE_DIR $QUAY_ORG $REPOSITORY $RELEASE "$AUTH_TOKEN"
+    operator-courier push $BUNDLE_DIR $QUAY_ORG $APP_REPOSITORY $RELEASE "$AUTH_TOKEN"
     
-**Warning**: The name of the repository must match the name of the operator created under the folder `upstream-community-operators` or `community-operators`. The version, of course, will match the one defined within the `CSV` yaml resource or bundle package
+**REMARK**: Use as version for the `RELEASE`, the tag id published under the github repository but without the letter `v`. Example : `0.1.1` and not `v0.1.1` !    
+    
+The following bash script can also be used to publish the bundle to be tested on quay
+
+    ./scripts/release_bundle_operator.sh $QUAY_USER $QUAY_TOKEN $RELEASE    
+    
+**Warning**: The name of the `application repository` must match the name of the operator created under the folder `upstream-community-operators` or `community-operators`. The version, of course, will match the one defined within the `CSV` yaml resource or bundle package
     
 ### How to deploy the Operator on the OLM registry of OCP4
 
