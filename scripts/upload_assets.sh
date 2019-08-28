@@ -39,7 +39,7 @@ git remote set-url origin https://${GITHUB_USER}:${GITHUB_API_TOKEN}@github.com/
 git checkout -b ${TEMP_BRANCH}
 
 echo "update operator deploment file"
-sed -i "s/operator:latest/operator:${VERSION}/g" ${OPERATOR_DEPLOYMENT_FILE}
+sed -i "s/operator:latest/operator:${TAG}/g" ${OPERATOR_DEPLOYMENT_FILE}
 
 echo "commit, push and tag"
 git commit -m "[ci skip] Update operator deployment file to ${TAG}" ${OPERATOR_DEPLOYMENT_FILE}
