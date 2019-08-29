@@ -23,17 +23,17 @@ clean:
 .PHONY: build
 build: clean
 	@echo "> Build go application"
-	GO111MODULE=on go build ${BUILD_FLAGS} -o ${BIN_DIR}/${PROJECT_NAME} ${BUILD_PATH}
+	GO111MODULE=on go build ${BUILD_FLAGS} -o ${BIN_DIR}/halkyon-${PROJECT_NAME} ${BUILD_PATH}
 
 .PHONY: build-linux
 build-linux: clean
 	@echo "> Build go application for linux os"
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ${BUILD_FLAGS} -o ${BIN_DIR}/${PROJECT_NAME} ${BUILD_PATH}
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ${BUILD_FLAGS} -o ${BIN_DIR}/halkyon-${PROJECT_NAME} ${BUILD_PATH}
 
 .PHONY: cross
 cross: clean
 	@echo "> Build go application cross os"
-	gox -osarch="darwin/amd64 linux/amd64" -output="${BIN_DIR}/{{.OS}}-{{.Arch}}/${PROJECT_NAME}" $(BUILD_FLAGS) ${BUILD_PATH}
+	gox -osarch="darwin/amd64 linux/amd64" -output="${BIN_DIR}/{{.OS}}-{{.Arch}}/halkyon-${PROJECT_NAME}" $(BUILD_FLAGS) ${BUILD_PATH}
 
 .PHONY: generate-api
 generate-api:
@@ -73,7 +73,7 @@ prepare-release: cross
 
 .PHONY: upload
 upload: prepare-release
-	./scripts/upload_assets.sh
+	./scripts/upload_assets_test.sh
 
 dep:
 	$(Q)dep ensure -v

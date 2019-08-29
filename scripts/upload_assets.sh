@@ -22,9 +22,9 @@ CURL_ARGS="-LJO#"
 TAG="v$VERSION"
 GH_TAGS="$GH_REPO/releases/tags/$TAG"
 
-BIN_DIR="./build/_output/bin/"
-RELEASE_DIR="./build/_output/bin/release/"
-APP="component-operator"
+BIN_DIR="./build/_output/bin"
+RELEASE_DIR="./build/_output/release"
+APP="halkyon-operator"
 
 TEMP_BRANCH="update-operator-yaml-${TAG}"
 
