@@ -22,7 +22,7 @@ Table of Contents
 
 ## Introduction
 
-Deploying modern micro-services applications that utilize the [12-factor](https://12factor.net/) guidelines to Kubernetes is difficult, mainly due to the host of different and complex Kubernetes Resources involved. In such scenarios developer experience becomes very important. 
+Deploying modern micro-services applications that comply with the [12-factor](https://12factor.net/) guidelines to Kubernetes is difficult, mainly due to the host of different and complex Kubernetes Resources involved. In such scenarios developer experience becomes very important. 
 
 This projects aims to tackle said complexity and vastly **simplify** the process of deploying micro-service applications to Kubernetes.
 
@@ -32,7 +32,7 @@ an [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operator
 - Manage the relations between the different components using `link` CR allowing one micro-service for example to consume a REST endpoint provided by another
 - Deploy various infrastructure services like a database which are bound to a `component` via the `capability` CR.
 
-The Halkyon Operator runs top of `Kubernetes >= 1.13` or `OpenShift >= 3.11`.
+The Halkyon Operator requires `Kubernetes >= 1.13` or `OpenShift >= 3.11`.
 
 ## Key concepts
 
@@ -40,8 +40,8 @@ A modern application, which is defined as a collection of micro-services as depi
 
 ![Composition](component-operator-demo.png)
 
-will need several Kubernetes resources definition in order to be deployed on a kubernetes cluster and development iterations to have application
-which is ready to become production grade.
+will require several Kubernetes resources in order to be deployed on a kubernetes cluster. Furthermore several development iterations are usually required to make the 
+application production ready.
 
 When, during the analysis phase, the developers will discuss the final picture about the solution to be designed, they
 will certainly adopt this very straightforward convention (aka Fluent DSL) to express the different micro-services, their relations and ultimately
@@ -56,11 +56,11 @@ The relation `from -> to` indicates that we will `reference` the `ComponentA`  w
 The `link`'s purpose is to inject as `Env var(s)` the information required to by example configure the `HTTP client` of the `ComponentA` to access the 
 `ComponentB` which exposes a `HTTP endpoint` that the client `ComponentA`  could use to access the `CRUD` operations.
 
-To let the `ComponentB` to consume a database, we will also setup a `link` in order to pass using the database `Secret` the parameters which are needed to configure a Java Datasource's bean.
+To make `ComponentB` capable of communicating with a database, a `link` will also be setup in order to pass using the database `Secret` the parameters which are needed to configure a Java Datasource.
 
 This is, for that reason, that such `entities/concepts` are also proposed by Halkyon using different Kubernetes Custom Resources: `Component`, `Link` and  `Capabiltity`.
 
-**Remark**: you can the full description of the CR and its API under the project `https://github.com/halkyonio/api`.
+**Remark**: you can view the full description of the CR and its API under the project `https://github.com/halkyonio/api`.
 
 ### Component
 
