@@ -1,4 +1,4 @@
-# Halkyon Operator
+# Halkyon Operator: get back to the halcyon days of local development in a modern kubernetes setting!
 
 [![CircleCI](https://circleci.com/gh/halkyonio/operator/tree/master.svg?style=shield)](https://circleci.com/gh/halkyonio/operator/tree/master)
 [![GitHub release](https://img.shields.io/github/v/release/halkyonio/operator.svg)](https://github.com/halkyonio/operator/releases/latest)
@@ -11,9 +11,9 @@ Table of Contents
       * [Component](#component)
       * [Link](#link)
       * [Capability](#capability)
-   * [Prerequisites](#prerequisites)
+   * [Pre-requisites](#pre-requisites)
       * [Local cluster using Minikube](#local-cluster-using-minikube)
-   * [Installation of the Halkyon Operator](#installation-of-the-halkyon-operator)
+   * [Installation of the Halkyon Operator](#installing-the-halkyon-operator)
       * [How to play with it](#how-to-play-with-it)
       * [A Real demo](#a-real-demo)
       * [Cleanup the Operator resources](#cleanup-the-operator-resources)
@@ -24,9 +24,9 @@ Table of Contents
 
 Deploying modern micro-services applications that comply with the [12-factor](https://12factor.net/) guidelines to Kubernetes is difficult, mainly due to the host of different and complex Kubernetes Resources involved. In such scenarios developer experience becomes very important. 
 
-This projects aims to tackle said complexity and vastly **simplify** the process of deploying micro-service applications to Kubernetes.
+This projects aims to tackle said complexity and vastly **simplify** the process of deploying micro-service applications to Kubernetes and get back to the halcyon days of local development! :sunglasses:
 
-By providing several, easy-to-use Kubernetes [Custom Resources - CR](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
+By providing several, easy-to-use Kubernetes [Custom Resources (CRs)](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
 an [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) to handle them, the Halkyon project provides the following features:
 - Install micro-services (`components` in Halkyon's parlance) utilizing `runtimes` such as Spring Boot, Vert.x, Thorntail, Quarkus or Nodejs, serving as base building blocks for your application
 - Manage the relations between the different components using `link` CR allowing one micro-service for example to consume a REST endpoint provided by another
@@ -36,74 +36,70 @@ The Halkyon Operator requires `Kubernetes >= 1.13` or `OpenShift >= 3.11`.
 
 ## Key concepts
 
-A modern application, which is defined as a collection of micro-services as depicted hereafter
+An example of a simple, modern application, defined as a collection of micro-services is depicted hereafter
 
 ![Composition](component-operator-demo.png)
 
-will require several Kubernetes resources in order to be deployed on a kubernetes cluster. Furthermore several development iterations are usually required to make the 
-application production ready.
+Such an application, though simple, will require several Kubernetes resources in order to be deployed on a Kubernetes cluster. 
+Furthermore several development iterations are usually required to make the application production ready.
 
-When, during the analysis phase, the developers will discuss the final picture about the solution to be designed, they
-will certainly adopt this very straightforward convention (aka Fluent DSL) to express the different micro-services, their relations and ultimately
-the services needed.
+The entry point to the application is the `fruit-client-sb` application. It connects to a backend REST endpoint implemented
+by the `fruit-backend-sb` application. This application, in turns, uses the services of a PostgreSQL database.
 
-`(from:componentA).(to:componentB).(to:serviceA)`
+In Halkyon parlance, both `fruit-client-sb` and `fruit-backend-sb` are `components` of our application. The PostgreSQL database
+is a `capability` used by the `fruit-backend-sb` `component`. Components and capabilities are "glued" together using `links`.
+Halkyon `links` provides the `components` or `capabilities` they link together with the information the respective applications
+need to materialize the connection within the remote cluster.
 
-The `ComponentA` and `ComponentB` correspond respectively to by example a Spring Boot application `fruit-client-sb` and `fruit-backend-sb`.
+For example, we use a `link` between `fruit-client-sb` and `fruit-backend-sb` to provide `fruit-client-sb` with the cluster URL
+of the `fruit-backend-sb` so that the client can access the backend endpoint. Similarly, we create a `link` between the 
+`fruit-backend-sb` `component` and the PostgreSQL database `capability`, thus providing the `component` with the database 
+connection information.
 
-The relation `from -> to` indicates that we will `reference` the `ComponentA`  with the `ComponentB` using a `Link`.
+Information about `components`, `links` and `capabilities` are materialized by custom resources in Halkyon. We can create the
+manifests for these custom resources which, once processed by the remote cluster, will be handled by the Halkyon operator to 
+create the appropriate Kubernetes/OpenShift resources for you, so you can focus on your application architecture as opposed to 
+wondering how it might translate to Kubernetes `pods` or `deployments`.
 
-The `link`'s purpose is to inject as `Env var(s)` the information required to by example configure the `HTTP client` of the `ComponentA` to access the 
-`ComponentB` which exposes a `HTTP endpoint` that the client `ComponentA`  could use to access the `CRUD` operations.
-
-To make `ComponentB` capable of communicating with a database, a `link` will also be setup in order to pass using the database `Secret` the parameters which are needed to configure a Java Datasource.
-
-This is, for that reason, that such `entities/concepts` are also proposed by Halkyon using different Kubernetes Custom Resources: `Component`, `Link` and  `Capabiltity`.
-
-**Remark**: you can view the full description of the CR and its API under the project `https://github.com/halkyonio/api`.
+**Remark**: you can view the full description of the CRs and their API under the project `https://github.com/halkyonio/api`.
 
 ### Component
 
-**Definition**:
-
-The component represents a micro-service of an application to be deployed and contains the following information defined within `spec` section: 
-- `deploymentMode`: to configure the deployment strategy used : `Development` or `Building/Prod`.
-- `runtime`: to select the container image to be used to launch the application. For the `Spring Boot, Eclipse Vert.x, Thorntail`, an `OpenJDK8` image will be used while for a `Node` runtime
-   that will be a `nodejs` image.
-- `version`: the version of the runtime as defined within the local maven, gradle, ... project   
-- `exposeService`: to create an ingress resource (on kubernetes) or a route resource (on openshift) to access the endpoint of the service outside of the cluster   
-- `8080`: runtime port to be used to access the endpoint's service
-- `envs`: to specify `env vars` needed by the runtime.
-
-By deploying a `Component`, the Halkyon operator will create these Kubernetes resources: 
+A component represents a micro-service, i.e. part of an application to be deployed. The `Component` custom resource provides a
+simpler to fathom abstraction over what's actually required at the Kubernetes level to deploy and optionally expose the 
+micro-service outside of the cluster. In fact, when a `component` is deployed to a Halkyon-enabled cluster, the Halkyon operator
+will create these resources:
 - `Deployment`,
 - `Service`,
-- `PVC`,
-- `Route` or `Ingress` (optional)
+- `PersistentVolumeClaim`,
+- `Ingress` or `Route` on OpenShift if the component is exposed.
 
-The deployment strategy is used to manage 2 distinct deployments on the cluster:
-- `development`
-- `build`
+You can already see how Halkyon reduces the cognitive load on developers since there is no need to worry about the low-level 
+details by focusing on the salient aspects of your component: what runtime does it need to run, does it need to be exposed outside
+of the cluster and on what port. Theses aspects are captured along with less important ones in the custom resource fields: 
+`runtime` (and `version`), `exposeService` and `port`. The `runtime` name will condition which container image will be used to 
+run the application. For example, an OpenJDK image will be used for Java runtimes such as Spring Boot or Eclipse Vert.x. If you 
+want to expose your application, you will need to set `exposeService` to `true` and specify which `port` needs to be exposed.
 
-The `development` mode will be used to create a pod including as init container, a supervisord application which exposes different `commands` that a tool or a command executed
-within the pod can trigger in order to execute `assemble`, `run`, `compile`. These commands are mapped to the s2i executables packaged within the Java OpenJDK S2i image or S2i nodejs images.
+Of note, Halkyon offers two deployment modes, controlled by the `deploymentMode` field of the custom resource: `dev` 
+(for "development") and `build`, `dev` being the default mode if none is specified explicitly.
 
-A typical development scenario will consist of first creating a project, designing a micro-service and when the code is ready to be tested on the cluster an artifact will be created (such as an `uber-jar`). 
-Next the artifact needs to be pushed to the pod and finally to call the command launching the application. 
+The `dev` mode sets the environment in such a way that the pod where your application is 
+deployed doesn't need to be restarted when the code changes. On the contrary, the pod contains an init container exposing a 
+server that can listen to commands so that your application executable can be restarted or re-compiled after updates without 
+needing to restart the whole pod or generate a new container image which allows for faster turn-around. 
 
-The `build` mode will under the hood use the Tekton Pipeline Operator in order to create a Tekton Pod of executing, depending on to the `BuildConfig` type, the build of the image
-using the steps defined within the `Task`. Currently, we only support a `S2I` build to generate the runtime image.
-To configure the build, the `Component` must include additional parameters defined within the `BuildConfig` field where:
-- `type`: refers to the Pipeline or build strategy to be done. The default value is `s2i`
-- `url`: is the url of the git repo to be cloned. Example : `https://github.com/halkyonio/operator.git`
-- `ref`: is the branch or git tag to be cloned. Default value is `master`
-- `contextPath`: allows to specify within the project cloned the path containing the project of the application. Default is `.`
-- `moduleDirName`: is the directory name of the maven module to compile. Default value is `.`
+The `build` mode uses the Tekton Pipeline Operator in order to build of a new image for your application. How the image is built
+is controlled by the `buildConfig` field of the `component` custom resource where you need to minimally specify the url of the 
+git repository to be used as basis for the code (`url` field).
 
-**Example**
+For more details on the fields of the Component custom resource, please refer to 
+[its API](https://github.com/halkyonio/api/blob/master/component/v1beta1/types.go).
 
-`DeploymentMode: dev`  
-  
+**Examples**:
+
+`DeploymentMode: dev`
+
 ```yaml
 apiVersion: halkyon.io/v1beta1
 kind: Component
@@ -112,10 +108,10 @@ metadata:
 spec:
   deploymentMode: dev
   runtime: spring-boot
-  version: 2.1.16
+  version: 2.1.16   // runtime version
   exposeService: true
   port: 8080
-  envs:
+  envs: // additional environment variables to set on the application pod
   - name: SPRING_PROFILES_ACTIVE
     value: openshift-catalog
 ```
@@ -133,32 +129,27 @@ spec:
   runtime: "spring-boot"
   version: "2.1.6.RELEASE"
   exposeService: true
-  buildConfig:
-    type: "s2i"
+  buildConfig:  // controls how Tekton performs the image build
+    type: "s2i" // Source to Image (s2i) are currently the only supported build type
     url: "https://github.com/halkyonio/operator.git"
-    ref: "master"
-    contextPath: "demo/"
-    moduleDirName: "fruit-backend-sb"
+    ref: "master" // optional git reference to use
+    contextPath: "demo/" // where is the root of code from the root of the repository (optional)
+    moduleDirName: "fruit-backend-sb" // module / sub-directory name from the root of the code (optional)
   port: 8080
 ```
-  
+
 ### Link
 
-**Definition**:
+As explained in the [introduction](#introduction), links explicit how components are tied together to create a composite 
+application. This is done by injecting information in the target component (as identified by the `componentName` field of the 
+`link` custom resource). Under the hood, the Halkyon operator modifies the `Deployment` associated with the target component
+to either add environment variables or secret reference, depending on the type of link. This is controlled, as you might have
+guessed :smirk:, using the `type` field of the link CR. This fields currently accepts two possible values: `Secret` or `Env`.
+A `Secret` link will use the `ref` field value to look up a Kubernetes secret while an `Env` link will use the `envs` field. 
+This information will then be used to enrich the container associated with the `Deployment` according to its type (`EnvFrom` for
+secret injection, `Env` for environment variable injection).
 
-The link represents the information which is needed by a micro-service to access a HTTP endpoint exposed by another microservice or a service like a database.
-It supports 2 different types: `Secret` or `Env` which are used by the Operator in order to inject using the `componentName` referenced
-the information provided.
-
-A Link contains the following parameters:
-- `componentName`: is target `component` where the information should be injected. This component corresponds to a kubernetes `Deployment` resource
-- `type`: The `Secret` type allows the operator to search about a kubernetes Secret according to the `ref` and next to inject into the `Deployment`, withint
-the `.spec.container` part the values within the `EnvFrom` field. The `Env` type will be used to enrich the  `.spec.container` part of the `Deployment` with the 
-`Envs` vars defined within the array `envs
-- `ref`: Kubernetes secret reference to look for within the namespace
-- `envs`: list of env variables defined as `name` and `value` pairs  
-
-**Example**:
+**Examples**:
 
 `Secret`
 ```yaml
@@ -169,7 +160,7 @@ metadata:
 spec:
   componentName: "fruit-backend-sb"
   type: "Secret"
-  ref: "postgres-db-config"
+  ref: "postgres-db-config" // name of the secret 
 ```
 
 `Envs`
@@ -189,17 +180,13 @@ spec:
 
 ### Capability 
 
-**Definition**
+A capability corresponds to a service that the micro-service will consume on the platform. The Halkyon operator then uses this 
+information to configure the service. Capabilities are identified by the combination of its `category` which represents the 
+general class of configurable services, further identified by a more specific `type` (which could be construed as a sub-category)
+and a version for the `category/type` combination. The service is then configured using a list of name/value `parameters`.
 
-A capability corresponds to a service that the micro-service will consume on the platform. It will be used as input by the operator to configure the service
-as defined hereafter:
-- `category`: it represents a capability supported by the operator. We only support for the moment the `database` category
-- `type`: According to the `category`, this field represents by example the type of the database to be deployed. `PostgreSQL` is only supported for the moment. 
-- `version`: identify the version of the `type` to be installed.
-- `parameters`: list of `name` and `value` pairs used to create the secret of the service
-
-The Halkyon operator uses for the `category` database, the `[KubeDB](https://kubedb.com)` operator to delegate the creation/installation of the pod of the database within the namespace of the 
-user.
+We currently only support the `database/PostgreSQL` category/type combination but are planning to expand to other categories and
+types. Halkyon uses the `[KubeDB](https://kubedb.com)` operator to handle the database category.
 
 **Example**:
 
@@ -222,12 +209,12 @@ apiVersion: "halkyon.io/v1beta1"
       value: "sample-db"
 ```
 
-## Prerequisites
+## Pre-requisites
 
 In order to use the Halkyon Operator and the CRs, the [Tekton Pipelines](https://tekton.dev/) and [KubeDB](http://kubedb.com) Operators need to be installed on the cluster.
-We assume that you have installed a K8s cluster as of starting from Kubernetes version 1.13.
+We assume that you have installed a cluster with Kubernetes version equals to 1.13 or newer.
 
-### Local cluster using Minikube
+### Local cluster using `minikube`
 
 Install using Homebrew on `macOS` the following software:
 ```bash
@@ -248,18 +235,15 @@ minikube addons enable registry
 minikube start
 ```
 
-When `minikube` has started, initialize `Helm` to install on the cluster `Tiller`
-
+When `minikube` has started, initialize `Helm` to install `Tiller` on the cluster:
 ```bash
 helm init
 until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
 kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
 ```
 
-Next, edit the `/etc/hosts` file of minikube vm in order to specify the IP address of the docker registry daemon
-as the docker client, when it will fetch from the docker registry images pushed, will use name `kube-registry.kube-system` to call the 
-docker server
-
+Next, edit the `/etc/hosts` file of the minikube vm in order to specify the IP address of the docker registry daemon
+as the docker client will use the `kube-registry.kube-system` name  to call the docker registry when it fetches pushed images:
 ```bash
 kc get svc/registry -n kube-system -o jsonpath={.spec.clusterIP}
 <IP_ADDRESS> 
@@ -267,12 +251,12 @@ minikube ssh
 echo '<IP_ADDRESS> kube-registry.kube-system kube-registry.kube-system.svc kube-registry.kube-system.svc.cluster.local' | sudo tee -a /etc/hosts
 ```
 
-Install Tekton Pipelines technology
+Install Tekton Pipelines:
 ```bash
 kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.5.2/release.yaml
 ```
 
-Install the `KubeDB` operator and its `PostgreSQL` catalog supporting different database versions
+Install the `KubeDB` operator and its `PostgreSQL` catalog supporting different database versions:
 ```bash
 KUBEDB_VERSION=0.12.0
 helm repo add appscode https://charts.appscode.com/stable/
@@ -281,7 +265,7 @@ helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} 
   --namespace kubedb --set apiserver.enableValidatingWebhook=true,apiserver.enableMutatingWebhook=true
 ```
 
-Wait until the Operator has started before to install the Catalog
+Wait until the Operator has started before installing the catalog:
 ```bash
 TIMER=0
 until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions.catalog.kubedb.com mongodbversions.catalog.kubedb.com mysqlversions.catalog.kubedb.com postgresversions.catalog.kubedb.com redisversions.catalog.kubedb.com || [[ ${TIMER} -eq 60 ]]; do
@@ -290,16 +274,15 @@ until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions
 done
 ```
 
-Install the PostgreSQL catalog.
+Install the PostgreSQL catalog:
 ```bash
 helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
   --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
 ```
 
-## Installation of the Halkyon Operator
+## Installing the Halkyon Operator
 
-Deploy the `Cluster Role`, `Role Binding`, `CRDs`, `ServiceAccount` and `Operator` within the namespace `operators` 
-
+Deploy the `ClusterRole`, `RoleBinding`, `CRDs`, `ServiceAccount` and `Operator` reources within the `operators` namespace:
 ```bash
 kubectl create ns operators
 kubectl apply -n operators -f deploy/sa.yaml
@@ -312,12 +295,12 @@ kubectl apply -f deploy/crds/link.yaml
 kubectl apply -n operators -f deploy/operator.yaml
 ```
 
-Wait till the Operator's pod is ready and running before to continue
+Wait until the Operator's pod is ready and running before continuing:
 ```bash
 until kubectl get pods -n operators -l name=halkyon-operator | grep 1/1; do sleep 1; done
 ```
 
-Control if the operator is running correctly
+Control if the operator is running correctly:
 ```bash
 pod_id=$(kubectl get pods -n operators -l name=halkyon-operator -o=name)
 kubectl logs $pod_id -n operators
@@ -327,12 +310,14 @@ Enjoy the Halkyon Operator!
 
 ### How to play with it
 
-The process is pretty simple and is about creating a custom resource, one by micro-service or runtime to be deployed.
-So create first a `demo` namespace
+Let's deploy a very simple `component`.
+
+First create a `demo` namespace:
 ```bash
 kubectl create ns demo
 ```
-and next create using your favorite editor, a `component` resource with the following information:
+
+and next, create using your favorite editor, a `component` resource with the following information:
 ```bash
 apiVersion: halkyon.io/v1beta1
 kind: Component
@@ -343,19 +328,19 @@ spec:
   deploymentMode: dev
 ```
 
-Deploy it 
+Deploy it: 
 ```bash
 kubectl apply -n demo -f my-component.yaml
 ```
 
-Verify if the component has been well created by executing the following `kubectl` command
+Verify if the component has been properly created by executing the following `kubectl` command:
 ```bash
 kubectl get components -n demo
 NAME          RUNTIME       VERSION   AGE   MODE   STATUS    MESSAGE                                                            REVISION
 spring-boot   spring-boot             14s   dev    Pending   pod is not ready for component 'spring-boot' in namespace 'demo'                        
 ```
 
-**Remark** Don't worry about the status which is reported the first time as downloading the needed images from a nexternal docker registry could take time !
+**Remark** Don't worry about the initial status as downloading the needed images from an external docker registry could take time!
 
 ```bash
 kubectl get components -n demo   
@@ -363,7 +348,8 @@ NAME          RUNTIME       VERSION   AGE     MODE   STATUS   MESSAGE   REVISION
 spring-boot   spring-boot             2m19s   dev    Ready              
 ```
 
-When, the Halkyon operator will read the content of the Custom Resource `Component`, then it will create several K8s resources that you can discover if you execute the following command
+The Halkyon operator will then use the content of the `component` custom resource to create the Kubernetes resources needed to 
+materialize your application on the cluster. You can see all these resources by executing the following command:
 ```bash
 kubectl get pods,services,deployments,pvc -n demo
 NAME                              READY   STATUS    RESTARTS   AGE
@@ -379,22 +365,21 @@ NAME                                        STATUS   VOLUME                     
 persistentvolumeclaim/m2-data-spring-boot   Bound    pvc-dab00dfe-a2f6-11e9-98d1-08002798bb5f   1Gi        RWO            standard       4m18s
 ```
 
-You can now cleanup the project as we will not deploy additional micro-services. So you can cleanup the project installed (component)
+You can now cleanup the project as we will not deploy additional micro-services:
 ```bash  
 kubectl delete component --all -n demo 
 ```
 
 ### A Real demo
-  
-To play with a `real example` and discover the different features currently supported, we have created within the directory `demo` a project containing 
-2 micro-services: a Spring Boot REST client calling a Service exposed by a Spring Boot backend application which access a postgresql database.
 
-So jump [here](demo/README.md) in order to see in action How we enhance the Developer Experience on Kubernetes ;-)
+To play with a more real-world example and discover the different features currently supported, we have implemented the application 
+we took as an example in the [Key Concepts section](#key-concepts). You can find it in the [`demo` directory](./demo).
 
-### Cleanup the Operator resources
+So jump [here](demo/README.md) to see in action how Halkyon enhances the Developer Experience on Kubernetes ;-)
 
-To clean the operator deployed on your favorite Kubernetes cluster, then execute the following kubectl commands:
+### Cleanup the operator resources
 
+To remove the operator from your favorite Kubernetes cluster, then execute the following kubectl commands:
 ```bash
 kubectl delete -n operators -f deploy/sa.yaml
 kubectl delete -f deploy/cluster-role.yaml
@@ -414,13 +399,8 @@ kubectl delete -n operators -f deploy/operator.yaml
 
 ## Support
 
-If you need support, reach out to us via [zulip].
+If you need support, reach out to us via [zulip](https://snowdrop.zulipchat.com/#narrow/stream/207165-halkyon).
 
-If you run into issues, don't hesitate to raise an [issue].
+If you run into issues or if you have questions, don't hesitate to raise an [issue](https://github.com/halkyonio/operator/issues/new).
 
-Follow us on [twitter].
-
-[website]: https://halkyion.io
-[zulip]: https://snowdrop.zulipchat.com/#narrow/stream/207165-halkyon
-[issue]: https://github.com/halkyonio/operator/issues/new
-[twitter]: https://twitter.com/halkyonio
+Follow us on [twitter](https://twitter.com/halkyonio).
