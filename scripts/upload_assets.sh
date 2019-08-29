@@ -39,6 +39,10 @@ git remote set-url origin https://${GITHUB_USER}:${GITHUB_API_TOKEN}@github.com/
 mkdir -p /tmp/operator
 cp -R build/_output /tmp/operator/
 
+# create a tag so we know where the release started from
+git tag "before-${TAG}"
+git push origin --tags
+
 git checkout -b ${TEMP_BRANCH}
 
 # "unstash" the build output
