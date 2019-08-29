@@ -43,7 +43,10 @@ type ReconcilerHelper struct {
 
 func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (runtime.Object, error) {
 	if err := rh.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, into); err != nil {
-		return nil, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s'", name, GetObjectName(into), namespace)
+		if errors.IsNotFound(err) {
+			return nil, err
+		}
+		return nil, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s': %s", name, GetObjectName(into), namespace, err.Error())
 	}
 	return into, nil
 }
