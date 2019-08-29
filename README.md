@@ -150,6 +150,10 @@ A `Secret` link will use the `ref` field value to look up a Kubernetes secret wh
 This information will then be used to enrich the container associated with the `Deployment` according to its type (`EnvFrom` for
 secret injection, `Env` for environment variable injection).
 
+For more details on the fields of the Link custom resource, please refer to 
+[its API](https://github.com/halkyonio/api/blob/master/link/v1beta1/types.go).
+
+
 **Examples**:
 
 `Secret`
@@ -188,6 +192,10 @@ and a version for the `category/type` combination. The service is then configure
 
 We currently only support the `database/PostgreSQL` category/type combination but are planning to expand to other categories and
 types. Halkyon uses the `[KubeDB](https://kubedb.com)` operator to handle the database category.
+
+For more details on the fields of the Capability custom resource, please refer to 
+[its API](https://github.com/halkyonio/api/blob/master/capability/v1beta1/types.go).
+
 
 **Example**:
 
