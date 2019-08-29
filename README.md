@@ -91,7 +91,8 @@ needing to restart the whole pod or generate a new container image which allows 
 
 The `build` mode uses the Tekton Pipeline Operator in order to build of a new image for your application. How the image is built
 is controlled by the `buildConfig` field of the `component` custom resource where you need to minimally specify the url of the 
-git repository to be used as basis for the code (`url` field).
+git repository to be used as basis for the code (`url` field). You can also specify the precise git reference to use (`ref` field)
+or where to find the actual code to build within the repository using the `contextPath` and `moduleDirName` fields.
 
 For more details on the fields of the Component custom resource, please refer to 
 [its API](https://github.com/halkyonio/api/blob/master/component/v1beta1/types.go).
@@ -108,10 +109,10 @@ metadata:
 spec:
   deploymentMode: dev
   runtime: spring-boot
-  version: 2.1.16   // runtime version
+  version: 2.1.16
   exposeService: true
   port: 8080
-  envs: // additional environment variables to set on the application pod
+  envs:
   - name: SPRING_PROFILES_ACTIVE
     value: openshift-catalog
 ```
@@ -129,12 +130,12 @@ spec:
   runtime: "spring-boot"
   version: "2.1.6.RELEASE"
   exposeService: true
-  buildConfig:  // controls how Tekton performs the image build
-    type: "s2i" // Source to Image (s2i) are currently the only supported build type
+  buildConfig:
+    type: "s2i"
     url: "https://github.com/halkyonio/operator.git"
-    ref: "master" // optional git reference to use
-    contextPath: "demo/" // where is the root of code from the root of the repository (optional)
-    moduleDirName: "fruit-backend-sb" // module / sub-directory name from the root of the code (optional)
+    ref: "master"
+    contextPath: "demo/"
+    moduleDirName: "fruit-backend-sb"
   port: 8080
 ```
 
@@ -160,7 +161,7 @@ metadata:
 spec:
   componentName: "fruit-backend-sb"
   type: "Secret"
-  ref: "postgres-db-config" // name of the secret 
+  ref: "postgres-db-config" 
 ```
 
 `Envs`
