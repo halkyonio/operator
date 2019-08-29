@@ -16,7 +16,7 @@ The purpose of this demo is to showcase how you can use the `Component`, `Link` 
 
 The real example consists, as depicted within the following diagram, of two Spring Boot applications and a PostgreSQL Database.
 
-![Composition](component-operator-demo.png)
+![Composition](../component-operator-demo.png)
 
 **Remark**: To avoid that you must manually generate the Halkyon `CR`, we will use the project [`Dekorate`](https://dekorate.io) which supports to generate Kubernetes resources from Java Annotations or using parameters defined
 within an `application.properties` file. 
