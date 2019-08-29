@@ -67,7 +67,7 @@ This is, for that reason, that such `entities/concepts` are also proposed by Hal
 **Definition**:
 
 The component represents a micro-service of an application to be deployed and contains the following information defined within `spec` section: 
-- `deploymentMode`: to configure the deployment strategy* used : `Development` or `Building/Prod`.
+- `deploymentMode`: to configure the deployment strategy used : `Development` or `Building/Prod`.
 - `runtime`: to select the container image to be used to launch the application. For the `Spring Boot, Eclipse Vert.x, Thorntail`, an `OpenJDK8` image will be used while for a `Node` runtime
    that will be a `nodejs` image.
 - `version`: the version of the runtime as defined within the local maven, gradle, ... project   
@@ -85,13 +85,13 @@ The deployment strategy is used to manage 2 distinct deployments on the cluster:
 - `development`
 - `build`
 
-The `development` mode will be used to create a pod including as init container, a supervisord* application which exposes different `commands` that a tool or a command executed
+The `development` mode will be used to create a pod including as init container, a supervisord application which exposes different `commands` that a tool or a command executed
 within the pod can trigger in order to execute `assemble`, `run`, `compile`. These commands are mapped to the s2i executables packaged within the Java OpenJDK S2i image or S2i nodejs images.
 
-A typical development scenario will consist to first create a project, design a micro-service and when the code is ready to be tested on the cluster, then you will compile it to
-generate a `uber jar` file, next to push it to this pod and finally to call the command launching the java application. 
+A typical development scenario will consist of first creating a project, designing a micro-service and when the code is ready to be tested on the cluster an artifact will be created (such as an `uber-jar`). 
+Next the artifact needs to be pushed to the pod and finally to call the command launching the application. 
 
-The `build` mode will under the hood uses the Tekton Pipeline Operator in order to create a Tekton's Pod responsible to execute, according to the `BuildConfig` type, the build of the image
+The `build` mode will under the hood use the Tekton Pipeline Operator in order to create a Tekton Pod of executing, depending on to the `BuildConfig` type, the build of the image
 using the steps defined within the `Task`. Currently, we only support a `S2I` build to generate the runtime image.
 To configure the build, the `Component` must include additional parameters defined within the `BuildConfig` field where:
 - `type`: refers to the Pipeline or build strategy to be done. The default value is `s2i`
@@ -224,7 +224,7 @@ apiVersion: "halkyon.io/v1beta1"
 
 ## Prerequisites
 
-In order to use the Halkyon Operator and the CRs, it is needed to install [Tekton Pipelines](https://tekton.dev/) and [KubeDB](http://kubedb.com) Operators.
+In order to use the Halkyon Operator and the CRs, the [Tekton Pipelines](https://tekton.dev/) and [KubeDB](http://kubedb.com) Operators need to be installed on the cluster.
 We assume that you have installed a K8s cluster as of starting from Kubernetes version 1.13.
 
 ### Local cluster using Minikube
@@ -281,7 +281,7 @@ helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} 
   --namespace kubedb --set apiserver.enableValidatingWebhook=true,apiserver.enableMutatingWebhook=true
 ```
 
-Wait till the Operator has started before to install the Catalog
+Wait until the Operator has started before to install the Catalog
 ```bash
 TIMER=0
 until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions.catalog.kubedb.com mongodbversions.catalog.kubedb.com mysqlversions.catalog.kubedb.com postgresversions.catalog.kubedb.com redisversions.catalog.kubedb.com || [[ ${TIMER} -eq 60 ]]; do
