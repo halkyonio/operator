@@ -73,7 +73,7 @@ prepare-release: cross
 
 .PHONY: upload
 upload: prepare-release
-	./scripts/upload_assets_test.sh
+	./scripts/upload_assets.sh
 
 dep:
 	$(Q)dep ensure -v
