@@ -9,9 +9,8 @@
     <description>Spring Boot - Project</description>
 
     <properties>
-        <snowdrop-bom.version>2.1.6.Final</snowdrop-bom.version>
+        <snowdrop-bom.version>2.1.6.SP3</snowdrop-bom.version>
         <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
-        <dekorate.version>0.8.1</dekorate.version>
     </properties>
 
     <dependencyManagement>
@@ -22,34 +21,6 @@
                 <version>${snowdrop-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>halkyon-spring-starter</artifactId>
-                <scope>compile</scope>
-                <version>${dekorate.version}</version>
-            </dependency>
-            <!--  Override version from BOM -->
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>dekorate-core</artifactId>
-                <version>${dekorate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>dekorate-spring-boot</artifactId>
-                <version>${dekorate.version}</version>
-            </dependency>
-            <!-- Add them to use the proper versions of dekorate even if they will not impact the generated manifests for halkyon -->
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>crd-annotations</artifactId>
-                <version>${dekorate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dekorate</groupId>
-                <artifactId>prometheus-annotations</artifactId>
-                <version>${dekorate.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
