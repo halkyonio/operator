@@ -18,20 +18,7 @@ The real example consists, as depicted within the following diagram, of two Spri
 
 ![Composition](component-operator-demo.png)
 
-The application to be deployed can be described using a Fluent DSL syntax as :
-
-`(from:componentA).(to:componentB).(to:serviceA)`
-
-where the `ComponentA` and `ComponentB` correspond respectively to a Spring Boot application `fruit-client-sb` and `fruit-backend-sb`.
-
-The relation `from -> to` indicates that we will `reference` the `ComponentA`  with the `ComponentB` using a `Link`.
-
-The `link`'s purpose is to inject as `Env var(s)` the information required to by example configure the `HTTP client` of the `ComponentA` to access the 
-`ComponentB` which exposes a `HTTP endpoint` that the client `ComponentA`  could use to access the `CRUD` operations.
-
-To let the `ComponentB` to consume a database, we will also setup a `link` in order to pass using the database `Secret` the parameters which are needed to configure a Java Datasource's bean.
-
-To avoid that you must manually generate such `CR`, we will use the project [`Dekorate`](https://dekorate.io) which supports to generate Kubernetes resources from Java Annotations or using parameters defined
+**Remark**: To avoid that you must manually generate the Halkyon `CR`, we will use the project [`Dekorate`](https://dekorate.io) which supports to generate Kubernetes resources from Java Annotations or using parameters defined
 within an `application.properties` file. 
 
 ## Demo's time
