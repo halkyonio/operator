@@ -414,7 +414,7 @@ kubectl delete -n operators -f deploy/operator.yaml
 
 ## Compatibility matrix
 
-|                     | Kubernetes >= 1.12 | OpenShift 3.x | OpenShift 4.x | KubeDB 0.12 | Tekton v0.5.x | 
+|                     | Kubernetes >= 1.13 | OpenShift 3.x | OpenShift 4.x | KubeDB 0.12 | Tekton v0.5.x | 
 |---------------------|--------------------|---------------|---------------|-------------|---------------|
 | halkyon v0.1.x      | ✓                  | ✓             | ✓             | ✓           | ✓             |
 
