@@ -153,7 +153,6 @@ secret injection, `Env` for environment variable injection).
 For more details on the fields of the Link custom resource, please refer to 
 [its API](https://github.com/halkyonio/api/blob/master/link/v1beta1/types.go).
 
-
 **Examples**:
 
 `Secret`
@@ -195,7 +194,6 @@ types. Halkyon uses the `[KubeDB](https://kubedb.com)` operator to handle the da
 
 For more details on the fields of the Capability custom resource, please refer to 
 [its API](https://github.com/halkyonio/api/blob/master/capability/v1beta1/types.go).
-
 
 **Example**:
 
@@ -291,7 +289,7 @@ helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VE
 
 ## Installing the Halkyon Operator
 
-Deploy the `ClusterRole`, `RoleBinding`, `CRDs`, `ServiceAccount` and `Operator` reources within the `operators` namespace:
+Deploy the `ClusterRole`, `RoleBinding`, `CRDs`, `ServiceAccount` and `Operator` resources within the `operators` namespace:
 ```bash
 kubectl create ns operators
 kubectl apply -n operators -f deploy/sa.yaml
@@ -319,14 +317,14 @@ Enjoy the Halkyon Operator!
 
 ### How to play with it
 
-Let's deploy a very simple `component`.
+Deploy the operator as defined within the [Operator Doc](https://github.com/halkyonio/operator#installing-the-halkyon-operator)
+or use the operator bundle promoted on [operatorhub.io](https://operatorhub.io/operator/halkyon).
 
 First create a `demo` namespace:
 ```bash
 kubectl create ns demo
 ```
-
-and next, create using your favorite editor, a `component` resource with the following information:
+Next, create a `component` yml file with the following information within your maven java project:
 ```bash
 apiVersion: halkyon.io/v1beta1
 kind: Component
@@ -334,19 +332,20 @@ metadata:
   name: spring-boot
 spec:
   runtime: spring-boot
+  version: 2.1.6.RELEASE
   deploymentMode: dev
 ```
 
 Deploy it: 
 ```bash
-kubectl apply -n demo -f my-component.yaml
+kubectl apply -n demo -f my-component.yml
 ```
 
-Verify if the component has been properly created by executing the following `kubectl` command:
+Verify if the component has been deployed properly:
 ```bash
 kubectl get components -n demo
-NAME          RUNTIME       VERSION   AGE   MODE   STATUS    MESSAGE                                                            REVISION
-spring-boot   spring-boot             14s   dev    Pending   pod is not ready for component 'spring-boot' in namespace 'demo'                        
+NAME          RUNTIME       VERSION        AGE   MODE   STATUS    MESSAGE                                                            REVISION
+spring-boot   spring-boot   2.1.6.RELEASE  14s   dev    Pending   pod is not ready for component 'spring-boot' in namespace 'demo'                        
 ```
 
 **Remark** Don't worry about the initial status as downloading the needed images from an external docker registry could take time!
@@ -374,7 +373,20 @@ NAME                                        STATUS   VOLUME                     
 persistentvolumeclaim/m2-data-spring-boot   Bound    pvc-dab00dfe-a2f6-11e9-98d1-08002798bb5f   1Gi        RWO            standard       4m18s
 ```
 
-You can now cleanup the project as we will not deploy additional micro-services:
+Package your Java Application `mvn package` and push the uber java file.
+```bash
+kubectl cp target/my-component-1.0-SNAPSHOT.jar POD_NAME:/deployments/my-component-1.0-SNAPSHOT -n demo
+```
+
+Start your application within the pod
+```bash
+kubectl exec POD_NAME -n demo /var/lib/supervisord/bin/supervisord ctl start run-cmd
+```
+
+Enrich your application with additional `Component`, `Link` them or deploy a `Capability` database using the supported CRs for your different microservices.
+To simplify your life even more when developing Java applications, add [Dekorate]( https://dekorate.io) to your project to automatically generate the YAML resources for your favorite runtime !
+
+You can now cleanup the project:
 ```bash  
 kubectl delete component --all -n demo 
 ```
@@ -402,9 +414,9 @@ kubectl delete -n operators -f deploy/operator.yaml
 
 ## Compatibility matrix
 
-|                     | Kubernetes 1.13 | OpenShift 3.x | OpenShift 4.x | KubeDB 0.12 | Tekton v0.5.x| 
-|---------------------|-----------------|---------------|---------------|-------------|--------------|
-| halkyon v0.1.x      | ✓               | ✓             | ✓             | ✓           | ✓            |
+|                     | Kubernetes >= 1.12 | OpenShift 3.x | OpenShift 4.x | KubeDB 0.12 | Tekton v0.5.x | 
+|---------------------|--------------------|---------------|---------------|-------------|---------------|
+| halkyon v0.1.x      | ✓                  | ✓             | ✓             | ✓           | ✓             |
 
 ## Support
 
