@@ -9,26 +9,20 @@
 
 ## Introduction
 
-The purpose of this demo is to showcase how you can use the `Component`, `Link` and `Capability` CRs combined with the Halkyon `operator` to help you to :
-- Install your Microservices - Spring Boot applications,
-- Instantiate a PostgreSQL database
-- Inject the required information to the different Microservices to let a Spring Boot application to access a service which is a http endpoint or to consume a database
+This demo implements the example application described in the [Halkyon introduction](../README.md#introduction). We encourage 
+you to read it to familiarize yourself with Halkyon and [its concepts](../README.md#key-concepts).
 
-The real example consists, as depicted within the following diagram, of two Spring Boot applications and a PostgreSQL Database.
+In this demo, we will, moreover, go one step further in the simplification by generating our Halkyon resources based on 
+information found in our applications' `application.properties` descriptors. This automatic generation is handled by [`dekorate`](https://dekorate.io).
 
-![Composition](../component-operator-demo.png)
+## Demo time
 
-**Remark**: To avoid that you must manually generate the Halkyon `CR`, we will use the project [`Dekorate`](https://dekorate.io) which supports to generate Kubernetes resources from Java Annotations or using parameters defined
-within an `application.properties` file. 
-
-## Demo's time
-
-Build the `frontend` and the `Backend` using `maven` tool to generate their respective Spring Boot uber jar file
+Build the full `demo` project using `maven`:
 ```bash
 mvn clean package -f demo
 ``` 
 
-As our different Spring Boot maven projects use the `dekorate` halkyon starter
+As our Spring Boot maven projects use the `dekorate` halkyon starter
 
 ```xml
 <dependency>
@@ -38,8 +32,8 @@ As our different Spring Boot maven projects use the `dekorate` halkyon starter
 </dependency>
 ```
 
-then during the `mvn package` phase, a `halkyon.yml|json` file will be created under the 
-directory `target/classes/META-INF/dekorate`. They will be next used to deploy the different `components` on the cluster with the help of the `kubectl` client tool.
+dekorate will generate a `halkyon.yml|json` file under the `target/classes/META-INF/dekorate` during the `package` phase. 
+They will be next used to deploy the different `components` on the cluster with the help of the `kubectl` client tool.
 
 ```bash
 <maven_project>/target/classes/META-INF/dekorate/
