@@ -13,7 +13,7 @@ Table of Contents
       * [Capability](#capability)
    * [Pre-requisites](#pre-requisites)
       * [Local cluster using Minikube](#local-cluster-using-minikube)
-   * [Installation of the Halkyon Operator](#installing-the-halkyon-operator)
+   * [Installing the Halkyon Operator](#installing-the-halkyon-operator)
       * [How to play with it](#how-to-play-with-it)
       * [A Real demo](#a-real-demo)
       * [Cleanup the Operator resources](#cleanup-the-operator-resources)
