@@ -384,7 +384,7 @@ kubectl delete component --all -n demo
 To play with a more real-world example and discover the different features currently supported, we have implemented the application 
 we took as an example in the [Key Concepts section](#key-concepts). You can find it in the [`demo` directory](./demo).
 
-So jump [here](demo/README.md) to see in action how Halkyon enhances the Developer Experience on Kubernetes ;-)
+So jump [here](demo/README.md) to see in action how Halkyon enhances the Developer Experience on Kubernetes :wink:
 
 ### Cleanup the operator resources
 
