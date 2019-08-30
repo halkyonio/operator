@@ -44,9 +44,9 @@ type ReconcilerHelper struct {
 func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (runtime.Object, error) {
 	if err := rh.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, into); err != nil {
 		if errors.IsNotFound(err) {
-			return nil, err
+			return into, err
 		}
-		return nil, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s': %s", name, GetObjectName(into), namespace, err.Error())
+		return into, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s': %s", name, GetObjectName(into), namespace, err.Error())
 	}
 	return into, nil
 }
@@ -157,7 +157,7 @@ func (b *BaseGenericReconciler) Delete(object Resource) error {
 func (b *BaseGenericReconciler) Fetch(into Resource) (Resource, error) {
 	object, e := b.Helper().Fetch(into.GetName(), into.GetNamespace(), into.GetAPIObject())
 	if e != nil {
-		return nil, e
+		return into, e
 	}
 	into.SetAPIObject(object)
 	return into, nil
