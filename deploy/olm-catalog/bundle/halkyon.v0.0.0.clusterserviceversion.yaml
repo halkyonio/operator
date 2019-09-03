@@ -172,7 +172,7 @@ spec:
   displayName: Halkyon Operator
   keywords: ['component','microservices','composition']
   version: 0.0.0
-  replaces: halkyon-operator.v0.0.0 # TODO - Change manually the version with the previous one !!
+  replaces: halkyon.v0.0.0 # TODO - Change manually the version with the previous one !!
   maturity: alpha
   maintainers:
     - name: Halkyon Owner
