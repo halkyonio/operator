@@ -91,7 +91,7 @@ func (res task) Build() (runtime.Object, error) {
 				// Build a Container image using the dockerfile created previously
 				{
 					Name:       "build",
-					Image:      "quay.io/buildah/stable",
+					Image:      "quay.io/buildah/stable:v1.9.0",
 					WorkingDir: "/sources",
 					Command: []string{
 						"buildah",
@@ -123,7 +123,7 @@ func (res task) Build() (runtime.Object, error) {
 				// the service account
 				{
 					Name:  "push",
-					Image: "quay.io/buildah/stable",
+					Image: "quay.io/buildah/stable:v1.9.0",
 					Command: []string{
 						"buildah",
 					},
