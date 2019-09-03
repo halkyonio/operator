@@ -123,7 +123,7 @@ func (res task) Build() (runtime.Object, error) {
 				// the service account
 				{
 					Name:  "push",
-					Image: "quay.io/openshift-pipeline/buildah",
+					Image: "quay.io/buildah/stable",
 					Command: []string{
 						"buildah",
 					},
