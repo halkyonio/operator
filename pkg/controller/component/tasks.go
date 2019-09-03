@@ -91,7 +91,7 @@ func (res task) Build() (runtime.Object, error) {
 				// Build a Container image using the dockerfile created previously
 				{
 					Name:       "build",
-					Image:      "quay.io/openshift-pipeline/buildah",
+					Image:      "quay.io/buildah/stable",
 					WorkingDir: "/sources",
 					Command: []string{
 						"buildah",
