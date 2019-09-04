@@ -88,7 +88,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration/>
                 <executions>
                     <execution>
                         <goals>
@@ -96,6 +95,9 @@
                         </goals>
                     </execution>
                 </executions>
+		<configuration>
+		   <excludeGroupIds>io.dekorate</excludeGroupIds>
+		</configuration>
             </plugin>
         </plugins>
     </build>
