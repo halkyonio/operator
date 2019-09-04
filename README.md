@@ -249,15 +249,6 @@ until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; don
 kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
 ```
 
-Next, edit the `/etc/hosts` file of the minikube vm in order to specify the IP address of the docker registry daemon
-as the docker client will use the `kube-registry.kube-system` name  to call the docker registry when it fetches pushed images:
-```bash
-kc get svc/registry -n kube-system -o jsonpath={.spec.clusterIP}
-<IP_ADDRESS> 
-minikube ssh
-echo '<IP_ADDRESS> kube-registry.kube-system kube-registry.kube-system.svc kube-registry.kube-system.svc.cluster.local' | sudo tee -a /etc/hosts
-```
-
 Install Tekton Pipelines:
 ```bash
 kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.5.2/release.yaml
