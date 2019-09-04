@@ -334,6 +334,7 @@ spec:
   runtime: spring-boot
   version: 2.1.6.RELEASE
   deploymentMode: dev
+  port: 8080
 ```
 
 Deploy it: 
