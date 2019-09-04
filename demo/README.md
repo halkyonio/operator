@@ -150,17 +150,17 @@ kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
 
 Wait a few moment and verify if the status of the `components` deployed are ready
 ```bash
-oc get cp -n test
+oc get cp -n demo
 NAME               RUNTIME       VERSION         AGE       MODE      STATUS    MESSAGE   REVISION
 fruit-backend-sb   spring-boot   2.1.6.RELEASE   6m        dev       Ready     Ready     
 fruit-client-sb    spring-boot   2.1.6.RELEASE   5m        dev       Ready     Ready     
 
-oc get links -n test
+oc get links -n demo
 NAME                    AGE       STATUS    MESSAGE
 link-to-database        6m        Ready     Ready
 link-to-fruit-backend   5m        Ready     Ready
 
-oc get capabilities -n test
+oc get capabilities -n demo
 NAME          CATEGORY   KIND      AGE       STATUS    MESSAGE   REVISION
 postgres-db   database             6m        Ready     Ready     
 ```
