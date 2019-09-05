@@ -62,7 +62,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		Spec: component.ComponentSpec{
 			Runtime: supervisorImageId,
 			Version: latestVersionTag,
-			Envs: []v1beta1.Env{
+			Envs: []v1beta1.NameValuePair{
 				{
 					Name: "CMDS",
 					Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i" +

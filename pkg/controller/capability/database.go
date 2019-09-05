@@ -7,7 +7,6 @@ import (
 	capability "halkyon.io/api/capability/v1beta1"
 	"halkyon.io/operator/pkg/controller"
 	v1 "k8s.io/api/core/v1"
-	"strings"
 )
 
 func (r *ReconcileCapability) installDB(c *controller.Capability) (e error) {
@@ -22,13 +21,13 @@ func (r *ReconcileCapability) installDB(c *controller.Capability) (e error) {
 		return e
 	}
 
-	if string(c.Spec.Type) == strings.ToLower(string(capability.PostgresType)) {
+	if capability.PostgresType.Equals(c.Spec.Type) {
 		// Check if the KubeDB - Postgres exists
 		if e = r.CreateIfNeeded(c, &kubedbv1.Postgres{}); e != nil {
 			return e
 		}
 	} else {
-		return fmt.Errorf("unsupported '%s' database kind", c.Spec.Type)
+		return fmt.Errorf("unsupported '%s' database type", c.Spec.Type)
 	}
 
 	return

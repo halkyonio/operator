@@ -7,7 +7,6 @@ import (
 	controller2 "halkyon.io/operator/pkg/controller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"strings"
 )
 
 const (
@@ -62,7 +61,7 @@ func (r *ReconcileCapability) Delete(object controller2.Resource) error {
 
 func (r *ReconcileCapability) CreateOrUpdate(object controller2.Resource) (e error) {
 	c := asCapability(object)
-	if strings.ToLower(string(capability.DatabaseCategory)) == string(c.Spec.Category) {
+	if capability.DatabaseCategory.Equals(c.Spec.Category) {
 		// Install the 2nd resources and check if the status of the watched resources has changed
 		e = r.installDB(c)
 	} else {

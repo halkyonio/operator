@@ -20,7 +20,7 @@ func (r *ReconcileCapability) BuildParameters(params interface{}) *runtime.RawEx
 }
 
 // Convert Array of parameters to a Map
-func parametersAsMap(parameters []v1beta1.Parameter) map[string]string {
+func parametersAsMap(parameters []v1beta1.NameValuePair) map[string]string {
 	result := make(map[string]string)
 	for _, parameter := range parameters {
 		result[parameter.Name] = parameter.Value

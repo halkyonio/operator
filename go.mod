@@ -27,7 +27,7 @@ require (
 	github.com/tektoncd/pipeline v0.3.1
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c // indirect
-	halkyon.io/api v1.0.0-beta.4
+	halkyon.io/api v1.0.0-beta.5
 	k8s.io/api v0.0.0-20190725062911-6607c48751ae
 	k8s.io/apimachinery v0.0.0-20190719140911-bfcf53abc9f8
 	k8s.io/client-go v11.0.0+incompatible

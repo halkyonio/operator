@@ -42,9 +42,9 @@ func (r *ReconcileComponent) populateEnvVar(component *controller.Component) {
 	}
 
 	// Convert Map to Slice
-	newEnvVars := make([]v1beta1.Env, 0, len(tmpEnvVar))
+	newEnvVars := make([]v1beta1.NameValuePair, 0, len(tmpEnvVar))
 	for k, v := range tmpEnvVar {
-		newEnvVars = append(newEnvVars, v1beta1.Env{Name: k, Value: v})
+		newEnvVars = append(newEnvVars, v1beta1.NameValuePair{Name: k, Value: v})
 	}
 
 	// Store result
