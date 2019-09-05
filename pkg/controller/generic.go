@@ -116,8 +116,12 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 func (b *BaseGenericReconciler) computeStatus(current Resource, err error) bool {
 	depOrTypeName, ready := b.IsDependentResourceReady(current)
 	if !ready {
-		msg := fmt.Sprintf("%s is not ready for %s '%s' in namespace '%s'",
-			depOrTypeName, GetObjectName(current), current.GetName(), current.GetNamespace())
+		errMsg := ""
+		if err != nil {
+			errMsg = ": " + err.Error()
+		}
+		msg := fmt.Sprintf("%s is not ready for %s '%s' in namespace '%s'%s",
+			depOrTypeName, GetObjectName(current), current.GetName(), current.GetNamespace(), errMsg)
 		b.ReqLogger.Info(msg)
 		return current.SetInitialStatus(msg)
 	}
