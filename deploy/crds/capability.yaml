@@ -27,8 +27,8 @@ spec:
     JSONPath: .spec.category
   - name: Kind
     type: string
-    description: "The kind of the category. For a database category, that will be : postgres, mysql, ..."
-    JSONPath: .spec.kind
+    description: "The capability type for the given category. For a database category, that will be : postgres, mysql, ..."
+    JSONPath: .spec.type
   - name: Age
     type: date
     JSONPath: .metadata.creationTimestamp
