@@ -40,6 +40,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 		Protocol:      "TCP",
 	}}
 	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/tmp/artifacts"})
+	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/deployments"})
 
 	// create the supervisor init container
 	supervisorContainer, err := r.getBaseContainerFor(r.supervisor)
@@ -69,7 +70,19 @@ func (res deployment) installDev() (runtime.Object, error) {
 				},
 				Spec: corev1.PodSpec{
 					Containers:     []corev1.Container{runtimeContainer},
-					InitContainers: []corev1.Container{supervisorContainer},
+					InitContainers: []corev1.Container{
+						supervisorContainer,
+						corev1.Container{
+							Name: "deployments-data-permission-fix",
+							Image: "busybox",
+							Command: []string{
+								"/bin/chown","-R","1001:0", "/deployments",
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{Name: c.Spec.Storage.Name, MountPath: "/deployments"},
+							},
+						},
+					},
 					Volumes: []corev1.Volume{
 						{Name: "shared-data",
 							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
