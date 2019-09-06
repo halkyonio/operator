@@ -55,9 +55,9 @@
                         </goals>
                     </execution>
                 </executions>
-		<configuration>
-		   <excludeGroupIds>io.dekorate</excludeGroupIds>
-		</configuration>
+                <configuration>
+                    <excludeGroupIds>io.dekorate,io.sundr</excludeGroupIds>
+                </configuration>
             </plugin>
         </plugins>
     </build>
