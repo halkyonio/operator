@@ -40,7 +40,6 @@ func (res deployment) installDev() (runtime.Object, error) {
 		Protocol:      "TCP",
 	}}
 	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/tmp/artifacts"})
-	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/deployments"})
 
 	// create the supervisor init container
 	supervisorContainer, err := r.getBaseContainerFor(r.supervisor)
