@@ -65,8 +65,10 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 			Envs: []v1beta1.NameValuePair{
 				{
 					Name: "CMDS",
-					Value: "run-java:/usr/local/s2i/run;run-node:/usr/libexec/s2i/run;compile-java:/usr/local/s2i" +
-						"/assemble;build:/deployments/buildapp",
+					Value:
+						"run-java:/usr/local/s2i/run:true;" +
+						"run-node:/usr/libexec/s2i/run:false;" +
+						"compile-java:/usr/local/s2i/assemble:false",
 				},
 			},
 		},
