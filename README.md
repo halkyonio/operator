@@ -232,10 +232,9 @@ brew install kubernetes-helm
 
 Next, create a Kubernetes cluster where `ingress` and `dashboard` addons are enabled
 ```bash
-minikube config set vm-driver virtualbox
 minikube config set cpus 4
 minikube config set kubernetes-version v1.14.0
-minikube config set memory 6000
+minikube config set memory 8000
 minikube addons enable ingress
 minikube addons enable dashboard
 minikube addons enable registry
