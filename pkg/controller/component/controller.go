@@ -65,8 +65,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 			Envs: []v1beta1.NameValuePair{
 				{
 					Name: "CMDS",
-					Value:
-						"run-java:/usr/local/s2i/run:true;" +
+					Value: "run-java:/usr/local/s2i/run:true;" +
 						"run-node:/usr/libexec/s2i/run:false;" +
 						"compile-java:/usr/local/s2i/assemble:false",
 				},
@@ -146,7 +145,7 @@ func (r *ReconcileComponent) Delete(resource controller2.Resource) error {
 				"apiVersion": "image.openshift.io/v1",
 				"kind":       "ImageStream",
 				"metadata": map[string]interface{}{
-					"name":      resource.GetName(), // todo: is this correct? we should determine the name based on the component
+					"name":      resource.GetName(),
 					"namespace": resource.GetNamespace(),
 				},
 			},
