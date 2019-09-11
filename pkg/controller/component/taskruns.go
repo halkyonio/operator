@@ -49,8 +49,8 @@ func (res taskRun) Build() (runtime.Object, error) {
 					// See description of the parameters within the Tasks
 					// We only override parameters here. Defaults are defined within the Tasks
 					{Name: "baseImage", Value: res.reconciler.baseImage(c)},
-					{Name: "moduleDirName", Value: c.Spec.BuildConfig.ModuleDirName},
-					{Name: "contextPath", Value: c.Spec.BuildConfig.ContextPath},
+					{Name: "moduleDirName", Value: res.reconciler.moduleDirName(c)},
+					{Name: "contextPath", Value: res.reconciler.contextPath(c)},
 				},
 				Resources: []v1alpha1.TaskResourceBinding{
 					{

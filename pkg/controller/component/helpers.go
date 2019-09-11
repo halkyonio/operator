@@ -98,6 +98,24 @@ func (r *ReconcileComponent) baseImage(c *controller.Component) string {
 	}
 }
 
+func (r *ReconcileComponent) contextPath(c *controller.Component) string {
+	if c.Spec.BuildConfig.ContextPath != "" {
+		return c.Spec.BuildConfig.ContextPath
+	} else {
+		// We return the default value as defined within the Task
+		return "."
+	}
+}
+
+func (r *ReconcileComponent) moduleDirName(c *controller.Component) string {
+	if c.Spec.BuildConfig.ModuleDirName != "" {
+		return c.Spec.BuildConfig.ModuleDirName
+	} else {
+		// We return the default value as defined within the Task
+		return "."
+	}
+}
+
 func (r *ReconcileComponent) gitRevision(c *controller.Component) string {
 	if c.Spec.BuildConfig.Ref == "" {
 		return "master"
