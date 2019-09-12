@@ -38,7 +38,7 @@ The Halkyon Operator requires `Kubernetes >= 1.13` or `OpenShift >= 3.11`.
 
 An example of a simple, modern application, defined as a collection of micro-services is depicted hereafter
 
-![Composition](component-operator-demo.png)
+![Composition](halkyon-operator-demo.png)
 
 Such an application, though simple, will require several Kubernetes resources in order to be deployed on a Kubernetes cluster. 
 Furthermore several development iterations are usually required to make the application production ready.
