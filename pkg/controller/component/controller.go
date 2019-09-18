@@ -52,7 +52,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	}
 	// References images
 	images["openjdk8"] = imageInfo{registryRef: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"}
-	images["nodejs"] = imageInfo{registryRef: "nodeshift/centos7-s2i-nodejs"}
+	images["node.js"] = imageInfo{registryRef: "nodeshift/centos7-s2i-nodejs"}
 	images[supervisorImageId] = imageInfo{registryRef: "quay.io/halkyonio/supervisord"}
 
 	supervisor := component.Component{
