@@ -39,7 +39,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	defaultEnvVar := make(map[string]string, 7)
 	// defaultEnvVar["JAVA_APP_JAR"] = "app.jar"
 	images["spring-boot"] = imageInfo{
-		registryRef: "quay.io/halkyonio/spring-boot-s2i",
+		registryRef: "quay.io/halkyonio/hal-maven-jdk",
 		defaultEnv:  defaultEnvVar,
 	}
 	images["vert.x"] = imageInfo{
@@ -65,9 +65,8 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 			Envs: []v1beta1.NameValuePair{
 				{
 					Name: "CMDS",
-					Value: "run-java:/usr/local/s2i/run:true;" +
-						"run-node:/usr/libexec/s2i/run:false;" +
-						"compile-java:/usr/local/s2i/assemble:false",
+					Value: "build:/usr/local/bin/build:false;" +
+						"run:/usr/local/bin/run:false",
 				},
 			},
 		},
