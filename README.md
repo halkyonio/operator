@@ -369,7 +369,7 @@ Package your Java Application `mvn package` and push the `uber` java file.
 kubectl cp target/my-component-1.0-SNAPSHOT.jar POD_NAME:/deployments/my-component-1.0-SNAPSHOT -n demo
 ```
 
-**Remark**: Uou can get the pod name or pod id using this command : `kubectl get pods -l component_cr=spring-boot -o name` where
+**Remark**: You can get the pod name or pod id using this command : `kubectl get pods -l component_cr=spring-boot -o name` where
 you pass as `component_cr` label, the component name. Remove the `pod/` prefix from the name. E.g: `pod/spring-boot-747995b4db-hqxhd` -> `spring-boot-747995b4db-hqxhd`
 
 Start your application within the pod
@@ -377,7 +377,7 @@ Start your application within the pod
 kubectl exec POD_NAME -n demo /var/lib/supervisord/bin/supervisord ctl start run
 ```
 
-**Important**: We invite you to use our [`Hal` companion tool](https://github.com/halkyonio/hal#2-deploy-the-component) as it will create and push the code source or binary without to be worry about the kubectl command syntax ;-)
+**Important**: We invite you to use our [`Hal` companion tool](https://github.com/halkyonio/hal#2-deploy-the-component) as it will create and push the code source or binary without having to worry about the kubectl command syntax ;-)
 
 Enrich your application with additional `Component`, `Link` them or deploy a `Capability` database using the supported CRs for your different microservices.
 To simplify your life even more when developing Java applications, add [Dekorate]( https://dekorate.io) to your project to automatically generate the YAML resources for your favorite runtime !
