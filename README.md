@@ -366,7 +366,7 @@ persistentvolumeclaim/m2-data-spring-boot   Bound    pvc-dab00dfe-a2f6-11e9-98d1
 
 Package your Java Application `mvn package` and push the `uber` java file.
 ```bash
-kubectl cp target/my-component-1.0-SNAPSHOT.jar POD_NAME:/deployments/my-component-1.0-SNAPSHOT -n demo
+kubectl cp target/my-component-1.0-SNAPSHOT.jar POD_NAME:/deployments/app.jar -n demo
 ```
 
 **Remark**: You can get the pod name or pod id using this command : `kubectl get pods -l component_cr=spring-boot -o name` where
