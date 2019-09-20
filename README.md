@@ -343,8 +343,8 @@ spring-boot   spring-boot   2.1.6.RELEASE  14s   dev    Pending   pod is not rea
 
 ```bash
 kubectl get components -n demo   
-NAME          RUNTIME       VERSION   AGE     MODE   STATUS   MESSAGE   REVISION
-spring-boot   spring-boot             2m19s   dev    Ready              
+NAME          RUNTIME       VERSION         AGE   MODE   STATUS   MESSAGE   REVISION
+spring-boot   spring-boot   2.1.6.RELEASE   36m   dev    Ready    Ready              
 ```
 
 The Halkyon operator will then use the content of the `component` custom resource to create the Kubernetes resources needed to 
@@ -364,15 +364,20 @@ NAME                                        STATUS   VOLUME                     
 persistentvolumeclaim/m2-data-spring-boot   Bound    pvc-dab00dfe-a2f6-11e9-98d1-08002798bb5f   1Gi        RWO            standard       4m18s
 ```
 
-Package your Java Application `mvn package` and push the uber java file.
+Package your Java Application `mvn package` and push the `uber` java file.
 ```bash
 kubectl cp target/my-component-1.0-SNAPSHOT.jar POD_NAME:/deployments/my-component-1.0-SNAPSHOT -n demo
 ```
 
+**Remark**: You can get the pod name or pod id using this command : `kubectl get pods -l component_cr=spring-boot -o name` where
+you pass as `component_cr` label, the component name. Remove the `pod/` prefix from the name. E.g: `pod/spring-boot-747995b4db-hqxhd` -> `spring-boot-747995b4db-hqxhd`
+
 Start your application within the pod
 ```bash
-kubectl exec POD_NAME -n demo /var/lib/supervisord/bin/supervisord ctl start run-cmd
+kubectl exec POD_NAME -n demo /var/lib/supervisord/bin/supervisord ctl start run
 ```
+
+**Important**: We invite you to use our [`Hal` companion tool](https://github.com/halkyonio/hal#2-deploy-the-component) as it will create and push the code source or binary without having to worry about the kubectl command syntax ;-)
 
 Enrich your application with additional `Component`, `Link` them or deploy a `Capability` database using the supported CRs for your different microservices.
 To simplify your life even more when developing Java applications, add [Dekorate]( https://dekorate.io) to your project to automatically generate the YAML resources for your favorite runtime !
