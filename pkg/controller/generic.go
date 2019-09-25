@@ -113,7 +113,7 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 	return *b.onOpenShift
 }
 
-func (b *BaseGenericReconciler) computeStatus(current Resource, err error) bool {
+func (b *BaseGenericReconciler) ComputeStatus(current Resource, err error) bool {
 	depOrTypeName, ready := b.IsDependentResourceReady(current)
 	if !ready {
 		errMsg := ""
@@ -257,7 +257,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 
 func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	// compute the status and update the resource if the status has changed
-	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
+	if needsStatusUpdate := b.ComputeStatus(instance, err); needsStatusUpdate {
 		if e := b.Client.Status().Update(context.Background(), instance.GetAPIObject()); e != nil {
 			b.ReqLogger.Error(e, "failed to update status for component "+instance.GetName())
 		}
