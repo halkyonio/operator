@@ -11,14 +11,12 @@ pod_id=$(kubectl get pod -lapp=${project} -n ${namespace} | grep "Running" | awk
 echo "## Pushing $runtime file ${project} to the pod $pod_id ..."
 
 if [ $runtime = "nodejs" ]; then
-  cmd="run-node"
   kubectl rsync ${dir}/../$project/ $pod_id:/opt/app-root/src/ --no-perms=true -n ${namespace}
 else
-  cmd="run-java"
-  kubectl cp ${dir}/../${project}/target/${project}-0.0.1-SNAPSHOT.jar $pod_id:/deployments/${project}-0.0.1-SNAPSHOT.jar -n ${namespace}
+  kubectl cp ${dir}/../${project}/target/${project}-0.0.1-SNAPSHOT.jar $pod_id:/deployments/app.jar -n ${namespace}
 fi
 
-kubectl exec $pod_id -n ${namespace} /var/lib/supervisord/bin/supervisord ctl stop $cmd
-kubectl exec $pod_id -n ${namespace} /var/lib/supervisord/bin/supervisord ctl start $cmd
+kubectl exec $pod_id -n ${namespace} /var/lib/supervisord/bin/supervisord ctl stop run
+kubectl exec $pod_id -n ${namespace} /var/lib/supervisord/bin/supervisord ctl start run
 
 echo "## component ${component} (re)started"
