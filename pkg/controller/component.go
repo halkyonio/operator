@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	halkyon "halkyon.io/api/component/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -86,15 +85,7 @@ func (in *Component) DependentStatusFieldName() string {
 }
 
 func (in *Component) SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool {
-	changed := false
-	for _, status := range statuses {
-		changed = changed || MustSetNamedStringField(&in.Status, status.OwnerStatusField, status.DependentName)
-		if changed {
-			msg = fmt.Sprintf("%s: %s changed to %s", msg, status.OwnerStatusField, status.DependentName)
-		}
-	}
-
-	if changed || halkyon.ComponentReady != in.Status.Phase || msg != in.Status.Message {
+	if hasChangedFromStatusUpdate(&in.Status, statuses, msg) || halkyon.ComponentReady != in.Status.Phase || msg != in.Status.Message {
 		in.Status.Phase = halkyon.ComponentReady
 		in.Status.Message = msg
 		in.requeue = false
