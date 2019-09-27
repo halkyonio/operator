@@ -68,7 +68,7 @@ func (in *Link) SetErrorStatus(err error) bool {
 	return false
 }
 
-func (in *Link) SetSuccessStatus(dependentName, msg string) bool {
+func (in *Link) SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool {
 	if halkyon.LinkReady != in.Status.Phase || msg != in.Status.Message {
 		in.Status.Phase = halkyon.LinkReady
 		in.Status.Message = msg

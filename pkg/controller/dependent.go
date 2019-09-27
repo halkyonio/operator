@@ -19,6 +19,25 @@ type DependentResource interface {
 	ShouldBeOwned() bool
 }
 
+type DependentResourceStatus struct {
+	DependentName    string
+	Ready            bool
+	Message          string
+	OwnerStatusField string
+}
+
+func NewFailedDependentResourceStatus(dependentName string, err error) DependentResourceStatus {
+	msg := ""
+	if err != nil {
+		msg = err.Error()
+	}
+	return DependentResourceStatus{DependentName: dependentName, Ready: false, Message: msg}
+}
+
+func NewReadyDependentResourceStatus(dependentName string, fieldName string) DependentResourceStatus {
+	return DependentResourceStatus{DependentName: dependentName, OwnerStatusField: fieldName, Ready: true}
+}
+
 type DependentResourceHelper struct {
 	_owner     Resource
 	_prototype runtime.Object

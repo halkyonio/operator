@@ -47,12 +47,13 @@ func asCapability(object runtime.Object) *controller2.Capability {
 	return object.(*controller2.Capability)
 }
 
-func (r *ReconcileCapability) IsDependentResourceReady(resource controller2.Resource) (depOrTypeName string, ready bool) {
+func (r *ReconcileCapability) AreDependentResourcesReady(resource controller2.Resource) (statuses []controller2.DependentResourceStatus) {
+	c := asCapability(resource)
 	db, err := r.MustGetDependentResourceFor(resource, &kubedbv1.Postgres{}).Fetch(r.Helper())
 	if err != nil || !r.isDBReady(db.(*kubedbv1.Postgres)) {
-		return "postgreSQL db", false
+		return []controller2.DependentResourceStatus{controller2.NewFailedDependentResourceStatus("postgreSQL db", err)}
 	}
-	return db.(*kubedbv1.Postgres).Name, true
+	return []controller2.DependentResourceStatus{controller2.NewReadyDependentResourceStatus(db.(*kubedbv1.Postgres).Name, c.DependentStatusFieldName())}
 }
 
 func (r *ReconcileCapability) Delete(object controller2.Resource) error {

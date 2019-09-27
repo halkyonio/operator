@@ -108,20 +108,21 @@ func (ReconcileComponent) asComponent(object runtime.Object) *controller2.Compon
 	return object.(*controller2.Component)
 }
 
-func (r *ReconcileComponent) IsDependentResourceReady(resource controller2.Resource) (depOrTypeName string, ready bool) {
+func (r *ReconcileComponent) AreDependentResourcesReady(resource controller2.Resource) (statuses []controller2.DependentResourceStatus) {
 	c := r.asComponent(resource)
 	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
 		taskRun, err := r.MustGetDependentResourceFor(resource, &taskRunv1alpha1.TaskRun{}).Fetch(r.Helper())
 		if err != nil || !r.isBuildSucceed(taskRun.(*taskRunv1alpha1.TaskRun)) {
-			return "taskRun job", false
+			return []controller2.DependentResourceStatus{controller2.NewFailedDependentResourceStatus("taskRun job", err)}
 		}
-		return taskRun.(*taskRunv1alpha1.TaskRun).Name, true
+		return []controller2.DependentResourceStatus{controller2.NewReadyDependentResourceStatus(taskRun.(*taskRunv1alpha1.TaskRun).Name, c.DependentStatusFieldName())}
 	} else {
 		pod, err := r.fetchPod(c)
 		if err != nil || !r.isPodReady(pod) {
-			return "pod", false
+			return []controller2.DependentResourceStatus{controller2.NewFailedDependentResourceStatus("pod", err)}
 		}
-		return pod.Name, true
+
+		return []controller2.DependentResourceStatus{controller2.NewReadyDependentResourceStatus(pod.Name, c.DependentStatusFieldName())}
 	}
 }
 
