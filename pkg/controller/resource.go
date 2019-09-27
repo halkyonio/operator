@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -19,4 +20,15 @@ type Resource interface {
 	Clone() Resource
 	GetAPIObject() runtime.Object
 	SetAPIObject(object runtime.Object)
+}
+
+func hasChangedFromStatusUpdate(status interface{}, statuses []DependentResourceStatus, msg string) bool {
+	changed := false
+	for _, s := range statuses {
+		changed = changed || MustSetNamedStringField(status, s.OwnerStatusField, s.DependentName)
+		if changed {
+			msg = fmt.Sprintf("%s: '%s' changed to '%s'", msg, s.OwnerStatusField, s.DependentName)
+		}
+	}
+	return changed
 }
