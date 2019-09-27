@@ -28,16 +28,16 @@ func (ReconcileLink) asLink(object runtime.Object) *controller2.Link {
 	return object.(*controller2.Link)
 }
 
-func (r *ReconcileLink) IsDependentResourceReady(resource controller2.Resource) (depOrTypeName string, ready bool) {
+func (r *ReconcileLink) AreDependentResourcesReady(resource controller2.Resource) (statuses []controller2.DependentResourceStatus) {
 	l := r.asLink(resource)
 	c := controller2.NewComponent(&component.Component{})
 	c.Name = l.Spec.ComponentName
 	c.Namespace = l.Namespace
 	_, err := r.Fetch(c)
 	if err != nil || (component.ComponentReady != c.Status.Phase && component.ComponentRunning != c.Status.Phase) {
-		return "component", false
+		return []controller2.DependentResourceStatus{controller2.NewFailedDependentResourceStatus("component", err)}
 	}
-	return c.Name, true
+	return []controller2.DependentResourceStatus{controller2.NewReadyDependentResourceStatus(c.Name, "")}
 }
 
 func (r *ReconcileLink) CreateOrUpdate(object controller2.Resource) error {
@@ -142,7 +142,7 @@ func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *con
 	}
 
 	name := link.Spec.ComponentName
-	link.SetSuccessStatus(name, fmt.Sprintf("linked to '%s' component", name))
+	link.SetSuccessStatus([]controller2.DependentResourceStatus{}, fmt.Sprintf("linked to '%s' component", name))
 	return nil
 }
 

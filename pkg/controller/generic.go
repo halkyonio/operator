@@ -28,7 +28,7 @@ type ReconcilerFactory interface {
 	WatchedSecondaryResourceTypes() []runtime.Object
 	Delete(object Resource) error
 	CreateOrUpdate(object Resource) error
-	IsDependentResourceReady(resource Resource) (depOrTypeName string, ready bool)
+	AreDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus)
 	Helper() ReconcilerHelper
 	GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error)
 	AddDependentResource(resource DependentResource)
@@ -113,20 +113,24 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 	return *b.onOpenShift
 }
 
-func (b *BaseGenericReconciler) ComputeStatus(current Resource, err error) bool {
-	depOrTypeName, ready := b.IsDependentResourceReady(current)
-	if !ready {
-		errMsg := ""
-		if err != nil {
-			errMsg = ": " + err.Error()
+func (b *BaseGenericReconciler) ComputeStatus(current Resource, err error) (needsUpdate bool) {
+	if err != nil {
+		return current.SetErrorStatus(err)
+	}
+	statuses := b.AreDependentResourcesReady(current)
+	msgs := make([]string, 0, len(statuses))
+	for _, status := range statuses {
+		if !status.Ready {
+			msgs = append(msgs, fmt.Sprintf("%s: %s", status.DependentName, status.Message))
 		}
-		msg := fmt.Sprintf("%s is not ready for %s '%s' in namespace '%s'%s",
-			depOrTypeName, GetObjectName(current), current.GetName(), current.GetNamespace(), errMsg)
+	}
+	if len(msgs) > 0 {
+		msg := fmt.Sprintf("Waiting for the following resources:\n%s", strings.Join(msgs, "\n"))
 		b.ReqLogger.Info(msg)
 		return current.SetInitialStatus(msg)
 	}
 
-	return current.SetSuccessStatus(depOrTypeName, "Ready")
+	return current.SetSuccessStatus(statuses, "Ready")
 }
 
 func (b *BaseGenericReconciler) PrimaryResourceType() Resource {
@@ -374,6 +378,6 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner Resource, resourceType runt
 	}
 }
 
-func (b *BaseGenericReconciler) IsDependentResourceReady(resource Resource) (depOrTypeName string, ready bool) {
-	return b.factory().IsDependentResourceReady(resource)
+func (b *BaseGenericReconciler) AreDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus) {
+	return b.factory().AreDependentResourcesReady(resource)
 }

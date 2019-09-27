@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	halkyon "halkyon.io/api/capability/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -68,10 +69,22 @@ func (in *Capability) SetErrorStatus(err error) bool {
 	return false
 }
 
-func (in *Capability) SetSuccessStatus(dependentName, msg string) bool {
-	if dependentName != in.Status.PodName || halkyon.CapabilityReady != in.Status.Phase || msg != in.Status.Message {
+func (in *Capability) DependentStatusFieldName() string {
+	_ = in.Status.PodName // to make sure we update the value below if that field changes as returned value must match field name
+	return "PodName"
+}
+
+func (in *Capability) SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool {
+	changed := false
+	for _, status := range statuses {
+		changed = changed || MustSetNamedStringField(&in.Status, status.OwnerStatusField, status.DependentName)
+		if changed {
+			msg = fmt.Sprintf("%s: %s changed to %s", msg, status.OwnerStatusField, status.DependentName)
+		}
+	}
+
+	if changed || halkyon.CapabilityReady != in.Status.Phase || msg != in.Status.Message {
 		in.Status.Phase = halkyon.CapabilityReady
-		in.Status.PodName = dependentName
 		in.Status.Message = msg
 		in.requeue = false
 		return true
