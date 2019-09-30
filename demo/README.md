@@ -172,19 +172,19 @@ Then push the uber jar file within the pod using the following bash script
 ```
 
 Check now if the `Component` Client is replying and calls its `HTTP Endpoint` exposed in order to fetch the `fruits` data from the database consumed by the 
-other microservice. The syntax to be used is not the same if the project is running on kubernetes vs openshift as k8s is creating an ingress resource while openshift a route
+other microservice. The syntax to be used is not the same if the project is running on kubernetes vs OpenShift as k8s is creating an ingress resource while OpenShift a route
 
 ```bash
-# Openshift Route
-# export FRONTEND_ROUTE_URL=<service_name>.<hostname_or_ip>.<domain_name>
+# OpenShift Route
+# export FRONTEND_ROUTE_URL=<service_name>-<namespace>.<hostname_or_cluster_ip_address>.<domain_name>
 # oc get route/fruit-client-sb -n demo
-export FRONTEND_ROUTE_URL=fruit-client-sb-test.195.201.87.126.nip.io 
+export FRONTEND_ROUTE_URL=fruit-client-sb-test.$(minishift ip).nip.io 
 curl http://${FRONTEND_ROUTE_URL}/api/client
 [{"id":1,"name":"Cherry"},{"id":2,"name":"Apple"},{"id":3,"name":"Banana"}]%  
 
 # Kubernetes Ingress
-# export FRONTEND_ROUTE_UR=<CLUSTER_IP>
-export FRONTEND_ROUTE_URL=195.201.87.126
+# export FRONTEND_ROUTE_URL=<cluster_ip_address>
+export FRONTEND_ROUTE_URL=$(minikube ip)
 curl -H "Host: fruit-client-sb" http://${FRONTEND_ROUTE_URL}/api/client
 [{"id":1,"name":"Cherry"},{"id":2,"name":"Apple"},{"id":3,"name":"Banana"}]%  
 ```
