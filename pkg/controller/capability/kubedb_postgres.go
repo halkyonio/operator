@@ -77,6 +77,22 @@ func (res postgres) Build() (runtime.Object, error) {
 	return postgres, nil
 }
 
+func (postgres) ShouldBeCheckedForReadiness() bool {
+	return true
+}
+
+func (res postgres) OwnerStatusField() string {
+	return res.ownerAsCapability().DependentStatusFieldName()
+}
+
+func (res postgres) IsReady(underlying runtime.Object) bool {
+	return underlying.(*kubedbv1.Postgres).Status.Phase == kubedbv1.DatabasePhaseRunning
+}
+
+func (res postgres) NameFrom(underlying runtime.Object) string {
+	return underlying.(*kubedbv1.Postgres).Name
+}
+
 func replicaNumber(num int) *int32 {
 	q := int32(num)
 	return &q

@@ -1,8 +1,11 @@
 package component
 
 import (
+	"github.com/knative/pkg/apis"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	"halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -92,4 +95,26 @@ func (res taskRun) Build() (runtime.Object, error) {
 	}
 
 	return taskRun, nil
+}
+
+func (res taskRun) OwnerStatusField() string {
+	return res.ownerAsComponent().DependentStatusFieldName()
+}
+
+func (res taskRun) ShouldBeCheckedForReadiness() bool {
+	return v1beta1.BuildDeploymentMode == res.ownerAsComponent().Spec.DeploymentMode
+}
+
+func (res taskRun) IsReady(underlying runtime.Object) bool {
+	tr := underlying.(*v1alpha1.TaskRun)
+	for _, c := range tr.Status.Conditions {
+		if c.Type == apis.ConditionSucceeded && c.Status == corev1.ConditionTrue {
+			return true
+		}
+	}
+	return false
+}
+
+func (res taskRun) NameFrom(underlying runtime.Object) string {
+	return underlying.(*v1alpha1.TaskRun).Name
 }

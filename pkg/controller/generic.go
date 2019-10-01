@@ -379,5 +379,20 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner Resource, resourceType runt
 }
 
 func (b *BaseGenericReconciler) AreDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus) {
-	return b.factory().AreDependentResourcesReady(resource)
+	statuses = make([]DependentResourceStatus, 0, len(b.dependents))
+	for s, dependent := range b.dependents {
+		// make sure owner is set:
+		dependent = dependent.NewInstanceWith(resource)
+		b.dependents[getKeyFor(dependent.Prototype())] = dependent
+
+		if dependent.ShouldBeCheckedForReadiness() {
+			fetched, err := dependent.Fetch(b.Helper())
+			if err != nil || !dependent.IsReady(fetched) {
+				statuses = append(statuses, NewFailedDependentResourceStatus(s, err))
+			} else {
+				statuses = append(statuses, NewReadyDependentResourceStatus(dependent.NameFrom(fetched), dependent.OwnerStatusField()))
+			}
+		}
+	}
+	return statuses
 }

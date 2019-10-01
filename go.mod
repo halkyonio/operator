@@ -31,7 +31,7 @@ require (
 	k8s.io/api v0.0.0-20190725062911-6607c48751ae
 	k8s.io/apimachinery v0.0.0-20190719140911-bfcf53abc9f8
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/kubernetes v1.14.5 // indirect
+	k8s.io/kubernetes v1.14.5
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec // indirect
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817 // indirect
 	kmodules.xyz/objectstore-api v0.0.0-20190516233206-ea3ba546e348 // indirect
