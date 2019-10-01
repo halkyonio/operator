@@ -303,12 +303,44 @@ pod_id=$(kubectl get pods -n operators -l name=halkyon-operator -o=name)
 kubectl logs $pod_id -n operators
 ```
 
+You can also use the operator bundle promoted on [operatorhub.io](https://operatorhub.io/operator/halkyon).
+
+### Running a new version of the Halkyon operator on an already-setup cluster
+
+Let's assume that you've already installed Halkyon on a cluster (i.e. kubedb and tekton operators are setup and the Halkyon 
+resources are deployed on the cluster) but that you want to build a new version of the operator to, for example, test a bug fix.
+
+The easiest way to do so is to scale down the deployment associated with the operator down to 0 replicas in your cluster. Of 
+course, you need to make sure that no one else is relying on that operator running on the cluster! Assuming the above 
+installation, you can do so by:
+
+```bash
+kubectl scale --replicas=0 -n operators $(kubectl get deployment -n operators -o name)
+```
+
+You can then compile and run the Halkyon operator locally. This assumes you have set up a Go programming environment, know 
+your way around using Go:
+
+```bash
+go get halkyon.io/operator
+cd $GOPATH/src/halkyon.io/operator
+make
+```
+
+You will then want to run the operator locally so that the cluster can call it back when changes are detected to Halkyon 
+resources. You will do so by running the operator watching the specific namespace where you want to test changes. Watching a 
+specific namespace ensures that your locally running instance of the operator doesn't impact users in different namespaces (and
+also insures that you don't see changes made to resources in other namespaces that you might not be interested in):
+
+```bash
+WATCH_NAMESPACE=<the name of your namespace here>; go run ./cmd/manager/main.go
+```
+
 Enjoy the Halkyon Operator!
 
 ### How to play with it
 
 Deploy the operator as defined within the [Operator Doc](https://github.com/halkyonio/operator#installing-the-halkyon-operator)
-or use the operator bundle promoted on [operatorhub.io](https://operatorhub.io/operator/halkyon).
 
 First create a `demo` namespace:
 ```bash
