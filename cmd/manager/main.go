@@ -85,7 +85,7 @@ func main() {
 	}
 
 	// Setup Scheme for all resources
-	log.Info("Registering Components")
+	log.Info("Registering Halkyon resources")
 	if err := halkyon.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 	}
