@@ -17,6 +17,10 @@ type DependentResource interface {
 	ShouldWatch() bool
 	CanBeCreatedOrUpdated() bool
 	ShouldBeOwned() bool
+	IsReady(underlying runtime.Object) bool
+	OwnerStatusField() string
+	ShouldBeCheckedForReadiness() bool
+	NameFrom(underlying runtime.Object) string
 }
 
 type DependentResourceStatus struct {
@@ -42,6 +46,22 @@ type DependentResourceHelper struct {
 	_owner     Resource
 	_prototype runtime.Object
 	_delegate  DependentResource
+}
+
+func (res DependentResourceHelper) IsReady(underlying runtime.Object) bool {
+	return true
+}
+
+func (res DependentResourceHelper) ShouldBeCheckedForReadiness() bool {
+	return false
+}
+
+func (res DependentResourceHelper) OwnerStatusField() string {
+	return ""
+}
+
+func (res DependentResourceHelper) NameFrom(underlying runtime.Object) string {
+	return res.Name()
 }
 
 func (res DependentResourceHelper) ShouldWatch() bool {

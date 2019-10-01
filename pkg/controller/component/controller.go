@@ -19,12 +19,9 @@ package component
 
 import (
 	"context"
-	"github.com/knative/pkg/apis"
-	taskRunv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -90,6 +87,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 	r.AddDependentResource(newTaskRun(r))
 	r.AddDependentResource(controller2.NewRole())
 	r.AddDependentResource(controller2.NewRoleBinding())
+	r.AddDependentResource(newPod())
 	return r
 }
 
@@ -106,24 +104,6 @@ type ReconcileComponent struct {
 
 func (ReconcileComponent) asComponent(object runtime.Object) *controller2.Component {
 	return object.(*controller2.Component)
-}
-
-func (r *ReconcileComponent) AreDependentResourcesReady(resource controller2.Resource) (statuses []controller2.DependentResourceStatus) {
-	c := r.asComponent(resource)
-	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
-		taskRun, err := r.MustGetDependentResourceFor(resource, &taskRunv1alpha1.TaskRun{}).Fetch(r.Helper())
-		if err != nil || !r.isBuildSucceed(taskRun.(*taskRunv1alpha1.TaskRun)) {
-			return []controller2.DependentResourceStatus{controller2.NewFailedDependentResourceStatus("taskRun job", err)}
-		}
-		return []controller2.DependentResourceStatus{controller2.NewReadyDependentResourceStatus(taskRun.(*taskRunv1alpha1.TaskRun).Name, c.DependentStatusFieldName())}
-	} else {
-		pod, err := r.fetchPod(c)
-		if err != nil || !r.isPodReady(pod) {
-			return []controller2.DependentResourceStatus{controller2.NewFailedDependentResourceStatus("pod", err)}
-		}
-
-		return []controller2.DependentResourceStatus{controller2.NewReadyDependentResourceStatus(pod.Name, c.DependentStatusFieldName())}
-	}
 }
 
 func (r *ReconcileComponent) CreateOrUpdate(object controller2.Resource) (err error) {
@@ -157,24 +137,4 @@ func (r *ReconcileComponent) Delete(resource controller2.Resource) error {
 		}
 	}
 	return nil
-}
-
-// Check if the Pod Condition is Type = Ready and Status = True
-func (r *ReconcileComponent) isPodReady(pod *corev1.Pod) bool {
-	for _, c := range pod.Status.Conditions {
-		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
-			return true
-		}
-	}
-	return false
-}
-
-// Check if the TaskRun Condition is Type = SUCCEEDED and Status = True
-func (r *ReconcileComponent) isBuildSucceed(taskRun *taskRunv1alpha1.TaskRun) bool {
-	for _, c := range taskRun.Status.Conditions {
-		if c.Type == apis.ConditionSucceeded && c.Status == corev1.ConditionTrue {
-			return true
-		}
-	}
-	return false
 }

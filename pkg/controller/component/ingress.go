@@ -28,7 +28,6 @@ func newOwnedIngress(reconciler *ReconcileComponent, owner controller.Resource) 
 	return i
 }
 
-//buildIngress returns the Ingress resource
 func (res ingress) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	ls := getAppLabels(controller.DeploymentName(c))

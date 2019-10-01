@@ -3,7 +3,6 @@ package link
 import (
 	"context"
 	"fmt"
-	component "halkyon.io/api/component/v1beta1"
 	link "halkyon.io/api/link/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
@@ -17,6 +16,7 @@ func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
 	baseReconciler := controller2.NewBaseGenericReconciler(controller2.NewLink(), mgr)
 	r := &ReconcileLink{BaseGenericReconciler: baseReconciler}
 	baseReconciler.SetReconcilerFactory(r)
+	r.AddDependentResource(newComponent())
 	return r
 }
 
@@ -26,18 +26,6 @@ type ReconcileLink struct {
 
 func (ReconcileLink) asLink(object runtime.Object) *controller2.Link {
 	return object.(*controller2.Link)
-}
-
-func (r *ReconcileLink) AreDependentResourcesReady(resource controller2.Resource) (statuses []controller2.DependentResourceStatus) {
-	l := r.asLink(resource)
-	c := controller2.NewComponent(&component.Component{})
-	c.Name = l.Spec.ComponentName
-	c.Namespace = l.Namespace
-	_, err := r.Fetch(c)
-	if err != nil || (component.ComponentReady != c.Status.Phase && component.ComponentRunning != c.Status.Phase) {
-		return []controller2.DependentResourceStatus{controller2.NewFailedDependentResourceStatus("component", err)}
-	}
-	return []controller2.DependentResourceStatus{controller2.NewReadyDependentResourceStatus(c.Name, "")}
 }
 
 func (r *ReconcileLink) CreateOrUpdate(object controller2.Resource) error {
