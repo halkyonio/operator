@@ -144,8 +144,8 @@ dekorate:
 To deploy the generated resource files on an existing cluster, execute the following commands:
 ```bash
 kubectl create ns demo
-kubectl apply -f fruit-client-sb/target/classes/META-INF/dekorate/halkyon.yml -n demo
-kubectl apply -f fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml -n demo
+kubectl apply -f ./demo/fruit-client-sb/target/classes/META-INF/dekorate/halkyon.yml -n demo
+kubectl apply -f ./demo/fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml -n demo
 ``` 
 
 Wait a few moment and verify if the status of the `components` deployed are ready
