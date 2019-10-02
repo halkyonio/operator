@@ -1,6 +1,7 @@
 package capability
 
 import (
+	"fmt"
 	"github.com/appscode/go/encoding/json/types"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"halkyon.io/operator/pkg/controller"
@@ -85,8 +86,13 @@ func (res postgres) OwnerStatusField() string {
 	return res.ownerAsCapability().DependentStatusFieldName()
 }
 
-func (res postgres) IsReady(underlying runtime.Object) bool {
-	return underlying.(*kubedbv1.Postgres).Status.Phase == kubedbv1.DatabasePhaseRunning
+func (res postgres) IsReady(underlying runtime.Object) (ready bool, message string) {
+	psql := underlying.(*kubedbv1.Postgres)
+	ready = psql.Status.Phase == kubedbv1.DatabasePhaseRunning
+	if !ready {
+		message = fmt.Sprintf("%s PostgreSQL is not ready: %s", psql.Name, psql.Status.Reason)
+	}
+	return
 }
 
 func (res postgres) NameFrom(underlying runtime.Object) string {
