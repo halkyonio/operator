@@ -255,8 +255,13 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	// always check status for updates
 	b.updateStatusIfNeeded(resource, err)
 
-	b.ReqLogger.Info("<== Reconciled "+typeName, "name", resource.GetName())
-	return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
+	requeue := resource.NeedsRequeue()
+	msg := "<== Reconciled " + typeName
+	if requeue {
+		msg += " (requeued)"
+	}
+	b.ReqLogger.Info(msg, "name", resource.GetName())
+	return reconcile.Result{Requeue: requeue}, err
 }
 
 func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
