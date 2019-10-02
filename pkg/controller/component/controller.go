@@ -22,6 +22,7 @@ import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -137,4 +138,16 @@ func (r *ReconcileComponent) Delete(resource controller2.Resource) error {
 		}
 	}
 	return nil
+}
+
+func (r *ReconcileComponent) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) bool {
+	c := r.asComponent(primary)
+	if c.Status.Phase == component.ComponentLinking {
+		p, err := r.MustGetDependentResourceFor(c, &corev1.Pod{}).Fetch(r.Helper())
+		if err != nil || p.(*corev1.Pod).Name == c.Status.PodName {
+			c.SetNeedsRequeue(true)
+			return false
+		}
+	}
+	return primary.SetSuccessStatus(statuses, "Ready")
 }

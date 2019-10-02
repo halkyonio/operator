@@ -60,3 +60,7 @@ func (r *ReconcileCapability) CreateOrUpdate(object controller2.Resource) (e err
 	}
 	return e
 }
+
+func (r *ReconcileCapability) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) bool {
+	return primary.SetSuccessStatus(statuses, "Ready")
+}
