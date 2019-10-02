@@ -42,14 +42,14 @@ func (res pod) CanBeCreatedOrUpdated() bool {
 	return false
 }
 
-func (res pod) IsReady(underlying runtime.Object) bool {
+func (res pod) IsReady(underlying runtime.Object) (bool, string) {
 	p := underlying.(*corev1.Pod)
 	for _, c := range p.Status.Conditions {
 		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
-			return true
+			return true, ""
 		}
 	}
-	return false
+	return false, fmt.Sprintf("Pod %s is not ready: %s", p.Name, p.Status.Message)
 }
 
 func (res pod) ShouldBeCheckedForReadiness() bool {

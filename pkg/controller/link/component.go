@@ -33,9 +33,13 @@ func (component) ShouldBeCheckedForReadiness() bool {
 	return true
 }
 
-func (res component) IsReady(underlying runtime.Object) bool {
+func (res component) IsReady(underlying runtime.Object) (ready bool, message string) {
 	c := underlying.(*v1beta1.Component)
-	return v1beta1.ComponentReady == c.Status.Phase || v1beta1.ComponentRunning == c.Status.Phase
+	ready = v1beta1.ComponentReady == c.Status.Phase || v1beta1.ComponentRunning == c.Status.Phase
+	if !ready {
+		message = c.Status.Message
+	}
+	return
 }
 
 func (res component) Name() string {

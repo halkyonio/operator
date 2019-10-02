@@ -17,7 +17,7 @@ type DependentResource interface {
 	ShouldWatch() bool
 	CanBeCreatedOrUpdated() bool
 	ShouldBeOwned() bool
-	IsReady(underlying runtime.Object) bool
+	IsReady(underlying runtime.Object) (ready bool, message string)
 	OwnerStatusField() string
 	ShouldBeCheckedForReadiness() bool
 	NameFrom(underlying runtime.Object) string
@@ -30,10 +30,13 @@ type DependentResourceStatus struct {
 	OwnerStatusField string
 }
 
-func NewFailedDependentResourceStatus(dependentName string, err error) DependentResourceStatus {
+func NewFailedDependentResourceStatus(dependentName string, errorOrMessage interface{}) DependentResourceStatus {
 	msg := ""
-	if err != nil {
-		msg = err.Error()
+	switch errorOrMessage.(type) {
+	case string:
+		msg = errorOrMessage.(string)
+	case error:
+		msg = errorOrMessage.(error).Error()
 	}
 	return DependentResourceStatus{DependentName: dependentName, Ready: false, Message: msg}
 }
@@ -48,8 +51,8 @@ type DependentResourceHelper struct {
 	_delegate  DependentResource
 }
 
-func (res DependentResourceHelper) IsReady(underlying runtime.Object) bool {
-	return true
+func (res DependentResourceHelper) IsReady(underlying runtime.Object) (ready bool, message string) {
+	return true, ""
 }
 
 func (res DependentResourceHelper) ShouldBeCheckedForReadiness() bool {

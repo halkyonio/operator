@@ -1,11 +1,11 @@
 package component
 
 import (
+	"fmt"
 	"github.com/knative/pkg/apis"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -105,14 +105,18 @@ func (res taskRun) ShouldBeCheckedForReadiness() bool {
 	return v1beta1.BuildDeploymentMode == res.ownerAsComponent().Spec.DeploymentMode
 }
 
-func (res taskRun) IsReady(underlying runtime.Object) bool {
+func (res taskRun) IsReady(underlying runtime.Object) (ready bool, message string) {
 	tr := underlying.(*v1alpha1.TaskRun)
-	for _, c := range tr.Status.Conditions {
-		if c.Type == apis.ConditionSucceeded && c.Status == corev1.ConditionTrue {
-			return true
+	succeeded := tr.Status.GetCondition(apis.ConditionSucceeded)
+	if succeeded != nil {
+		if succeeded.IsTrue() {
+			return true, succeeded.Message
+		} else {
+			return false, fmt.Sprintf("%s TaskRun didn't succeed: %s", tr.Name, succeeded.Message)
 		}
+	} else {
+		return false, fmt.Sprintf("%s TaskRun is not ready", tr.Name)
 	}
-	return false
 }
 
 func (res taskRun) NameFrom(underlying runtime.Object) string {
