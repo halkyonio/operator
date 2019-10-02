@@ -31,6 +31,7 @@ type ReconcilerFactory interface {
 	Helper() ReconcilerHelper
 	GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error)
 	AddDependentResource(resource DependentResource)
+	SetPrimaryResourceStatus(primary Resource, statuses []DependentResourceStatus) bool
 }
 
 type ReconcilerHelper struct {
@@ -129,7 +130,7 @@ func (b *BaseGenericReconciler) ComputeStatus(current Resource, err error) (need
 		return current.SetInitialStatus(msg)
 	}
 
-	return current.SetSuccessStatus(statuses, "Ready")
+	return b.factory().SetPrimaryResourceStatus(current, statuses)
 }
 
 func (b *BaseGenericReconciler) PrimaryResourceType() Resource {

@@ -3,6 +3,7 @@ package link
 import (
 	"context"
 	"fmt"
+	"halkyon.io/api/component/v1beta1"
 	link "halkyon.io/api/link/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	appsv1 "k8s.io/api/apps/v1"
@@ -28,8 +29,24 @@ func (ReconcileLink) asLink(object runtime.Object) *controller2.Link {
 	return object.(*controller2.Link)
 }
 
+func (r *ReconcileLink) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) bool {
+	return primary.SetSuccessStatus(statuses, "Ready")
+}
+
 func (r *ReconcileLink) CreateOrUpdate(object controller2.Resource) error {
 	l := r.asLink(object)
+
+	// update the component's status to linking
+	c, err := r.MustGetDependentResourceFor(l, &v1beta1.Component{}).Fetch(r.Helper())
+	if err != nil {
+		return fmt.Errorf("cannot retrieve associated component")
+	}
+	c.(*v1beta1.Component).Status.Phase = v1beta1.ComponentLinking
+	err = r.Client.Status().Update(context.TODO(), c)
+	if err != nil {
+		return err
+	}
+
 	if l.Status.Phase != link.LinkReady {
 		found, err := r.fetchDeployment(l.Link)
 		if err != nil {
