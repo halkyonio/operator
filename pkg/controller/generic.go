@@ -28,7 +28,6 @@ type ReconcilerFactory interface {
 	WatchedSecondaryResourceTypes() []runtime.Object
 	Delete(object Resource) error
 	CreateOrUpdate(object Resource) error
-	AreDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus)
 	Helper() ReconcilerHelper
 	GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error)
 	AddDependentResource(resource DependentResource)
