@@ -31,7 +31,7 @@ type ReconcilerFactory interface {
 	Helper() ReconcilerHelper
 	GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error)
 	AddDependentResource(resource DependentResource)
-	SetPrimaryResourceStatus(primary Resource, statuses []DependentResourceStatus) bool
+	SetPrimaryResourceStatus(primary Resource, statuses []DependentResourceStatus) (needsUpdate bool)
 }
 
 type ReconcilerHelper struct {
@@ -224,7 +224,6 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
-			b.ReqLogger.Info(typeName + " resource not found.")
 			if resource.ShouldDelete() {
 				b.ReqLogger.Info(typeName + " resource is marked for deletion. Running clean-up.")
 				err := b.Delete(resource)
@@ -237,7 +236,8 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 
-	if resource.GetGeneration() == 1 && len(resource.GetStatusAsString()) == 0 {
+	initialStatus := resource.GetStatusAsString()
+	if resource.GetGeneration() == 1 && len(initialStatus) == 0 {
 		resource.SetInitialStatus("Initializing")
 	}
 
@@ -245,7 +245,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	b.ReqLogger.Info("-> "+typeName, "name", resource.GetName(), "status", resource.GetStatusAsString())
+	b.ReqLogger.Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)
 
 	err = b.CreateOrUpdate(resource)
 	if err != nil {
@@ -256,11 +256,16 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	b.updateStatusIfNeeded(resource, err)
 
 	requeue := resource.NeedsRequeue()
-	msg := "<- " + typeName
-	if requeue {
-		msg += " (requeued)"
+
+	// only log exit if status changed to avoid being too verbose
+	newStatus := resource.GetStatusAsString()
+	if newStatus != initialStatus {
+		msg := "<- " + typeName
+		if requeue {
+			msg += " (requeued)"
+		}
+		b.ReqLogger.Info(msg, "name", resource.GetName(), "status", newStatus)
 	}
-	b.ReqLogger.Info(msg, "name", resource.GetName(), "status", resource.GetStatusAsString())
 	return reconcile.Result{Requeue: requeue}, err
 }
 
