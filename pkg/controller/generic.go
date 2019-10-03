@@ -125,7 +125,7 @@ func (b *BaseGenericReconciler) ComputeStatus(current Resource, err error) (need
 		}
 	}
 	if len(msgs) > 0 {
-		msg := fmt.Sprintf("Waiting for the following resources:\n%s", strings.Join(msgs, "\n"))
+		msg := fmt.Sprintf("Waiting for the following resources: (%s)", strings.Join(msgs, ", "))
 		b.ReqLogger.Info(msg)
 		return current.SetInitialStatus(msg)
 	}
