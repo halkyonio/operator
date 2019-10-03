@@ -245,10 +245,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	b.ReqLogger.Info("==> Reconciling "+typeName,
-		"name", resource.GetName(),
-		"status", resource.GetStatusAsString(),
-		"created", resource.GetCreationTimestamp())
+	b.ReqLogger.Info("-> "+typeName, "name", resource.GetName(), "status", resource.GetStatusAsString())
 
 	err = b.CreateOrUpdate(resource)
 	if err != nil {
@@ -259,11 +256,11 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	b.updateStatusIfNeeded(resource, err)
 
 	requeue := resource.NeedsRequeue()
-	msg := "<== Reconciled " + typeName
+	msg := "<- " + typeName
 	if requeue {
 		msg += " (requeued)"
 	}
-	b.ReqLogger.Info(msg, "name", resource.GetName())
+	b.ReqLogger.Info(msg, "name", resource.GetName(), "status", resource.GetStatusAsString())
 	return reconcile.Result{Requeue: requeue}, err
 }
 
