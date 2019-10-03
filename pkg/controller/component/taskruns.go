@@ -112,10 +112,10 @@ func (res taskRun) IsReady(underlying runtime.Object) (ready bool, message strin
 		if succeeded.IsTrue() {
 			return true, succeeded.Message
 		} else {
-			return false, fmt.Sprintf("%s TaskRun didn't succeed: %s", tr.Name, succeeded.Message)
+			return false, fmt.Sprintf("%s didn't succeed: %s", tr.Name, succeeded.Message)
 		}
 	} else {
-		return false, fmt.Sprintf("%s TaskRun is not ready", tr.Name)
+		return false, fmt.Sprintf("%s is not ready", tr.Name)
 	}
 }
 
