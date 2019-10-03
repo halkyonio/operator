@@ -85,6 +85,7 @@ func (in *Component) DependentStatusFieldName() string {
 }
 
 func (in *Component) SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool {
+	// todo: compute message based on linking statuses
 	if hasChangedFromStatusUpdate(&in.Status, statuses, msg) || halkyon.ComponentReady != in.Status.Phase || msg != in.Status.Message {
 		in.Status.Phase = halkyon.ComponentReady
 		in.Status.Message = msg
