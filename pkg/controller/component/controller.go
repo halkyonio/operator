@@ -19,7 +19,9 @@ package component
 
 import (
 	"context"
+	"fmt"
 	component "halkyon.io/api/component/v1beta1"
+	hLink "halkyon.io/api/link/v1beta1"
 	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
@@ -27,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -142,11 +145,41 @@ func (r *ReconcileComponent) Delete(resource controller2.Resource) error {
 
 func (r *ReconcileComponent) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) bool {
 	c := r.asComponent(primary)
-	if c.Status.Phase == component.ComponentLinking {
-		p, err := r.MustGetDependentResourceFor(c, &corev1.Pod{}).Fetch(r.Helper())
-		if err != nil || p.(*corev1.Pod).Name == c.Status.PodName {
-			c.SetNeedsRequeue(true)
-			return false
+	if len(c.Status.Links) > 0 {
+		for _, link := range c.Status.Links {
+			if link.Status == component.Started {
+				p, err := r.MustGetDependentResourceFor(c, &corev1.Pod{}).Fetch(r.Helper())
+				name := p.(*corev1.Pod).Name
+				if err != nil || name == link.OriginalPodName {
+					c.Status.Phase = component.ComponentLinking
+					c.SetNeedsRequeue(true)
+					return false
+				} else {
+					// update link status
+					l := &hLink.Link{}
+					err := r.Client.Get(context.TODO(), types.NamespacedName{
+						Namespace: c.Namespace,
+						Name:      link.Name,
+					}, l)
+					if err != nil {
+						// todo: is this appropriate?
+						link.Status = component.Errored
+						c.Status.Message = fmt.Sprintf("couldn't retrieve '%s' link", link.Name)
+						return true
+					}
+
+					l.Status.Message = fmt.Sprintf("'%s' finished linking", c.Name)
+					err = r.Client.Status().Update(context.TODO(), l)
+					if err != nil {
+						// todo: fix-me
+						r.ReqLogger.Error(err, "couldn't update link status", "link name", l.Name)
+					}
+
+					link.Status = component.Linked
+					link.OriginalPodName = ""
+					c.Status.PodName = name
+				}
+			}
 		}
 	}
 	return primary.SetSuccessStatus(statuses, "Ready")
