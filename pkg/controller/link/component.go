@@ -35,7 +35,8 @@ func (component) ShouldBeCheckedForReadiness() bool {
 
 func (res component) IsReady(underlying runtime.Object) (ready bool, message string) {
 	c := underlying.(*v1beta1.Component)
-	if !c.IsReady() {
+	ready = c.IsReady()
+	if !ready {
 		message = c.Status.Message
 	}
 	return
