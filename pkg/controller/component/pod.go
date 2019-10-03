@@ -49,7 +49,11 @@ func (res pod) IsReady(underlying runtime.Object) (bool, string) {
 			return true, ""
 		}
 	}
-	return false, fmt.Sprintf("Pod %s is not ready: %s", p.Name, p.Status.Message)
+	msg := ""
+	if len(p.Status.Message) > 0 {
+		msg = ": " + p.Status.Message
+	}
+	return false, fmt.Sprintf("Pod %s is not ready%s", p.Name, msg)
 }
 
 func (res pod) ShouldBeCheckedForReadiness() bool {
