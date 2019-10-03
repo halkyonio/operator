@@ -143,10 +143,10 @@ func (r *ReconcileComponent) Delete(resource controller2.Resource) error {
 	return nil
 }
 
-func (r *ReconcileComponent) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) bool {
+func (r *ReconcileComponent) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) (needsUpdate bool) {
 	c := r.asComponent(primary)
 	if len(c.Status.Links) > 0 {
-		for _, link := range c.Status.Links {
+		for i, link := range c.Status.Links {
 			if link.Status == component.Started {
 				p, err := r.MustGetDependentResourceFor(c, &corev1.Pod{}).Fetch(r.Helper())
 				name := p.(*corev1.Pod).Name
@@ -178,9 +178,12 @@ func (r *ReconcileComponent) SetPrimaryResourceStatus(primary controller2.Resour
 					link.Status = component.Linked
 					link.OriginalPodName = ""
 					c.Status.PodName = name
+					c.Status.Links[i] = link // make sure we update the links with the modified value
+					needsUpdate = true
 				}
 			}
 		}
 	}
-	return primary.SetSuccessStatus(statuses, "Ready")
+	// make sure we propagate the need for update even if setting the status doesn't change anything
+	return primary.SetSuccessStatus(statuses, "Ready") || needsUpdate
 }
