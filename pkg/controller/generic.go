@@ -113,11 +113,11 @@ func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
 	return *b.onOpenShift
 }
 
-func (b *BaseGenericReconciler) ComputeStatus(current Resource, err error) (needsUpdate bool) {
+func (b *BaseGenericReconciler) computeStatus(current Resource, err error) (needsUpdate bool) {
 	if err != nil {
 		return current.SetErrorStatus(err)
 	}
-	statuses := b.AreDependentResourcesReady(current)
+	statuses := b.areDependentResourcesReady(current)
 	msgs := make([]string, 0, len(statuses))
 	for _, status := range statuses {
 		if !status.Ready {
@@ -269,7 +269,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 
 func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	// compute the status and update the resource if the status has changed
-	if needsStatusUpdate := b.ComputeStatus(instance, err); needsStatusUpdate {
+	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
 		if e := b.Client.Status().Update(context.Background(), instance.GetAPIObject()); e != nil {
 			b.ReqLogger.Error(e, "failed to update status for component "+instance.GetName())
 		}
@@ -386,7 +386,7 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner Resource, resourceType runt
 	}
 }
 
-func (b *BaseGenericReconciler) AreDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus) {
+func (b *BaseGenericReconciler) areDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus) {
 	statuses = make([]DependentResourceStatus, 0, len(b.dependents))
 	for _, dependent := range b.dependents {
 		// make sure owner is set:
