@@ -36,34 +36,39 @@ func (r *ReconcileLink) SetPrimaryResourceStatus(primary controller2.Resource, s
 func (r *ReconcileLink) CreateOrUpdate(object controller2.Resource) error {
 	l := r.asLink(object)
 
-	// update the component's status to linking
-	c, err := r.MustGetDependentResourceFor(l, &v1beta1.Component{}).Fetch(r.Helper())
+	found, err := r.fetchDeployment(l.Link)
 	if err != nil {
-		return fmt.Errorf("cannot retrieve associated component")
-	}
-	c.(*v1beta1.Component).Status.Phase = v1beta1.ComponentLinking
-	err = r.Client.Status().Update(context.TODO(), c)
-	if err != nil {
+		l.SetNeedsRequeue(true)
 		return err
 	}
+	// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...) if needed
+	if containers, isModified := r.updateContainersWithLinkInfo(l.Link, found.Spec.Template.Spec.Containers); isModified {
+		found.Spec.Template.Spec.Containers = containers
 
-	if l.Status.Phase != link.LinkReady {
-		found, err := r.fetchDeployment(l.Link)
-		if err != nil {
+		if err = r.updateDeploymentWithLink(found, l); err != nil {
+			// As it could be possible that we can't update the Deployment as it has been modified by another
+			// process, then we will requeue
 			l.SetNeedsRequeue(true)
 			return err
 		}
-		// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...)
-		if containers, isModified := r.updateContainersWithLinkInfo(l.Link, found.Spec.Template.Spec.Containers); isModified {
-			found.Spec.Template.Spec.Containers = containers
-			if err = r.updateDeploymentWithLink(found, l); err != nil {
-				// As it could be possible that we can't update the Deployment as it has been modified by another
-				// process, then we will requeue
-				l.SetNeedsRequeue(true)
-			}
+
+		// if the deployment has been updated, we need to update the component's status
+		fetch, err := r.MustGetDependentResourceFor(l, &v1beta1.Component{}).Fetch(r.Helper())
+		if err != nil {
+			return fmt.Errorf("cannot retrieve associated component")
+		}
+		c := fetch.(*v1beta1.Component)
+		compStatus := &c.Status
+		compStatus.Phase = v1beta1.ComponentLinking
+		compStatus.SetLinkingStatus(l.Name, v1beta1.Started, compStatus.PodName)
+		compStatus.PodName = ""
+		compStatus.Message = fmt.Sprintf("Initiating link %s", l.Name)
+		err = r.Client.Status().Update(context.TODO(), c)
+		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
