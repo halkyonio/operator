@@ -90,7 +90,12 @@ func (res postgres) IsReady(underlying runtime.Object) (ready bool, message stri
 	psql := underlying.(*kubedbv1.Postgres)
 	ready = psql.Status.Phase == kubedbv1.DatabasePhaseRunning
 	if !ready {
-		message = fmt.Sprintf("%s PostgreSQL is not ready: %s", psql.Name, psql.Status.Reason)
+		msg := ""
+		reason := psql.Status.Reason
+		if len(reason) > 0 {
+			msg = ": " + reason
+		}
+		message = fmt.Sprintf("%s is not ready%s", psql.Name, msg)
 	}
 	return
 }

@@ -121,11 +121,11 @@ func (b *BaseGenericReconciler) computeStatus(current Resource, err error) (need
 	msgs := make([]string, 0, len(statuses))
 	for _, status := range statuses {
 		if !status.Ready {
-			msgs = append(msgs, fmt.Sprintf("%s: %s", status.DependentName, status.Message))
+			msgs = append(msgs, fmt.Sprintf("%s => %s", status.DependentName, status.Message))
 		}
 	}
 	if len(msgs) > 0 {
-		msg := fmt.Sprintf("Waiting for the following resources: (%s)", strings.Join(msgs, ", "))
+		msg := fmt.Sprintf("Waiting for the following resources: %s", strings.Join(msgs, " / "))
 		b.ReqLogger.Info(msg)
 		// set the status but ignore the result since dependents are not ready, we do need to update and requeue in any case
 		_ = current.SetInitialStatus(msg)
