@@ -241,6 +241,13 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		resource.SetInitialStatus("Initializing")
 	}
 
+	if resource.Init() {
+		if e := b.Client.Update(context.Background(), resource.GetAPIObject()); e != nil {
+			b.ReqLogger.Error(e, fmt.Sprintf("failed to update '%s' %s", resource.GetName(), typeName))
+		}
+		return reconcile.Result{}, nil
+	}
+
 	if !resource.IsValid() {
 		return reconcile.Result{Requeue: true}, nil
 	}
