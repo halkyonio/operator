@@ -47,6 +47,10 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		registryRef: "quay.io/halkyonio/openjdk8-s2i",
 		defaultEnv:  defaultEnvVar,
 	}
+	images["quarkus"] = imageInfo{
+		registryRef: "quay.io/halkyonio/openjdk8-s2i",
+		defaultEnv:  defaultEnvVar,
+	}
 	images["thorntail"] = imageInfo{
 		registryRef: "quay.io/halkyonio/openjdk8-s2i",
 		defaultEnv:  defaultEnvVar,

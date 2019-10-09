@@ -33,6 +33,7 @@ spec:
                 - spring-boot
                 - vert.x
                 - thorntail
+                - quarkus
   additionalPrinterColumns:
   - name: Runtime
     type: string
