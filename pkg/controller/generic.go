@@ -279,8 +279,9 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	// compute the status and update the resource if the status has changed
 	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
-		if e := b.Client.Status().Update(context.Background(), instance.GetAPIObject()); e != nil {
-			b.ReqLogger.Error(e, "failed to update status for component "+instance.GetName())
+		object := instance.GetAPIObject()
+		if e := b.Client.Status().Update(context.Background(), object); e != nil {
+			b.ReqLogger.Error(e, fmt.Sprintf("failed to update status for '%s' %s", instance.GetName(), GetObjectName(object)))
 		}
 	}
 }
