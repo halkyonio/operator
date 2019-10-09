@@ -10,6 +10,14 @@ type Component struct {
 	requeue bool
 }
 
+func (in *Component) Init() bool {
+	if len(in.Spec.DeploymentMode) == 0 {
+		in.Spec.DeploymentMode = halkyon.DevDeploymentMode
+		return true
+	}
+	return false
+}
+
 func (in *Component) SetAPIObject(object runtime.Object) {
 	in.Component = object.(*halkyon.Component)
 }
