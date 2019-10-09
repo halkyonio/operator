@@ -74,9 +74,10 @@ func (in *Capability) DependentStatusFieldName() string {
 }
 
 func (in *Capability) SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool {
-	if hasChangedFromStatusUpdate(&in.Status, statuses, msg) || halkyon.CapabilityReady != in.Status.Phase || msg != in.Status.Message {
+	changed, updatedMsg := hasChangedFromStatusUpdate(&in.Status, statuses, msg)
+	if changed || halkyon.CapabilityReady != in.Status.Phase {
 		in.Status.Phase = halkyon.CapabilityReady
-		in.Status.Message = msg
+		in.Status.Message = updatedMsg
 		in.requeue = false
 		return true
 	}
