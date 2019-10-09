@@ -2,11 +2,11 @@
 
 ## The easy way
 
-Simply create a release using the script `./script/tag_release_manually.sh` where you pass as parameter your `GITHUB_API_TOKEN` and
+Simply create a release using the script `./scripts/tag_release_manually.sh` where you pass as parameter your `GITHUB_API_TOKEN` and
 `ID` of the release to be created :
 
 ```bash
-./script/tag_release_manually.sh GITHUB_API_TOKEN VERSION
+./scripts/tag_release_manually.sh GITHUB_API_TOKEN VERSION
 ```
 
 where `VERSION` corresponds to a string starting with the prefix `release-` and next by the number of the release (e.g release-0.0.1, release-0.0.2, .... release-0.0.n)
