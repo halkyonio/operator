@@ -71,7 +71,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 				{
 					Name: "CMDS",
 					Value: "build:/usr/local/bin/build:false;" +
-						"run:/usr/local/bin/run:false",
+						"run:/usr/local/bin/run:true",
 				},
 			},
 		},
