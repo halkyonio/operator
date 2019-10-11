@@ -6,6 +6,7 @@ import (
 	"halkyon.io/api/component/v1beta1"
 	link "halkyon.io/api/link/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,7 +15,7 @@ import (
 )
 
 func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
-	baseReconciler := controller2.NewBaseGenericReconciler(controller2.NewLink(), mgr)
+	baseReconciler := framework.NewBaseGenericReconciler(controller2.NewLink(), mgr)
 	r := &ReconcileLink{BaseGenericReconciler: baseReconciler}
 	baseReconciler.SetReconcilerFactory(r)
 	r.AddDependentResource(newComponent())
@@ -22,18 +23,18 @@ func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
 }
 
 type ReconcileLink struct {
-	*controller2.BaseGenericReconciler
+	*framework.BaseGenericReconciler
 }
 
 func (ReconcileLink) asLink(object runtime.Object) *controller2.Link {
 	return object.(*controller2.Link)
 }
 
-func (r *ReconcileLink) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) bool {
+func (r *ReconcileLink) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
 	return primary.SetSuccessStatus(statuses, "Ready")
 }
 
-func (r *ReconcileLink) CreateOrUpdate(object controller2.Resource) error {
+func (r *ReconcileLink) CreateOrUpdate(object framework.Resource) error {
 	l := r.asLink(object)
 
 	found, err := r.fetchDeployment(l.Link)
@@ -152,10 +153,10 @@ func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *con
 	}
 
 	name := link.Spec.ComponentName
-	link.SetSuccessStatus([]controller2.DependentResourceStatus{}, fmt.Sprintf("linked to '%s' component", name))
+	link.SetSuccessStatus([]framework.DependentResourceStatus{}, fmt.Sprintf("linked to '%s' component", name))
 	return nil
 }
 
-func (r *ReconcileLink) Delete(resource controller2.Resource) error {
+func (r *ReconcileLink) Delete(resource framework.Resource) error {
 	return nil
 }

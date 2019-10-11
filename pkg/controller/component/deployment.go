@@ -4,6 +4,7 @@ import (
 	"fmt"
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -15,7 +16,7 @@ type deployment struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res deployment) NewInstanceWith(owner controller.Resource) controller.DependentResource {
+func (res deployment) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedDeployment(res.reconciler, owner)
 }
 
@@ -23,7 +24,7 @@ func newDeployment(reconciler *ReconcileComponent) deployment {
 	return newOwnedDeployment(reconciler, nil)
 }
 
-func newOwnedDeployment(reconciler *ReconcileComponent, owner controller.Resource) deployment {
+func newOwnedDeployment(reconciler *ReconcileComponent, owner framework.Resource) deployment {
 	dependent := newBaseDependent(&appsv1.Deployment{}, owner)
 	d := deployment{
 		base:       dependent,

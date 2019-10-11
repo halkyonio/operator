@@ -4,6 +4,7 @@ import (
 	"fmt"
 	capability "halkyon.io/api/capability/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -25,7 +26,7 @@ const (
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
-	baseReconciler := controller2.NewBaseGenericReconciler(controller2.NewCapability(), mgr)
+	baseReconciler := framework.NewBaseGenericReconciler(controller2.NewCapability(), mgr)
 	r := &ReconcileCapability{
 		BaseGenericReconciler: baseReconciler,
 	}
@@ -39,18 +40,18 @@ func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
 }
 
 type ReconcileCapability struct {
-	*controller2.BaseGenericReconciler
+	*framework.BaseGenericReconciler
 }
 
 func asCapability(object runtime.Object) *controller2.Capability {
 	return object.(*controller2.Capability)
 }
 
-func (r *ReconcileCapability) Delete(object controller2.Resource) error {
+func (r *ReconcileCapability) Delete(object framework.Resource) error {
 	return nil
 }
 
-func (r *ReconcileCapability) CreateOrUpdate(object controller2.Resource) (e error) {
+func (r *ReconcileCapability) CreateOrUpdate(object framework.Resource) (e error) {
 	c := asCapability(object)
 	if capability.DatabaseCategory.Equals(c.Spec.Category) {
 		// Install the 2nd resources and check if the status of the watched resources has changed
@@ -61,6 +62,6 @@ func (r *ReconcileCapability) CreateOrUpdate(object controller2.Resource) (e err
 	return e
 }
 
-func (r *ReconcileCapability) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) bool {
+func (r *ReconcileCapability) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
 	return primary.SetSuccessStatus(statuses, "Ready")
 }

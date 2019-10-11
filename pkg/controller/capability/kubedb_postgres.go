@@ -5,6 +5,7 @@ import (
 	"github.com/appscode/go/encoding/json/types"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,14 +14,14 @@ import (
 )
 
 type postgres struct {
-	*controller.DependentResourceHelper
+	*framework.DependentResourceHelper
 }
 
 func (res postgres) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res postgres) NewInstanceWith(owner controller.Resource) controller.DependentResource {
+func (res postgres) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedPostgres(owner)
 }
 
@@ -28,8 +29,8 @@ func newPostgres() postgres {
 	return newOwnedPostgres(nil)
 }
 
-func newOwnedPostgres(owner controller.Resource) postgres {
-	resource := controller.NewDependentResource(&kubedbv1.Postgres{}, owner)
+func newOwnedPostgres(owner framework.Resource) postgres {
+	resource := framework.NewDependentResource(&kubedbv1.Postgres{}, owner)
 	p := postgres{DependentResourceHelper: resource}
 	resource.SetDelegate(p)
 	return p

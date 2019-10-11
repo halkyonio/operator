@@ -3,18 +3,19 @@ package link
 import (
 	"halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type component struct {
-	*controller.DependentResourceHelper
+	*framework.DependentResourceHelper
 }
 
 func (res component) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res component) NewInstanceWith(owner controller.Resource) controller.DependentResource {
+func (res component) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedComponent(owner)
 }
 
@@ -22,8 +23,8 @@ func newComponent() component {
 	return newOwnedComponent(nil)
 }
 
-func newOwnedComponent(owner controller.Resource) component {
-	resource := controller.NewDependentResource(&v1beta1.Component{}, owner)
+func newOwnedComponent(owner framework.Resource) component {
+	resource := framework.NewDependentResource(&v1beta1.Component{}, owner)
 	c := component{DependentResourceHelper: resource}
 	resource.SetDelegate(c)
 	return c

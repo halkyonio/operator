@@ -2,6 +2,7 @@ package controller
 
 import (
 	halkyon "halkyon.io/api/capability/v1beta1"
+	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -22,7 +23,7 @@ func (in *Capability) GetAPIObject() runtime.Object {
 	return in.Capability
 }
 
-func (in *Capability) Clone() Resource {
+func (in *Capability) Clone() framework.Resource {
 	capability := NewCapability(in.Capability)
 	capability.requeue = in.requeue
 	return capability
@@ -77,8 +78,8 @@ func (in *Capability) DependentStatusFieldName() string {
 	return "PodName"
 }
 
-func (in *Capability) SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool {
-	changed, updatedMsg := hasChangedFromStatusUpdate(&in.Status, statuses, msg)
+func (in *Capability) SetSuccessStatus(statuses []framework.DependentResourceStatus, msg string) bool {
+	changed, updatedMsg := framework.HasChangedFromStatusUpdate(&in.Status, statuses, msg)
 	if changed || halkyon.CapabilityReady != in.Status.Phase {
 		in.Status.Phase = halkyon.CapabilityReady
 		in.Status.Message = updatedMsg

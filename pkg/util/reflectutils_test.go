@@ -1,4 +1,4 @@
-package controller
+package util
 
 import (
 	"halkyon.io/api/component/v1beta1"

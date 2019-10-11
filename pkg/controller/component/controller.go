@@ -24,6 +24,7 @@ import (
 	hLink "halkyon.io/api/link/v1beta1"
 	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,7 +78,7 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		},
 	}
 
-	baseReconciler := controller2.NewBaseGenericReconciler(controller2.NewComponent(), mgr)
+	baseReconciler := framework.NewBaseGenericReconciler(controller2.NewComponent(), mgr)
 	r := &ReconcileComponent{
 		BaseGenericReconciler: baseReconciler,
 		runtimeImages:         images,
@@ -105,7 +106,7 @@ type imageInfo struct {
 }
 
 type ReconcileComponent struct {
-	*controller2.BaseGenericReconciler
+	*framework.BaseGenericReconciler
 	runtimeImages map[string]imageInfo
 	supervisor    *component.Component
 }
@@ -114,7 +115,7 @@ func (ReconcileComponent) asComponent(object runtime.Object) *controller2.Compon
 	return object.(*controller2.Component)
 }
 
-func (r *ReconcileComponent) CreateOrUpdate(object controller2.Resource) (err error) {
+func (r *ReconcileComponent) CreateOrUpdate(object framework.Resource) (err error) {
 	c := r.asComponent(object)
 	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
 		err = r.installBuildMode(c, c.Namespace)
@@ -124,7 +125,7 @@ func (r *ReconcileComponent) CreateOrUpdate(object controller2.Resource) (err er
 	return err
 }
 
-func (r *ReconcileComponent) Delete(resource controller2.Resource) error {
+func (r *ReconcileComponent) Delete(resource framework.Resource) error {
 	if r.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode
@@ -147,7 +148,7 @@ func (r *ReconcileComponent) Delete(resource controller2.Resource) error {
 	return nil
 }
 
-func (r *ReconcileComponent) SetPrimaryResourceStatus(primary controller2.Resource, statuses []controller2.DependentResourceStatus) (needsUpdate bool) {
+func (r *ReconcileComponent) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) (needsUpdate bool) {
 	c := r.asComponent(primary)
 	if len(c.Status.Links) > 0 {
 		for i, link := range c.Status.Links {

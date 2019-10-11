@@ -2,13 +2,15 @@ package controller
 
 import (
 	"fmt"
+	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator/pkg/util"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type roleBinding struct {
-	*DependentResourceHelper
+	*framework.DependentResourceHelper
 }
 
 func (res roleBinding) Update(toUpdate runtime.Object) (bool, error) {
@@ -38,7 +40,7 @@ func (res roleBinding) Update(toUpdate runtime.Object) (bool, error) {
 	return !found, nil
 }
 
-func (res roleBinding) NewInstanceWith(owner Resource) DependentResource {
+func (res roleBinding) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedRoleBinding(owner)
 }
 
@@ -46,8 +48,8 @@ func NewRoleBinding() roleBinding {
 	return newOwnedRoleBinding(nil)
 }
 
-func newOwnedRoleBinding(owner Resource) roleBinding {
-	dependent := NewDependentResource(&authorizv1.RoleBinding{}, owner)
+func newOwnedRoleBinding(owner framework.Resource) roleBinding {
+	dependent := framework.NewDependentResource(&authorizv1.RoleBinding{}, owner)
 	rolebinding := roleBinding{
 		DependentResourceHelper: dependent,
 	}
@@ -55,14 +57,14 @@ func newOwnedRoleBinding(owner Resource) roleBinding {
 	return rolebinding
 }
 
-func RoleBindingName(owner Resource) string {
+func RoleBindingName(owner framework.Resource) string {
 	switch owner.(type) {
 	case *Component:
 		return "use-image-scc-privileged"
 	case *Capability:
 		return "use-scc-privileged"
 	default:
-		panic(fmt.Sprintf("unknown type '%s' for role owner", GetObjectName(owner)))
+		panic(fmt.Sprintf("unknown type '%s' for role owner", util.GetObjectName(owner)))
 	}
 }
 
