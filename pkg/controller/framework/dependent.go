@@ -1,4 +1,4 @@
-package controller
+package framework
 
 import (
 	"context"
@@ -106,4 +106,8 @@ func (res DependentResourceHelper) Owner() Resource {
 
 func (res DependentResourceHelper) Prototype() runtime.Object {
 	return res._prototype.DeepCopyObject()
+}
+
+func DefaultDependentResourceNameFor(owner Resource) string {
+	return owner.GetName()
 }

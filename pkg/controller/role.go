@@ -2,20 +2,22 @@ package controller
 
 import (
 	"fmt"
+	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator/pkg/util"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type role struct {
-	*DependentResourceHelper
+	*framework.DependentResourceHelper
 }
 
 func (res role) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res role) NewInstanceWith(owner Resource) DependentResource {
+func (res role) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedRole(owner)
 }
 
@@ -23,21 +25,21 @@ func NewRole() role {
 	return newOwnedRole(nil)
 }
 
-func newOwnedRole(owner Resource) role {
-	dependent := NewDependentResource(&authorizv1.Role{}, owner)
+func newOwnedRole(owner framework.Resource) role {
+	dependent := framework.NewDependentResource(&authorizv1.Role{}, owner)
 	role := role{DependentResourceHelper: dependent}
 	dependent.SetDelegate(role)
 	return role
 }
 
-func RoleName(owner Resource) string {
+func RoleName(owner framework.Resource) string {
 	switch owner.(type) {
 	case *Component:
 		return "image-scc-privileged-role"
 	case *Capability:
 		return "scc-privileged-role"
 	default:
-		panic(fmt.Sprintf("unknown type '%s' for role owner", GetObjectName(owner)))
+		panic(fmt.Sprintf("unknown type '%s' for role owner", util.GetObjectName(owner)))
 	}
 }
 

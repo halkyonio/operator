@@ -2,6 +2,7 @@ package component
 
 import (
 	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -13,7 +14,7 @@ type service struct {
 	reconciler *ReconcileComponent // todo: remove
 }
 
-func (res service) NewInstanceWith(owner controller.Resource) controller.DependentResource {
+func (res service) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedService(res.reconciler, owner)
 }
 
@@ -21,7 +22,7 @@ func newService(reconciler *ReconcileComponent) service {
 	return newOwnedService(reconciler, nil)
 }
 
-func newOwnedService(reconciler *ReconcileComponent, owner controller.Resource) service {
+func newOwnedService(reconciler *ReconcileComponent, owner framework.Resource) service {
 	dependent := newBaseDependent(&corev1.Service{}, owner)
 	s := service{
 		base:       dependent,

@@ -1,18 +1,14 @@
-package controller
+package framework
 
 import (
 	"context"
 	"fmt"
-	"github.com/go-logr/logr"
 	"halkyon.io/operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/rest"
 	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -22,34 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
 )
-
-type ReconcilerFactory interface {
-	PrimaryResourceType() Resource
-	WatchedSecondaryResourceTypes() []runtime.Object
-	Delete(object Resource) error
-	CreateOrUpdate(object Resource) error
-	Helper() ReconcilerHelper
-	GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error)
-	AddDependentResource(resource DependentResource)
-	SetPrimaryResourceStatus(primary Resource, statuses []DependentResourceStatus) (needsUpdate bool)
-}
-
-type ReconcilerHelper struct {
-	Client    client.Client
-	Config    *rest.Config
-	Scheme    *runtime.Scheme
-	ReqLogger logr.Logger
-}
-
-func (rh ReconcilerHelper) Fetch(name, namespace string, into runtime.Object) (runtime.Object, error) {
-	if err := rh.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, into); err != nil {
-		if errors.IsNotFound(err) {
-			return into, err
-		}
-		return into, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s': %s", name, GetObjectName(into), namespace, err.Error())
-	}
-	return into, nil
-}
 
 func NewBaseGenericReconciler(primaryResourceType Resource, mgr manager.Manager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
@@ -148,7 +116,7 @@ func (b *BaseGenericReconciler) factory() ReconcilerFactory {
 }
 
 func (b *BaseGenericReconciler) primaryResourceTypeName() string {
-	return GetObjectName(b.primary)
+	return util.GetObjectName(b.primary)
 }
 
 func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object {
@@ -185,7 +153,7 @@ func (b *BaseGenericReconciler) Helper() ReconcilerHelper {
 func getKeyFor(resourceType runtime.Object) (key string) {
 	t := reflect.TypeOf(resourceType)
 	pkg := t.PkgPath()
-	kind := GetObjectName(resourceType)
+	kind := util.GetObjectName(resourceType)
 	key = pkg + "/" + kind
 	return
 }
@@ -207,7 +175,7 @@ func (b *BaseGenericReconciler) MustGetDependentResourceFor(owner Resource, reso
 func (b *BaseGenericReconciler) GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error) {
 	resource, ok := b.dependents[getKeyFor(resourceType)]
 	if !ok {
-		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", GetObjectName(resourceType))
+		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", util.GetObjectName(resourceType))
 	}
 	return resource.NewInstanceWith(owner), nil
 }
@@ -281,7 +249,7 @@ func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err erro
 	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
 		object := instance.GetAPIObject()
 		if e := b.Client.Status().Update(context.Background(), object); e != nil {
-			b.ReqLogger.Error(e, fmt.Sprintf("failed to update status for '%s' %s", instance.GetName(), GetObjectName(object)))
+			b.ReqLogger.Error(e, fmt.Sprintf("failed to update status for '%s' %s", instance.GetName(), util.GetObjectName(object)))
 		}
 	}
 }
@@ -331,7 +299,7 @@ func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error
 }
 
 func controllerNameFor(resource runtime.Object) string {
-	return strings.ToLower(GetObjectName(resource)) + "-controller"
+	return strings.ToLower(util.GetObjectName(resource)) + "-controller"
 }
 
 func (b *BaseGenericReconciler) CreateIfNeeded(owner Resource, resourceType runtime.Object) error {
@@ -345,7 +313,7 @@ func (b *BaseGenericReconciler) CreateIfNeeded(owner Resource, resourceType runt
 		return nil
 	}
 
-	kind := GetObjectName(resourceType)
+	kind := util.GetObjectName(resourceType)
 	res, err := resource.Fetch(b.Helper())
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -405,7 +373,7 @@ func (b *BaseGenericReconciler) areDependentResourcesReady(resource Resource) (s
 
 		if dependent.ShouldBeCheckedForReadiness() {
 			fetched, err := dependent.Fetch(b.Helper())
-			name := GetObjectName(dependent.Prototype())
+			name := util.GetObjectName(dependent.Prototype())
 			if err != nil {
 				statuses = append(statuses, NewFailedDependentResourceStatus(name, err))
 			} else {

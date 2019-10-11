@@ -2,6 +2,8 @@ package util
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 )
 
 func GetImageReference(imageName string, version ...string) string {
@@ -29,4 +31,12 @@ func NewTrue() *bool {
 func NewFalse() *bool {
 	b := false
 	return &b
+}
+
+func GetObjectName(object runtime.Object) string {
+	t := reflect.TypeOf(object)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Name()
 }

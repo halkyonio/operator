@@ -1,7 +1,8 @@
-package controller
+package framework
 
 import (
 	"fmt"
+	"halkyon.io/operator/pkg/util"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -23,10 +24,10 @@ type Resource interface {
 	SetAPIObject(object runtime.Object)
 }
 
-func hasChangedFromStatusUpdate(status interface{}, statuses []DependentResourceStatus, msg string) (changed bool, updatedMsg string) {
+func HasChangedFromStatusUpdate(status interface{}, statuses []DependentResourceStatus, msg string) (changed bool, updatedMsg string) {
 	updatedMsg = msg
 	for _, s := range statuses {
-		changed = changed || MustSetNamedStringField(status, s.OwnerStatusField, s.DependentName)
+		changed = changed || util.MustSetNamedStringField(status, s.OwnerStatusField, s.DependentName)
 		if changed {
 			updatedMsg = fmt.Sprintf("%s: '%s' changed to '%s'", msg, s.OwnerStatusField, s.DependentName)
 		}

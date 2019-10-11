@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"halkyon.io/operator/pkg/controller/framework"
 	"strings"
 	"testing"
 )
@@ -12,7 +13,7 @@ func TestCapabilitySetSuccessStatus(t *testing.T) {
 	const s = "new pod name"
 	const msg = "foo"
 	const fieldName = "PodName"
-	changed := c.SetSuccessStatus([]DependentResourceStatus{NewReadyDependentResourceStatus(s, fieldName)}, msg)
+	changed := c.SetSuccessStatus([]framework.DependentResourceStatus{framework.NewReadyDependentResourceStatus(s, fieldName)}, msg)
 	if !changed {
 		t.Errorf("expected updates from SetSuccessStatus, got none")
 	}

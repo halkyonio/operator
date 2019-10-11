@@ -2,6 +2,7 @@ package controller
 
 import (
 	halkyon "halkyon.io/api/link/v1beta1"
+	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -22,7 +23,7 @@ func (in *Link) GetAPIObject() runtime.Object {
 	return in.Link
 }
 
-func (in *Link) Clone() Resource {
+func (in *Link) Clone() framework.Resource {
 	link := NewLink(in.Link)
 	link.requeue = in.requeue
 	return link
@@ -72,7 +73,7 @@ func (in *Link) SetErrorStatus(err error) bool {
 	return false
 }
 
-func (in *Link) SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool {
+func (in *Link) SetSuccessStatus(statuses []framework.DependentResourceStatus, msg string) bool {
 	if halkyon.LinkReady != in.Status.Phase || msg != in.Status.Message {
 		in.Status.Phase = halkyon.LinkReady
 		in.Status.Message = msg

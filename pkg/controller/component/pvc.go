@@ -3,6 +3,7 @@ package component
 import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,11 +14,11 @@ type pvc struct {
 	base
 }
 
-func (res pvc) NewInstanceWith(owner controller.Resource) controller.DependentResource {
+func (res pvc) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedPvc(owner)
 }
 
-func newOwnedPvc(owner controller.Resource) pvc {
+func newOwnedPvc(owner framework.Resource) pvc {
 	dependent := newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)
 	p := pvc{base: dependent}
 	dependent.SetDelegate(p)

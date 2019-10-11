@@ -2,6 +2,7 @@ package controller
 
 import (
 	halkyon "halkyon.io/api/component/v1beta1"
+	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -26,7 +27,7 @@ func (in *Component) GetAPIObject() runtime.Object {
 	return in.Component
 }
 
-func (in *Component) Clone() Resource {
+func (in *Component) Clone() framework.Resource {
 	component := NewComponent(in.Component)
 	component.requeue = in.requeue
 	return component
@@ -92,9 +93,9 @@ func (in *Component) DependentStatusFieldName() string {
 	return "PodName"
 }
 
-func (in *Component) SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool {
+func (in *Component) SetSuccessStatus(statuses []framework.DependentResourceStatus, msg string) bool {
 	// todo: compute message based on linking statuses
-	changed, updatedMsg := hasChangedFromStatusUpdate(&in.Status, statuses, msg)
+	changed, updatedMsg := framework.HasChangedFromStatusUpdate(&in.Status, statuses, msg)
 	if changed || halkyon.ComponentReady != in.Status.Phase {
 		in.Status.Phase = halkyon.ComponentReady
 		in.Status.Message = updatedMsg

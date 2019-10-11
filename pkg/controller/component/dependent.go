@@ -2,19 +2,20 @@ package component
 
 import (
 	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type base struct {
-	*controller.DependentResourceHelper
+	*framework.DependentResourceHelper
 }
 
 func (res base) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func newBaseDependent(primaryResourceType runtime.Object, owner controller.Resource) base {
-	return base{DependentResourceHelper: controller.NewDependentResource(primaryResourceType, owner)}
+func newBaseDependent(primaryResourceType runtime.Object, owner framework.Resource) base {
+	return base{DependentResourceHelper: framework.NewDependentResource(primaryResourceType, owner)}
 }
 
 func (res base) ownerAsComponent() *controller.Component {

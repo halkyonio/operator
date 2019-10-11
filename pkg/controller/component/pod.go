@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -14,7 +14,7 @@ type pod struct {
 	base
 }
 
-func (res pod) NewInstanceWith(owner controller.Resource) controller.DependentResource {
+func (res pod) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedPod(owner)
 }
 
@@ -22,7 +22,7 @@ func newPod() pod {
 	return newOwnedPod(nil)
 }
 
-func newOwnedPod(owner controller.Resource) pod {
+func newOwnedPod(owner framework.Resource) pod {
 	dependent := newBaseDependent(&corev1.Pod{}, owner)
 	i := pod{base: dependent}
 	dependent.SetDelegate(i)
@@ -64,7 +64,7 @@ func (res pod) OwnerStatusField() string {
 	return res.ownerAsComponent().DependentStatusFieldName()
 }
 
-func (res pod) Fetch(helper controller.ReconcilerHelper) (runtime.Object, error) {
+func (res pod) Fetch(helper framework.ReconcilerHelper) (runtime.Object, error) {
 	pods := &corev1.PodList{}
 	lo := &client.ListOptions{}
 	component := res.ownerAsComponent()

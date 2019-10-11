@@ -13,9 +13,9 @@ import (
 	"github.com/spf13/pflag"
 	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	halkyon "halkyon.io/api"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/capability"
 	"halkyon.io/operator/pkg/controller/component"
+	"halkyon.io/operator/pkg/controller/framework"
 	"halkyon.io/operator/pkg/controller/link"
 	"os"
 	"runtime"
@@ -96,15 +96,15 @@ func main() {
 	registerAdditionalResources(mgr)
 
 	// Create component controller and add it to the manager
-	if err := controller.RegisterNewReconciler(component.NewComponentReconciler(mgr), mgr); err != nil {
+	if err := framework.RegisterNewReconciler(component.NewComponentReconciler(mgr), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
-	if err := controller.RegisterNewReconciler(capability.NewCapabilityReconciler(mgr), mgr); err != nil {
+	if err := framework.RegisterNewReconciler(capability.NewCapabilityReconciler(mgr), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
-	if err := controller.RegisterNewReconciler(link.NewLinkReconciler(mgr), mgr); err != nil {
+	if err := framework.RegisterNewReconciler(link.NewLinkReconciler(mgr), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
