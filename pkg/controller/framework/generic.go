@@ -27,7 +27,7 @@ func NewBaseGenericReconciler(primaryResourceType Resource, mgr manager.Manager)
 	}
 }
 
-func (b *BaseGenericReconciler) SetReconcilerFactory(factory ReconcilerFactory) {
+func (b *BaseGenericReconciler) SetReconcilerFactory(factory PrimaryResourceManager) {
 	b._factory = factory
 }
 
@@ -35,7 +35,7 @@ type BaseGenericReconciler struct {
 	ReconcilerHelper
 	dependents       map[string]DependentResource
 	primary          Resource
-	_factory         ReconcilerFactory
+	_factory         PrimaryResourceManager
 	onOpenShift      *bool
 	openShiftVersion int
 }
@@ -108,7 +108,7 @@ func (b *BaseGenericReconciler) PrimaryResourceType() Resource {
 	return b.primary.Clone()
 }
 
-func (b *BaseGenericReconciler) factory() ReconcilerFactory {
+func (b *BaseGenericReconciler) factory() PrimaryResourceManager {
 	if b._factory == nil {
 		panic(fmt.Errorf("factory needs to be set on BaseGenericReconciler before use"))
 	}
@@ -265,7 +265,7 @@ func newHelper(resourceType runtime.Object, mgr manager.Manager) ReconcilerHelpe
 }
 
 type GenericReconciler interface {
-	ReconcilerFactory
+	PrimaryResourceManager
 	reconcile.Reconciler
 }
 
