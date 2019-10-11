@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type ReconcilerFactory interface {
+type PrimaryResourceManager interface {
 	PrimaryResourceType() Resource
 	WatchedSecondaryResourceTypes() []runtime.Object
 	Delete(object Resource) error
