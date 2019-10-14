@@ -8,7 +8,7 @@ import (
 
 type Component struct {
 	*halkyon.Component
-	requeue bool
+	*framework.Requeueable
 }
 
 func (in *Component) Init() bool {
@@ -29,7 +29,7 @@ func (in *Component) GetAPIObject() runtime.Object {
 
 func (in *Component) Clone() framework.Resource {
 	component := NewComponent(in.Component)
-	component.requeue = in.requeue
+	component.SetNeedsRequeue(in.NeedsRequeue())
 	return component
 }
 
@@ -39,17 +39,9 @@ func NewComponent(component ...*halkyon.Component) *Component {
 		c = component[0]
 	}
 	return &Component{
-		Component: c,
-		requeue:   false,
+		Component:   c,
+		Requeueable: new(framework.Requeueable),
 	}
-}
-
-func (in *Component) SetNeedsRequeue(requeue bool) {
-	in.requeue = in.requeue || requeue
-}
-
-func (in *Component) NeedsRequeue() bool {
-	return in.requeue
 }
 
 func (in *Component) isPending() bool {
@@ -82,7 +74,7 @@ func (in *Component) SetErrorStatus(err error) bool {
 	if halkyon.ComponentFailed != in.Status.Phase || errMsg != in.Status.Message {
 		in.Status.Phase = halkyon.ComponentFailed
 		in.Status.Message = errMsg
-		in.SetNeedsRequeue(true)
+		in.SetNeedsRequeue(false)
 		return true
 	}
 	return false
@@ -99,7 +91,7 @@ func (in *Component) SetSuccessStatus(statuses []framework.DependentResourceStat
 	if changed || halkyon.ComponentReady != in.Status.Phase {
 		in.Status.Phase = halkyon.ComponentReady
 		in.Status.Message = updatedMsg
-		in.requeue = false
+		in.SetNeedsRequeue(false)
 		return true
 	}
 	return false

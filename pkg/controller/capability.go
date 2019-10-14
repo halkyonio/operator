@@ -9,7 +9,7 @@ import (
 
 type Capability struct {
 	*halkyon.Capability
-	requeue bool
+	*framework.Requeueable
 }
 
 func (in *Capability) Init() bool {
@@ -26,7 +26,7 @@ func (in *Capability) GetAPIObject() runtime.Object {
 
 func (in *Capability) Clone() framework.Resource {
 	capability := NewCapability(in.Capability)
-	capability.requeue = in.requeue
+	capability.SetNeedsRequeue(in.NeedsRequeue())
 	return capability
 }
 
@@ -36,17 +36,9 @@ func NewCapability(capability ...*halkyon.Capability) *Capability {
 		c = capability[0]
 	}
 	return &Capability{
-		Capability: c,
-		requeue:    false,
+		Capability:  c,
+		Requeueable: new(framework.Requeueable),
 	}
-}
-
-func (in *Capability) SetNeedsRequeue(requeue bool) {
-	in.requeue = in.requeue || requeue
-}
-
-func (in *Capability) NeedsRequeue() bool {
-	return in.requeue
 }
 
 func (in *Capability) SetInitialStatus(msg string) bool {
@@ -90,7 +82,7 @@ func (in *Capability) SetSuccessStatus(statuses []framework.DependentResourceSta
 	if changed || halkyon.CapabilityReady != in.Status.Phase {
 		in.Status.Phase = halkyon.CapabilityReady
 		in.Status.Message = updatedMsg
-		in.requeue = false
+		in.SetNeedsRequeue(false)
 		return true
 	}
 	return false
@@ -102,4 +94,12 @@ func (in *Capability) GetStatusAsString() string {
 
 func (in *Capability) ShouldDelete() bool {
 	return true
+}
+
+func (in *Capability) Delete() error {
+	return nil
+}
+
+func (in *Capability) SetPrimaryResourceStatus(statuses []framework.DependentResourceStatus) bool {
+	return in.SetSuccessStatus(statuses, "Ready")
 }

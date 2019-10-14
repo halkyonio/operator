@@ -8,7 +8,7 @@ import (
 
 type Link struct {
 	*halkyon.Link
-	requeue bool
+	*framework.Requeueable
 }
 
 func (in *Link) Init() bool {
@@ -25,7 +25,7 @@ func (in *Link) GetAPIObject() runtime.Object {
 
 func (in *Link) Clone() framework.Resource {
 	link := NewLink(in.Link)
-	link.requeue = in.requeue
+	link.SetNeedsRequeue(in.NeedsRequeue())
 	return link
 }
 
@@ -35,17 +35,9 @@ func NewLink(link ...*halkyon.Link) *Link {
 		l = link[0]
 	}
 	return &Link{
-		Link:    l,
-		requeue: false,
+		Link:        l,
+		Requeueable: new(framework.Requeueable),
 	}
-}
-
-func (in *Link) SetNeedsRequeue(requeue bool) {
-	in.requeue = in.requeue || requeue
-}
-
-func (in *Link) NeedsRequeue() bool {
-	return in.requeue
 }
 
 func (in *Link) SetInitialStatus(msg string) bool {
@@ -67,7 +59,7 @@ func (in *Link) SetErrorStatus(err error) bool {
 	if halkyon.LinkFailed != in.Status.Phase || errMsg != in.Status.Message {
 		in.Status.Phase = halkyon.LinkFailed
 		in.Status.Message = errMsg
-		in.SetNeedsRequeue(true)
+		in.SetNeedsRequeue(false)
 		return true
 	}
 	return false
@@ -77,7 +69,7 @@ func (in *Link) SetSuccessStatus(statuses []framework.DependentResourceStatus, m
 	if halkyon.LinkReady != in.Status.Phase || msg != in.Status.Message {
 		in.Status.Phase = halkyon.LinkReady
 		in.Status.Message = msg
-		in.requeue = true
+		in.SetNeedsRequeue(false)
 		return true
 	}
 	return false
