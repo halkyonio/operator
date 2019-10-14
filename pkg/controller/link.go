@@ -23,12 +23,6 @@ func (in *Link) GetAPIObject() runtime.Object {
 	return in.Link
 }
 
-func (in *Link) Clone() framework.Resource {
-	link := NewLink(in.Link)
-	link.SetNeedsRequeue(in.NeedsRequeue())
-	return link
-}
-
 func NewLink(link ...*halkyon.Link) *Link {
 	l := &halkyon.Link{}
 	if link != nil {

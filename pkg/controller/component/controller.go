@@ -111,6 +111,16 @@ type ReconcileComponent struct {
 	supervisor    *component.Component
 }
 
+func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
+	return &component.Component{}
+}
+
+func (r *ReconcileComponent) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
+	c := controller2.NewComponent()
+	_, err := helper.Fetch(name, namespace, c.Component)
+	return c, err
+}
+
 func (ReconcileComponent) asComponent(object runtime.Object) *controller2.Component {
 	return object.(*controller2.Component)
 }

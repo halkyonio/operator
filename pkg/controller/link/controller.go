@@ -26,12 +26,22 @@ type ReconcileLink struct {
 	*framework.BaseGenericReconciler
 }
 
+func (r *ReconcileLink) PrimaryResourceType() runtime.Object {
+	return &link.Link{}
+}
+
 func (ReconcileLink) asLink(object runtime.Object) *controller2.Link {
 	return object.(*controller2.Link)
 }
 
 func (r *ReconcileLink) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
 	return primary.SetSuccessStatus(statuses, "Ready")
+}
+
+func (r *ReconcileLink) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
+	c := controller2.NewLink()
+	_, err := helper.Fetch(name, namespace, c.Link)
+	return c, err
 }
 
 func (r *ReconcileLink) CreateOrUpdate(object framework.Resource) error {

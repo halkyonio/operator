@@ -24,12 +24,6 @@ func (in *Capability) GetAPIObject() runtime.Object {
 	return in.Capability
 }
 
-func (in *Capability) Clone() framework.Resource {
-	capability := NewCapability(in.Capability)
-	capability.SetNeedsRequeue(in.NeedsRequeue())
-	return capability
-}
-
 func NewCapability(capability ...*halkyon.Capability) *Capability {
 	c := &halkyon.Capability{}
 	if capability != nil {

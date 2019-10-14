@@ -27,12 +27,6 @@ func (in *Component) GetAPIObject() runtime.Object {
 	return in.Component
 }
 
-func (in *Component) Clone() framework.Resource {
-	component := NewComponent(in.Component)
-	component.SetNeedsRequeue(in.NeedsRequeue())
-	return component
-}
-
 func NewComponent(component ...*halkyon.Component) *Component {
 	c := &halkyon.Component{}
 	if component != nil {
