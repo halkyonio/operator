@@ -10,6 +10,7 @@ import (
 type Capability struct {
 	*halkyon.Capability
 	*framework.Requeueable
+	*framework.HasDependents
 }
 
 func (in *Capability) Init() bool {
@@ -26,8 +27,9 @@ func NewCapability(capability ...*halkyon.Capability) *Capability {
 		c = capability[0]
 	}
 	return &Capability{
-		Capability:  c,
-		Requeueable: new(framework.Requeueable),
+		Capability:    c,
+		Requeueable:   new(framework.Requeueable),
+		HasDependents: new(framework.HasDependents),
 	}
 }
 
