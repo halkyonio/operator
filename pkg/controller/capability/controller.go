@@ -42,6 +42,15 @@ type ReconcileCapability struct {
 	*framework.BaseGenericReconciler
 }
 
+func (r *ReconcileCapability) GetDependentResourcesTypes() []framework.DependentResource {
+	return []framework.DependentResource{
+		newSecret(),
+		newPostgres(),
+		controller2.NewRole(),
+		controller2.NewRoleBinding(),
+	}
+}
+
 func (r *ReconcileCapability) PrimaryResourceType() runtime.Object {
 	return &v1beta1.Capability{}
 }
@@ -49,6 +58,10 @@ func (r *ReconcileCapability) PrimaryResourceType() runtime.Object {
 func (r *ReconcileCapability) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
 	c := controller2.NewCapability()
 	_, err := helper.Fetch(name, namespace, c.Capability)
+	resourcesTypes := r.GetDependentResourcesTypes()
+	for _, rType := range resourcesTypes {
+		c.AddDependentResource(rType.NewInstanceWith(c))
+	}
 	return c, err
 }
 

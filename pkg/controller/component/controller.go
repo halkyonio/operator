@@ -111,6 +111,22 @@ type ReconcileComponent struct {
 	supervisor    *component.Component
 }
 
+func (r *ReconcileComponent) GetDependentResourcesTypes() []framework.DependentResource {
+	return []framework.DependentResource{
+		newPvc(),
+		newDeployment(r),
+		newService(r),
+		newServiceAccount(),
+		newRoute(r),
+		newIngress(r),
+		newTask(),
+		newTaskRun(r),
+		controller2.NewRole(),
+		controller2.NewRoleBinding(),
+		newPod(),
+	}
+}
+
 func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
 	return &component.Component{}
 }
@@ -118,6 +134,10 @@ func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
 func (r *ReconcileComponent) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
 	c := controller2.NewComponent()
 	_, err := helper.Fetch(name, namespace, c.Component)
+	resourcesTypes := r.GetDependentResourcesTypes()
+	for _, rType := range resourcesTypes {
+		c.AddDependentResource(rType.NewInstanceWith(c))
+	}
 	return c, err
 }
 
