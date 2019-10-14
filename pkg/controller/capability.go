@@ -16,10 +16,6 @@ func (in *Capability) Init() bool {
 	return false
 }
 
-func (in *Capability) SetAPIObject(object runtime.Object) {
-	in.Capability = object.(*halkyon.Capability)
-}
-
 func (in *Capability) GetAPIObject() runtime.Object {
 	return in.Capability
 }

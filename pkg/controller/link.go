@@ -15,10 +15,6 @@ func (in *Link) Init() bool {
 	return false
 }
 
-func (in *Link) SetAPIObject(object runtime.Object) {
-	in.Link = object.(*halkyon.Link)
-}
-
 func (in *Link) GetAPIObject() runtime.Object {
 	return in.Link
 }

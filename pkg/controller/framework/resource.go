@@ -19,9 +19,7 @@ type Resource interface {
 	SetInitialStatus(msg string) bool
 	CheckValidity() error
 	Init() bool
-	Clone() Resource
 	GetAPIObject() runtime.Object
-	SetAPIObject(object runtime.Object)
 }
 
 func HasChangedFromStatusUpdate(status interface{}, statuses []DependentResourceStatus, msg string) (changed bool, updatedMsg string) {

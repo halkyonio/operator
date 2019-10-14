@@ -85,15 +85,6 @@ func (b *BaseGenericReconciler) Delete(object Resource) error {
 	return b.factory().Delete(object)
 }
 
-func (b *BaseGenericReconciler) Fetch(into Resource) (Resource, error) {
-	object, e := b.Helper().Fetch(into.GetName(), into.GetNamespace(), into.GetAPIObject())
-	if e != nil {
-		return into, e
-	}
-	into.SetAPIObject(object)
-	return into, nil
-}
-
 func (b *BaseGenericReconciler) CreateOrUpdate(object Resource) error {
 	return b.factory().CreateOrUpdate(object)
 }
