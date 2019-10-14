@@ -9,6 +9,7 @@ import (
 type Component struct {
 	*halkyon.Component
 	*framework.Requeueable
+	*framework.HasDependents
 }
 
 func (in *Component) Init() bool {
@@ -29,8 +30,9 @@ func NewComponent(component ...*halkyon.Component) *Component {
 		c = component[0]
 	}
 	return &Component{
-		Component:   c,
-		Requeueable: new(framework.Requeueable),
+		Component:     c,
+		Requeueable:   new(framework.Requeueable),
+		HasDependents: new(framework.HasDependents),
 	}
 }
 

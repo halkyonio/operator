@@ -9,6 +9,7 @@ import (
 type Link struct {
 	*halkyon.Link
 	*framework.Requeueable
+	*framework.HasDependents
 }
 
 func (in *Link) Init() bool {
@@ -25,8 +26,9 @@ func NewLink(link ...*halkyon.Link) *Link {
 		l = link[0]
 	}
 	return &Link{
-		Link:        l,
-		Requeueable: new(framework.Requeueable),
+		Link:          l,
+		Requeueable:   new(framework.Requeueable),
+		HasDependents: new(framework.HasDependents),
 	}
 }
 
