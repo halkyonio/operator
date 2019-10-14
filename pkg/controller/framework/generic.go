@@ -60,10 +60,6 @@ func (b *BaseGenericReconciler) computeStatus(current Resource, err error) (need
 	return b.factory().SetPrimaryResourceStatus(current, statuses)
 }
 
-func (b *BaseGenericReconciler) PrimaryResourceType() Resource {
-	return b.primary.Clone()
-}
-
 func (b *BaseGenericReconciler) factory() PrimaryResourceManager {
 	if b._factory == nil {
 		panic(fmt.Errorf("factory needs to be set on BaseGenericReconciler before use"))
@@ -140,11 +136,8 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	b.ReqLogger.WithValues("namespace", request.Namespace)
 
 	// Fetch the primary resource
-	resource := b.PrimaryResourceType()
-	resource.SetName(request.Name)
-	resource.SetNamespace(request.Namespace)
+	resource, err := b._factory.NewFrom(request.Name, request.Namespace, b.K8SHelper)
 	typeName := b.primaryResourceTypeName()
-	resource, err := b.Fetch(resource)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
@@ -227,7 +220,7 @@ type GenericReconciler interface {
 }
 
 func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error {
-	resourceType := factory.PrimaryResourceType().GetAPIObject()
+	resourceType := factory.PrimaryResourceType()
 
 	// Create a new controller
 	c, err := controller.New(controllerNameFor(resourceType), mgr, controller.Options{Reconciler: factory})

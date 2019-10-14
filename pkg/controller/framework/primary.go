@@ -5,7 +5,7 @@ import (
 )
 
 type PrimaryResourceManager interface {
-	PrimaryResourceType() Resource
+	PrimaryResourceType() runtime.Object
 	WatchedSecondaryResourceTypes() []runtime.Object
 	Delete(object Resource) error
 	CreateOrUpdate(object Resource) error
@@ -13,4 +13,5 @@ type PrimaryResourceManager interface {
 	GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error)
 	AddDependentResource(resource DependentResource)
 	SetPrimaryResourceStatus(primary Resource, statuses []DependentResourceStatus) (needsUpdate bool)
+	NewFrom(name string, namespace string, helper *K8SHelper) (Resource, error)
 }

@@ -1,6 +1,7 @@
 package capability
 
 import (
+	"halkyon.io/api/capability/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,6 +40,16 @@ func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
 
 type ReconcileCapability struct {
 	*framework.BaseGenericReconciler
+}
+
+func (r *ReconcileCapability) PrimaryResourceType() runtime.Object {
+	return &v1beta1.Capability{}
+}
+
+func (r *ReconcileCapability) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
+	c := controller2.NewCapability()
+	_, err := helper.Fetch(name, namespace, c.Capability)
+	return c, err
 }
 
 func asCapability(object runtime.Object) *controller2.Capability {
