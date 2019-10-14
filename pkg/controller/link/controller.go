@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"halkyon.io/api/component/v1beta1"
 	link "halkyon.io/api/link/v1beta1"
-	controller2 "halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
@@ -15,7 +15,7 @@ import (
 )
 
 func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
-	baseReconciler := framework.NewBaseGenericReconciler(controller2.NewLink(), mgr)
+	baseReconciler := framework.NewBaseGenericReconciler(controller.NewLink(), mgr)
 	r := &ReconcileLink{BaseGenericReconciler: baseReconciler}
 	baseReconciler.SetReconcilerFactory(r)
 	r.AddDependentResource(newComponent())
@@ -26,12 +26,16 @@ type ReconcileLink struct {
 	*framework.BaseGenericReconciler
 }
 
+func (r *ReconcileLink) GetDependentResourcesTypes() []framework.DependentResource {
+	return []framework.DependentResource{newComponent()}
+}
+
 func (r *ReconcileLink) PrimaryResourceType() runtime.Object {
 	return &link.Link{}
 }
 
-func (ReconcileLink) asLink(object runtime.Object) *controller2.Link {
-	return object.(*controller2.Link)
+func (ReconcileLink) asLink(object runtime.Object) *controller.Link {
+	return object.(*controller.Link)
 }
 
 func (r *ReconcileLink) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
@@ -39,8 +43,12 @@ func (r *ReconcileLink) SetPrimaryResourceStatus(primary framework.Resource, sta
 }
 
 func (r *ReconcileLink) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
-	c := controller2.NewLink()
+	c := controller.NewLink()
 	_, err := helper.Fetch(name, namespace, c.Link)
+	resourcesTypes := r.GetDependentResourcesTypes()
+	for _, rType := range resourcesTypes {
+		c.AddDependentResource(rType.NewInstanceWith(c))
+	}
 	return c, err
 }
 
@@ -155,7 +163,7 @@ func (r *ReconcileLink) fetchDeployment(link *link.Link) (*appsv1.Deployment, er
 	}
 }
 
-func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *controller2.Link) error {
+func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *controller.Link) error {
 	// Update the Deployment of the component
 	if err := r.update(d); err != nil {
 		r.ReqLogger.Info("Failed to update deployment.")
