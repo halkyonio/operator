@@ -7,7 +7,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/discovery"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -21,9 +20,9 @@ import (
 
 func NewBaseGenericReconciler(primaryResourceType Resource, mgr manager.Manager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
-		ReconcilerHelper: newHelper(primaryResourceType, mgr),
-		dependents:       make(map[string]DependentResource, 7),
-		primary:          primaryResourceType,
+		K8SHelper:  newHelper(primaryResourceType, mgr),
+		dependents: make(map[string]DependentResource, 7),
+		primary:    primaryResourceType,
 	}
 }
 
@@ -32,53 +31,10 @@ func (b *BaseGenericReconciler) SetReconcilerFactory(factory PrimaryResourceMana
 }
 
 type BaseGenericReconciler struct {
-	ReconcilerHelper
-	dependents       map[string]DependentResource
-	primary          Resource
-	_factory         PrimaryResourceManager
-	onOpenShift      *bool
-	openShiftVersion int
-}
-
-func (b *BaseGenericReconciler) OpenShiftVersion() int {
-	b.IsTargetClusterRunningOpenShift() // make sure things are properly initialized
-	return b.openShiftVersion
-}
-
-func (b *BaseGenericReconciler) IsTargetClusterRunningOpenShift() bool {
-	if b.onOpenShift == nil {
-		discoveryClient, err := discovery.NewDiscoveryClientForConfig(b.Config)
-		if err != nil {
-			panic(err)
-		}
-		apiList, err := discoveryClient.ServerGroups()
-		if err != nil {
-			panic(err)
-		}
-		apiGroups := apiList.Groups
-		const openShiftGroupSuffix = ".openshift.io"
-		const openShift4GroupName = "config" + openShiftGroupSuffix
-		for _, group := range apiGroups {
-			if strings.HasSuffix(group.Name, openShiftGroupSuffix) {
-				if b.onOpenShift == nil {
-					b.onOpenShift = util.NewTrue()
-					b.openShiftVersion = 3
-				}
-				if group.Name == openShift4GroupName {
-					b.openShiftVersion = 4
-					break
-				}
-			}
-		}
-
-		if b.onOpenShift == nil {
-			// we didn't find any api group with the openshift.io suffix, so we're not on OpenShift!
-			b.onOpenShift = util.NewFalse()
-			b.openShiftVersion = 0
-		}
-	}
-
-	return *b.onOpenShift
+	*K8SHelper
+	dependents map[string]DependentResource
+	primary    Resource
+	_factory   PrimaryResourceManager
 }
 
 func (b *BaseGenericReconciler) computeStatus(current Resource, err error) (needsUpdate bool) {
@@ -146,8 +102,8 @@ func (b *BaseGenericReconciler) CreateOrUpdate(object Resource) error {
 	return b.factory().CreateOrUpdate(object)
 }
 
-func (b *BaseGenericReconciler) Helper() ReconcilerHelper {
-	return b.ReconcilerHelper
+func (b *BaseGenericReconciler) Helper() *K8SHelper {
+	return b.K8SHelper
 }
 
 func getKeyFor(resourceType runtime.Object) (key string) {
@@ -255,8 +211,8 @@ func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err erro
 	}
 }
 
-func newHelper(resourceType runtime.Object, mgr manager.Manager) ReconcilerHelper {
-	helper := ReconcilerHelper{
+func newHelper(resourceType runtime.Object, mgr manager.Manager) *K8SHelper {
+	helper := &K8SHelper{
 		Client:    mgr.GetClient(),
 		Config:    mgr.GetConfig(),
 		Scheme:    mgr.GetScheme(),

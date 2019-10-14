@@ -64,7 +64,7 @@ func (res pod) OwnerStatusField() string {
 	return res.ownerAsComponent().DependentStatusFieldName()
 }
 
-func (res pod) Fetch(helper framework.ReconcilerHelper) (runtime.Object, error) {
+func (res pod) Fetch(helper *framework.K8SHelper) (runtime.Object, error) {
 	pods := &corev1.PodList{}
 	lo := &client.ListOptions{}
 	component := res.ownerAsComponent()

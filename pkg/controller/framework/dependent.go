@@ -8,7 +8,7 @@ import (
 
 type DependentResource interface {
 	Name() string
-	Fetch(helper ReconcilerHelper) (runtime.Object, error)
+	Fetch(helper *K8SHelper) (runtime.Object, error)
 	Build() (runtime.Object, error)
 	Update(toUpdate runtime.Object) (bool, error)
 	NewInstanceWith(owner Resource) DependentResource
@@ -91,7 +91,7 @@ func (res DependentResourceHelper) Name() string {
 	return DefaultDependentResourceNameFor(res.Owner())
 }
 
-func (res DependentResourceHelper) Fetch(helper ReconcilerHelper) (runtime.Object, error) {
+func (res DependentResourceHelper) Fetch(helper *K8SHelper) (runtime.Object, error) {
 	delegate := res._delegate
 	into := delegate.Prototype()
 	if err := helper.Client.Get(context.TODO(), types.NamespacedName{Name: delegate.Name(), Namespace: delegate.Owner().GetNamespace()}, into); err != nil {
