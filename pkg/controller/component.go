@@ -19,10 +19,6 @@ func (in *Component) Init() bool {
 	return false
 }
 
-func (in *Component) SetAPIObject(object runtime.Object) {
-	in.Component = object.(*halkyon.Component)
-}
-
 func (in *Component) GetAPIObject() runtime.Object {
 	return in.Component
 }
