@@ -216,8 +216,9 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, nil
 	}
 
-	if !resource.IsValid() {
-		return reconcile.Result{Requeue: true}, nil
+	if err := resource.CheckValidity(); err != nil {
+		b.updateStatusIfNeeded(resource, err)
+		return reconcile.Result{Requeue: true}, err
 	}
 
 	b.ReqLogger.Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)

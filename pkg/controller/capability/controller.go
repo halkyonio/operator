@@ -1,8 +1,6 @@
 package capability
 
 import (
-	"fmt"
-	capability "halkyon.io/api/capability/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,13 +51,7 @@ func (r *ReconcileCapability) Delete(object framework.Resource) error {
 
 func (r *ReconcileCapability) CreateOrUpdate(object framework.Resource) (e error) {
 	c := asCapability(object)
-	if capability.DatabaseCategory.Equals(c.Spec.Category) {
-		// Install the 2nd resources and check if the status of the watched resources has changed
-		e = r.installDB(c)
-	} else {
-		e = fmt.Errorf("unsupported '%s' capability category", c.Spec.Category)
-	}
-	return e
+	return r.installDB(c)
 }
 
 func (r *ReconcileCapability) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {

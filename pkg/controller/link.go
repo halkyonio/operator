@@ -58,8 +58,8 @@ func (in *Link) SetInitialStatus(msg string) bool {
 	return false
 }
 
-func (in *Link) IsValid() bool {
-	return true // todo: implement me
+func (in *Link) CheckValidity() error {
+	return nil // todo: implement me
 }
 
 func (in *Link) SetErrorStatus(err error) bool {

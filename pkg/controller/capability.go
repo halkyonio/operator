@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	halkyon "halkyon.io/api/capability/v1beta1"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -58,8 +59,14 @@ func (in *Capability) SetInitialStatus(msg string) bool {
 	return false
 }
 
-func (in *Capability) IsValid() bool {
-	return true // todo: implement me
+func (in *Capability) CheckValidity() error {
+	if !halkyon.DatabaseCategory.Equals(in.Spec.Category) {
+		return fmt.Errorf("unsupported '%s' capability category", in.Spec.Category)
+	}
+	if !halkyon.PostgresType.Equals(in.Spec.Type) {
+		return fmt.Errorf("unsupported '%s' database type", in.Spec.Type)
+	}
+	return nil
 }
 
 func (in *Capability) SetErrorStatus(err error) bool {

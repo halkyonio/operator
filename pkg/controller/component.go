@@ -73,8 +73,8 @@ func (in *Component) SetInitialStatus(msg string) bool {
 	return false
 }
 
-func (in *Component) IsValid() bool {
-	return true // todo: implement me
+func (in *Component) CheckValidity() error {
+	return nil // todo: implement me
 }
 
 func (in *Component) SetErrorStatus(err error) bool {
