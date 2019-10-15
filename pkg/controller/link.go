@@ -12,6 +12,11 @@ type Link struct {
 	*framework.HasDependents
 }
 
+func (in *Link) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
+	statuses, update := in.HasDependents.ComputeStatus(in, err, helper)
+	return in.SetSuccessStatus(statuses, "Ready") || update
+}
+
 func (in *Link) Init() bool {
 	return false
 }

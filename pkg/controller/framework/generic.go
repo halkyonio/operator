@@ -7,7 +7,6 @@ import (
 	"halkyon.io/operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -17,10 +16,7 @@ import (
 )
 
 func NewBaseGenericReconciler(primaryResourceManager PrimaryResourceManager) *BaseGenericReconciler {
-	return &BaseGenericReconciler{
-		resourceManager: primaryResourceManager,
-		dependents:      make(map[string]DependentResource, 7),
-	}
+	return &BaseGenericReconciler{resourceManager: primaryResourceManager}
 }
 
 func (b *BaseGenericReconciler) SetReconcilerFactory(factory PrimaryResourceManager) {
@@ -28,31 +24,7 @@ func (b *BaseGenericReconciler) SetReconcilerFactory(factory PrimaryResourceMana
 }
 
 type BaseGenericReconciler struct {
-	dependents      map[string]DependentResource
 	resourceManager PrimaryResourceManager
-}
-
-func (b *BaseGenericReconciler) computeStatus(current Resource, err error) (needsUpdate bool) {
-	if err != nil {
-		return current.SetErrorStatus(err)
-	}
-	statuses := b.areDependentResourcesReady(current)
-	msgs := make([]string, 0, len(statuses))
-	for _, status := range statuses {
-		if !status.Ready {
-			msgs = append(msgs, fmt.Sprintf("%s => %s", status.DependentName, status.Message))
-		}
-	}
-	if len(msgs) > 0 {
-		msg := fmt.Sprintf("Waiting for the following resources: %s", strings.Join(msgs, " / "))
-		b.logger().Info(msg)
-		// set the status but ignore the result since dependents are not ready, we do need to update and requeue in any case
-		_ = current.SetInitialStatus(msg)
-		current.SetNeedsRequeue(true)
-		return true
-	}
-
-	return b.factory().SetPrimaryResourceStatus(current, statuses)
 }
 
 func (b *BaseGenericReconciler) factory() PrimaryResourceManager {
@@ -87,36 +59,6 @@ func (b *BaseGenericReconciler) Helper() *K8SHelper {
 
 func (b *BaseGenericReconciler) logger() logr.Logger {
 	return b.Helper().ReqLogger
-}
-
-func getKeyFor(resourceType runtime.Object) (key string) {
-	t := reflect.TypeOf(resourceType)
-	pkg := t.PkgPath()
-	kind := util.GetObjectName(resourceType)
-	key = pkg + "/" + kind
-	return
-}
-
-func (b *BaseGenericReconciler) AddDependentResource(resource DependentResource) {
-	prototype := resource.Prototype()
-	key := getKeyFor(prototype)
-	b.dependents[key] = resource
-}
-
-func (b *BaseGenericReconciler) MustGetDependentResourceFor(owner Resource, resourceType runtime.Object) (resource DependentResource) {
-	var e error
-	if resource, e = b.GetDependentResourceFor(owner, resourceType); e != nil {
-		panic(e)
-	}
-	return resource
-}
-
-func (b *BaseGenericReconciler) GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error) {
-	resource, ok := b.dependents[getKeyFor(resourceType)]
-	if !ok {
-		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", util.GetObjectName(resourceType))
-	}
-	return resource.NewInstanceWith(owner), nil
 }
 
 func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -183,7 +125,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 
 func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	// compute the status and update the resource if the status has changed
-	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
+	if needsStatusUpdate := instance.ComputeStatus(err, b.Helper()); needsStatusUpdate {
 		object := instance.GetAPIObject()
 		if e := b.Helper().Client.Status().Update(context.Background(), object); e != nil {
 			b.logger().Error(e, fmt.Sprintf("failed to update status for '%s' %s", instance.GetName(), util.GetObjectName(object)))
@@ -228,29 +170,4 @@ func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) 
 
 func controllerNameFor(resource runtime.Object) string {
 	return strings.ToLower(util.GetObjectName(resource)) + "-controller"
-}
-
-func (b *BaseGenericReconciler) areDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus) {
-	statuses = make([]DependentResourceStatus, 0, len(b.dependents))
-	for _, dependent := range b.dependents {
-		// make sure owner is set:
-		dependent = dependent.NewInstanceWith(resource)
-		b.dependents[getKeyFor(dependent.Prototype())] = dependent
-
-		if dependent.ShouldBeCheckedForReadiness() {
-			fetched, err := dependent.Fetch(b.Helper())
-			name := util.GetObjectName(dependent.Prototype())
-			if err != nil {
-				statuses = append(statuses, NewFailedDependentResourceStatus(name, err))
-			} else {
-				ready, message := dependent.IsReady(fetched)
-				if !ready {
-					statuses = append(statuses, NewFailedDependentResourceStatus(name, message))
-				} else {
-					statuses = append(statuses, NewReadyDependentResourceStatus(dependent.NameFrom(fetched), dependent.OwnerStatusField()))
-				}
-			}
-		}
-	}
-	return statuses
 }

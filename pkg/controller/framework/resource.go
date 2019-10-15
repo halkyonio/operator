@@ -17,6 +17,7 @@ type Resource interface {
 	SetErrorStatus(err error) bool
 	SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool
 	SetInitialStatus(msg string) bool
+	ComputeStatus(err error, helper *K8SHelper) (needsUpdate bool)
 	CheckValidity() error
 	Init() bool
 	GetAPIObject() runtime.Object
