@@ -13,18 +13,18 @@ import (
 
 type taskRun struct {
 	base
-	reconciler *ReconcileComponent // todo: remove
+	reconciler *ComponentManager // todo: remove
 }
 
 func (res taskRun) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedTaskRun(res.reconciler, owner)
 }
 
-func newTaskRun(reconciler *ReconcileComponent) taskRun {
+func newTaskRun(reconciler *ComponentManager) taskRun {
 	return newOwnedTaskRun(reconciler, nil)
 }
 
-func newOwnedTaskRun(reconciler *ReconcileComponent, owner framework.Resource) taskRun {
+func newOwnedTaskRun(reconciler *ComponentManager, owner framework.Resource) taskRun {
 	dependent := newBaseDependent(&v1alpha1.TaskRun{}, owner)
 	t := taskRun{
 		base:       dependent,

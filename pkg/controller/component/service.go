@@ -11,18 +11,18 @@ import (
 
 type service struct {
 	base
-	reconciler *ReconcileComponent // todo: remove
+	reconciler *ComponentManager // todo: remove
 }
 
 func (res service) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedService(res.reconciler, owner)
 }
 
-func newService(reconciler *ReconcileComponent) service {
+func newService(reconciler *ComponentManager) service {
 	return newOwnedService(reconciler, nil)
 }
 
-func newOwnedService(reconciler *ReconcileComponent, owner framework.Resource) service {
+func newOwnedService(reconciler *ComponentManager, owner framework.Resource) service {
 	dependent := newBaseDependent(&corev1.Service{}, owner)
 	s := service{
 		base:       dependent,

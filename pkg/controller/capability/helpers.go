@@ -9,7 +9,7 @@ import (
 
 // BuildParameters converts a map of variable assignments to a byte encoded json document,
 // which is what the ServiceCatalog API consumes.
-func (r *ReconcileCapability) BuildParameters(params interface{}) *runtime.RawExtension {
+func (r *CapabilityManager) BuildParameters(params interface{}) *runtime.RawExtension {
 	paramsJSON, err := json.Marshal(params)
 	if err != nil {
 		// This should never be hit because marshalling a map[string]string is pretty safe
@@ -68,7 +68,7 @@ func getAppLabels(name string) map[string]string {
 	}
 }
 
-func (r *ReconcileCapability) ContainsString(slice []string, s string) bool {
+func (r *CapabilityManager) ContainsString(slice []string, s string) bool {
 	for _, item := range slice {
 		if item == s {
 			return true
@@ -77,7 +77,7 @@ func (r *ReconcileCapability) ContainsString(slice []string, s string) bool {
 	return false
 }
 
-func (r *ReconcileCapability) RemoveString(slice []string, s string) (result []string) {
+func (r *CapabilityManager) RemoveString(slice []string, s string) (result []string) {
 	for _, item := range slice {
 		if item == s {
 			continue

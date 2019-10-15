@@ -13,18 +13,18 @@ import (
 
 type deployment struct {
 	base
-	reconciler *ReconcileComponent // todo: remove
+	reconciler *ComponentManager // todo: remove
 }
 
 func (res deployment) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedDeployment(res.reconciler, owner)
 }
 
-func newDeployment(reconciler *ReconcileComponent) deployment {
+func newDeployment(reconciler *ComponentManager) deployment {
 	return newOwnedDeployment(reconciler, nil)
 }
 
-func newOwnedDeployment(reconciler *ReconcileComponent, owner framework.Resource) deployment {
+func newOwnedDeployment(reconciler *ComponentManager, owner framework.Resource) deployment {
 	dependent := newBaseDependent(&appsv1.Deployment{}, owner)
 	d := deployment{
 		base:       dependent,
