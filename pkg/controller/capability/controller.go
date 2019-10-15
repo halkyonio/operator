@@ -74,7 +74,3 @@ func (r *CapabilityManager) CreateOrUpdate(object framework.Resource) (e error) 
 	c := asCapability(object)
 	return r.installDB(c)
 }
-
-func (r *CapabilityManager) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
-	return primary.SetSuccessStatus(statuses, "Ready")
-}

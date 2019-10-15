@@ -19,18 +19,14 @@ package component
 
 import (
 	"context"
-	"fmt"
 	component "halkyon.io/api/component/v1beta1"
-	hLink "halkyon.io/api/link/v1beta1"
 	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 func NewComponentManager() *ComponentManager {
@@ -167,49 +163,4 @@ func (r *ComponentManager) Delete(resource framework.Resource) error {
 		}
 	}
 	return nil
-}
-
-func (r *ComponentManager) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) (needsUpdate bool) {
-	c := r.asComponent(primary)
-	if len(c.Status.Links) > 0 {
-		for i, link := range c.Status.Links {
-			if link.Status == component.Started {
-				p, err := c.FetchUpdatedDependent(&corev1.Pod{}, r.K8SHelper)
-				name := p.(*corev1.Pod).Name
-				if err != nil || name == link.OriginalPodName {
-					c.Status.Phase = component.ComponentLinking
-					c.SetNeedsRequeue(true)
-					return false
-				} else {
-					// update link status
-					l := &hLink.Link{}
-					err := r.Client.Get(context.TODO(), types.NamespacedName{
-						Namespace: c.Namespace,
-						Name:      link.Name,
-					}, l)
-					if err != nil {
-						// todo: is this appropriate?
-						link.Status = component.Errored
-						c.Status.Message = fmt.Sprintf("couldn't retrieve '%s' link", link.Name)
-						return true
-					}
-
-					l.Status.Message = fmt.Sprintf("'%s' finished linking", c.Name)
-					err = r.Client.Status().Update(context.TODO(), l)
-					if err != nil {
-						// todo: fix-me
-						r.ReqLogger.Error(err, "couldn't update link status", "link name", l.Name)
-					}
-
-					link.Status = component.Linked
-					link.OriginalPodName = ""
-					c.Status.PodName = name
-					c.Status.Links[i] = link // make sure we update the links with the modified value
-					needsUpdate = true
-				}
-			}
-		}
-	}
-	// make sure we propagate the need for update even if setting the status doesn't change anything
-	return primary.SetSuccessStatus(statuses, "Ready") || needsUpdate
 }
