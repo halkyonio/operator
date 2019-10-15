@@ -5,7 +5,6 @@ import (
 	controller2 "halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 const (
@@ -24,14 +23,20 @@ const (
 	DB_PASSWORD    = "DB_PASSWORD"
 )
 
-func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
-	r := &ReconcileCapability{}
-	r.K8SHelper = framework.NewHelper(r.PrimaryResourceType(), mgr)
-	return r
+func NewCapabilityReconciler() *ReconcileCapability {
+	return &ReconcileCapability{}
 }
 
 type ReconcileCapability struct {
 	*framework.K8SHelper
+}
+
+func (r *ReconcileCapability) SetHelper(helper *framework.K8SHelper) {
+	r.K8SHelper = helper
+}
+
+func (r *ReconcileCapability) Helper() *framework.K8SHelper {
+	return r.K8SHelper
 }
 
 func (r *ReconcileCapability) GetDependentResourcesTypes() []framework.DependentResource {

@@ -11,6 +11,8 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"strings"
 )
 
@@ -72,4 +74,14 @@ func (rh K8SHelper) Fetch(name, namespace string, into runtime.Object) (runtime.
 		return into, fmt.Errorf("couldn't fetch '%s' %s from namespace '%s': %s", name, util.GetObjectName(into), namespace, err.Error())
 	}
 	return into, nil
+}
+
+func NewHelper(nameForLogger string, mgr manager.Manager) *K8SHelper {
+	helper := &K8SHelper{
+		Client:    mgr.GetClient(),
+		Config:    mgr.GetConfig(),
+		Scheme:    mgr.GetScheme(),
+		ReqLogger: log.Log.WithName(nameForLogger),
+	}
+	return helper
 }
