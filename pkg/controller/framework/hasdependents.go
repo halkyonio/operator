@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"strings"
 )
 
 type HasDependents struct {
@@ -137,11 +138,11 @@ func (b *HasDependents) WatchedSecondaryResourceTypes() []runtime.Object {
 	return watched
 }
 
-/*func (b *HasDependents) computeStatus(current Resource, err error) (needsUpdate bool) {
+func (b *HasDependents) ComputeStatus(current Resource, err error, helper *K8SHelper) (statuses []DependentResourceStatus, needsUpdate bool) {
 	if err != nil {
-		return current.SetErrorStatus(err)
+		return statuses, current.SetErrorStatus(err)
 	}
-	statuses := b.areDependentResourcesReady(current)
+	statuses = b.areDependentResourcesReady(helper)
 	msgs := make([]string, 0, len(statuses))
 	for _, status := range statuses {
 		if !status.Ready {
@@ -150,25 +151,21 @@ func (b *HasDependents) WatchedSecondaryResourceTypes() []runtime.Object {
 	}
 	if len(msgs) > 0 {
 		msg := fmt.Sprintf("Waiting for the following resources: %s", strings.Join(msgs, " / "))
-		b.ReqLogger.Info(msg)
+		helper.ReqLogger.Info(msg)
 		// set the status but ignore the result since dependents are not ready, we do need to update and requeue in any case
 		_ = current.SetInitialStatus(msg)
 		current.SetNeedsRequeue(true)
-		return true
+		return statuses, true
 	}
 
-	return b.factory().SetPrimaryResourceStatus(current, statuses, nil)
+	return statuses, false
 }
 
-func (b *HasDependents) areDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus) {
+func (b *HasDependents) areDependentResourcesReady(helper *K8SHelper) (statuses []DependentResourceStatus) {
 	statuses = make([]DependentResourceStatus, 0, len(b.dependents))
 	for _, dependent := range b.dependents {
-		// make sure owner is set:
-		dependent = dependent.NewInstanceWith(resource)
-		b.dependents[keyFor(dependent.Prototype())] = dependent
-
 		if dependent.ShouldBeCheckedForReadiness() {
-			fetched, err := dependent.Fetch(b.Helper())
+			fetched, err := b.FetchUpdatedDependent(dependent.Prototype(), helper)
 			name := util.GetObjectName(dependent.Prototype())
 			if err != nil {
 				statuses = append(statuses, NewFailedDependentResourceStatus(name, err))
@@ -184,4 +181,3 @@ func (b *HasDependents) areDependentResourcesReady(resource Resource) (statuses 
 	}
 	return statuses
 }
-*/
