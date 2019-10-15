@@ -19,22 +19,11 @@ func NewBaseGenericReconciler(primaryResourceManager PrimaryResourceManager) *Ba
 	return &BaseGenericReconciler{resourceManager: primaryResourceManager}
 }
 
-func (b *BaseGenericReconciler) SetReconcilerFactory(factory PrimaryResourceManager) {
-	b.resourceManager = factory
-}
-
 type BaseGenericReconciler struct {
 	resourceManager PrimaryResourceManager
 }
 
-func (b *BaseGenericReconciler) factory() PrimaryResourceManager {
-	if b.resourceManager == nil {
-		panic(fmt.Errorf("factory needs to be set on BaseGenericReconciler before use"))
-	}
-	return b.resourceManager
-}
-
-func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object {
+func (b *BaseGenericReconciler) watchedSecondaryResourcesTypes() []runtime.Object {
 	resources := b.resourceManager.GetDependentResourcesTypes()
 	watched := make([]runtime.Object, 0, len(resources))
 	for _, dep := range resources {
@@ -43,14 +32,6 @@ func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object
 		}
 	}
 	return watched
-}
-
-func (b *BaseGenericReconciler) Delete(object Resource) error {
-	return b.factory().Delete(object)
-}
-
-func (b *BaseGenericReconciler) CreateOrUpdate(object Resource) error {
-	return b.factory().CreateOrUpdate(object)
 }
 
 func (b *BaseGenericReconciler) Helper() *K8SHelper {
@@ -72,7 +53,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 			// Return and don't create
 			if resource.ShouldDelete() {
 				b.logger().Info(typeName + " resource is marked for deletion. Running clean-up.")
-				err := b.Delete(resource)
+				err := b.resourceManager.Delete(resource)
 				return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
 			}
 			return reconcile.Result{}, nil
@@ -101,7 +82,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 
 	b.logger().Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)
 
-	err = b.CreateOrUpdate(resource)
+	err = b.resourceManager.CreateOrUpdate(resource)
 	if err != nil {
 		err = fmt.Errorf("failed to create or update %s '%s': %s", typeName, resource.GetName(), err.Error())
 	}
@@ -159,7 +140,7 @@ func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) 
 		OwnerType:    resourceType,
 	}
 
-	for _, t := range reconciler.WatchedSecondaryResourceTypes() {
+	for _, t := range reconciler.watchedSecondaryResourcesTypes() {
 		if err = c.Watch(&source.Kind{Type: t}, owner); err != nil {
 			return err
 		}
