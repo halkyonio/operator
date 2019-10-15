@@ -42,13 +42,7 @@ func (LinkManager) asLink(object runtime.Object) *controller.Link {
 }
 
 func (r *LinkManager) NewFrom(name string, namespace string) (framework.Resource, error) {
-	c := controller.NewLink()
-	_, err := r.Fetch(name, namespace, c.Link)
-	resourcesTypes := r.GetDependentResourcesTypes()
-	for _, rType := range resourcesTypes {
-		c.AddDependentResource(rType.NewInstanceWith(c))
-	}
-	return c, err
+	return controller.NewLink().FetchAndInit(name, namespace, r)
 }
 
 func (r *LinkManager) CreateOrUpdate(object framework.Resource) error {
