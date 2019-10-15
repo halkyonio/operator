@@ -41,10 +41,6 @@ func (LinkManager) asLink(object runtime.Object) *controller.Link {
 	return object.(*controller.Link)
 }
 
-func (r *LinkManager) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
-	return primary.SetSuccessStatus(statuses, "Ready")
-}
-
 func (r *LinkManager) NewFrom(name string, namespace string) (framework.Resource, error) {
 	c := controller.NewLink()
 	_, err := r.Fetch(name, namespace, c.Link)

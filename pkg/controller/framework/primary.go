@@ -8,7 +8,6 @@ type PrimaryResourceManager interface {
 	PrimaryResourceType() runtime.Object
 	Delete(object Resource) error
 	CreateOrUpdate(object Resource) error
-	SetPrimaryResourceStatus(primary Resource, statuses []DependentResourceStatus) (needsUpdate bool)
 	NewFrom(name string, namespace string) (Resource, error)
 	GetDependentResourcesTypes() []DependentResource
 	Helper() *K8SHelper
