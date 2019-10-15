@@ -34,7 +34,7 @@ func NewCapability(capability ...*halkyon.Capability) *Capability {
 	return &Capability{
 		Capability:    c,
 		Requeueable:   new(framework.Requeueable),
-		HasDependents: new(framework.HasDependents),
+		HasDependents: framework.NewHasDependents(),
 	}
 }
 
