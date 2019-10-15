@@ -23,23 +23,23 @@ const (
 	DB_PASSWORD    = "DB_PASSWORD"
 )
 
-func NewCapabilityReconciler() *ReconcileCapability {
-	return &ReconcileCapability{}
+func NewCapabilityManager() *CapabilityManager {
+	return &CapabilityManager{}
 }
 
-type ReconcileCapability struct {
+type CapabilityManager struct {
 	*framework.K8SHelper
 }
 
-func (r *ReconcileCapability) SetHelper(helper *framework.K8SHelper) {
+func (r *CapabilityManager) SetHelper(helper *framework.K8SHelper) {
 	r.K8SHelper = helper
 }
 
-func (r *ReconcileCapability) Helper() *framework.K8SHelper {
+func (r *CapabilityManager) Helper() *framework.K8SHelper {
 	return r.K8SHelper
 }
 
-func (r *ReconcileCapability) GetDependentResourcesTypes() []framework.DependentResource {
+func (r *CapabilityManager) GetDependentResourcesTypes() []framework.DependentResource {
 	return []framework.DependentResource{
 		newSecret(),
 		newPostgres(),
@@ -48,11 +48,11 @@ func (r *ReconcileCapability) GetDependentResourcesTypes() []framework.Dependent
 	}
 }
 
-func (r *ReconcileCapability) PrimaryResourceType() runtime.Object {
+func (r *CapabilityManager) PrimaryResourceType() runtime.Object {
 	return &v1beta1.Capability{}
 }
 
-func (r *ReconcileCapability) NewFrom(name string, namespace string) (framework.Resource, error) {
+func (r *CapabilityManager) NewFrom(name string, namespace string) (framework.Resource, error) {
 	c := controller2.NewCapability()
 	_, err := r.K8SHelper.Fetch(name, namespace, c.Capability)
 	resourcesTypes := r.GetDependentResourcesTypes()
@@ -66,15 +66,15 @@ func asCapability(object runtime.Object) *controller2.Capability {
 	return object.(*controller2.Capability)
 }
 
-func (r *ReconcileCapability) Delete(object framework.Resource) error {
+func (r *CapabilityManager) Delete(object framework.Resource) error {
 	return nil
 }
 
-func (r *ReconcileCapability) CreateOrUpdate(object framework.Resource) (e error) {
+func (r *CapabilityManager) CreateOrUpdate(object framework.Resource) (e error) {
 	c := asCapability(object)
 	return r.installDB(c)
 }
 
-func (r *ReconcileCapability) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
+func (r *CapabilityManager) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
 	return primary.SetSuccessStatus(statuses, "Ready")
 }

@@ -22,7 +22,7 @@ import (
 	halkyon "halkyon.io/operator/pkg/controller"
 )
 
-func (r *ReconcileComponent) installDevMode(component *halkyon.Component, namespace string) (e error) {
+func (r *ComponentManager) installDevMode(component *halkyon.Component, namespace string) (e error) {
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")
@@ -37,7 +37,7 @@ func (r *ReconcileComponent) installDevMode(component *halkyon.Component, namesp
 	return component.CreateOrUpdate(r.K8SHelper)
 }
 
-func (r *ReconcileComponent) deleteDevMode(component *halkyon.Component, namespace string) error {
+func (r *ComponentManager) deleteDevMode(component *halkyon.Component, namespace string) error {
 	// todo
 	return nil
 }

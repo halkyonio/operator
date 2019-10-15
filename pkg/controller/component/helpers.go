@@ -12,7 +12,7 @@ const (
 	BaseS2iImage          = "BASE_S2I_IMAGE"
 )
 
-func (r *ReconcileComponent) getEnvAsMap(component component.ComponentSpec) (map[string]string, error) {
+func (r *ComponentManager) getEnvAsMap(component component.ComponentSpec) (map[string]string, error) {
 	envs := component.Envs
 	tmpEnvVar := make(map[string]string)
 
@@ -35,7 +35,7 @@ func (r *ReconcileComponent) getEnvAsMap(component component.ComponentSpec) (map
 	return tmpEnvVar, nil
 }
 
-func (r *ReconcileComponent) populateEnvVar(component *controller.Component) {
+func (r *ComponentManager) populateEnvVar(component *controller.Component) {
 	tmpEnvVar, err := r.getEnvAsMap(component.Spec)
 	if err != nil {
 		panic(err)
@@ -69,12 +69,12 @@ func getBuildLabels(name string) map[string]string {
 }
 
 //Check if the mandatory specs are filled
-func (r *ReconcileComponent) hasMandatorySpecs(instance *controller.Component) bool {
+func (r *ComponentManager) hasMandatorySpecs(instance *controller.Component) bool {
 	// TODO
 	return true
 }
 
-func (r *ReconcileComponent) PopulateK8sLabels(component *controller.Component, componentType string) map[string]string {
+func (r *ComponentManager) PopulateK8sLabels(component *controller.Component, componentType string) map[string]string {
 	labels := map[string]string{}
 	labels[v1beta1.RuntimeLabelKey] = component.Spec.Runtime
 	labels[v1beta1.RuntimeVersionLabelKey] = component.Spec.Version
@@ -84,7 +84,7 @@ func (r *ReconcileComponent) PopulateK8sLabels(component *controller.Component, 
 	return labels
 }
 
-func (r *ReconcileComponent) baseImage(c *controller.Component) string {
+func (r *ComponentManager) baseImage(c *controller.Component) string {
 	if c.Spec.BuildConfig.BaseImage != "" {
 		return c.Spec.BuildConfig.BaseImage
 	} else {
@@ -98,7 +98,7 @@ func (r *ReconcileComponent) baseImage(c *controller.Component) string {
 	}
 }
 
-func (r *ReconcileComponent) contextPath(c *controller.Component) string {
+func (r *ComponentManager) contextPath(c *controller.Component) string {
 	if c.Spec.BuildConfig.ContextPath != "" {
 		return c.Spec.BuildConfig.ContextPath
 	} else {
@@ -107,7 +107,7 @@ func (r *ReconcileComponent) contextPath(c *controller.Component) string {
 	}
 }
 
-func (r *ReconcileComponent) moduleDirName(c *controller.Component) string {
+func (r *ComponentManager) moduleDirName(c *controller.Component) string {
 	if c.Spec.BuildConfig.ModuleDirName != "" {
 		return c.Spec.BuildConfig.ModuleDirName
 	} else {
@@ -116,7 +116,7 @@ func (r *ReconcileComponent) moduleDirName(c *controller.Component) string {
 	}
 }
 
-func (r *ReconcileComponent) gitRevision(c *controller.Component) string {
+func (r *ComponentManager) gitRevision(c *controller.Component) string {
 	if c.Spec.BuildConfig.Ref == "" {
 		return "master"
 	} else {
@@ -124,7 +124,7 @@ func (r *ReconcileComponent) gitRevision(c *controller.Component) string {
 	}
 }
 
-func (r *ReconcileComponent) dockerImageURL(c *controller.Component) string {
+func (r *ComponentManager) dockerImageURL(c *controller.Component) string {
 	// Try to find the registry env var
 	registry, found := os.LookupEnv(RegistryAddressEnvVar)
 	if found {

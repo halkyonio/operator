@@ -4,6 +4,6 @@ import (
 	"halkyon.io/operator/pkg/controller"
 )
 
-func (r *ReconcileCapability) installDB(c *controller.Capability) (e error) {
+func (r *CapabilityManager) installDB(c *controller.Capability) (e error) {
 	return c.CreateOrUpdate(r.K8SHelper)
 }

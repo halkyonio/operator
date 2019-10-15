@@ -85,7 +85,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 	return dep, nil
 }
 
-func (r *ReconcileComponent) getBaseContainerFor(component *component.Component) (corev1.Container, error) {
+func (r *ComponentManager) getBaseContainerFor(component *component.Component) (corev1.Container, error) {
 	runtimeImage, err := r.getImageReference(component.Spec)
 	if err != nil {
 		return corev1.Container{}, err
@@ -103,7 +103,7 @@ func (r *ReconcileComponent) getBaseContainerFor(component *component.Component)
 	return container, nil
 }
 
-func (r *ReconcileComponent) getImageInfo(component component.ComponentSpec) (imageInfo, error) {
+func (r *ComponentManager) getImageInfo(component component.ComponentSpec) (imageInfo, error) {
 	image, ok := r.runtimeImages[component.Runtime]
 	if !ok {
 		return imageInfo{}, fmt.Errorf("unknown image identifier: %s", component.Runtime)
@@ -111,7 +111,7 @@ func (r *ReconcileComponent) getImageInfo(component component.ComponentSpec) (im
 	return image, nil
 }
 
-func (r *ReconcileComponent) getImageReference(component component.ComponentSpec) (string, error) {
+func (r *ComponentManager) getImageReference(component component.ComponentSpec) (string, error) {
 	image, err := r.getImageInfo(component)
 	if err != nil {
 		return "", err
@@ -123,7 +123,7 @@ func (r *ReconcileComponent) getImageReference(component component.ComponentSpec
 	return util.GetImageReference(image.registryRef, v), nil
 }
 
-func (r *ReconcileComponent) populatePodEnvVar(component component.ComponentSpec) []corev1.EnvVar {
+func (r *ComponentManager) populatePodEnvVar(component component.ComponentSpec) []corev1.EnvVar {
 	tmpEnvVar, err := r.getEnvAsMap(component)
 	if err != nil {
 		panic(err)

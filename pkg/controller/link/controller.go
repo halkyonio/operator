@@ -13,39 +13,39 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func NewLinkReconciler() *ReconcileLink {
-	return &ReconcileLink{}
+func NewLinkManager() *LinkManager {
+	return &LinkManager{}
 }
 
-type ReconcileLink struct {
+type LinkManager struct {
 	*framework.K8SHelper
 }
 
-func (r *ReconcileLink) SetHelper(helper *framework.K8SHelper) {
+func (r *LinkManager) SetHelper(helper *framework.K8SHelper) {
 	r.K8SHelper = helper
 }
 
-func (r *ReconcileLink) Helper() *framework.K8SHelper {
+func (r *LinkManager) Helper() *framework.K8SHelper {
 	return r.K8SHelper
 }
 
-func (r *ReconcileLink) GetDependentResourcesTypes() []framework.DependentResource {
+func (r *LinkManager) GetDependentResourcesTypes() []framework.DependentResource {
 	return []framework.DependentResource{newComponent()}
 }
 
-func (r *ReconcileLink) PrimaryResourceType() runtime.Object {
+func (r *LinkManager) PrimaryResourceType() runtime.Object {
 	return &link.Link{}
 }
 
-func (ReconcileLink) asLink(object runtime.Object) *controller.Link {
+func (LinkManager) asLink(object runtime.Object) *controller.Link {
 	return object.(*controller.Link)
 }
 
-func (r *ReconcileLink) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
+func (r *LinkManager) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) bool {
 	return primary.SetSuccessStatus(statuses, "Ready")
 }
 
-func (r *ReconcileLink) NewFrom(name string, namespace string) (framework.Resource, error) {
+func (r *LinkManager) NewFrom(name string, namespace string) (framework.Resource, error) {
 	c := controller.NewLink()
 	_, err := r.Fetch(name, namespace, c.Link)
 	resourcesTypes := r.GetDependentResourcesTypes()
@@ -55,7 +55,7 @@ func (r *ReconcileLink) NewFrom(name string, namespace string) (framework.Resour
 	return c, err
 }
 
-func (r *ReconcileLink) CreateOrUpdate(object framework.Resource) error {
+func (r *LinkManager) CreateOrUpdate(object framework.Resource) error {
 	l := r.asLink(object)
 
 	found, err := r.fetchDeployment(l.Link)
@@ -94,7 +94,7 @@ func (r *ReconcileLink) CreateOrUpdate(object framework.Resource) error {
 	return nil
 }
 
-func (r *ReconcileLink) updateContainersWithLinkInfo(l *link.Link, containers []v1.Container) ([]v1.Container, bool) {
+func (r *LinkManager) updateContainersWithLinkInfo(l *link.Link, containers []v1.Container) ([]v1.Container, bool) {
 	var isModified = false
 	linkType := l.Spec.Type
 	switch linkType {
@@ -142,7 +142,7 @@ func (r *ReconcileLink) updateContainersWithLinkInfo(l *link.Link, containers []
 	return containers, isModified
 }
 
-func (r *ReconcileLink) update(d *appsv1.Deployment) error {
+func (r *LinkManager) update(d *appsv1.Deployment) error {
 	err := r.Client.Update(context.TODO(), d)
 	if err != nil {
 		return err
@@ -153,7 +153,7 @@ func (r *ReconcileLink) update(d *appsv1.Deployment) error {
 }
 
 //fetchDeployment returns the deployment resource created for this instance
-func (r *ReconcileLink) fetchDeployment(link *link.Link) (*appsv1.Deployment, error) {
+func (r *LinkManager) fetchDeployment(link *link.Link) (*appsv1.Deployment, error) {
 	deployment := &appsv1.Deployment{}
 	name := link.Spec.ComponentName
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err == nil {
@@ -166,7 +166,7 @@ func (r *ReconcileLink) fetchDeployment(link *link.Link) (*appsv1.Deployment, er
 	}
 }
 
-func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *controller.Link) error {
+func (r *LinkManager) updateDeploymentWithLink(d *appsv1.Deployment, link *controller.Link) error {
 	// Update the Deployment of the component
 	if err := r.update(d); err != nil {
 		r.ReqLogger.Info("Failed to update deployment.")
@@ -178,6 +178,6 @@ func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *con
 	return nil
 }
 
-func (r *ReconcileLink) Delete(object framework.Resource) error {
+func (r *LinkManager) Delete(object framework.Resource) error {
 	return nil
 }

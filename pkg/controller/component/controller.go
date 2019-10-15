@@ -33,8 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// newReconciler returns a new reconcile.Reconciler
-func NewComponentReconciler() *ReconcileComponent {
+func NewComponentManager() *ComponentManager {
 	// todo: make this configurable
 	images := make(map[string]imageInfo, 7)
 	defaultEnvVar := make(map[string]string, 7)
@@ -77,7 +76,7 @@ func NewComponentReconciler() *ReconcileComponent {
 		},
 	}
 
-	r := &ReconcileComponent{
+	r := &ComponentManager{
 		runtimeImages: images,
 		supervisor:    &supervisor,
 	}
@@ -89,21 +88,21 @@ type imageInfo struct {
 	defaultEnv  map[string]string
 }
 
-type ReconcileComponent struct {
+type ComponentManager struct {
 	*framework.K8SHelper
 	runtimeImages map[string]imageInfo
 	supervisor    *component.Component
 }
 
-func (r *ReconcileComponent) SetHelper(helper *framework.K8SHelper) {
+func (r *ComponentManager) SetHelper(helper *framework.K8SHelper) {
 	r.K8SHelper = helper
 }
 
-func (r *ReconcileComponent) Helper() *framework.K8SHelper {
+func (r *ComponentManager) Helper() *framework.K8SHelper {
 	return r.K8SHelper
 }
 
-func (r *ReconcileComponent) GetDependentResourcesTypes() []framework.DependentResource {
+func (r *ComponentManager) GetDependentResourcesTypes() []framework.DependentResource {
 	return []framework.DependentResource{
 		newPvc(),
 		newDeployment(r),
@@ -119,11 +118,11 @@ func (r *ReconcileComponent) GetDependentResourcesTypes() []framework.DependentR
 	}
 }
 
-func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
+func (r *ComponentManager) PrimaryResourceType() runtime.Object {
 	return &component.Component{}
 }
 
-func (r *ReconcileComponent) NewFrom(name string, namespace string) (framework.Resource, error) {
+func (r *ComponentManager) NewFrom(name string, namespace string) (framework.Resource, error) {
 	c := controller2.NewComponent()
 	_, err := r.Fetch(name, namespace, c.Component)
 	resourcesTypes := r.GetDependentResourcesTypes()
@@ -133,11 +132,11 @@ func (r *ReconcileComponent) NewFrom(name string, namespace string) (framework.R
 	return c, err
 }
 
-func (ReconcileComponent) asComponent(object runtime.Object) *controller2.Component {
+func (ComponentManager) asComponent(object runtime.Object) *controller2.Component {
 	return object.(*controller2.Component)
 }
 
-func (r *ReconcileComponent) CreateOrUpdate(object framework.Resource) (err error) {
+func (r *ComponentManager) CreateOrUpdate(object framework.Resource) (err error) {
 	c := r.asComponent(object)
 	if component.BuildDeploymentMode == c.Spec.DeploymentMode {
 		err = r.installBuildMode(c, c.Namespace)
@@ -147,7 +146,7 @@ func (r *ReconcileComponent) CreateOrUpdate(object framework.Resource) (err erro
 	return err
 }
 
-func (r *ReconcileComponent) Delete(resource framework.Resource) error {
+func (r *ComponentManager) Delete(resource framework.Resource) error {
 	if r.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode
@@ -170,7 +169,7 @@ func (r *ReconcileComponent) Delete(resource framework.Resource) error {
 	return nil
 }
 
-func (r *ReconcileComponent) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) (needsUpdate bool) {
+func (r *ComponentManager) SetPrimaryResourceStatus(primary framework.Resource, statuses []framework.DependentResourceStatus) (needsUpdate bool) {
 	c := r.asComponent(primary)
 	if len(c.Status.Links) > 0 {
 		for i, link := range c.Status.Links {
