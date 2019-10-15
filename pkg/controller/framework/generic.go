@@ -15,15 +15,15 @@ import (
 	"strings"
 )
 
-func NewBaseGenericReconciler(primaryResourceManager PrimaryResourceManager) *BaseGenericReconciler {
-	return &BaseGenericReconciler{resourceManager: primaryResourceManager}
+func NewGenericReconciler(primaryResourceManager PrimaryResourceManager) *GenericReconciler {
+	return &GenericReconciler{resourceManager: primaryResourceManager}
 }
 
-type BaseGenericReconciler struct {
+type GenericReconciler struct {
 	resourceManager PrimaryResourceManager
 }
 
-func (b *BaseGenericReconciler) watchedSecondaryResourcesTypes() []runtime.Object {
+func (b *GenericReconciler) watchedSecondaryResourcesTypes() []runtime.Object {
 	resources := b.resourceManager.GetDependentResourcesTypes()
 	watched := make([]runtime.Object, 0, len(resources))
 	for _, dep := range resources {
@@ -34,15 +34,15 @@ func (b *BaseGenericReconciler) watchedSecondaryResourcesTypes() []runtime.Objec
 	return watched
 }
 
-func (b *BaseGenericReconciler) Helper() *K8SHelper {
+func (b *GenericReconciler) Helper() *K8SHelper {
 	return b.resourceManager.Helper()
 }
 
-func (b *BaseGenericReconciler) logger() logr.Logger {
+func (b *GenericReconciler) logger() logr.Logger {
 	return b.Helper().ReqLogger
 }
 
-func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	b.logger().WithValues("namespace", request.Namespace)
 
 	// Fetch the primary resource
@@ -104,7 +104,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	return reconcile.Result{Requeue: requeue}, err
 }
 
-func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
+func (b *GenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	// compute the status and update the resource if the status has changed
 	if needsStatusUpdate := instance.ComputeStatus(err, b.Helper()); needsStatusUpdate {
 		object := instance.GetAPIObject()
@@ -119,7 +119,7 @@ func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) 
 
 	// Create a new controller
 	controllerName := controllerNameFor(resourceType)
-	reconciler := NewBaseGenericReconciler(factory)
+	reconciler := NewGenericReconciler(factory)
 	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: reconciler})
 	if err != nil {
 		return err
@@ -139,7 +139,6 @@ func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) 
 		IsController: true,
 		OwnerType:    resourceType,
 	}
-
 	for _, t := range reconciler.watchedSecondaryResourcesTypes() {
 		if err = c.Watch(&source.Kind{Type: t}, owner); err != nil {
 			return err
