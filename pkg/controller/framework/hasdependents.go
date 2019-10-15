@@ -16,6 +16,10 @@ type HasDependents struct {
 	dependents map[string]DependentResource
 }
 
+func NewHasDependents() *HasDependents {
+	return &HasDependents{dependents: make(map[string]DependentResource, 7)}
+}
+
 func keyFor(resourceType runtime.Object) (key string) {
 	t := reflect.TypeOf(resourceType)
 	pkg := t.PkgPath()

@@ -82,7 +82,7 @@ func NewComponent(component ...*halkyon.Component) *Component {
 	return &Component{
 		Component:     c,
 		Requeueable:   new(framework.Requeueable),
-		HasDependents: new(framework.HasDependents),
+		HasDependents: framework.NewHasDependents(),
 	}
 }
 

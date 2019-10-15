@@ -33,7 +33,7 @@ func NewLink(link ...*halkyon.Link) *Link {
 	return &Link{
 		Link:          l,
 		Requeueable:   new(framework.Requeueable),
-		HasDependents: new(framework.HasDependents),
+		HasDependents: framework.NewHasDependents(),
 	}
 }
 
