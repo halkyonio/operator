@@ -18,55 +18,9 @@ limitations under the License.
 package component
 
 import (
-	routev1 "github.com/openshift/api/route/v1"
-	pipeline "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	halkyon "halkyon.io/operator/pkg/controller"
-	v1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
-	authorizv1 "k8s.io/api/rbac/v1"
 )
 
 func (r *ReconcileComponent) installBuildMode(component *halkyon.Component, namespace string) (e error) {
-	// Create ServiceAccount used by the Task's pod if it does not exists
-	if e = r.CreateIfNeeded(component, &corev1.ServiceAccount{}); e != nil {
-		return e
-	}
-
-	if e = r.CreateIfNeeded(component, &authorizv1.Role{}); e != nil {
-		return e
-	}
-	if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
-		return e
-	}
-
-	// Create Task s2i Buildah Push if it does not exists
-	if e = r.CreateIfNeeded(component, &pipeline.Task{}); e != nil {
-		return e
-	}
-
-	// Create the TaskRun in order to trigger the build
-	if e = r.CreateIfNeeded(component, &pipeline.TaskRun{}); e != nil {
-		return e
-	}
-
-	if e = r.CreateIfNeeded(component, &v1.Deployment{}); e != nil {
-		return e
-	}
-
-	if e = r.CreateIfNeeded(component, &corev1.Service{}); e != nil {
-		return e
-	}
-
-	// Create an OpenShift Route
-	if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
-		return e
-	}
-
-	// Create an Ingress resource
-	if e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
-		return e
-	}
-
-	return
+	return component.CreateOrUpdate(r.K8SHelper)
 }

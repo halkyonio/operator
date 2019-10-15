@@ -78,25 +78,11 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		},
 	}
 
-	baseReconciler := framework.NewBaseGenericReconciler(controller2.NewComponent(), mgr)
 	r := &ReconcileComponent{
-		BaseGenericReconciler: baseReconciler,
-		runtimeImages:         images,
-		supervisor:            &supervisor,
+		runtimeImages: images,
+		supervisor:    &supervisor,
 	}
-	baseReconciler.SetReconcilerFactory(r)
-
-	r.AddDependentResource(newPvc())
-	r.AddDependentResource(newDeployment(r))
-	r.AddDependentResource(newService(r))
-	r.AddDependentResource(newServiceAccount())
-	r.AddDependentResource(newRoute(r))
-	r.AddDependentResource(newIngress(r))
-	r.AddDependentResource(newTask())
-	r.AddDependentResource(newTaskRun(r))
-	r.AddDependentResource(controller2.NewRole())
-	r.AddDependentResource(controller2.NewRoleBinding())
-	r.AddDependentResource(newPod())
+	r.K8SHelper = framework.NewHelper(r.PrimaryResourceType(), mgr)
 	return r
 }
 
@@ -106,7 +92,7 @@ type imageInfo struct {
 }
 
 type ReconcileComponent struct {
-	*framework.BaseGenericReconciler
+	*framework.K8SHelper
 	runtimeImages map[string]imageInfo
 	supervisor    *component.Component
 }
@@ -131,9 +117,9 @@ func (r *ReconcileComponent) PrimaryResourceType() runtime.Object {
 	return &component.Component{}
 }
 
-func (r *ReconcileComponent) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
+func (r *ReconcileComponent) NewFrom(name string, namespace string) (framework.Resource, error) {
 	c := controller2.NewComponent()
-	_, err := helper.Fetch(name, namespace, c.Component)
+	_, err := r.Fetch(name, namespace, c.Component)
 	resourcesTypes := r.GetDependentResourcesTypes()
 	for _, rType := range resourcesTypes {
 		c.AddDependentResource(rType.NewInstanceWith(c))
@@ -183,7 +169,7 @@ func (r *ReconcileComponent) SetPrimaryResourceStatus(primary framework.Resource
 	if len(c.Status.Links) > 0 {
 		for i, link := range c.Status.Links {
 			if link.Status == component.Started {
-				p, err := r.MustGetDependentResourceFor(c, &corev1.Pod{}).Fetch(r.Helper())
+				p, err := c.FetchUpdatedDependent(&corev1.Pod{}, r.K8SHelper)
 				name := p.(*corev1.Pod).Name
 				if err != nil || name == link.OriginalPodName {
 					c.Status.Phase = component.ComponentLinking

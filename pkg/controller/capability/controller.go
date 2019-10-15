@@ -25,21 +25,13 @@ const (
 )
 
 func NewCapabilityReconciler(mgr manager.Manager) *ReconcileCapability {
-	baseReconciler := framework.NewBaseGenericReconciler(controller2.NewCapability(), mgr)
-	r := &ReconcileCapability{
-		BaseGenericReconciler: baseReconciler,
-	}
-	baseReconciler.SetReconcilerFactory(r)
-
-	r.AddDependentResource(newSecret())
-	r.AddDependentResource(newPostgres())
-	r.AddDependentResource(controller2.NewRole())
-	r.AddDependentResource(controller2.NewRoleBinding())
+	r := &ReconcileCapability{}
+	r.K8SHelper = framework.NewHelper(r.PrimaryResourceType(), mgr)
 	return r
 }
 
 type ReconcileCapability struct {
-	*framework.BaseGenericReconciler
+	*framework.K8SHelper
 }
 
 func (r *ReconcileCapability) GetDependentResourcesTypes() []framework.DependentResource {
@@ -55,9 +47,9 @@ func (r *ReconcileCapability) PrimaryResourceType() runtime.Object {
 	return &v1beta1.Capability{}
 }
 
-func (r *ReconcileCapability) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
+func (r *ReconcileCapability) NewFrom(name string, namespace string) (framework.Resource, error) {
 	c := controller2.NewCapability()
-	_, err := helper.Fetch(name, namespace, c.Capability)
+	_, err := r.K8SHelper.Fetch(name, namespace, c.Capability)
 	resourcesTypes := r.GetDependentResourcesTypes()
 	for _, rType := range resourcesTypes {
 		c.AddDependentResource(rType.NewInstanceWith(c))

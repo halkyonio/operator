@@ -19,11 +19,7 @@ package component
 
 import (
 	"fmt"
-	routev1 "github.com/openshift/api/route/v1"
 	halkyon "halkyon.io/operator/pkg/controller"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 )
 
 func (r *ReconcileComponent) installDevMode(component *halkyon.Component, namespace string) (e error) {
@@ -38,39 +34,7 @@ func (r *ReconcileComponent) installDevMode(component *halkyon.Component, namesp
 	// Enrich Env Vars with Default values
 	r.populateEnvVar(component)
 
-	/*	AFAIK THIS IS NIT NEEDED AS WE DON'T BUILD or INSTALL A CAPABILITY
-		    if e = r.CreateIfNeeded(component, &authorizv1.Role{}); e != nil {
-				return e
-			}
-			if e = r.CreateIfNeeded(component, &authorizv1.RoleBinding{}); e != nil {
-				return e
-			}*/
-
-	// Create PVC if it does not exists
-	if e = r.CreateIfNeeded(component, &corev1.PersistentVolumeClaim{}); e != nil {
-		return e
-	}
-
-	// Create Deployment if it does not exists
-	if e = r.CreateIfNeeded(component, &appsv1.Deployment{}); e != nil {
-		return e
-	}
-
-	if e = r.CreateIfNeeded(component, &corev1.Service{}); e != nil {
-		return e
-	}
-
-	// Create an OpenShift Route
-	if e = r.CreateIfNeeded(component, &routev1.Route{}); e != nil {
-		return e
-	}
-
-	// Create an Ingress resource
-	if e = r.CreateIfNeeded(component, &v1beta1.Ingress{}); e != nil {
-		return e
-	}
-
-	return
+	return component.CreateOrUpdate(r.K8SHelper)
 }
 
 func (r *ReconcileComponent) deleteDevMode(component *halkyon.Component, namespace string) error {
