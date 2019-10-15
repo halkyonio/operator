@@ -17,6 +17,10 @@ type Component struct {
 	*framework.HasDependents
 }
 
+func (in *Component) FetchAndInit(name, namespace string, manager framework.PrimaryResourceManager) (framework.Resource, error) {
+	return in.HasDependents.FetchAndInitNewResource(name, namespace, in, manager)
+}
+
 func (in *Component) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
 	statuses, update := in.HasDependents.ComputeStatus(in, err, helper)
 	if len(in.Status.Links) > 0 {

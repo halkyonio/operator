@@ -12,6 +12,10 @@ type Link struct {
 	*framework.HasDependents
 }
 
+func (in *Link) FetchAndInit(name, namespace string, manager framework.PrimaryResourceManager) (framework.Resource, error) {
+	return in.HasDependents.FetchAndInitNewResource(name, namespace, in, manager)
+}
+
 func (in *Link) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
 	statuses, update := in.HasDependents.ComputeStatus(in, err, helper)
 	return in.SetSuccessStatus(statuses, "Ready") || update

@@ -119,13 +119,7 @@ func (r *ComponentManager) PrimaryResourceType() runtime.Object {
 }
 
 func (r *ComponentManager) NewFrom(name string, namespace string) (framework.Resource, error) {
-	c := controller2.NewComponent()
-	_, err := r.Fetch(name, namespace, c.Component)
-	resourcesTypes := r.GetDependentResourcesTypes()
-	for _, rType := range resourcesTypes {
-		c.AddDependentResource(rType.NewInstanceWith(c))
-	}
-	return c, err
+	return controller2.NewComponent().FetchAndInit(name, namespace, r)
 }
 
 func (ComponentManager) asComponent(object runtime.Object) *controller2.Component {

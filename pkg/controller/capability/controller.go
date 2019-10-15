@@ -53,13 +53,7 @@ func (r *CapabilityManager) PrimaryResourceType() runtime.Object {
 }
 
 func (r *CapabilityManager) NewFrom(name string, namespace string) (framework.Resource, error) {
-	c := controller2.NewCapability()
-	_, err := r.K8SHelper.Fetch(name, namespace, c.Capability)
-	resourcesTypes := r.GetDependentResourcesTypes()
-	for _, rType := range resourcesTypes {
-		c.AddDependentResource(rType.NewInstanceWith(c))
-	}
-	return c, err
+	return controller2.NewCapability().FetchAndInit(name, namespace, r)
 }
 
 func asCapability(object runtime.Object) *controller2.Capability {
