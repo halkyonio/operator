@@ -15,15 +15,13 @@ import (
 )
 
 func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
-	baseReconciler := framework.NewBaseGenericReconciler(controller.NewLink(), mgr)
-	r := &ReconcileLink{BaseGenericReconciler: baseReconciler}
-	baseReconciler.SetReconcilerFactory(r)
-	r.AddDependentResource(newComponent())
+	r := &ReconcileLink{}
+	r.K8SHelper = framework.NewHelper(r.PrimaryResourceType(), mgr)
 	return r
 }
 
 type ReconcileLink struct {
-	*framework.BaseGenericReconciler
+	*framework.K8SHelper
 }
 
 func (r *ReconcileLink) GetDependentResourcesTypes() []framework.DependentResource {
@@ -42,9 +40,9 @@ func (r *ReconcileLink) SetPrimaryResourceStatus(primary framework.Resource, sta
 	return primary.SetSuccessStatus(statuses, "Ready")
 }
 
-func (r *ReconcileLink) NewFrom(name string, namespace string, helper *framework.K8SHelper) (framework.Resource, error) {
+func (r *ReconcileLink) NewFrom(name string, namespace string) (framework.Resource, error) {
 	c := controller.NewLink()
-	_, err := helper.Fetch(name, namespace, c.Link)
+	_, err := r.Fetch(name, namespace, c.Link)
 	resourcesTypes := r.GetDependentResourcesTypes()
 	for _, rType := range resourcesTypes {
 		c.AddDependentResource(rType.NewInstanceWith(c))
@@ -72,7 +70,7 @@ func (r *ReconcileLink) CreateOrUpdate(object framework.Resource) error {
 		}
 
 		// if the deployment has been updated, we need to update the component's status
-		fetch, err := r.MustGetDependentResourceFor(l, &v1beta1.Component{}).Fetch(r.Helper())
+		fetch, err := l.FetchUpdatedDependent(&v1beta1.Component{}, r.K8SHelper)
 		if err != nil {
 			return fmt.Errorf("cannot retrieve associated component")
 		}
@@ -175,6 +173,6 @@ func (r *ReconcileLink) updateDeploymentWithLink(d *appsv1.Deployment, link *con
 	return nil
 }
 
-func (r *ReconcileLink) Delete(resource framework.Resource) error {
+func (r *ReconcileLink) Delete(object framework.Resource) error {
 	return nil
 }

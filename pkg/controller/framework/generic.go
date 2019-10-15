@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"halkyon.io/operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -18,11 +16,11 @@ import (
 	"strings"
 )
 
-func NewBaseGenericReconciler(primaryResourceType Resource, mgr manager.Manager) *BaseGenericReconciler {
+func NewBaseGenericReconciler(primaryResourceManager PrimaryResourceManager, mgr manager.Manager) *BaseGenericReconciler {
+	primaryResourceType := primaryResourceManager.PrimaryResourceType()
 	return &BaseGenericReconciler{
-		K8SHelper:  newHelper(primaryResourceType, mgr),
+		K8SHelper:  NewHelper(primaryResourceType, mgr),
 		dependents: make(map[string]DependentResource, 7),
-		primary:    primaryResourceType,
 	}
 }
 
@@ -33,7 +31,6 @@ func (b *BaseGenericReconciler) SetReconcilerFactory(factory PrimaryResourceMana
 type BaseGenericReconciler struct {
 	*K8SHelper
 	dependents map[string]DependentResource
-	primary    Resource
 	_factory   PrimaryResourceManager
 }
 
@@ -67,13 +64,10 @@ func (b *BaseGenericReconciler) factory() PrimaryResourceManager {
 	return b._factory
 }
 
-func (b *BaseGenericReconciler) primaryResourceTypeName() string {
-	return util.GetObjectName(b.primary)
-}
-
 func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object {
-	watched := make([]runtime.Object, 0, len(b.dependents))
-	for _, dep := range b.dependents {
+	resources := b._factory.GetDependentResourcesTypes()
+	watched := make([]runtime.Object, 0, len(resources))
+	for _, dep := range resources {
 		if dep.ShouldWatch() {
 			watched = append(watched, dep.Prototype())
 		}
@@ -127,8 +121,8 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	b.ReqLogger.WithValues("namespace", request.Namespace)
 
 	// Fetch the primary resource
-	resource, err := b._factory.NewFrom(request.Name, request.Namespace, b.K8SHelper)
-	typeName := b.primaryResourceTypeName()
+	resource, err := b._factory.NewFrom(request.Name, request.Namespace)
+	typeName := util.GetObjectName(b._factory.PrimaryResourceType())
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
@@ -195,7 +189,7 @@ func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err erro
 	}
 }
 
-func newHelper(resourceType runtime.Object, mgr manager.Manager) *K8SHelper {
+func NewHelper(resourceType runtime.Object, mgr manager.Manager) *K8SHelper {
 	helper := &K8SHelper{
 		Client:    mgr.GetClient(),
 		Config:    mgr.GetConfig(),
@@ -210,11 +204,12 @@ type GenericReconciler interface {
 	reconcile.Reconciler
 }
 
-func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error {
+func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) error {
 	resourceType := factory.PrimaryResourceType()
 
 	// Create a new controller
-	c, err := controller.New(controllerNameFor(resourceType), mgr, controller.Options{Reconciler: factory})
+	reconciler := NewBaseGenericReconciler(factory, mgr)
+	c, err := controller.New(controllerNameFor(resourceType), mgr, controller.Options{Reconciler: reconciler})
 	if err != nil {
 		return err
 	}
@@ -230,7 +225,7 @@ func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error
 		OwnerType:    resourceType,
 	}
 
-	for _, t := range factory.WatchedSecondaryResourceTypes() {
+	for _, t := range reconciler.WatchedSecondaryResourceTypes() {
 		if err = c.Watch(&source.Kind{Type: t}, owner); err != nil {
 			return err
 		}
@@ -241,68 +236,6 @@ func RegisterNewReconciler(factory GenericReconciler, mgr manager.Manager) error
 
 func controllerNameFor(resource runtime.Object) string {
 	return strings.ToLower(util.GetObjectName(resource)) + "-controller"
-}
-
-func (b *BaseGenericReconciler) CreateIfNeeded(owner Resource, resourceType runtime.Object) error {
-	resource, err := b.GetDependentResourceFor(owner, resourceType)
-	if err != nil {
-		return err
-	}
-
-	// if the resource specifies that it shouldn't be created, exit fast
-	if !resource.CanBeCreatedOrUpdated() {
-		return nil
-	}
-
-	kind := util.GetObjectName(resourceType)
-	res, err := resource.Fetch(b.Helper())
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// create the object
-			obj, errBuildObject := resource.Build()
-			if errBuildObject != nil {
-				return errBuildObject
-			}
-
-			// set controller reference if the resource should be owned
-			if resource.ShouldBeOwned() {
-				// in most instances, resourceDefinedOwner == owner but some resources might want to return a different one
-				resourceDefinedOwner := resource.Owner()
-				if e := controllerutil.SetControllerReference(resourceDefinedOwner.GetAPIObject().(v1.Object), obj.(v1.Object), b.Scheme); e != nil {
-					b.ReqLogger.Error(err, "Failed to set owner", "owner", resourceDefinedOwner, "resource", resource.Name())
-					return e
-				}
-			}
-
-			alreadyExists := false
-			if err = b.Client.Create(context.TODO(), obj); err != nil {
-				// ignore error if it's to state that obj already exists
-				alreadyExists = errors.IsAlreadyExists(err)
-				if !alreadyExists {
-					b.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
-					return err
-				}
-			}
-			if !alreadyExists {
-				b.ReqLogger.Info("Created successfully", "kind", kind, "name", obj.(v1.Object).GetName())
-			}
-			return nil
-		}
-		b.ReqLogger.Error(err, "Failed to get", "kind", kind)
-		return err
-	} else {
-		// if the resource defined an updater, use it to try to update the resource
-		updated, err := resource.Update(res)
-		if err != nil {
-			return err
-		}
-		if updated {
-			if err = b.Client.Update(context.TODO(), res); err != nil {
-				b.ReqLogger.Error(err, "Failed to update", "kind", kind)
-			}
-		}
-		return err
-	}
 }
 
 func (b *BaseGenericReconciler) areDependentResourcesReady(resource Resource) (statuses []DependentResourceStatus) {
