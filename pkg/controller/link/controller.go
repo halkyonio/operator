@@ -11,17 +11,22 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-func NewLinkReconciler(mgr manager.Manager) *ReconcileLink {
-	r := &ReconcileLink{}
-	r.K8SHelper = framework.NewHelper(r.PrimaryResourceType(), mgr)
-	return r
+func NewLinkReconciler() *ReconcileLink {
+	return &ReconcileLink{}
 }
 
 type ReconcileLink struct {
 	*framework.K8SHelper
+}
+
+func (r *ReconcileLink) SetHelper(helper *framework.K8SHelper) {
+	r.K8SHelper = helper
+}
+
+func (r *ReconcileLink) Helper() *framework.K8SHelper {
+	return r.K8SHelper
 }
 
 func (r *ReconcileLink) GetDependentResourcesTypes() []framework.DependentResource {

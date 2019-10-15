@@ -11,4 +11,6 @@ type PrimaryResourceManager interface {
 	SetPrimaryResourceStatus(primary Resource, statuses []DependentResourceStatus) (needsUpdate bool)
 	NewFrom(name string, namespace string) (Resource, error)
 	GetDependentResourcesTypes() []DependentResource
+	Helper() *K8SHelper
+	SetHelper(helper *K8SHelper)
 }

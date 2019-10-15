@@ -3,6 +3,7 @@ package framework
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
 	"halkyon.io/operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -11,27 +12,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
 )
 
-func NewBaseGenericReconciler(primaryResourceManager PrimaryResourceManager, mgr manager.Manager) *BaseGenericReconciler {
-	primaryResourceType := primaryResourceManager.PrimaryResourceType()
+func NewBaseGenericReconciler(primaryResourceManager PrimaryResourceManager) *BaseGenericReconciler {
 	return &BaseGenericReconciler{
-		K8SHelper:  NewHelper(primaryResourceType, mgr),
-		dependents: make(map[string]DependentResource, 7),
+		resourceManager: primaryResourceManager,
+		dependents:      make(map[string]DependentResource, 7),
 	}
 }
 
 func (b *BaseGenericReconciler) SetReconcilerFactory(factory PrimaryResourceManager) {
-	b._factory = factory
+	b.resourceManager = factory
 }
 
 type BaseGenericReconciler struct {
-	*K8SHelper
-	dependents map[string]DependentResource
-	_factory   PrimaryResourceManager
+	dependents      map[string]DependentResource
+	resourceManager PrimaryResourceManager
 }
 
 func (b *BaseGenericReconciler) computeStatus(current Resource, err error) (needsUpdate bool) {
@@ -47,7 +45,7 @@ func (b *BaseGenericReconciler) computeStatus(current Resource, err error) (need
 	}
 	if len(msgs) > 0 {
 		msg := fmt.Sprintf("Waiting for the following resources: %s", strings.Join(msgs, " / "))
-		b.ReqLogger.Info(msg)
+		b.logger().Info(msg)
 		// set the status but ignore the result since dependents are not ready, we do need to update and requeue in any case
 		_ = current.SetInitialStatus(msg)
 		current.SetNeedsRequeue(true)
@@ -58,14 +56,14 @@ func (b *BaseGenericReconciler) computeStatus(current Resource, err error) (need
 }
 
 func (b *BaseGenericReconciler) factory() PrimaryResourceManager {
-	if b._factory == nil {
+	if b.resourceManager == nil {
 		panic(fmt.Errorf("factory needs to be set on BaseGenericReconciler before use"))
 	}
-	return b._factory
+	return b.resourceManager
 }
 
 func (b *BaseGenericReconciler) WatchedSecondaryResourceTypes() []runtime.Object {
-	resources := b._factory.GetDependentResourcesTypes()
+	resources := b.resourceManager.GetDependentResourcesTypes()
 	watched := make([]runtime.Object, 0, len(resources))
 	for _, dep := range resources {
 		if dep.ShouldWatch() {
@@ -84,7 +82,11 @@ func (b *BaseGenericReconciler) CreateOrUpdate(object Resource) error {
 }
 
 func (b *BaseGenericReconciler) Helper() *K8SHelper {
-	return b.K8SHelper
+	return b.resourceManager.Helper()
+}
+
+func (b *BaseGenericReconciler) logger() logr.Logger {
+	return b.Helper().ReqLogger
 }
 
 func getKeyFor(resourceType runtime.Object) (key string) {
@@ -118,23 +120,23 @@ func (b *BaseGenericReconciler) GetDependentResourceFor(owner Resource, resource
 }
 
 func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	b.ReqLogger.WithValues("namespace", request.Namespace)
+	b.logger().WithValues("namespace", request.Namespace)
 
 	// Fetch the primary resource
-	resource, err := b._factory.NewFrom(request.Name, request.Namespace)
-	typeName := util.GetObjectName(b._factory.PrimaryResourceType())
+	resource, err := b.resourceManager.NewFrom(request.Name, request.Namespace)
+	typeName := util.GetObjectName(b.resourceManager.PrimaryResourceType())
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
 			if resource.ShouldDelete() {
-				b.ReqLogger.Info(typeName + " resource is marked for deletion. Running clean-up.")
+				b.logger().Info(typeName + " resource is marked for deletion. Running clean-up.")
 				err := b.Delete(resource)
 				return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
 			}
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - create the request.
-		b.ReqLogger.Error(err, "failed to get "+typeName)
+		b.logger().Error(err, "failed to get "+typeName)
 		return reconcile.Result{}, err
 	}
 
@@ -144,8 +146,8 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 	}
 
 	if resource.Init() {
-		if e := b.Client.Update(context.Background(), resource.GetAPIObject()); e != nil {
-			b.ReqLogger.Error(e, fmt.Sprintf("failed to update '%s' %s", resource.GetName(), typeName))
+		if e := b.Helper().Client.Update(context.Background(), resource.GetAPIObject()); e != nil {
+			b.logger().Error(e, fmt.Sprintf("failed to update '%s' %s", resource.GetName(), typeName))
 		}
 		return reconcile.Result{}, nil
 	}
@@ -155,7 +157,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{Requeue: true}, err
 	}
 
-	b.ReqLogger.Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)
+	b.logger().Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)
 
 	err = b.CreateOrUpdate(resource)
 	if err != nil {
@@ -174,7 +176,7 @@ func (b *BaseGenericReconciler) Reconcile(request reconcile.Request) (reconcile.
 		if requeue {
 			msg += " (requeued)"
 		}
-		b.ReqLogger.Info(msg, "name", resource.GetName(), "status", newStatus)
+		b.logger().Info(msg, "name", resource.GetName(), "status", newStatus)
 	}
 	return reconcile.Result{Requeue: requeue}, err
 }
@@ -183,36 +185,26 @@ func (b *BaseGenericReconciler) updateStatusIfNeeded(instance Resource, err erro
 	// compute the status and update the resource if the status has changed
 	if needsStatusUpdate := b.computeStatus(instance, err); needsStatusUpdate {
 		object := instance.GetAPIObject()
-		if e := b.Client.Status().Update(context.Background(), object); e != nil {
-			b.ReqLogger.Error(e, fmt.Sprintf("failed to update status for '%s' %s", instance.GetName(), util.GetObjectName(object)))
+		if e := b.Helper().Client.Status().Update(context.Background(), object); e != nil {
+			b.logger().Error(e, fmt.Sprintf("failed to update status for '%s' %s", instance.GetName(), util.GetObjectName(object)))
 		}
 	}
-}
-
-func NewHelper(resourceType runtime.Object, mgr manager.Manager) *K8SHelper {
-	helper := &K8SHelper{
-		Client:    mgr.GetClient(),
-		Config:    mgr.GetConfig(),
-		Scheme:    mgr.GetScheme(),
-		ReqLogger: logf.Log.WithName(controllerNameFor(resourceType)),
-	}
-	return helper
-}
-
-type GenericReconciler interface {
-	PrimaryResourceManager
-	reconcile.Reconciler
 }
 
 func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) error {
 	resourceType := factory.PrimaryResourceType()
 
 	// Create a new controller
-	reconciler := NewBaseGenericReconciler(factory, mgr)
-	c, err := controller.New(controllerNameFor(resourceType), mgr, controller.Options{Reconciler: reconciler})
+	controllerName := controllerNameFor(resourceType)
+	reconciler := NewBaseGenericReconciler(factory)
+	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: reconciler})
 	if err != nil {
 		return err
 	}
+
+	// Create helper and set it on the resource manager
+	helper := NewHelper(controllerName, mgr)
+	factory.SetHelper(helper)
 
 	// Watch for changes to primary resource
 	if err = c.Watch(&source.Kind{Type: resourceType}, &handler.EnqueueRequestForObject{}); err != nil {

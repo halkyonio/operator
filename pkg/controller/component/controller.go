@@ -31,11 +31,10 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // newReconciler returns a new reconcile.Reconciler
-func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
+func NewComponentReconciler() *ReconcileComponent {
 	// todo: make this configurable
 	images := make(map[string]imageInfo, 7)
 	defaultEnvVar := make(map[string]string, 7)
@@ -82,7 +81,6 @@ func NewComponentReconciler(mgr manager.Manager) *ReconcileComponent {
 		runtimeImages: images,
 		supervisor:    &supervisor,
 	}
-	r.K8SHelper = framework.NewHelper(r.PrimaryResourceType(), mgr)
 	return r
 }
 
@@ -95,6 +93,14 @@ type ReconcileComponent struct {
 	*framework.K8SHelper
 	runtimeImages map[string]imageInfo
 	supervisor    *component.Component
+}
+
+func (r *ReconcileComponent) SetHelper(helper *framework.K8SHelper) {
+	r.K8SHelper = helper
+}
+
+func (r *ReconcileComponent) Helper() *framework.K8SHelper {
+	return r.K8SHelper
 }
 
 func (r *ReconcileComponent) GetDependentResourcesTypes() []framework.DependentResource {
