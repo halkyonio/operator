@@ -116,22 +116,6 @@ func (b *HasDependents) AddDependentResource(resource DependentResource) {
 	b.dependents[key] = resource
 }
 
-func (b *HasDependents) MustGetDependentResourceFor(owner Resource, resourceType runtime.Object) (resource DependentResource) {
-	var e error
-	if resource, e = b.GetDependentResourceFor(owner, resourceType); e != nil {
-		panic(e)
-	}
-	return resource
-}
-
-func (b *HasDependents) GetDependentResourceFor(owner Resource, resourceType runtime.Object) (DependentResource, error) {
-	resource, ok := b.dependents[keyFor(resourceType)]
-	if !ok {
-		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", util.GetObjectName(resourceType))
-	}
-	return resource.NewInstanceWith(owner), nil
-}
-
 func (b *HasDependents) WatchedSecondaryResourceTypes() []runtime.Object {
 	watched := make([]runtime.Object, 0, len(b.dependents))
 	for _, dep := range b.dependents {
