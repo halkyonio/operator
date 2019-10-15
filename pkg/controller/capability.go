@@ -92,11 +92,3 @@ func (in *Capability) GetStatusAsString() string {
 func (in *Capability) ShouldDelete() bool {
 	return true
 }
-
-func (in *Capability) Delete() error {
-	return nil
-}
-
-func (in *Capability) SetPrimaryResourceStatus(statuses []framework.DependentResourceStatus) bool {
-	return in.SetSuccessStatus(statuses, "Ready")
-}
