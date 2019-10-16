@@ -86,8 +86,9 @@ type imageInfo struct {
 
 type ComponentManager struct {
 	*framework.K8SHelper
-	runtimeImages map[string]imageInfo
-	supervisor    *component.Component
+	runtimeImages  map[string]imageInfo
+	supervisor     *component.Component
+	dependentTypes []framework.DependentResource
 }
 
 func (r *ComponentManager) SetHelper(helper *framework.K8SHelper) {
@@ -99,19 +100,22 @@ func (r *ComponentManager) Helper() *framework.K8SHelper {
 }
 
 func (r *ComponentManager) GetDependentResourcesTypes() []framework.DependentResource {
-	return []framework.DependentResource{
-		newPvc(),
-		newDeployment(r),
-		newService(r),
-		newServiceAccount(),
-		newRoute(r),
-		newIngress(r),
-		newTask(),
-		newTaskRun(r),
-		controller2.NewRole(),
-		controller2.NewRoleBinding(),
-		newPod(),
+	if len(r.dependentTypes) == 0 {
+		r.dependentTypes = []framework.DependentResource{
+			newPvc(),
+			newDeployment(r),
+			newService(r),
+			newServiceAccount(),
+			newRoute(r),
+			newIngress(r),
+			newTask(),
+			newTaskRun(r),
+			newRole(nil),
+			newRoleBinding(nil),
+			newPod(),
+		}
 	}
+	return r.dependentTypes
 }
 
 func (r *ComponentManager) PrimaryResourceType() runtime.Object {

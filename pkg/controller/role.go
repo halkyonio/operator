@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"fmt"
 	"halkyon.io/operator/pkg/controller/framework"
-	"halkyon.io/operator/pkg/util"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -11,6 +9,7 @@ import (
 
 type Role struct {
 	*framework.DependentResourceHelper
+	namer func() string
 }
 
 func (res Role) Update(toUpdate runtime.Object) (bool, error) {
@@ -18,33 +17,18 @@ func (res Role) Update(toUpdate runtime.Object) (bool, error) {
 }
 
 func (res Role) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedRole(owner)
+	return NewOwnedRole(owner, res.namer)
 }
 
-func NewRole() Role {
-	return newOwnedRole(nil)
-}
-
-func newOwnedRole(owner framework.Resource) Role {
+func NewOwnedRole(owner framework.Resource, namerFn func() string) Role {
 	dependent := framework.NewDependentResource(&authorizv1.Role{}, owner)
-	role := Role{DependentResourceHelper: dependent}
+	role := Role{DependentResourceHelper: dependent, namer: namerFn}
 	dependent.SetDelegate(role)
 	return role
 }
 
-func RoleName(owner framework.Resource) string {
-	switch owner.(type) {
-	case *Component:
-		return "image-scc-privileged-role"
-	case *Capability:
-		return "scc-privileged-role"
-	default:
-		panic(fmt.Sprintf("unknown type '%s' for role owner", util.GetObjectName(owner)))
-	}
-}
-
 func (res Role) Name() string {
-	return RoleName(res.Owner())
+	return res.namer()
 }
 
 func (res Role) Build() (runtime.Object, error) {
@@ -63,15 +47,6 @@ func (res Role) Build() (runtime.Object, error) {
 			},
 		},
 	}
-
-	if _, ok := c.(*Component); ok {
-		ser.Rules = append(ser.Rules, authorizv1.PolicyRule{
-			APIGroups: []string{"image.openshift.io"},
-			Resources: []string{"imagestreams", "imagestreams/layers"},
-			Verbs:     []string{"*"},
-		})
-	}
-
 	return ser, nil
 }
 

@@ -29,6 +29,7 @@ func NewCapabilityManager() *CapabilityManager {
 
 type CapabilityManager struct {
 	*framework.K8SHelper
+	dependentTypes []framework.DependentResource
 }
 
 func (r *CapabilityManager) SetHelper(helper *framework.K8SHelper) {
@@ -40,12 +41,15 @@ func (r *CapabilityManager) Helper() *framework.K8SHelper {
 }
 
 func (r *CapabilityManager) GetDependentResourcesTypes() []framework.DependentResource {
-	return []framework.DependentResource{
-		newSecret(),
-		newPostgres(),
-		controller2.NewRole(),
-		controller2.NewRoleBinding(),
+	if len(r.dependentTypes) == 0 {
+		r.dependentTypes = []framework.DependentResource{
+			newSecret(),
+			newPostgres(),
+			newRole(nil),
+			newRoleBinding(nil),
+		}
 	}
+	return r.dependentTypes
 }
 
 func (r *CapabilityManager) PrimaryResourceType() runtime.Object {
