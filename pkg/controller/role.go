@@ -9,25 +9,25 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type role struct {
+type Role struct {
 	*framework.DependentResourceHelper
 }
 
-func (res role) Update(toUpdate runtime.Object) (bool, error) {
+func (res Role) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res role) NewInstanceWith(owner framework.Resource) framework.DependentResource {
+func (res Role) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedRole(owner)
 }
 
-func NewRole() role {
+func NewRole() Role {
 	return newOwnedRole(nil)
 }
 
-func newOwnedRole(owner framework.Resource) role {
+func newOwnedRole(owner framework.Resource) Role {
 	dependent := framework.NewDependentResource(&authorizv1.Role{}, owner)
-	role := role{DependentResourceHelper: dependent}
+	role := Role{DependentResourceHelper: dependent}
 	dependent.SetDelegate(role)
 	return role
 }
@@ -43,11 +43,11 @@ func RoleName(owner framework.Resource) string {
 	}
 }
 
-func (res role) Name() string {
+func (res Role) Name() string {
 	return RoleName(res.Owner())
 }
 
-func (res role) Build() (runtime.Object, error) {
+func (res Role) Build() (runtime.Object, error) {
 	c := res.Owner()
 	ser := &authorizv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
@@ -75,6 +75,6 @@ func (res role) Build() (runtime.Object, error) {
 	return ser, nil
 }
 
-func (res role) ShouldWatch() bool {
+func (res Role) ShouldWatch() bool {
 	return false
 }
