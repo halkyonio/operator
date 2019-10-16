@@ -9,11 +9,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type roleBinding struct {
+type RoleBinding struct {
 	*framework.DependentResourceHelper
 }
 
-func (res roleBinding) Update(toUpdate runtime.Object) (bool, error) {
+func (res RoleBinding) Update(toUpdate runtime.Object) (bool, error) {
 	// add appropriate subject for owner
 	rb := toUpdate.(*authorizv1.RoleBinding)
 	owner := res.Owner()
@@ -40,17 +40,17 @@ func (res roleBinding) Update(toUpdate runtime.Object) (bool, error) {
 	return !found, nil
 }
 
-func (res roleBinding) NewInstanceWith(owner framework.Resource) framework.DependentResource {
+func (res RoleBinding) NewInstanceWith(owner framework.Resource) framework.DependentResource {
 	return newOwnedRoleBinding(owner)
 }
 
-func NewRoleBinding() roleBinding {
+func NewRoleBinding() RoleBinding {
 	return newOwnedRoleBinding(nil)
 }
 
-func newOwnedRoleBinding(owner framework.Resource) roleBinding {
+func newOwnedRoleBinding(owner framework.Resource) RoleBinding {
 	dependent := framework.NewDependentResource(&authorizv1.RoleBinding{}, owner)
-	rolebinding := roleBinding{
+	rolebinding := RoleBinding{
 		DependentResourceHelper: dependent,
 	}
 	dependent.SetDelegate(rolebinding)
@@ -68,11 +68,11 @@ func RoleBindingName(owner framework.Resource) string {
 	}
 }
 
-func (res roleBinding) Name() string {
+func (res RoleBinding) Name() string {
 	return RoleBindingName(res.Owner())
 }
 
-func (res roleBinding) Build() (runtime.Object, error) {
+func (res RoleBinding) Build() (runtime.Object, error) {
 	c := res.Owner()
 	namespace := c.GetNamespace()
 	ser := &authorizv1.RoleBinding{
@@ -96,6 +96,6 @@ func (res roleBinding) Build() (runtime.Object, error) {
 	return ser, nil
 }
 
-func (res roleBinding) ShouldWatch() bool {
+func (res RoleBinding) ShouldWatch() bool {
 	return false
 }
