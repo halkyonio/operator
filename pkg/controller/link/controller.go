@@ -19,6 +19,7 @@ func NewLinkManager() *LinkManager {
 
 type LinkManager struct {
 	*framework.K8SHelper
+	dependentTypes []framework.DependentResource
 }
 
 func (r *LinkManager) SetHelper(helper *framework.K8SHelper) {
@@ -30,7 +31,10 @@ func (r *LinkManager) Helper() *framework.K8SHelper {
 }
 
 func (r *LinkManager) GetDependentResourcesTypes() []framework.DependentResource {
-	return []framework.DependentResource{newComponent()}
+	if len(r.dependentTypes) == 0 {
+		r.dependentTypes = []framework.DependentResource{newComponent()}
+	}
+	return r.dependentTypes
 }
 
 func (r *LinkManager) PrimaryResourceType() runtime.Object {

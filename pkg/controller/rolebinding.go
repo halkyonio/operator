@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"fmt"
 	"halkyon.io/operator/pkg/controller/framework"
-	"halkyon.io/operator/pkg/util"
 	authorizv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -11,6 +9,8 @@ import (
 
 type RoleBinding struct {
 	*framework.DependentResourceHelper
+	namer               func() string
+	associatedRoleNamer func() string
 }
 
 func (res RoleBinding) Update(toUpdate runtime.Object) (bool, error) {
@@ -41,35 +41,22 @@ func (res RoleBinding) Update(toUpdate runtime.Object) (bool, error) {
 }
 
 func (res RoleBinding) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedRoleBinding(owner)
+	return NewOwnedRoleBinding(owner, res.namer, res.associatedRoleNamer)
 }
 
-func NewRoleBinding() RoleBinding {
-	return newOwnedRoleBinding(nil)
-}
-
-func newOwnedRoleBinding(owner framework.Resource) RoleBinding {
+func NewOwnedRoleBinding(owner framework.Resource, namer, associatedRoleNamer func() string) RoleBinding {
 	dependent := framework.NewDependentResource(&authorizv1.RoleBinding{}, owner)
 	rolebinding := RoleBinding{
 		DependentResourceHelper: dependent,
+		namer:                   namer,
+		associatedRoleNamer:     associatedRoleNamer,
 	}
 	dependent.SetDelegate(rolebinding)
 	return rolebinding
 }
 
-func RoleBindingName(owner framework.Resource) string {
-	switch owner.(type) {
-	case *Component:
-		return "use-image-scc-privileged"
-	case *Capability:
-		return "use-scc-privileged"
-	default:
-		panic(fmt.Sprintf("unknown type '%s' for role owner", util.GetObjectName(owner)))
-	}
-}
-
 func (res RoleBinding) Name() string {
-	return RoleBindingName(res.Owner())
+	return res.namer()
 }
 
 func (res RoleBinding) Build() (runtime.Object, error) {
@@ -82,17 +69,12 @@ func (res RoleBinding) Build() (runtime.Object, error) {
 		},
 		RoleRef: authorizv1.RoleRef{
 			Kind: "Role",
-			Name: RoleName(c),
+			Name: res.associatedRoleNamer(),
 		},
 		Subjects: []authorizv1.Subject{
 			{Kind: "ServiceAccount", Name: ServiceAccountName(c), Namespace: namespace},
 		},
 	}
-
-	if _, ok := c.(*Capability); ok {
-		ser.Subjects = append(ser.Subjects, authorizv1.Subject{Kind: "ServiceAccount", Name: PostgresName(c), Namespace: namespace})
-	}
-
 	return ser, nil
 }
 
