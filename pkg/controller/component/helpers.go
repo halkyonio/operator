@@ -12,7 +12,7 @@ const (
 	BaseS2iImage          = "BASE_S2I_IMAGE"
 )
 
-func (r *ComponentManager) getEnvAsMap(component component.ComponentSpec) (map[string]string, error) {
+func getEnvAsMap(component component.ComponentSpec) (map[string]string, error) {
 	envs := component.Envs
 	tmpEnvVar := make(map[string]string)
 
@@ -20,7 +20,7 @@ func (r *ComponentManager) getEnvAsMap(component component.ComponentSpec) (map[s
 		tmpEnvVar[v.Name] = v.Value
 	}
 
-	image, err := r.getImageInfo(component)
+	image, err := getImageInfo(component)
 	if err != nil {
 		return map[string]string{}, err
 	}
@@ -35,8 +35,8 @@ func (r *ComponentManager) getEnvAsMap(component component.ComponentSpec) (map[s
 	return tmpEnvVar, nil
 }
 
-func (r *ComponentManager) populateEnvVar(component *controller.Component) {
-	tmpEnvVar, err := r.getEnvAsMap(component.Spec)
+func populateEnvVar(component *controller.Component) {
+	tmpEnvVar, err := getEnvAsMap(component.Spec)
 	if err != nil {
 		panic(err)
 	}

@@ -32,7 +32,7 @@ func (r *ComponentManager) installDevMode(component *halkyon.Component, namespac
 	}
 
 	// Enrich Env Vars with Default values
-	r.populateEnvVar(component)
+	populateEnvVar(component)
 
 	return component.CreateOrUpdate(r.K8SHelper)
 }

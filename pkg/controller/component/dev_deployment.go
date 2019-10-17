@@ -1,10 +1,8 @@
 package component
 
 import (
-	"fmt"
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller"
-	"halkyon.io/operator/pkg/util"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -25,7 +23,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 
 	// create runtime container
 	r := res.reconciler
-	runtimeContainer, err := r.getBaseContainerFor(c.Component)
+	runtimeContainer, err := getBaseContainerFor(c.Component)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +41,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/usr/src"})
 
 	// create the supervisor init container
-	supervisorContainer, err := r.getBaseContainerFor(r.supervisor)
+	supervisorContainer, err := getBaseContainerFor(r.supervisor)
 	if err != nil {
 		return nil, err
 	}
@@ -85,15 +83,15 @@ func (res deployment) installDev() (runtime.Object, error) {
 	return dep, nil
 }
 
-func (r *ComponentManager) getBaseContainerFor(component *component.Component) (corev1.Container, error) {
-	runtimeImage, err := r.getImageReference(component.Spec)
+func getBaseContainerFor(component *component.Component) (corev1.Container, error) {
+	runtimeImage, err := getImageInfo(component.Spec)
 	if err != nil {
 		return corev1.Container{}, err
 	}
 
 	container := corev1.Container{
-		Env:             r.populatePodEnvVar(component.Spec),
-		Image:           runtimeImage,
+		Env:             populatePodEnvVar(component.Spec),
+		Image:           runtimeImage.RegistryRef,
 		ImagePullPolicy: corev1.PullAlways,
 		Name:            component.Name,
 		VolumeMounts: []corev1.VolumeMount{
@@ -103,28 +101,8 @@ func (r *ComponentManager) getBaseContainerFor(component *component.Component) (
 	return container, nil
 }
 
-func (r *ComponentManager) getImageInfo(component component.ComponentSpec) (imageInfo, error) {
-	image, ok := r.runtimeImages[component.Runtime]
-	if !ok {
-		return imageInfo{}, fmt.Errorf("unknown image identifier: %s", component.Runtime)
-	}
-	return image, nil
-}
-
-func (r *ComponentManager) getImageReference(component component.ComponentSpec) (string, error) {
-	image, err := r.getImageInfo(component)
-	if err != nil {
-		return "", err
-	}
-
-	// todo: compute image version based on runtime version if needed
-	v := latestVersionTag
-
-	return util.GetImageReference(image.registryRef, v), nil
-}
-
-func (r *ComponentManager) populatePodEnvVar(component component.ComponentSpec) []corev1.EnvVar {
-	tmpEnvVar, err := r.getEnvAsMap(component)
+func populatePodEnvVar(component component.ComponentSpec) []corev1.EnvVar {
+	tmpEnvVar, err := getEnvAsMap(component)
 	if err != nil {
 		panic(err)
 	}

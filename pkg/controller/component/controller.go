@@ -31,29 +31,6 @@ import (
 
 func NewComponentManager() *ComponentManager {
 	// todo: make this configurable
-	images := make(map[string]imageInfo, 7)
-	defaultEnvVar := make(map[string]string, 7)
-	// defaultEnvVar["JAVA_APP_JAR"] = "app.jar"
-	images["spring-boot"] = imageInfo{
-		registryRef: "quay.io/halkyonio/hal-maven-jdk",
-		defaultEnv:  defaultEnvVar,
-	}
-	images["vert.x"] = imageInfo{
-		registryRef: "quay.io/halkyonio/hal-maven-jdk",
-		defaultEnv:  defaultEnvVar,
-	}
-	images["quarkus"] = imageInfo{
-		registryRef: "quay.io/halkyonio/hal-maven-jdk",
-		defaultEnv:  defaultEnvVar,
-	}
-	images["thorntail"] = imageInfo{
-		registryRef: "quay.io/halkyonio/hal-maven-jdk",
-		defaultEnv:  defaultEnvVar,
-	}
-	// References images
-	images["openjdk8"] = imageInfo{registryRef: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"}
-	images["node.js"] = imageInfo{registryRef: "nodeshift/centos7-s2i-nodejs"}
-	images[supervisorImageId] = imageInfo{registryRef: "quay.io/halkyonio/supervisord"}
 
 	supervisor := component.Component{
 		ObjectMeta: v1.ObjectMeta{
@@ -73,20 +50,13 @@ func NewComponentManager() *ComponentManager {
 	}
 
 	r := &ComponentManager{
-		runtimeImages: images,
-		supervisor:    &supervisor,
+		supervisor: &supervisor,
 	}
 	return r
 }
 
-type imageInfo struct {
-	registryRef string
-	defaultEnv  map[string]string
-}
-
 type ComponentManager struct {
 	*framework.K8SHelper
-	runtimeImages  map[string]imageInfo
 	supervisor     *component.Component
 	dependentTypes []framework.DependentResource
 }
