@@ -3,6 +3,7 @@ package component
 import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -17,8 +18,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	ls := getAppLabels(controller.DeploymentName(c))
 
 	// create runtime container using built image (= created by the Tekton build task)
-	// r := res.reconciler
-	runtimeContainer, err := res.reconciler.getRuntimeContainerFor(c)
+	runtimeContainer, err := getRuntimeContainerFor(c)
 	if err != nil {
 		return nil, err
 	}
@@ -70,10 +70,10 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	return dep, nil
 }
 
-func (r *ComponentManager) getRuntimeContainerFor(component *controller.Component) (corev1.Container, error) {
+func getRuntimeContainerFor(component *controller.Component) (corev1.Container, error) {
 	container := corev1.Container{
 		Env:             populatePodEnvVar(component.Spec),
-		Image:           r.dockerImageURL(component),
+		Image:           dockerImageURL(component),
 		ImagePullPolicy: corev1.PullAlways,
 		Name:            component.Name,
 	}

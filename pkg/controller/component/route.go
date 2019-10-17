@@ -10,20 +10,19 @@ import (
 
 type route struct {
 	base
-	reconciler *ComponentManager // todo: remove
 }
 
 func (res route) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedRoute(res.reconciler, owner)
+	return newOwnedRoute(owner)
 }
 
-func newRoute(reconciler *ComponentManager) route {
-	return newOwnedRoute(reconciler, nil)
+func newRoute() route {
+	return newOwnedRoute(nil)
 }
 
-func newOwnedRoute(reconciler *ComponentManager, owner framework.Resource) route {
+func newOwnedRoute(owner framework.Resource) route {
 	dependent := newBaseDependent(&routev1.Route{}, owner)
-	r := route{base: dependent, reconciler: reconciler}
+	r := route{base: dependent}
 	dependent.SetDelegate(r)
 	return r
 }
