@@ -68,12 +68,6 @@ func getBuildLabels(name string) map[string]string {
 	}
 }
 
-//Check if the mandatory specs are filled
-func (r *ComponentManager) hasMandatorySpecs(instance *controller.Component) bool {
-	// TODO
-	return true
-}
-
 func (r *ComponentManager) PopulateK8sLabels(component *controller.Component, componentType string) map[string]string {
 	labels := map[string]string{}
 	labels[v1beta1.RuntimeLabelKey] = component.Spec.Runtime

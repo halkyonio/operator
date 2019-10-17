@@ -36,8 +36,3 @@ func (r *ComponentManager) installDevMode(component *halkyon.Component, namespac
 
 	return component.CreateOrUpdate(r.K8SHelper)
 }
-
-func (r *ComponentManager) deleteDevMode(component *halkyon.Component, namespace string) error {
-	// todo
-	return nil
-}
