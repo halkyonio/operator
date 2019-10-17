@@ -50,7 +50,7 @@ func (res route) Build() (runtime.Object, error) {
 }
 
 func (res route) ShouldWatch() bool {
-	return res.reconciler.IsTargetClusterRunningOpenShift()
+	return framework.IsTargetClusterRunningOpenShift()
 }
 
 func (res route) CanBeCreatedOrUpdated() bool {

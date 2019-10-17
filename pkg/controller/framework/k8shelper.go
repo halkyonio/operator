@@ -17,53 +17,10 @@ import (
 )
 
 type K8SHelper struct {
-	Client           client.Client
-	Config           *rest.Config
-	Scheme           *runtime.Scheme
-	ReqLogger        logr.Logger
-	onOpenShift      *bool
-	openShiftVersion int
-}
-
-func (rh *K8SHelper) OpenShiftVersion() int {
-	rh.IsTargetClusterRunningOpenShift() // make sure things are properly initialized
-	return rh.openShiftVersion
-}
-
-func (rh *K8SHelper) IsTargetClusterRunningOpenShift() bool {
-	if rh.onOpenShift == nil {
-		discoveryClient, err := discovery.NewDiscoveryClientForConfig(rh.Config)
-		if err != nil {
-			panic(err)
-		}
-		apiList, err := discoveryClient.ServerGroups()
-		if err != nil {
-			panic(err)
-		}
-		apiGroups := apiList.Groups
-		const openShiftGroupSuffix = ".openshift.io"
-		const openShift4GroupName = "config" + openShiftGroupSuffix
-		for _, group := range apiGroups {
-			if strings.HasSuffix(group.Name, openShiftGroupSuffix) {
-				if rh.onOpenShift == nil {
-					rh.onOpenShift = util.NewTrue()
-					rh.openShiftVersion = 3
-				}
-				if group.Name == openShift4GroupName {
-					rh.openShiftVersion = 4
-					break
-				}
-			}
-		}
-
-		if rh.onOpenShift == nil {
-			// we didn't find any api group with the openshift.io suffix, so we're not on OpenShift!
-			rh.onOpenShift = util.NewFalse()
-			rh.openShiftVersion = 0
-		}
-	}
-
-	return *rh.onOpenShift
+	Client    client.Client
+	Config    *rest.Config
+	Scheme    *runtime.Scheme
+	ReqLogger logr.Logger
 }
 
 func (rh K8SHelper) Fetch(name, namespace string, into runtime.Object) (runtime.Object, error) {
@@ -83,5 +40,6 @@ func NewHelper(nameForLogger string, mgr manager.Manager) *K8SHelper {
 		Scheme:    mgr.GetScheme(),
 		ReqLogger: log.Log.WithName(nameForLogger),
 	}
+	checkIfOpenShift(config)
 	return helper
 }

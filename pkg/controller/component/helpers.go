@@ -125,8 +125,8 @@ func (r *ComponentManager) dockerImageURL(c *controller.Component) string {
 		return registry + "/" + c.Namespace + "/" + c.Name
 	}
 	// Revert to default values if no ENV var is set
-	if r.IsTargetClusterRunningOpenShift() {
-		if r.OpenShiftVersion() == 4 {
+	if framework.IsTargetClusterRunningOpenShift() {
+		if framework.OpenShiftVersion() == 4 {
 			return "image-registry.openshift-image-registry.svc:5000/" + c.Namespace + "/" + c.Name
 		} else {
 			return "docker-registry.default.svc:5000/" + c.Namespace + "/" + c.Name

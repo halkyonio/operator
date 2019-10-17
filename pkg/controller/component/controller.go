@@ -111,7 +111,7 @@ func (r *ComponentManager) CreateOrUpdate(object framework.Resource) (err error)
 }
 
 func (r *ComponentManager) Delete(resource framework.Resource) error {
-	if r.IsTargetClusterRunningOpenShift() {
+	if framework.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
 		// when it is created during build deployment mode
 		imageStream := &unstructured.Unstructured{
