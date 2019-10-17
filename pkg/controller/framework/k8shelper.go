@@ -8,13 +8,13 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"strings"
 )
+
+var helpers = make(map[string]*K8SHelper, 7)
 
 type K8SHelper struct {
 	Client    client.Client
@@ -33,13 +33,19 @@ func (rh K8SHelper) Fetch(name, namespace string, into runtime.Object) (runtime.
 	return into, nil
 }
 
-func NewHelper(nameForLogger string, mgr manager.Manager) *K8SHelper {
+func NewHelper(nameForLogger string, resourceType runtime.Object, mgr manager.Manager) *K8SHelper {
+	config := mgr.GetConfig()
 	helper := &K8SHelper{
 		Client:    mgr.GetClient(),
-		Config:    mgr.GetConfig(),
+		Config:    config,
 		Scheme:    mgr.GetScheme(),
 		ReqLogger: log.Log.WithName(nameForLogger),
 	}
+	helpers[util.GetObjectName(resourceType)] = helper
 	checkIfOpenShift(config)
 	return helper
+}
+
+func GetHelperFor(resourceType runtime.Object) *K8SHelper {
+	return helpers[util.GetObjectName(resourceType)]
 }
