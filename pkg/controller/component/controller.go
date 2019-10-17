@@ -30,34 +30,11 @@ import (
 )
 
 func NewComponentManager() *ComponentManager {
-	// todo: make this configurable
-
-	supervisor := component.Component{
-		ObjectMeta: v1.ObjectMeta{
-			Name: supervisorContainerName,
-		},
-		Spec: component.ComponentSpec{
-			Runtime: supervisorImageId,
-			Version: latestVersionTag,
-			Envs: []v1beta1.NameValuePair{
-				{
-					Name: "CMDS",
-					Value: "build:/usr/local/bin/build:false;" +
-						"run:/usr/local/bin/run:true",
-				},
-			},
-		},
-	}
-
-	r := &ComponentManager{
-		supervisor: &supervisor,
-	}
-	return r
+	return &ComponentManager{}
 }
 
 type ComponentManager struct {
 	*framework.K8SHelper
-	supervisor     *component.Component
 	dependentTypes []framework.DependentResource
 }
 

@@ -3,6 +3,14 @@ package component
 import (
 	"fmt"
 	"halkyon.io/api/component/v1beta1"
+	halkyon "halkyon.io/api/v1beta1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	supervisorContainerName = "copy-supervisord"
+	supervisorImageId       = "supervisord"
+	latestVersionTag        = "latest"
 )
 
 // todo: extract into configuration file
@@ -50,4 +58,22 @@ func getImageInfo(component v1beta1.ComponentSpec) (Runtime, error) {
 	}
 
 	return versions.getRuntimeVersionFor(component.Version), nil
+}
+
+func getSupervisor() *v1beta1.Component {
+	return &v1beta1.Component{
+		ObjectMeta: v1.ObjectMeta{
+			Name: supervisorContainerName,
+		},
+		Spec: v1beta1.ComponentSpec{
+			Runtime: supervisorImageId,
+			Envs: []halkyon.NameValuePair{
+				{
+					Name: "CMDS",
+					Value: "build:/usr/local/bin/build:false;" +
+						"run:/usr/local/bin/run:true",
+				},
+			},
+		},
+	}
 }
