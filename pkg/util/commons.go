@@ -1,18 +1,9 @@
 package util
 
 import (
-	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 )
-
-func GetImageReference(imageName string, version ...string) string {
-	runtimeVersion := "latest"
-	if len(version) == 1 && len(version[0]) > 0 {
-		runtimeVersion = version[0]
-	}
-	return fmt.Sprintf("%s:%s", imageName, runtimeVersion)
-}
 
 func Index(vs []string, t string) int {
 	for i, v := range vs {
