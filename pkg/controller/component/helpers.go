@@ -4,6 +4,7 @@ import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator/pkg/controller"
+	"halkyon.io/operator/pkg/controller/framework"
 	"os"
 )
 
@@ -78,7 +79,7 @@ func (r *ComponentManager) PopulateK8sLabels(component *controller.Component, co
 	return labels
 }
 
-func (r *ComponentManager) baseImage(c *controller.Component) string {
+func baseImage(c *controller.Component) string {
 	if c.Spec.BuildConfig.BaseImage != "" {
 		return c.Spec.BuildConfig.BaseImage
 	} else {
@@ -92,7 +93,7 @@ func (r *ComponentManager) baseImage(c *controller.Component) string {
 	}
 }
 
-func (r *ComponentManager) contextPath(c *controller.Component) string {
+func contextPath(c *controller.Component) string {
 	if c.Spec.BuildConfig.ContextPath != "" {
 		return c.Spec.BuildConfig.ContextPath
 	} else {
@@ -101,7 +102,7 @@ func (r *ComponentManager) contextPath(c *controller.Component) string {
 	}
 }
 
-func (r *ComponentManager) moduleDirName(c *controller.Component) string {
+func moduleDirName(c *controller.Component) string {
 	if c.Spec.BuildConfig.ModuleDirName != "" {
 		return c.Spec.BuildConfig.ModuleDirName
 	} else {
@@ -110,7 +111,7 @@ func (r *ComponentManager) moduleDirName(c *controller.Component) string {
 	}
 }
 
-func (r *ComponentManager) gitRevision(c *controller.Component) string {
+func gitRevision(c *controller.Component) string {
 	if c.Spec.BuildConfig.Ref == "" {
 		return "master"
 	} else {
@@ -118,7 +119,7 @@ func (r *ComponentManager) gitRevision(c *controller.Component) string {
 	}
 }
 
-func (r *ComponentManager) dockerImageURL(c *controller.Component) string {
+func dockerImageURL(c *controller.Component) string {
 	// Try to find the registry env var
 	registry, found := os.LookupEnv(RegistryAddressEnvVar)
 	if found {

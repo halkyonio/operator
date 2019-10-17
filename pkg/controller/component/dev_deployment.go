@@ -10,19 +10,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-const (
-	supervisorContainerName = "copy-supervisord"
-	supervisorImageId       = "supervisord"
-	latestVersionTag        = "latest"
-)
-
 //buildDevDeployment returns the Deployment config object
 func (res deployment) installDev() (runtime.Object, error) {
 	c := res.ownerAsComponent()
 	ls := getAppLabels(controller.DeploymentName(c))
 
 	// create runtime container
-	r := res.reconciler
 	runtimeContainer, err := getBaseContainerFor(c.Component)
 	if err != nil {
 		return nil, err

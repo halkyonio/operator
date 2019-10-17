@@ -20,11 +20,9 @@ package component
 import (
 	"context"
 	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/api/v1beta1"
 	controller2 "halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -50,13 +48,13 @@ func (r *ComponentManager) GetDependentResourcesTypes() []framework.DependentRes
 	if len(r.dependentTypes) == 0 {
 		r.dependentTypes = []framework.DependentResource{
 			newPvc(),
-			newDeployment(r),
-			newService(r),
+			newDeployment(),
+			newService(),
 			newServiceAccount(),
-			newRoute(r),
-			newIngress(r),
+			newRoute(),
+			newIngress(),
 			newTask(),
-			newTaskRun(r),
+			newTaskRun(),
 			newRole(nil),
 			newRoleBinding(nil),
 			newPod(),

@@ -13,22 +13,20 @@ import (
 
 type taskRun struct {
 	base
-	reconciler *ComponentManager // todo: remove
 }
 
 func (res taskRun) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedTaskRun(res.reconciler, owner)
+	return newOwnedTaskRun(owner)
 }
 
-func newTaskRun(reconciler *ComponentManager) taskRun {
-	return newOwnedTaskRun(reconciler, nil)
+func newTaskRun() taskRun {
+	return newOwnedTaskRun(nil)
 }
 
-func newOwnedTaskRun(reconciler *ComponentManager, owner framework.Resource) taskRun {
+func newOwnedTaskRun(owner framework.Resource) taskRun {
 	dependent := newBaseDependent(&v1alpha1.TaskRun{}, owner)
 	t := taskRun{
-		base:       dependent,
-		reconciler: reconciler,
+		base: dependent,
 	}
 	dependent.SetDelegate(t)
 	return t
@@ -52,9 +50,9 @@ func (res taskRun) Build() (runtime.Object, error) {
 				Params: []v1alpha1.Param{
 					// See description of the parameters within the Tasks
 					// We only override parameters here. Defaults are defined within the Tasks
-					{Name: "baseImage", Value: res.reconciler.baseImage(c)},
-					{Name: "moduleDirName", Value: res.reconciler.moduleDirName(c)},
-					{Name: "contextPath", Value: res.reconciler.contextPath(c)},
+					{Name: "baseImage", Value: baseImage(c)},
+					{Name: "moduleDirName", Value: moduleDirName(c)},
+					{Name: "contextPath", Value: contextPath(c)},
 				},
 				Resources: []v1alpha1.TaskResourceBinding{
 					{
@@ -64,7 +62,7 @@ func (res taskRun) Build() (runtime.Object, error) {
 							Params: []v1alpha1.Param{
 								{
 									Name:  "revision",
-									Value: res.reconciler.gitRevision(c),
+									Value: gitRevision(c),
 								},
 								{
 									Name:  "url",
@@ -85,7 +83,7 @@ func (res taskRun) Build() (runtime.Object, error) {
 								{
 									Name: "url",
 									// Calculate the path of the image using docker registry URL for ocp or k8s cluster
-									Value: res.reconciler.dockerImageURL(c),
+									Value: dockerImageURL(c),
 								},
 							},
 						},

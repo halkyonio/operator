@@ -11,20 +11,19 @@ import (
 
 type ingress struct {
 	base
-	reconciler *ComponentManager
 }
 
 func (res ingress) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedIngress(res.reconciler, owner)
+	return newOwnedIngress(owner)
 }
 
-func newIngress(reconciler *ComponentManager) ingress {
-	return newOwnedIngress(reconciler, nil)
+func newIngress() ingress {
+	return newOwnedIngress(nil)
 }
 
-func newOwnedIngress(reconciler *ComponentManager, owner framework.Resource) ingress {
+func newOwnedIngress(owner framework.Resource) ingress {
 	dependent := newBaseDependent(&v1beta1.Ingress{}, owner)
-	i := ingress{base: dependent, reconciler: reconciler}
+	i := ingress{base: dependent}
 	dependent.SetDelegate(i)
 	return i
 }

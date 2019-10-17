@@ -10,23 +10,19 @@ import (
 
 type deployment struct {
 	base
-	reconciler *ComponentManager // todo: remove
 }
 
 func (res deployment) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedDeployment(res.reconciler, owner)
+	return newOwnedDeployment(owner)
 }
 
-func newDeployment(reconciler *ComponentManager) deployment {
-	return newOwnedDeployment(reconciler, nil)
+func newDeployment() deployment {
+	return newOwnedDeployment(nil)
 }
 
-func newOwnedDeployment(reconciler *ComponentManager, owner framework.Resource) deployment {
+func newOwnedDeployment(owner framework.Resource) deployment {
 	dependent := newBaseDependent(&appsv1.Deployment{}, owner)
-	d := deployment{
-		base:       dependent,
-		reconciler: reconciler,
-	}
+	d := deployment{base: dependent}
 	dependent.SetDelegate(d)
 	return d
 }
