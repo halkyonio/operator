@@ -28,16 +28,11 @@ func NewCapabilityManager() *CapabilityManager {
 }
 
 type CapabilityManager struct {
-	*framework.K8SHelper
 	dependentTypes []framework.DependentResource
 }
 
-func (r *CapabilityManager) SetHelper(helper *framework.K8SHelper) {
-	r.K8SHelper = helper
-}
-
 func (r *CapabilityManager) Helper() *framework.K8SHelper {
-	return r.K8SHelper
+	return framework.GetHelperFor(r.PrimaryResourceType())
 }
 
 func (r *CapabilityManager) GetDependentResourcesTypes() []framework.DependentResource {

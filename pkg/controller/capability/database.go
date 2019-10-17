@@ -5,5 +5,5 @@ import (
 )
 
 func (r *CapabilityManager) installDB(c *controller.Capability) (e error) {
-	return c.CreateOrUpdate(r.K8SHelper)
+	return c.CreateOrUpdate(r.Helper())
 }

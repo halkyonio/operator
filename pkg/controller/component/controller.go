@@ -32,16 +32,11 @@ func NewComponentManager() *ComponentManager {
 }
 
 type ComponentManager struct {
-	*framework.K8SHelper
 	dependentTypes []framework.DependentResource
 }
 
-func (r *ComponentManager) SetHelper(helper *framework.K8SHelper) {
-	r.K8SHelper = helper
-}
-
 func (r *ComponentManager) Helper() *framework.K8SHelper {
-	return r.K8SHelper
+	return framework.GetHelperFor(r.PrimaryResourceType())
 }
 
 func (r *ComponentManager) GetDependentResourcesTypes() []framework.DependentResource {
@@ -101,7 +96,7 @@ func (r *ComponentManager) Delete(resource framework.Resource) error {
 		}
 
 		// attempt to delete the imagestream if it exists
-		if e := r.Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
+		if e := r.Helper().Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
 			return e
 		}
 	}

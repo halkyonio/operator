@@ -18,16 +18,11 @@ func NewLinkManager() *LinkManager {
 }
 
 type LinkManager struct {
-	*framework.K8SHelper
 	dependentTypes []framework.DependentResource
 }
 
-func (r *LinkManager) SetHelper(helper *framework.K8SHelper) {
-	r.K8SHelper = helper
-}
-
 func (r *LinkManager) Helper() *framework.K8SHelper {
-	return r.K8SHelper
+	return framework.GetHelperFor(r.PrimaryResourceType())
 }
 
 func (r *LinkManager) GetDependentResourcesTypes() []framework.DependentResource {
@@ -69,7 +64,7 @@ func (r *LinkManager) CreateOrUpdate(object framework.Resource) error {
 		}
 
 		// if the deployment has been updated, we need to update the component's status
-		fetch, err := l.FetchUpdatedDependent(&v1beta1.Component{}, r.K8SHelper)
+		fetch, err := l.FetchUpdatedDependent(&v1beta1.Component{}, r.Helper())
 		if err != nil {
 			return fmt.Errorf("cannot retrieve associated component")
 		}
@@ -79,7 +74,7 @@ func (r *LinkManager) CreateOrUpdate(object framework.Resource) error {
 		compStatus.SetLinkingStatus(l.Name, v1beta1.Started, compStatus.PodName)
 		compStatus.PodName = ""
 		compStatus.Message = fmt.Sprintf("Initiating link %s", l.Name)
-		err = r.Client.Status().Update(context.TODO(), c)
+		err = r.Helper().Client.Status().Update(context.TODO(), c)
 		if err != nil {
 			return err
 		}
@@ -137,25 +132,27 @@ func (r *LinkManager) updateContainersWithLinkInfo(l *link.Link, containers []v1
 }
 
 func (r *LinkManager) update(d *appsv1.Deployment) error {
-	err := r.Client.Update(context.TODO(), d)
+	helper := r.Helper()
+	err := helper.Client.Update(context.TODO(), d)
 	if err != nil {
 		return err
 	}
 
-	r.ReqLogger.Info("Deployment updated.")
+	helper.ReqLogger.Info("Deployment updated.")
 	return nil
 }
 
 //fetchDeployment returns the deployment resource created for this instance
 func (r *LinkManager) fetchDeployment(link *link.Link) (*appsv1.Deployment, error) {
+	helper := r.Helper()
 	deployment := &appsv1.Deployment{}
 	name := link.Spec.ComponentName
-	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err == nil {
+	if err := helper.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err == nil {
 		return deployment, nil
-	} else if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name + "-build", Namespace: link.Namespace}, deployment); err == nil {
+	} else if err := helper.Client.Get(context.TODO(), types.NamespacedName{Name: name + "-build", Namespace: link.Namespace}, deployment); err == nil {
 		return deployment, nil
 	} else {
-		r.ReqLogger.Info("Deployment doesn't exist", "Name", name)
+		helper.ReqLogger.Info("Deployment doesn't exist", "Name", name)
 		return deployment, err
 	}
 }
@@ -163,7 +160,7 @@ func (r *LinkManager) fetchDeployment(link *link.Link) (*appsv1.Deployment, erro
 func (r *LinkManager) updateDeploymentWithLink(d *appsv1.Deployment, link *controller.Link) error {
 	// Update the Deployment of the component
 	if err := r.update(d); err != nil {
-		r.ReqLogger.Info("Failed to update deployment.")
+		r.Helper().ReqLogger.Info("Failed to update deployment.")
 		return err
 	}
 

@@ -34,5 +34,5 @@ func (r *ComponentManager) installDevMode(component *halkyon.Component, namespac
 	// Enrich Env Vars with Default values
 	populateEnvVar(component)
 
-	return component.CreateOrUpdate(r.K8SHelper)
+	return component.CreateOrUpdate(r.Helper())
 }
