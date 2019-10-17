@@ -10,6 +10,4 @@ type PrimaryResourceManager interface {
 	CreateOrUpdate(object Resource) error
 	NewFrom(name string, namespace string) (Resource, error)
 	GetDependentResourcesTypes() []DependentResource
-	Helper() *K8SHelper
-	SetHelper(helper *K8SHelper)
 }

@@ -35,7 +35,7 @@ func (b *GenericReconciler) watchedSecondaryResourcesTypes() []runtime.Object {
 }
 
 func (b *GenericReconciler) Helper() *K8SHelper {
-	return b.resourceManager.Helper()
+	return GetHelperFor(b.resourceManager.PrimaryResourceType())
 }
 
 func (b *GenericReconciler) logger() logr.Logger {
@@ -125,9 +125,8 @@ func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) 
 		return err
 	}
 
-	// Create helper and set it on the resource manager
-	helper := NewHelper(controllerName, resourceType, mgr)
-	factory.SetHelper(helper)
+	// Register helper
+	registerHelper(controllerName, resourceType, mgr)
 
 	// Watch for changes to primary resource
 	if err = c.Watch(&source.Kind{Type: resourceType}, &handler.EnqueueRequestForObject{}); err != nil {

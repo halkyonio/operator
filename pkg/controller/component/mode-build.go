@@ -22,5 +22,5 @@ import (
 )
 
 func (r *ComponentManager) installBuildMode(component *halkyon.Component, namespace string) (e error) {
-	return component.CreateOrUpdate(r.K8SHelper)
+	return component.CreateOrUpdate(r.Helper())
 }

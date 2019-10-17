@@ -97,7 +97,9 @@ func createIfNeeded(res DependentResource, helper *K8SHelper) error {
 func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, toInit Resource, manager PrimaryResourceManager) (Resource, error) {
 	toInit.SetName(name)
 	toInit.SetNamespace(namespace)
-	_, err := manager.Helper().Fetch(name, namespace, toInit.GetAPIObject())
+	resourceType := toInit.GetAPIObject()
+	helper := GetHelperFor(resourceType)
+	_, err := helper.Fetch(name, namespace, resourceType)
 	if err != nil {
 		return toInit, err
 	}

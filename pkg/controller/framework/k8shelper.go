@@ -33,7 +33,7 @@ func (rh K8SHelper) Fetch(name, namespace string, into runtime.Object) (runtime.
 	return into, nil
 }
 
-func NewHelper(nameForLogger string, resourceType runtime.Object, mgr manager.Manager) *K8SHelper {
+func registerHelper(nameForLogger string, resourceType runtime.Object, mgr manager.Manager) *K8SHelper {
 	config := mgr.GetConfig()
 	helper := &K8SHelper{
 		Client:    mgr.GetClient(),
