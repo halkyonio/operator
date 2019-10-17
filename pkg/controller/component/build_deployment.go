@@ -27,7 +27,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	// and we will enrich the deployment resource of the runtime container
 	// create a "dev" version of the component to be able to check if the dev deployment exists
 	devDeployment := &appsv1.Deployment{}
-	_, err = res.reconciler.K8SHelper.Fetch(controller.DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
+	_, err = framework.GetHelperFor(c.GetAPIObject()).Fetch(controller.DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
 	if err == nil {
 		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
 		runtimeContainer.Env = devContainer.Env

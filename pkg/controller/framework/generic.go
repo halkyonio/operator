@@ -126,7 +126,7 @@ func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) 
 	}
 
 	// Create helper and set it on the resource manager
-	helper := NewHelper(controllerName, mgr)
+	helper := NewHelper(controllerName, resourceType, mgr)
 	factory.SetHelper(helper)
 
 	// Watch for changes to primary resource
