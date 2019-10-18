@@ -14,15 +14,7 @@ type pod struct {
 	base
 }
 
-func (res pod) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedPod(owner)
-}
-
-func newPod() pod {
-	return newOwnedPod(nil)
-}
-
-func newOwnedPod(owner framework.Resource) pod {
+func newPod(owner framework.Resource) pod {
 	dependent := newBaseDependent(&corev1.Pod{}, owner)
 	i := pod{base: dependent}
 	dependent.SetDelegate(i)

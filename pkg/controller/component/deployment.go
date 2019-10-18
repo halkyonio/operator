@@ -11,15 +11,7 @@ type deployment struct {
 	base
 }
 
-func (res deployment) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedDeployment(owner)
-}
-
-func newDeployment() deployment {
-	return newOwnedDeployment(nil)
-}
-
-func newOwnedDeployment(owner framework.Resource) deployment {
+func newDeployment(owner framework.Resource) deployment {
 	dependent := newBaseDependent(&appsv1.Deployment{}, owner)
 	d := deployment{base: dependent}
 	dependent.SetDelegate(d)

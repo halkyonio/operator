@@ -20,15 +20,7 @@ func (res postgres) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res postgres) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedPostgres(owner)
-}
-
-func newPostgres() postgres {
-	return newOwnedPostgres(nil)
-}
-
-func newOwnedPostgres(owner framework.Resource) postgres {
+func newPostgres(owner framework.Resource) postgres {
 	resource := framework.NewDependentResource(&kubedbv1.Postgres{}, owner)
 	p := postgres{DependentResourceHelper: resource}
 	resource.SetDelegate(p)

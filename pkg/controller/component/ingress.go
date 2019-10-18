@@ -12,15 +12,7 @@ type ingress struct {
 	base
 }
 
-func (res ingress) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedIngress(owner)
-}
-
-func newIngress() ingress {
-	return newOwnedIngress(nil)
-}
-
-func newOwnedIngress(owner framework.Resource) ingress {
+func newIngress(owner framework.Resource) ingress {
 	dependent := newBaseDependent(&v1beta1.Ingress{}, owner)
 	i := ingress{base: dependent}
 	dependent.SetDelegate(i)

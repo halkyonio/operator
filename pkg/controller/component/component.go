@@ -16,7 +16,6 @@ import (
 type Component struct {
 	*halkyon.Component
 	*framework.HasDependents
-	dependentTypes []framework.DependentResource
 }
 
 func (in *Component) PrimaryResourceType() runtime.Object {
@@ -65,25 +64,6 @@ func (in *Component) CreateOrUpdate() (err error) {
 		return in.CreateOrUpdateDependents(helper)
 	}
 	return err
-}
-
-func (in *Component) GetDependentResourcesTypes() []framework.DependentResource {
-	if len(in.dependentTypes) == 0 {
-		in.dependentTypes = []framework.DependentResource{
-			newPvc(),
-			newDeployment(),
-			newService(),
-			newServiceAccount(),
-			newRoute(),
-			newIngress(),
-			newTask(),
-			newTaskRun(),
-			newRole(nil),
-			newRoleBinding(nil),
-			newPod(),
-		}
-	}
-	return in.dependentTypes
 }
 
 func (in *Component) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
@@ -148,11 +128,14 @@ func (in *Component) GetAPIObject() runtime.Object {
 }
 
 func NewComponent() *Component {
-	c := &halkyon.Component{}
-	return &Component{
-		Component:     c,
-		HasDependents: framework.NewHasDependents(),
+	dependents := framework.NewHasDependents()
+	c := &Component{
+		Component:     &halkyon.Component{},
+		HasDependents: dependents,
 	}
+	dependents.AddDependentResource(newPvc(c), newDeployment(c), newService(c), newServiceAccount(c), newRoute(c), newIngress(c),
+		newTask(c), newTaskRun(c), newRole(c), newRoleBinding(c), newPod(c))
+	return c
 }
 
 func (in *Component) isPending() bool {
