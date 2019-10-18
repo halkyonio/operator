@@ -15,7 +15,7 @@ func newRoleBinding(owner framework.Resource) roleBinding {
 	rb := controller.NewOwnedRoleBinding(owner,
 		func() string { return "use-scc-privileged" },
 		func() string { return newRole(owner).Name() },
-		func() string { return newOwnedPostgres(owner).Name() })
+		func() string { return newPostgres(owner).Name() })
 	return roleBinding{RoleBinding: rb}
 }
 

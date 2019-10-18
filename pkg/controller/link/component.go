@@ -14,15 +14,7 @@ func (res component) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res component) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedComponent(owner)
-}
-
-func newComponent() component {
-	return newOwnedComponent(nil)
-}
-
-func newOwnedComponent(owner framework.Resource) component {
+func newComponent(owner framework.Resource) component {
 	resource := framework.NewDependentResource(&v1beta1.Component{}, owner)
 	c := component{DependentResourceHelper: resource}
 	resource.SetDelegate(c)

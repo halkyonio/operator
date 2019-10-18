@@ -26,7 +26,6 @@ const (
 type Capability struct {
 	*halkyon.Capability
 	*framework.HasDependents
-	dependentTypes []framework.DependentResource
 }
 
 func (in *Capability) PrimaryResourceType() runtime.Object {
@@ -40,18 +39,6 @@ func (in *Capability) Delete() error {
 func (in *Capability) CreateOrUpdate() error {
 	helper := framework.GetHelperFor(in.PrimaryResourceType())
 	return in.CreateOrUpdateDependents(helper)
-}
-
-func (in *Capability) GetDependentResourcesTypes() []framework.DependentResource {
-	if len(in.dependentTypes) == 0 {
-		in.dependentTypes = []framework.DependentResource{
-			newSecret(),
-			newPostgres(),
-			newRole(nil),
-			newRoleBinding(nil),
-		}
-	}
-	return in.dependentTypes
 }
 
 func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
@@ -72,12 +59,13 @@ func (in *Capability) GetAPIObject() runtime.Object {
 }
 
 func NewCapability() *Capability {
-	c := &halkyon.Capability{}
-
-	return &Capability{
-		Capability:    c,
-		HasDependents: framework.NewHasDependents(),
+	dependents := framework.NewHasDependents()
+	c := &Capability{
+		Capability:    &halkyon.Capability{},
+		HasDependents: dependents,
 	}
+	dependents.AddDependentResource(newSecret(c), newPostgres(c), newRole(c), newRoleBinding(c))
+	return c
 }
 
 func (in *Capability) SetInitialStatus(msg string) bool {

@@ -16,10 +16,6 @@ func (res Role) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res Role) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return NewOwnedRole(owner, res.namer)
-}
-
 func NewOwnedRole(owner framework.Resource, namerFn func() string) Role {
 	dependent := framework.NewDependentResource(&authorizv1.Role{}, owner)
 	role := Role{DependentResourceHelper: dependent, namer: namerFn}

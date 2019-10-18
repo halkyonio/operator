@@ -15,7 +15,6 @@ import (
 type Link struct {
 	*halkyon.Link
 	*framework.HasDependents
-	dependentTypes []framework.DependentResource
 }
 
 func (in *Link) PrimaryResourceType() runtime.Object {
@@ -64,13 +63,6 @@ func (in *Link) CreateOrUpdate() error {
 	return nil
 }
 
-func (in *Link) GetDependentResourcesTypes() []framework.DependentResource {
-	if len(in.dependentTypes) == 0 {
-		in.dependentTypes = []framework.DependentResource{newComponent()}
-	}
-	return in.dependentTypes
-}
-
 func (in *Link) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
 	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewLink())
 }
@@ -89,11 +81,13 @@ func (in *Link) GetAPIObject() runtime.Object {
 }
 
 func NewLink() *Link {
-	l := &halkyon.Link{}
-	return &Link{
-		Link:          l,
-		HasDependents: framework.NewHasDependents(),
+	dependents := framework.NewHasDependents()
+	l := &Link{
+		Link:          &halkyon.Link{},
+		HasDependents: dependents,
 	}
+	dependents.AddDependentResource(newComponent(l))
+	return l
 }
 
 func (in *Link) SetInitialStatus(msg string) bool {

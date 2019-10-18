@@ -14,15 +14,7 @@ type task struct {
 	base
 }
 
-func (res task) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedTask(owner)
-}
-
-func newTask() task {
-	return newOwnedTask(nil)
-}
-
-func newOwnedTask(owner framework.Resource) task {
+func newTask(owner framework.Resource) task {
 	dependent := newBaseDependent(&v1alpha1.Task{}, owner)
 	t := task{base: dependent}
 	dependent.SetDelegate(t)

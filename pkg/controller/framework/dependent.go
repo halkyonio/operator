@@ -15,7 +15,6 @@ type DependentResource interface {
 	Fetch(helper *K8SHelper) (runtime.Object, error)
 	Build() (runtime.Object, error)
 	Update(toUpdate runtime.Object) (bool, error)
-	NewInstanceWith(owner Resource) DependentResource
 	Owner() Resource
 	Prototype() runtime.Object
 	ShouldWatch() bool

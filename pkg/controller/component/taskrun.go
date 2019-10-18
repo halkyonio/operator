@@ -14,15 +14,7 @@ type taskRun struct {
 	base
 }
 
-func (res taskRun) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedTaskRun(owner)
-}
-
-func newTaskRun() taskRun {
-	return newOwnedTaskRun(nil)
-}
-
-func newOwnedTaskRun(owner framework.Resource) taskRun {
+func newTaskRun(owner framework.Resource) taskRun {
 	dependent := newBaseDependent(&v1alpha1.TaskRun{}, owner)
 	t := taskRun{
 		base: dependent,

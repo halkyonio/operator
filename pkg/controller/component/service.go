@@ -12,15 +12,7 @@ type service struct {
 	base
 }
 
-func (res service) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedService(owner)
-}
-
-func newService() service {
-	return newOwnedService(nil)
-}
-
-func newOwnedService(owner framework.Resource) service {
+func newService(owner framework.Resource) service {
 	dependent := newBaseDependent(&corev1.Service{}, owner)
 	s := service{base: dependent}
 	dependent.SetDelegate(s)

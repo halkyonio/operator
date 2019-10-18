@@ -13,19 +13,11 @@ type pvc struct {
 	base
 }
 
-func (res pvc) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedPvc(owner)
-}
-
-func newOwnedPvc(owner framework.Resource) pvc {
+func newPvc(owner framework.Resource) pvc {
 	dependent := newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)
 	p := pvc{base: dependent}
 	dependent.SetDelegate(p)
 	return p
-}
-
-func newPvc() pvc {
-	return newOwnedPvc(nil)
 }
 
 func (res pvc) Build() (runtime.Object, error) {

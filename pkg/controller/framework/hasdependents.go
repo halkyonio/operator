@@ -51,10 +51,6 @@ func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, t
 	if err != nil {
 		return toInit, err
 	}
-	resourcesTypes := toInit.GetDependentResourcesTypes()
-	for _, rType := range resourcesTypes {
-		toInit.AddDependentResource(rType.NewInstanceWith(toInit))
-	}
 	return toInit, err
 }
 
@@ -71,13 +67,19 @@ func (b *HasDependents) FetchUpdatedDependent(dependentType runtime.Object, help
 	return fetch, nil
 }
 
-func (b *HasDependents) AddDependentResource(resource DependentResource) {
-	if resource.Owner() == nil {
-		panic(fmt.Errorf("dependent resource %s must have an owner", resource.Name()))
+func (b *HasDependents) GetDependentResourcesTypes() map[string]DependentResource {
+	return b.dependents
+}
+
+func (b *HasDependents) AddDependentResource(resources ...DependentResource) {
+	for _, resource := range resources {
+		if resource.Owner() == nil {
+			panic(fmt.Errorf("dependent resource %s must have an owner", resource.Name()))
+		}
+		prototype := resource.Prototype()
+		key := keyFor(prototype)
+		b.dependents[key] = resource
 	}
-	prototype := resource.Prototype()
-	key := keyFor(prototype)
-	b.dependents[key] = resource
 }
 
 func (b *HasDependents) WatchedSecondaryResourceTypes() []runtime.Object {

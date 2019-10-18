@@ -12,15 +12,7 @@ type serviceAccount struct {
 	base
 }
 
-func (res serviceAccount) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedServiceAccount(owner)
-}
-
-func newServiceAccount() serviceAccount {
-	return newOwnedServiceAccount(nil)
-}
-
-func newOwnedServiceAccount(owner framework.Resource) serviceAccount {
+func newServiceAccount(owner framework.Resource) serviceAccount {
 	dependent := newBaseDependent(&corev1.ServiceAccount{}, owner)
 	s := serviceAccount{base: dependent}
 	dependent.SetDelegate(s)

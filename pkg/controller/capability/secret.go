@@ -15,15 +15,7 @@ func (res secret) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func (res secret) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedSecret(owner)
-}
-
-func newSecret() secret {
-	return newOwnedSecret(nil)
-}
-
-func newOwnedSecret(owner framework.Resource) secret {
+func newSecret(owner framework.Resource) secret {
 	resource := framework.NewDependentResource(&v1.Secret{}, owner)
 	s := secret{DependentResourceHelper: resource}
 	resource.SetDelegate(s)

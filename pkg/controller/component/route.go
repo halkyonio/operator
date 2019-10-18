@@ -11,15 +11,7 @@ type route struct {
 	base
 }
 
-func (res route) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newOwnedRoute(owner)
-}
-
-func newRoute() route {
-	return newOwnedRoute(nil)
-}
-
-func newOwnedRoute(owner framework.Resource) route {
+func newRoute(owner framework.Resource) route {
 	dependent := newBaseDependent(&routev1.Route{}, owner)
 	r := route{base: dependent}
 	dependent.SetDelegate(r)
