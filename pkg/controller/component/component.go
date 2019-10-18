@@ -18,10 +18,6 @@ type Component struct {
 	*framework.HasDependents
 }
 
-func (in *Component) PrimaryResourceType() runtime.Object {
-	return &halkyon.Component{}
-}
-
 func (in *Component) Delete() error {
 	if framework.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
@@ -38,8 +34,7 @@ func (in *Component) Delete() error {
 		}
 
 		// attempt to delete the imagestream if it exists
-		helper := framework.GetHelperFor(in.PrimaryResourceType())
-		if e := helper.Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
+		if e := in.Helper().Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
 			return e
 		}
 	}
@@ -47,9 +42,8 @@ func (in *Component) Delete() error {
 }
 
 func (in *Component) CreateOrUpdate() (err error) {
-	helper := framework.GetHelperFor(in.PrimaryResourceType())
 	if halkyon.BuildDeploymentMode == in.Spec.DeploymentMode {
-		err = in.CreateOrUpdateDependents(helper)
+		err = in.CreateOrUpdateDependents()
 	} else {
 		// Enrich Component with k8s recommend Labels
 		in.ObjectMeta.Labels = PopulateK8sLabels(in, "Backend")
@@ -61,7 +55,7 @@ func (in *Component) CreateOrUpdate() (err error) {
 		// Enrich Env Vars with Default values
 		populateEnvVar(in)
 
-		return in.CreateOrUpdateDependents(helper)
+		return in.CreateOrUpdateDependents()
 	}
 	return err
 }
@@ -70,12 +64,12 @@ func (in *Component) FetchAndCreateNew(name, namespace string) (framework.Resour
 	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewComponent())
 }
 
-func (in *Component) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
-	statuses, update := in.HasDependents.ComputeStatus(in, err, helper)
+func (in *Component) ComputeStatus(err error) (needsUpdate bool) {
+	statuses, update := in.HasDependents.ComputeStatus(in, err)
 	if len(in.Status.Links) > 0 {
 		for i, link := range in.Status.Links {
 			if link.Status == halkyon.Started {
-				p, err := in.FetchUpdatedDependent(&corev1.Pod{}, helper)
+				p, err := in.FetchUpdatedDependent(&corev1.Pod{})
 				name := p.(*corev1.Pod).Name
 				if err != nil || name == link.OriginalPodName {
 					in.Status.Phase = halkyon.ComponentLinking
@@ -84,7 +78,7 @@ func (in *Component) ComputeStatus(err error, helper *framework.K8SHelper) (need
 				} else {
 					// update link status
 					l := &hLink.Link{}
-					err := helper.Client.Get(context.TODO(), types.NamespacedName{
+					err := in.Helper().Client.Get(context.TODO(), types.NamespacedName{
 						Namespace: in.Namespace,
 						Name:      link.Name,
 					}, l)
@@ -96,10 +90,10 @@ func (in *Component) ComputeStatus(err error, helper *framework.K8SHelper) (need
 					}
 
 					l.Status.Message = fmt.Sprintf("'%s' finished linking", in.Name)
-					err = helper.Client.Status().Update(context.TODO(), l)
+					err = in.Helper().Client.Status().Update(context.TODO(), l)
 					if err != nil {
 						// todo: fix-me
-						helper.ReqLogger.Error(err, "couldn't update link status", "link name", l.Name)
+						in.Helper().ReqLogger.Error(err, "couldn't update link status", "link name", l.Name)
 					}
 
 					link.Status = halkyon.Linked
@@ -128,7 +122,7 @@ func (in *Component) GetAPIObject() runtime.Object {
 }
 
 func NewComponent() *Component {
-	dependents := framework.NewHasDependents()
+	dependents := framework.NewHasDependents(&halkyon.Component{})
 	c := &Component{
 		Component:     &halkyon.Component{},
 		HasDependents: dependents,

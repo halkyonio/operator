@@ -11,17 +11,15 @@ type Resource interface {
 	v1.Object
 	runtime.Object
 	NeedsRequeue() bool
-	SetNeedsRequeue(requeue bool)
 	GetStatusAsString() string
 	ShouldDelete() bool
 	SetErrorStatus(err error) bool
 	SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool
 	SetInitialStatus(msg string) bool
-	ComputeStatus(err error, helper *K8SHelper) (needsUpdate bool)
+	ComputeStatus(err error) (needsUpdate bool)
 	CheckValidity() error
 	Init() bool
 	GetAPIObject() runtime.Object
-	FetchUpdatedDependent(dependentType runtime.Object, helper *K8SHelper) (runtime.Object, error)
 	FetchAndCreateNew(name, namespace string) (Resource, error)
 	PrimaryResourceType() runtime.Object
 	Delete() error

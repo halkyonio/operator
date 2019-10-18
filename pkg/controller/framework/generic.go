@@ -21,6 +21,7 @@ func NewGenericReconciler(resource Resource) *GenericReconciler {
 
 type GenericReconciler struct {
 	resource Resource
+	helper   *K8SHelper
 }
 
 func (b *GenericReconciler) watchedSecondaryResourcesTypes() []runtime.Object {
@@ -35,7 +36,10 @@ func (b *GenericReconciler) watchedSecondaryResourcesTypes() []runtime.Object {
 }
 
 func (b *GenericReconciler) Helper() *K8SHelper {
-	return GetHelperFor(b.resource.PrimaryResourceType())
+	if b.helper == nil {
+		b.helper = GetHelperFor(b.resource.PrimaryResourceType())
+	}
+	return b.helper
 }
 
 func (b *GenericReconciler) logger() logr.Logger {
@@ -106,7 +110,7 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 
 func (b *GenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	// compute the status and update the resource if the status has changed
-	if needsStatusUpdate := instance.ComputeStatus(err, b.Helper()); needsStatusUpdate {
+	if needsStatusUpdate := instance.ComputeStatus(err); needsStatusUpdate {
 		object := instance.GetAPIObject()
 		if e := b.Helper().Client.Status().Update(context.Background(), object); e != nil {
 			b.logger().Error(e, fmt.Sprintf("failed to update status for '%s' %s", instance.GetName(), util.GetObjectName(object)))

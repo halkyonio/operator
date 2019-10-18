@@ -9,8 +9,21 @@ import (
 )
 
 type HasDependents struct {
-	dependents map[string]DependentResource
-	requeue    bool
+	dependents          map[string]DependentResource
+	requeue             bool
+	helper              *K8SHelper
+	primaryResourceType runtime.Object
+}
+
+func (b *HasDependents) PrimaryResourceType() runtime.Object {
+	return b.primaryResourceType
+}
+
+func (b *HasDependents) Helper() *K8SHelper {
+	if b.helper == nil {
+		b.helper = GetHelperFor(b.primaryResourceType)
+	}
+	return b.helper
 }
 
 func (b *HasDependents) SetNeedsRequeue(requeue bool) {
@@ -21,8 +34,8 @@ func (b *HasDependents) NeedsRequeue() bool {
 	return b.requeue
 }
 
-func NewHasDependents() *HasDependents {
-	return &HasDependents{dependents: make(map[string]DependentResource, 7)}
+func NewHasDependents(primary runtime.Object) *HasDependents {
+	return &HasDependents{dependents: make(map[string]DependentResource, 15), primaryResourceType: primary}
 }
 
 func keyFor(resourceType runtime.Object) (key string) {
@@ -33,9 +46,9 @@ func keyFor(resourceType runtime.Object) (key string) {
 	return
 }
 
-func (b *HasDependents) CreateOrUpdateDependents(helper *K8SHelper) error {
+func (b *HasDependents) CreateOrUpdateDependents() error {
 	for _, dep := range b.dependents {
-		if e := dep.CreateOrUpdate(helper); e != nil {
+		if e := dep.CreateOrUpdate(b.Helper()); e != nil {
 			return e
 		}
 	}
@@ -46,21 +59,20 @@ func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, t
 	toInit.SetName(name)
 	toInit.SetNamespace(namespace)
 	resourceType := toInit.GetAPIObject()
-	helper := GetHelperFor(resourceType)
-	_, err := helper.Fetch(name, namespace, resourceType)
+	_, err := b.Helper().Fetch(name, namespace, resourceType)
 	if err != nil {
 		return toInit, err
 	}
 	return toInit, err
 }
 
-func (b *HasDependents) FetchUpdatedDependent(dependentType runtime.Object, helper *K8SHelper) (runtime.Object, error) {
+func (b *HasDependents) FetchUpdatedDependent(dependentType runtime.Object) (runtime.Object, error) {
 	key := keyFor(dependentType)
 	resource, ok := b.dependents[key]
 	if !ok {
 		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", util.GetObjectName(dependentType))
 	}
-	fetch, err := resource.Fetch(helper)
+	fetch, err := resource.Fetch(b.Helper())
 	if err != nil {
 		return nil, err
 	}
@@ -82,21 +94,11 @@ func (b *HasDependents) AddDependentResource(resources ...DependentResource) {
 	}
 }
 
-func (b *HasDependents) WatchedSecondaryResourceTypes() []runtime.Object {
-	watched := make([]runtime.Object, 0, len(b.dependents))
-	for _, dep := range b.dependents {
-		if dep.ShouldWatch() {
-			watched = append(watched, dep.Prototype())
-		}
-	}
-	return watched
-}
-
-func (b *HasDependents) ComputeStatus(current Resource, err error, helper *K8SHelper) (statuses []DependentResourceStatus, needsUpdate bool) {
+func (b *HasDependents) ComputeStatus(current Resource, err error) (statuses []DependentResourceStatus, needsUpdate bool) {
 	if err != nil {
 		return statuses, current.SetErrorStatus(err)
 	}
-	statuses = b.areDependentResourcesReady(helper)
+	statuses = b.areDependentResourcesReady()
 	msgs := make([]string, 0, len(statuses))
 	for _, status := range statuses {
 		if !status.Ready {
@@ -105,22 +107,22 @@ func (b *HasDependents) ComputeStatus(current Resource, err error, helper *K8SHe
 	}
 	if len(msgs) > 0 {
 		msg := fmt.Sprintf("Waiting for the following resources: %s", strings.Join(msgs, " / "))
-		helper.ReqLogger.Info(msg)
+		b.Helper().ReqLogger.Info(msg)
 		// set the status but ignore the result since dependents are not ready, we do need to update and requeue in any case
 		_ = current.SetInitialStatus(msg)
-		current.SetNeedsRequeue(true)
+		b.SetNeedsRequeue(true)
 		return statuses, true
 	}
 
 	return statuses, false
 }
 
-func (b *HasDependents) areDependentResourcesReady(helper *K8SHelper) (statuses []DependentResourceStatus) {
+func (b *HasDependents) areDependentResourcesReady() (statuses []DependentResourceStatus) {
 	statuses = make([]DependentResourceStatus, 0, len(b.dependents))
 	for _, dependent := range b.dependents {
 		if dependent.ShouldBeCheckedForReadiness() {
 			objectType := dependent.Prototype()
-			fetched, err := b.FetchUpdatedDependent(objectType, helper)
+			fetched, err := b.FetchUpdatedDependent(objectType)
 			name := util.GetObjectName(objectType)
 			if err != nil {
 				statuses = append(statuses, NewFailedDependentResourceStatus(name, err))

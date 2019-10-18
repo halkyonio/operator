@@ -17,10 +17,6 @@ type Link struct {
 	*framework.HasDependents
 }
 
-func (in *Link) PrimaryResourceType() runtime.Object {
-	return &halkyon.Link{}
-}
-
 func (in *Link) Delete() error {
 	return nil
 }
@@ -43,8 +39,7 @@ func (in *Link) CreateOrUpdate() error {
 		}
 
 		// if the deployment has been updated, we need to update the component's status
-		helper := framework.GetHelperFor(in.PrimaryResourceType())
-		fetch, err := in.FetchUpdatedDependent(&v1beta1.Component{}, helper)
+		fetch, err := in.FetchUpdatedDependent(&v1beta1.Component{})
 		if err != nil {
 			return fmt.Errorf("cannot retrieve associated component")
 		}
@@ -54,7 +49,7 @@ func (in *Link) CreateOrUpdate() error {
 		compStatus.SetLinkingStatus(in.Name, v1beta1.Started, compStatus.PodName)
 		compStatus.PodName = ""
 		compStatus.Message = fmt.Sprintf("Initiating link %s", in.Name)
-		err = helper.Client.Status().Update(context.TODO(), c)
+		err = in.Helper().Client.Status().Update(context.TODO(), c)
 		if err != nil {
 			return err
 		}
@@ -67,8 +62,8 @@ func (in *Link) FetchAndCreateNew(name, namespace string) (framework.Resource, e
 	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewLink())
 }
 
-func (in *Link) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
-	statuses, update := in.HasDependents.ComputeStatus(in, err, helper)
+func (in *Link) ComputeStatus(err error) (needsUpdate bool) {
+	statuses, update := in.HasDependents.ComputeStatus(in, err)
 	return in.SetSuccessStatus(statuses, "Ready") || update
 }
 
@@ -81,7 +76,7 @@ func (in *Link) GetAPIObject() runtime.Object {
 }
 
 func NewLink() *Link {
-	dependents := framework.NewHasDependents()
+	dependents := framework.NewHasDependents(&halkyon.Link{})
 	l := &Link{
 		Link:          &halkyon.Link{},
 		HasDependents: dependents,
@@ -208,9 +203,8 @@ func update(d *appsv1.Deployment) error {
 
 func updateDeploymentWithLink(d *appsv1.Deployment, link *Link) error {
 	// Update the Deployment of the component
-	helper := framework.GetHelperFor(&halkyon.Link{})
 	if err := update(d); err != nil {
-		helper.ReqLogger.Info("Failed to update deployment.")
+		link.Helper().ReqLogger.Info("Failed to update deployment.")
 		return err
 	}
 

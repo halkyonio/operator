@@ -28,25 +28,20 @@ type Capability struct {
 	*framework.HasDependents
 }
 
-func (in *Capability) PrimaryResourceType() runtime.Object {
-	return &halkyon.Capability{}
-}
-
 func (in *Capability) Delete() error {
 	return nil
 }
 
 func (in *Capability) CreateOrUpdate() error {
-	helper := framework.GetHelperFor(in.PrimaryResourceType())
-	return in.CreateOrUpdateDependents(helper)
+	return in.CreateOrUpdateDependents()
 }
 
 func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
 	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewCapability())
 }
 
-func (in *Capability) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
-	statuses, update := in.HasDependents.ComputeStatus(in, err, helper)
+func (in *Capability) ComputeStatus(err error) (needsUpdate bool) {
+	statuses, update := in.HasDependents.ComputeStatus(in, err)
 	return in.SetSuccessStatus(statuses, "Ready") || update
 }
 
@@ -59,7 +54,7 @@ func (in *Capability) GetAPIObject() runtime.Object {
 }
 
 func NewCapability() *Capability {
-	dependents := framework.NewHasDependents()
+	dependents := framework.NewHasDependents(&halkyon.Capability{})
 	c := &Capability{
 		Capability:    &halkyon.Capability{},
 		HasDependents: dependents,
