@@ -68,7 +68,7 @@ func getBuildLabels(name string) map[string]string {
 	}
 }
 
-func (r *ComponentManager) PopulateK8sLabels(component *Component, componentType string) map[string]string {
+func PopulateK8sLabels(component *Component, componentType string) map[string]string {
 	labels := map[string]string{}
 	labels[v1beta1.RuntimeLabelKey] = component.Spec.Runtime
 	labels[v1beta1.RuntimeVersionLabelKey] = component.Spec.Version

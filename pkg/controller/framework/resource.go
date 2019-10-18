@@ -23,7 +23,11 @@ type Resource interface {
 	GetAPIObject() runtime.Object
 	AddDependentResource(resource DependentResource)
 	FetchUpdatedDependent(dependentType runtime.Object, helper *K8SHelper) (runtime.Object, error)
-	FetchAndInit(name, namespace string, manager PrimaryResourceManager) (Resource, error)
+	FetchAndInit(name, namespace string) (Resource, error)
+	PrimaryResourceType() runtime.Object
+	Delete() error
+	CreateOrUpdate() error
+	GetDependentResourcesTypes() []DependentResource
 }
 
 func HasChangedFromStatusUpdate(status interface{}, statuses []DependentResourceStatus, msg string) (changed bool, updatedMsg string) {

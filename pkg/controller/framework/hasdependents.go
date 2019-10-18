@@ -28,7 +28,7 @@ func keyFor(resourceType runtime.Object) (key string) {
 	return
 }
 
-func (b *HasDependents) CreateOrUpdate(helper *K8SHelper) error {
+func (b *HasDependents) CreateOrUpdateDependents(helper *K8SHelper) error {
 	for _, resource := range b.dependents {
 		if e := createIfNeeded(resource, helper); e != nil {
 			return e
@@ -94,7 +94,7 @@ func createIfNeeded(res DependentResource, helper *K8SHelper) error {
 	}
 }
 
-func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, toInit Resource, manager PrimaryResourceManager) (Resource, error) {
+func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, toInit Resource) (Resource, error) {
 	toInit.SetName(name)
 	toInit.SetNamespace(namespace)
 	resourceType := toInit.GetAPIObject()
@@ -103,7 +103,7 @@ func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, t
 	if err != nil {
 		return toInit, err
 	}
-	resourcesTypes := manager.GetDependentResourcesTypes()
+	resourcesTypes := toInit.GetDependentResourcesTypes()
 	for _, rType := range resourcesTypes {
 		toInit.AddDependentResource(rType.NewInstanceWith(toInit))
 	}

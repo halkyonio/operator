@@ -7,14 +7,56 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+const (
+	SECRET = "Secret"
+	// KubeDB Postgres const
+	KUBEDB_PG_DATABASE      = "Postgres"
+	KUBEDB_PG_DATABASE_NAME = "POSTGRES_DB"
+	KUBEDB_PG_USER          = "POSTGRES_USER"
+	KUBEDB_PG_PASSWORD      = "POSTGRES_PASSWORD"
+	// Capability const
+	DB_CONFIG_NAME = "DB_CONFIG_NAME"
+	DB_HOST        = "DB_HOST"
+	DB_PORT        = "DB_PORT"
+	DB_NAME        = "DB_NAME"
+	DB_USER        = "DB_USER"
+	DB_PASSWORD    = "DB_PASSWORD"
+)
+
 type Capability struct {
 	*halkyon.Capability
 	*framework.Requeueable
 	*framework.HasDependents
+	dependentTypes []framework.DependentResource
 }
 
-func (in *Capability) FetchAndInit(name, namespace string, manager framework.PrimaryResourceManager) (framework.Resource, error) {
-	return in.HasDependents.FetchAndInitNewResource(name, namespace, in, manager)
+func (in *Capability) PrimaryResourceType() runtime.Object {
+	return &halkyon.Capability{}
+}
+
+func (in *Capability) Delete() error {
+	return nil
+}
+
+func (in *Capability) CreateOrUpdate() error {
+	helper := framework.GetHelperFor(in.PrimaryResourceType())
+	return in.CreateOrUpdateDependents(helper)
+}
+
+func (in *Capability) GetDependentResourcesTypes() []framework.DependentResource {
+	if len(in.dependentTypes) == 0 {
+		in.dependentTypes = []framework.DependentResource{
+			newSecret(),
+			newPostgres(),
+			newRole(nil),
+			newRoleBinding(nil),
+		}
+	}
+	return in.dependentTypes
+}
+
+func (in *Capability) FetchAndInit(name, namespace string) (framework.Resource, error) {
+	return in.HasDependents.FetchAndInitNewResource(name, namespace, in)
 }
 
 func (in *Capability) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {

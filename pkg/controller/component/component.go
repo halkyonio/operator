@@ -7,6 +7,8 @@ import (
 	hLink "halkyon.io/api/link/v1beta1"
 	"halkyon.io/operator/pkg/controller/framework"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -15,10 +17,78 @@ type Component struct {
 	*halkyon.Component
 	*framework.Requeueable
 	*framework.HasDependents
+	dependentTypes []framework.DependentResource
 }
 
-func (in *Component) FetchAndInit(name, namespace string, manager framework.PrimaryResourceManager) (framework.Resource, error) {
-	return in.HasDependents.FetchAndInitNewResource(name, namespace, in, manager)
+func (in *Component) PrimaryResourceType() runtime.Object {
+	return &halkyon.Component{}
+}
+
+func (in *Component) Delete() error {
+	if framework.IsTargetClusterRunningOpenShift() {
+		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource
+		// when it is created during build deployment mode
+		imageStream := &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "image.openshift.io/v1",
+				"kind":       "ImageStream",
+				"metadata": map[string]interface{}{
+					"name":      in.GetName(),
+					"namespace": in.GetNamespace(),
+				},
+			},
+		}
+
+		// attempt to delete the imagestream if it exists
+		helper := framework.GetHelperFor(in.PrimaryResourceType())
+		if e := helper.Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
+			return e
+		}
+	}
+	return nil
+}
+
+func (in *Component) CreateOrUpdate() (err error) {
+	helper := framework.GetHelperFor(in.PrimaryResourceType())
+	if halkyon.BuildDeploymentMode == in.Spec.DeploymentMode {
+		err = in.CreateOrUpdateDependents(helper)
+	} else {
+		// Enrich Component with k8s recommend Labels
+		in.ObjectMeta.Labels = PopulateK8sLabels(in, "Backend")
+		// Check if Service port exists, otherwise error out
+		if in.Spec.Port == 0 {
+			return fmt.Errorf("component '%s' must provide a port", in.Name)
+		}
+
+		// Enrich Env Vars with Default values
+		populateEnvVar(in)
+
+		return in.CreateOrUpdateDependents(helper)
+	}
+	return err
+}
+
+func (in *Component) GetDependentResourcesTypes() []framework.DependentResource {
+	if len(in.dependentTypes) == 0 {
+		in.dependentTypes = []framework.DependentResource{
+			newPvc(),
+			newDeployment(),
+			newService(),
+			newServiceAccount(),
+			newRoute(),
+			newIngress(),
+			newTask(),
+			newTaskRun(),
+			newRole(nil),
+			newRoleBinding(nil),
+			newPod(),
+		}
+	}
+	return in.dependentTypes
+}
+
+func (in *Component) FetchAndInit(name, namespace string) (framework.Resource, error) {
+	return in.HasDependents.FetchAndInitNewResource(name, namespace, in)
 }
 
 func (in *Component) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
