@@ -1,14 +1,10 @@
 package framework
 
 import (
-	"context"
 	"fmt"
 	"halkyon.io/operator/pkg/util"
-	"k8s.io/apimachinery/pkg/api/errors"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strings"
 )
 
@@ -29,69 +25,12 @@ func keyFor(resourceType runtime.Object) (key string) {
 }
 
 func (b *HasDependents) CreateOrUpdateDependents(helper *K8SHelper) error {
-	for _, resource := range b.dependents {
-		if e := createIfNeeded(resource, helper); e != nil {
+	for _, dep := range b.dependents {
+		if e := dep.CreateOrUpdate(helper); e != nil {
 			return e
 		}
 	}
 	return nil
-}
-
-func createIfNeeded(res DependentResource, helper *K8SHelper) error {
-	// if the resource specifies that it shouldn't be created, exit fast
-	if !res.CanBeCreatedOrUpdated() {
-		return nil
-	}
-
-	kind := util.GetObjectName(res.Prototype())
-	object, err := res.Fetch(helper)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// create the object
-			obj, errBuildObject := res.Build()
-			if errBuildObject != nil {
-				return errBuildObject
-			}
-
-			// set controller reference if the resource should be owned
-			if res.ShouldBeOwned() {
-				// in most instances, resourceDefinedOwner == owner but some resources might want to return a different one
-				resourceDefinedOwner := res.Owner()
-				if e := controllerutil.SetControllerReference(resourceDefinedOwner.GetAPIObject().(v1.Object), obj.(v1.Object), helper.Scheme); e != nil {
-					helper.ReqLogger.Error(err, "Failed to set owner", "owner", resourceDefinedOwner, "resource", res.Name())
-					return e
-				}
-			}
-
-			alreadyExists := false
-			if err = helper.Client.Create(context.TODO(), obj); err != nil {
-				// ignore error if it's to state that obj already exists
-				alreadyExists = errors.IsAlreadyExists(err)
-				if !alreadyExists {
-					helper.ReqLogger.Error(err, "Failed to create new ", "kind", kind)
-					return err
-				}
-			}
-			if !alreadyExists {
-				helper.ReqLogger.Info("Created successfully", "kind", kind, "name", obj.(v1.Object).GetName())
-			}
-			return nil
-		}
-		helper.ReqLogger.Error(err, "Failed to get", "kind", kind)
-		return err
-	} else {
-		// if the resource defined an updater, use it to try to update the resource
-		updated, err := res.Update(object)
-		if err != nil {
-			return err
-		}
-		if updated {
-			if err = helper.Client.Update(context.TODO(), object); err != nil {
-				helper.ReqLogger.Error(err, "Failed to update", "kind", kind)
-			}
-		}
-		return err
-	}
 }
 
 func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, toInit Resource) (Resource, error) {
