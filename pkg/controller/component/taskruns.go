@@ -103,6 +103,10 @@ func (res taskRun) ShouldBeCheckedForReadiness() bool {
 	return v1beta1.BuildDeploymentMode == res.ownerAsComponent().Spec.DeploymentMode
 }
 
+func (res taskRun) CanBeCreatedOrUpdated() bool {
+	return res.ShouldBeCheckedForReadiness()
+}
+
 func (res taskRun) IsReady(underlying runtime.Object) (ready bool, message string) {
 	tr := underlying.(*v1alpha1.TaskRun)
 	succeeded := tr.Status.GetCondition(apis.ConditionSucceeded)
