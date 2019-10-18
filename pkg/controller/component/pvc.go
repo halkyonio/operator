@@ -2,7 +2,6 @@ package component
 
 import (
 	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -31,7 +30,7 @@ func newPvc() pvc {
 
 func (res pvc) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(controller.DeploymentName(c))
+	ls := getAppLabels(DeploymentName(c))
 	name := res.Name()
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
@@ -57,7 +56,7 @@ func (res pvc) Build() (runtime.Object, error) {
 }
 
 func (res pvc) Name() string {
-	return controller.PVCName(res.ownerAsComponent())
+	return PVCName(res.ownerAsComponent())
 }
 
 func getCapacity(c *component.Component) resource.Quantity {

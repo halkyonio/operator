@@ -10,7 +10,10 @@ type roleBinding struct {
 }
 
 func newRoleBinding(owner framework.Resource) roleBinding {
-	rb := controller.NewOwnedRoleBinding(owner, func() string { return "use-image-scc-privileged" }, func() string { return newRole(owner).Name() })
+	rb := controller.NewOwnedRoleBinding(owner,
+		func() string { return "use-image-scc-privileged" },
+		func() string { return newRole(owner).Name() },
+		func() string { return ServiceAccountName(owner) })
 	return roleBinding{RoleBinding: rb}
 }
 

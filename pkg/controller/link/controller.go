@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"halkyon.io/api/component/v1beta1"
 	link "halkyon.io/api/link/v1beta1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
@@ -36,12 +35,12 @@ func (r *LinkManager) PrimaryResourceType() runtime.Object {
 	return &link.Link{}
 }
 
-func (LinkManager) asLink(object runtime.Object) *controller.Link {
-	return object.(*controller.Link)
+func (LinkManager) asLink(object runtime.Object) *Link {
+	return object.(*Link)
 }
 
 func (r *LinkManager) NewFrom(name string, namespace string) (framework.Resource, error) {
-	return controller.NewLink().FetchAndInit(name, namespace, r)
+	return NewLink().FetchAndInit(name, namespace, r)
 }
 
 func (r *LinkManager) CreateOrUpdate(object framework.Resource) error {
@@ -157,7 +156,7 @@ func (r *LinkManager) fetchDeployment(link *link.Link) (*appsv1.Deployment, erro
 	}
 }
 
-func (r *LinkManager) updateDeploymentWithLink(d *appsv1.Deployment, link *controller.Link) error {
+func (r *LinkManager) updateDeploymentWithLink(d *appsv1.Deployment, link *Link) error {
 	// Update the Deployment of the component
 	if err := r.update(d); err != nil {
 		r.Helper().ReqLogger.Info("Failed to update deployment.")

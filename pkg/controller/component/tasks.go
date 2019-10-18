@@ -2,7 +2,6 @@ package component
 
 import (
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"halkyon.io/operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
@@ -168,5 +167,5 @@ func (res task) Build() (runtime.Object, error) {
 }
 
 func (res task) Name() string {
-	return controller.TaskName(res.Owner())
+	return TaskName(res.Owner())
 }

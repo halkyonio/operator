@@ -2,7 +2,6 @@ package component
 
 import (
 	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -15,7 +14,7 @@ import (
 //createBuildDeployment returns the Deployment config object to be used for deployment using a container image build by Tekton
 func (res deployment) installBuild() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(controller.DeploymentName(c))
+	ls := getAppLabels(DeploymentName(c))
 
 	// create runtime container using built image (= created by the Tekton build task)
 	runtimeContainer, err := getRuntimeContainerFor(c)
@@ -27,7 +26,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	// and we will enrich the deployment resource of the runtime container
 	// create a "dev" version of the component to be able to check if the dev deployment exists
 	devDeployment := &appsv1.Deployment{}
-	_, err = framework.GetHelperFor(c.GetAPIObject()).Fetch(controller.DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
+	_, err = framework.GetHelperFor(c.GetAPIObject()).Fetch(DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
 	if err == nil {
 		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
 		runtimeContainer.Env = devContainer.Env
@@ -70,7 +69,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	return dep, nil
 }
 
-func getRuntimeContainerFor(component *controller.Component) (corev1.Container, error) {
+func getRuntimeContainerFor(component *Component) (corev1.Container, error) {
 	container := corev1.Container{
 		Env:             populatePodEnvVar(component.Spec),
 		Image:           dockerImageURL(component),

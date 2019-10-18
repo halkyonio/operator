@@ -1,4 +1,4 @@
-package controller
+package component
 
 import (
 	"halkyon.io/operator/pkg/controller/framework"
@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestCapabilitySetSuccessStatus(t *testing.T) {
-	c := NewCapability()
+func TestComponentSetSuccessStatus(t *testing.T) {
+	c := NewComponent()
 	c.Status.PodName = "initial"
 
 	const s = "new pod name"

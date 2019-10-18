@@ -1,4 +1,4 @@
-package controller
+package link
 
 import (
 	halkyon "halkyon.io/api/link/v1beta1"

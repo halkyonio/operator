@@ -5,7 +5,6 @@ import (
 	"github.com/knative/pkg/apis"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -42,9 +41,9 @@ func (res taskRun) Build() (runtime.Object, error) {
 			Labels:    ls,
 		},
 		Spec: v1alpha1.TaskRunSpec{
-			ServiceAccount: controller.ServiceAccountName(c),
+			ServiceAccount: ServiceAccountName(c),
 			TaskRef: &v1alpha1.TaskRef{
-				Name: controller.TaskName(c),
+				Name: TaskName(c),
 			},
 			Inputs: v1alpha1.TaskRunInputs{
 				Params: []v1alpha1.Param{

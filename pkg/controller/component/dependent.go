@@ -1,7 +1,6 @@
 package component
 
 import (
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -18,10 +17,10 @@ func newBaseDependent(primaryResourceType runtime.Object, owner framework.Resour
 	return base{DependentResourceHelper: framework.NewDependentResource(primaryResourceType, owner)}
 }
 
-func (res base) ownerAsComponent() *controller.Component {
-	return res.Owner().(*controller.Component)
+func (res base) ownerAsComponent() *Component {
+	return res.Owner().(*Component)
 }
 
-func (res base) asComponent(object runtime.Object) *controller.Component {
-	return object.(*controller.Component)
+func (res base) asComponent(object runtime.Object) *Component {
+	return object.(*Component)
 }

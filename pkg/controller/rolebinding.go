@@ -11,6 +11,7 @@ type RoleBinding struct {
 	*framework.DependentResourceHelper
 	namer               func() string
 	associatedRoleNamer func() string
+	serviceAccountNamer func() string
 }
 
 func (res RoleBinding) Update(toUpdate runtime.Object) (bool, error) {
@@ -20,7 +21,7 @@ func (res RoleBinding) Update(toUpdate runtime.Object) (bool, error) {
 
 	// check if the binding contains the current owner as subject
 	namespace := owner.GetNamespace()
-	name := ServiceAccountName(owner)
+	name := res.serviceAccountNamer()
 	found := false
 	for _, subject := range rb.Subjects {
 		if subject.Name == name && subject.Namespace == namespace {
@@ -41,15 +42,16 @@ func (res RoleBinding) Update(toUpdate runtime.Object) (bool, error) {
 }
 
 func (res RoleBinding) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return NewOwnedRoleBinding(owner, res.namer, res.associatedRoleNamer)
+	return NewOwnedRoleBinding(owner, res.namer, res.associatedRoleNamer, res.serviceAccountNamer)
 }
 
-func NewOwnedRoleBinding(owner framework.Resource, namer, associatedRoleNamer func() string) RoleBinding {
+func NewOwnedRoleBinding(owner framework.Resource, namer, associatedRoleNamer, serviceAccountNamer func() string) RoleBinding {
 	dependent := framework.NewDependentResource(&authorizv1.RoleBinding{}, owner)
 	rolebinding := RoleBinding{
 		DependentResourceHelper: dependent,
 		namer:                   namer,
 		associatedRoleNamer:     associatedRoleNamer,
+		serviceAccountNamer:     serviceAccountNamer,
 	}
 	dependent.SetDelegate(rolebinding)
 	return rolebinding
@@ -72,7 +74,7 @@ func (res RoleBinding) Build() (runtime.Object, error) {
 			Name: res.associatedRoleNamer(),
 		},
 		Subjects: []authorizv1.Subject{
-			{Kind: "ServiceAccount", Name: ServiceAccountName(c), Namespace: namespace},
+			{Kind: "ServiceAccount", Name: res.serviceAccountNamer(), Namespace: namespace},
 		},
 	}
 	return ser, nil

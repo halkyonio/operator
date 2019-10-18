@@ -2,7 +2,6 @@ package component
 
 import (
 	routev1 "github.com/openshift/api/route/v1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,7 +29,7 @@ func newOwnedRoute(owner framework.Resource) route {
 //buildRoute returns the route resource
 func (res route) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(controller.DeploymentName(c))
+	ls := getAppLabels(DeploymentName(c))
 	route := &routev1.Route{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      res.Name(),

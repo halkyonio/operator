@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/appscode/go/encoding/json/types"
 	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -36,12 +35,12 @@ func newOwnedPostgres(owner framework.Resource) postgres {
 	return p
 }
 
-func (res postgres) ownerAsCapability() *controller.Capability {
-	return res.Owner().(*controller.Capability)
+func (res postgres) ownerAsCapability() *Capability {
+	return res.Owner().(*Capability)
 }
 
 func (res postgres) Name() string {
-	return controller.PostgresName(res.Owner())
+	return PostgresName(res.Owner())
 }
 
 //buildSecret returns the postgres resource

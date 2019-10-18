@@ -2,7 +2,6 @@ package link
 
 import (
 	"halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -44,7 +43,7 @@ func (res component) IsReady(underlying runtime.Object) (ready bool, message str
 }
 
 func (res component) Name() string {
-	return res.Owner().(*controller.Link).Spec.ComponentName
+	return res.Owner().(*Link).Spec.ComponentName
 }
 
 func (res component) Build() (runtime.Object, error) {

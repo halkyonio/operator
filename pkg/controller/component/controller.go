@@ -20,7 +20,6 @@ package component
 import (
 	"context"
 	component "halkyon.io/api/component/v1beta1"
-	controller2 "halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -63,11 +62,11 @@ func (r *ComponentManager) PrimaryResourceType() runtime.Object {
 }
 
 func (r *ComponentManager) NewFrom(name string, namespace string) (framework.Resource, error) {
-	return controller2.NewComponent().FetchAndInit(name, namespace, r)
+	return NewComponent().FetchAndInit(name, namespace, r)
 }
 
-func (ComponentManager) asComponent(object runtime.Object) *controller2.Component {
-	return object.(*controller2.Component)
+func (ComponentManager) asComponent(object runtime.Object) *Component {
+	return object.(*Component)
 }
 
 func (r *ComponentManager) CreateOrUpdate(object framework.Resource) (err error) {

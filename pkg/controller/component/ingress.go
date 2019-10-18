@@ -1,7 +1,6 @@
 package component
 
 import (
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,7 +29,7 @@ func newOwnedIngress(owner framework.Resource) ingress {
 
 func (res ingress) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(controller.DeploymentName(c))
+	ls := getAppLabels(DeploymentName(c))
 	ingress := &v1beta1.Ingress{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      res.Name(),

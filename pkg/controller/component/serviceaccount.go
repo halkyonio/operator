@@ -1,7 +1,6 @@
 package component
 
 import (
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -31,7 +30,7 @@ func newOwnedServiceAccount(owner framework.Resource) serviceAccount {
 //buildServiceAccount returns the service resource
 func (res serviceAccount) Build() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(controller.DeploymentName(c))
+	ls := getAppLabels(DeploymentName(c))
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      res.Name(),
@@ -43,5 +42,5 @@ func (res serviceAccount) Build() (runtime.Object, error) {
 }
 
 func (res serviceAccount) Name() string {
-	return controller.ServiceAccountName(res.Owner())
+	return ServiceAccountName(res.Owner())
 }
