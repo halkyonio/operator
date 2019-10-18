@@ -2,6 +2,7 @@ package component
 
 import (
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
+	"halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller/framework"
 	"halkyon.io/operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
@@ -164,6 +165,14 @@ func (res task) Build() (runtime.Object, error) {
 	}
 
 	return task, nil
+}
+
+func (res task) ShouldBeCheckedForReadiness() bool {
+	return v1beta1.BuildDeploymentMode == res.ownerAsComponent().Spec.DeploymentMode
+}
+
+func (res task) CanBeCreatedOrUpdated() bool {
+	return res.ShouldBeCheckedForReadiness()
 }
 
 func (res task) Name() string {
