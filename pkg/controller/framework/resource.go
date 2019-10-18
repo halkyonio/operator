@@ -14,7 +14,6 @@ type Resource interface {
 	GetStatusAsString() string
 	ShouldDelete() bool
 	SetErrorStatus(err error) bool
-	SetSuccessStatus(statuses []DependentResourceStatus, msg string) bool
 	SetInitialStatus(msg string) bool
 	ComputeStatus(err error) (needsUpdate bool)
 	CheckValidity() error
