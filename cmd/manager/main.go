@@ -96,15 +96,15 @@ func main() {
 	registerAdditionalResources(mgr)
 
 	// Create component controller and add it to the manager
-	if err := framework.RegisterNewReconciler(component.NewComponentManager(), mgr); err != nil {
+	if err := framework.RegisterNewReconciler(component.NewComponent(), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
-	if err := framework.RegisterNewReconciler(capability.NewCapabilityManager(), mgr); err != nil {
+	if err := framework.RegisterNewReconciler(capability.NewCapability(), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
-	if err := framework.RegisterNewReconciler(link.NewLinkManager(), mgr); err != nil {
+	if err := framework.RegisterNewReconciler(link.NewLink(), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}

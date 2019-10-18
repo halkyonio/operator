@@ -15,16 +15,16 @@ import (
 	"strings"
 )
 
-func NewGenericReconciler(primaryResourceManager PrimaryResourceManager) *GenericReconciler {
-	return &GenericReconciler{resourceManager: primaryResourceManager}
+func NewGenericReconciler(resource Resource) *GenericReconciler {
+	return &GenericReconciler{resource: resource}
 }
 
 type GenericReconciler struct {
-	resourceManager PrimaryResourceManager
+	resource Resource
 }
 
 func (b *GenericReconciler) watchedSecondaryResourcesTypes() []runtime.Object {
-	resources := b.resourceManager.GetDependentResourcesTypes()
+	resources := b.resource.GetDependentResourcesTypes()
 	watched := make([]runtime.Object, 0, len(resources))
 	for _, dep := range resources {
 		if dep.ShouldWatch() {
@@ -35,7 +35,7 @@ func (b *GenericReconciler) watchedSecondaryResourcesTypes() []runtime.Object {
 }
 
 func (b *GenericReconciler) Helper() *K8SHelper {
-	return GetHelperFor(b.resourceManager.PrimaryResourceType())
+	return GetHelperFor(b.resource.PrimaryResourceType())
 }
 
 func (b *GenericReconciler) logger() logr.Logger {
@@ -46,14 +46,14 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 	b.logger().WithValues("namespace", request.Namespace)
 
 	// Fetch the primary resource
-	resource, err := b.resourceManager.NewFrom(request.Name, request.Namespace)
-	typeName := util.GetObjectName(b.resourceManager.PrimaryResourceType())
+	resource, err := b.resource.FetchAndInit(request.Name, request.Namespace)
+	typeName := util.GetObjectName(b.resource.PrimaryResourceType())
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't create
 			if resource.ShouldDelete() {
 				b.logger().Info(typeName + " resource is marked for deletion. Running clean-up.")
-				err := b.resourceManager.Delete(resource)
+				err := b.resource.Delete()
 				return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
 			}
 			return reconcile.Result{}, nil
@@ -82,7 +82,7 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	b.logger().Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)
 
-	err = b.resourceManager.CreateOrUpdate(resource)
+	err = b.resource.CreateOrUpdate()
 	if err != nil {
 		err = fmt.Errorf("failed to create or update %s '%s': %s", typeName, resource.GetName(), err.Error())
 	}
@@ -114,12 +114,12 @@ func (b *GenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 	}
 }
 
-func RegisterNewReconciler(factory PrimaryResourceManager, mgr manager.Manager) error {
-	resourceType := factory.PrimaryResourceType()
+func RegisterNewReconciler(resource Resource, mgr manager.Manager) error {
+	resourceType := resource.PrimaryResourceType()
 
 	// Create a new controller
 	controllerName := controllerNameFor(resourceType)
-	reconciler := NewGenericReconciler(factory)
+	reconciler := NewGenericReconciler(resource)
 	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: reconciler})
 	if err != nil {
 		return err
