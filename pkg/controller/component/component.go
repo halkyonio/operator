@@ -47,10 +47,6 @@ func (in *Component) CreateOrUpdate() (err error) {
 	} else {
 		// Enrich Component with k8s recommend Labels
 		in.ObjectMeta.Labels = PopulateK8sLabels(in, "Backend")
-		// Check if Service port exists, otherwise error out
-		if in.Spec.Port == 0 {
-			return fmt.Errorf("component '%s' must provide a port", in.Name)
-		}
 
 		// Enrich Env Vars with Default values
 		populateEnvVar(in)
@@ -154,7 +150,11 @@ func (in *Component) SetInitialStatus(msg string) bool {
 }
 
 func (in *Component) CheckValidity() error {
-	return nil // todo: implement me
+	// Check if Service port exists, otherwise error out
+	if in.Spec.Port == 0 {
+		return fmt.Errorf("component '%s' must provide a port", in.Name)
+	}
+	return nil
 }
 
 func (in *Component) SetErrorStatus(err error) bool {
