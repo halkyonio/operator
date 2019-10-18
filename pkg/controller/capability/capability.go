@@ -54,8 +54,8 @@ func (in *Capability) GetDependentResourcesTypes() []framework.DependentResource
 	return in.dependentTypes
 }
 
-func (in *Capability) FetchAndInit(name, namespace string) (framework.Resource, error) {
-	return in.HasDependents.FetchAndInitNewResource(name, namespace, in)
+func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
+	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewCapability())
 }
 
 func (in *Capability) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
@@ -71,11 +71,9 @@ func (in *Capability) GetAPIObject() runtime.Object {
 	return in.Capability
 }
 
-func NewCapability(capability ...*halkyon.Capability) *Capability {
+func NewCapability() *Capability {
 	c := &halkyon.Capability{}
-	if capability != nil {
-		c = capability[0]
-	}
+
 	return &Capability{
 		Capability:    c,
 		HasDependents: framework.NewHasDependents(),

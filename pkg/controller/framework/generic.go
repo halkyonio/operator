@@ -46,7 +46,7 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 	b.logger().WithValues("namespace", request.Namespace)
 
 	// Fetch the primary resource
-	resource, err := b.resource.FetchAndInit(request.Name, request.Namespace)
+	resource, err := b.resource.FetchAndCreateNew(request.Name, request.Namespace)
 	typeName := util.GetObjectName(b.resource.PrimaryResourceType())
 	if err != nil {
 		if errors.IsNotFound(err) {

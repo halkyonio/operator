@@ -23,7 +23,7 @@ type Resource interface {
 	GetAPIObject() runtime.Object
 	AddDependentResource(resource DependentResource)
 	FetchUpdatedDependent(dependentType runtime.Object, helper *K8SHelper) (runtime.Object, error)
-	FetchAndInit(name, namespace string) (Resource, error)
+	FetchAndCreateNew(name, namespace string) (Resource, error)
 	PrimaryResourceType() runtime.Object
 	Delete() error
 	CreateOrUpdate() error
