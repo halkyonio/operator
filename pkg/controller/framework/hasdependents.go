@@ -10,6 +10,15 @@ import (
 
 type HasDependents struct {
 	dependents map[string]DependentResource
+	requeue    bool
+}
+
+func (b *HasDependents) SetNeedsRequeue(requeue bool) {
+	b.requeue = requeue
+}
+
+func (b *HasDependents) NeedsRequeue() bool {
+	return b.requeue
 }
 
 func NewHasDependents() *HasDependents {

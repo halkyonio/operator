@@ -25,7 +25,6 @@ const (
 
 type Capability struct {
 	*halkyon.Capability
-	*framework.Requeueable
 	*framework.HasDependents
 	dependentTypes []framework.DependentResource
 }
@@ -79,7 +78,6 @@ func NewCapability(capability ...*halkyon.Capability) *Capability {
 	}
 	return &Capability{
 		Capability:    c,
-		Requeueable:   new(framework.Requeueable),
 		HasDependents: framework.NewHasDependents(),
 	}
 }

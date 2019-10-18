@@ -14,7 +14,6 @@ import (
 
 type Link struct {
 	*halkyon.Link
-	*framework.Requeueable
 	*framework.HasDependents
 	dependentTypes []framework.DependentResource
 }
@@ -96,7 +95,6 @@ func NewLink(link ...*halkyon.Link) *Link {
 	}
 	return &Link{
 		Link:          l,
-		Requeueable:   new(framework.Requeueable),
 		HasDependents: framework.NewHasDependents(),
 	}
 }

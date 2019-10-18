@@ -15,7 +15,6 @@ import (
 
 type Component struct {
 	*halkyon.Component
-	*framework.Requeueable
 	*framework.HasDependents
 	dependentTypes []framework.DependentResource
 }
@@ -155,7 +154,6 @@ func NewComponent(component ...*halkyon.Component) *Component {
 	}
 	return &Component{
 		Component:     c,
-		Requeueable:   new(framework.Requeueable),
 		HasDependents: framework.NewHasDependents(),
 	}
 }
