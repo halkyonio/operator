@@ -53,7 +53,7 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 			// Return and don't create
 			if resource.ShouldDelete() {
 				b.logger().Info(typeName + " resource is marked for deletion. Running clean-up.")
-				err := b.resource.Delete()
+				err := resource.Delete()
 				return reconcile.Result{Requeue: resource.NeedsRequeue()}, err
 			}
 			return reconcile.Result{}, nil
@@ -82,7 +82,7 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	b.logger().Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)
 
-	err = b.resource.CreateOrUpdate()
+	err = resource.CreateOrUpdate()
 	if err != nil {
 		err = fmt.Errorf("failed to create or update %s '%s': %s", typeName, resource.GetName(), err.Error())
 	}
