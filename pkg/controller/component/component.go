@@ -86,8 +86,8 @@ func (in *Component) GetDependentResourcesTypes() []framework.DependentResource 
 	return in.dependentTypes
 }
 
-func (in *Component) FetchAndInit(name, namespace string) (framework.Resource, error) {
-	return in.HasDependents.FetchAndInitNewResource(name, namespace, in)
+func (in *Component) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
+	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewComponent())
 }
 
 func (in *Component) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
@@ -147,11 +147,8 @@ func (in *Component) GetAPIObject() runtime.Object {
 	return in.Component
 }
 
-func NewComponent(component ...*halkyon.Component) *Component {
+func NewComponent() *Component {
 	c := &halkyon.Component{}
-	if component != nil {
-		c = component[0]
-	}
 	return &Component{
 		Component:     c,
 		HasDependents: framework.NewHasDependents(),

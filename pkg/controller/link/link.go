@@ -71,8 +71,8 @@ func (in *Link) GetDependentResourcesTypes() []framework.DependentResource {
 	return in.dependentTypes
 }
 
-func (in *Link) FetchAndInit(name, namespace string) (framework.Resource, error) {
-	return in.HasDependents.FetchAndInitNewResource(name, namespace, in)
+func (in *Link) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
+	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewLink())
 }
 
 func (in *Link) ComputeStatus(err error, helper *framework.K8SHelper) (needsUpdate bool) {
@@ -88,11 +88,8 @@ func (in *Link) GetAPIObject() runtime.Object {
 	return in.Link
 }
 
-func NewLink(link ...*halkyon.Link) *Link {
+func NewLink() *Link {
 	l := &halkyon.Link{}
-	if link != nil {
-		l = link[0]
-	}
 	return &Link{
 		Link:          l,
 		HasDependents: framework.NewHasDependents(),
