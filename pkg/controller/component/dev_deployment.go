@@ -2,7 +2,6 @@ package component
 
 import (
 	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -13,7 +12,7 @@ import (
 //buildDevDeployment returns the Deployment config object
 func (res deployment) installDev() (runtime.Object, error) {
 	c := res.ownerAsComponent()
-	ls := getAppLabels(controller.DeploymentName(c))
+	ls := getAppLabels(DeploymentName(c))
 
 	// create runtime container
 	runtimeContainer, err := getBaseContainerFor(c.Component)

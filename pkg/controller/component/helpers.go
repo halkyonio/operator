@@ -3,7 +3,6 @@ package component
 import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/api/v1beta1"
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"os"
 )
@@ -36,7 +35,7 @@ func getEnvAsMap(component component.ComponentSpec) (map[string]string, error) {
 	return tmpEnvVar, nil
 }
 
-func populateEnvVar(component *controller.Component) {
+func populateEnvVar(component *Component) {
 	tmpEnvVar, err := getEnvAsMap(component.Spec)
 	if err != nil {
 		panic(err)
@@ -69,7 +68,7 @@ func getBuildLabels(name string) map[string]string {
 	}
 }
 
-func (r *ComponentManager) PopulateK8sLabels(component *controller.Component, componentType string) map[string]string {
+func (r *ComponentManager) PopulateK8sLabels(component *Component, componentType string) map[string]string {
 	labels := map[string]string{}
 	labels[v1beta1.RuntimeLabelKey] = component.Spec.Runtime
 	labels[v1beta1.RuntimeVersionLabelKey] = component.Spec.Version
@@ -79,7 +78,7 @@ func (r *ComponentManager) PopulateK8sLabels(component *controller.Component, co
 	return labels
 }
 
-func baseImage(c *controller.Component) string {
+func baseImage(c *Component) string {
 	if c.Spec.BuildConfig.BaseImage != "" {
 		return c.Spec.BuildConfig.BaseImage
 	} else {
@@ -93,7 +92,7 @@ func baseImage(c *controller.Component) string {
 	}
 }
 
-func contextPath(c *controller.Component) string {
+func contextPath(c *Component) string {
 	if c.Spec.BuildConfig.ContextPath != "" {
 		return c.Spec.BuildConfig.ContextPath
 	} else {
@@ -102,7 +101,7 @@ func contextPath(c *controller.Component) string {
 	}
 }
 
-func moduleDirName(c *controller.Component) string {
+func moduleDirName(c *Component) string {
 	if c.Spec.BuildConfig.ModuleDirName != "" {
 		return c.Spec.BuildConfig.ModuleDirName
 	} else {
@@ -111,7 +110,7 @@ func moduleDirName(c *controller.Component) string {
 	}
 }
 
-func gitRevision(c *controller.Component) string {
+func gitRevision(c *Component) string {
 	if c.Spec.BuildConfig.Ref == "" {
 		return "master"
 	} else {
@@ -119,7 +118,7 @@ func gitRevision(c *controller.Component) string {
 	}
 }
 
-func dockerImageURL(c *controller.Component) string {
+func dockerImageURL(c *Component) string {
 	// Try to find the registry env var
 	registry, found := os.LookupEnv(RegistryAddressEnvVar)
 	if found {

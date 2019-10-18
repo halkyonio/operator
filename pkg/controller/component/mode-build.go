@@ -17,10 +17,6 @@ limitations under the License.
 
 package component
 
-import (
-	halkyon "halkyon.io/operator/pkg/controller"
-)
-
-func (r *ComponentManager) installBuildMode(component *halkyon.Component, namespace string) (e error) {
+func (r *ComponentManager) installBuildMode(component *Component, namespace string) (e error) {
 	return component.CreateOrUpdate(r.Helper())
 }

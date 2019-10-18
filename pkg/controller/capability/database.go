@@ -1,9 +1,5 @@
 package capability
 
-import (
-	"halkyon.io/operator/pkg/controller"
-)
-
-func (r *CapabilityManager) installDB(c *controller.Capability) (e error) {
+func (r *CapabilityManager) installDB(c *Capability) (e error) {
 	return c.CreateOrUpdate(r.Helper())
 }

@@ -19,10 +19,9 @@ package component
 
 import (
 	"fmt"
-	halkyon "halkyon.io/operator/pkg/controller"
 )
 
-func (r *ComponentManager) installDevMode(component *halkyon.Component, namespace string) (e error) {
+func (r *ComponentManager) installDevMode(component *Component, namespace string) (e error) {
 	component.ObjectMeta.Namespace = namespace
 	// Enrich Component with k8s recommend Labels
 	component.ObjectMeta.Labels = r.PopulateK8sLabels(component, "Backend")

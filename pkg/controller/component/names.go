@@ -1,15 +1,9 @@
-package controller
+package component
 
 import (
-	"fmt"
 	halkyon "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator/pkg/controller/framework"
-	"halkyon.io/operator/pkg/util"
 )
-
-func PostgresName(owner framework.Resource) string {
-	return framework.DefaultDependentResourceNameFor(owner)
-}
 
 func DeploymentName(c *Component) string {
 	return DeploymentNameFor(c, c.Spec.DeploymentMode)
@@ -32,14 +26,7 @@ func PVCName(c *Component) string {
 }
 
 func ServiceAccountName(owner framework.Resource) string {
-	switch owner.(type) {
-	case *Capability:
-		return PostgresName(owner) // todo: fix me
-	case *Component:
-		return "build-bot"
-	default:
-		panic(fmt.Sprintf("a service account shouldn't be created for '%s' %s owner", owner.GetName(), util.GetObjectName(owner)))
-	}
+	return "build-bot"
 }
 
 func TaskName(owner framework.Resource) string {

@@ -1,7 +1,6 @@
 package capability
 
 import (
-	"halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,8 +30,8 @@ func newOwnedSecret(owner framework.Resource) secret {
 	return s
 }
 
-func (res secret) ownerAsCapability() *controller.Capability {
-	return res.Owner().(*controller.Capability)
+func (res secret) ownerAsCapability() *Capability {
+	return res.Owner().(*Capability)
 }
 
 //buildSecret returns the secret resource

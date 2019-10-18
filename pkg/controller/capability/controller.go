@@ -2,7 +2,6 @@ package capability
 
 import (
 	"halkyon.io/api/capability/v1beta1"
-	controller2 "halkyon.io/operator/pkg/controller"
 	"halkyon.io/operator/pkg/controller/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -52,11 +51,11 @@ func (r *CapabilityManager) PrimaryResourceType() runtime.Object {
 }
 
 func (r *CapabilityManager) NewFrom(name string, namespace string) (framework.Resource, error) {
-	return controller2.NewCapability().FetchAndInit(name, namespace, r)
+	return NewCapability().FetchAndInit(name, namespace, r)
 }
 
-func asCapability(object runtime.Object) *controller2.Capability {
-	return object.(*controller2.Capability)
+func asCapability(object runtime.Object) *Capability {
+	return object.(*Capability)
 }
 
 func (r *CapabilityManager) Delete(object framework.Resource) error {
