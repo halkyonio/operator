@@ -119,8 +119,9 @@ func (b *HasDependents) areDependentResourcesReady(helper *K8SHelper) (statuses 
 	statuses = make([]DependentResourceStatus, 0, len(b.dependents))
 	for _, dependent := range b.dependents {
 		if dependent.ShouldBeCheckedForReadiness() {
-			fetched, err := b.FetchUpdatedDependent(dependent.Prototype(), helper)
-			name := util.GetObjectName(dependent.Prototype())
+			objectType := dependent.Prototype()
+			fetched, err := b.FetchUpdatedDependent(objectType, helper)
+			name := util.GetObjectName(objectType)
 			if err != nil {
 				statuses = append(statuses, NewFailedDependentResourceStatus(name, err))
 			} else {
