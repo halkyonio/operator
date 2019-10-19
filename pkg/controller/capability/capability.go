@@ -25,7 +25,7 @@ const (
 
 type Capability struct {
 	*halkyon.Capability
-	*framework.HasDependents
+	*framework.BaseResource
 }
 
 func (in *Capability) Delete() error {
@@ -37,11 +37,11 @@ func (in *Capability) CreateOrUpdate() error {
 }
 
 func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
-	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewCapability())
+	return in.BaseResource.FetchAndInitNewResource(name, namespace, NewCapability())
 }
 
 func (in *Capability) ComputeStatus(err error) (needsUpdate bool) {
-	statuses, update := in.HasDependents.ComputeStatus(in, err)
+	statuses, update := in.BaseResource.ComputeStatus(in, err)
 	return in.SetSuccessStatus(statuses, "Ready") || update
 }
 
@@ -56,8 +56,8 @@ func (in *Capability) GetAPIObject() runtime.Object {
 func NewCapability() *Capability {
 	dependents := framework.NewHasDependents(&halkyon.Capability{})
 	c := &Capability{
-		Capability:    &halkyon.Capability{},
-		HasDependents: dependents,
+		Capability:   &halkyon.Capability{},
+		BaseResource: dependents,
 	}
 	dependents.AddDependentResource(newSecret(c), newPostgres(c), newRole(c), newRoleBinding(c))
 	return c

@@ -8,34 +8,34 @@ import (
 	"strings"
 )
 
-type HasDependents struct {
+type BaseResource struct {
 	dependents          map[string]DependentResource
 	requeue             bool
 	helper              *K8SHelper
 	primaryResourceType runtime.Object
 }
 
-func (b *HasDependents) PrimaryResourceType() runtime.Object {
+func (b *BaseResource) PrimaryResourceType() runtime.Object {
 	return b.primaryResourceType
 }
 
-func (b *HasDependents) Helper() *K8SHelper {
+func (b *BaseResource) Helper() *K8SHelper {
 	if b.helper == nil {
 		b.helper = GetHelperFor(b.primaryResourceType)
 	}
 	return b.helper
 }
 
-func (b *HasDependents) SetNeedsRequeue(requeue bool) {
+func (b *BaseResource) SetNeedsRequeue(requeue bool) {
 	b.requeue = requeue
 }
 
-func (b *HasDependents) NeedsRequeue() bool {
+func (b *BaseResource) NeedsRequeue() bool {
 	return b.requeue
 }
 
-func NewHasDependents(primary runtime.Object) *HasDependents {
-	return &HasDependents{dependents: make(map[string]DependentResource, 15), primaryResourceType: primary}
+func NewHasDependents(primary runtime.Object) *BaseResource {
+	return &BaseResource{dependents: make(map[string]DependentResource, 15), primaryResourceType: primary}
 }
 
 func keyFor(resourceType runtime.Object) (key string) {
@@ -46,7 +46,7 @@ func keyFor(resourceType runtime.Object) (key string) {
 	return
 }
 
-func (b *HasDependents) CreateOrUpdateDependents() error {
+func (b *BaseResource) CreateOrUpdateDependents() error {
 	for _, dep := range b.dependents {
 		if e := dep.CreateOrUpdate(b.Helper()); e != nil {
 			return e
@@ -55,7 +55,7 @@ func (b *HasDependents) CreateOrUpdateDependents() error {
 	return nil
 }
 
-func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, toInit Resource) (Resource, error) {
+func (b *BaseResource) FetchAndInitNewResource(name string, namespace string, toInit Resource) (Resource, error) {
 	toInit.SetName(name)
 	toInit.SetNamespace(namespace)
 	resourceType := toInit.GetAPIObject()
@@ -66,7 +66,7 @@ func (b *HasDependents) FetchAndInitNewResource(name string, namespace string, t
 	return toInit, err
 }
 
-func (b *HasDependents) FetchUpdatedDependent(dependentType runtime.Object) (runtime.Object, error) {
+func (b *BaseResource) FetchUpdatedDependent(dependentType runtime.Object) (runtime.Object, error) {
 	key := keyFor(dependentType)
 	resource, ok := b.dependents[key]
 	if !ok {
@@ -79,11 +79,11 @@ func (b *HasDependents) FetchUpdatedDependent(dependentType runtime.Object) (run
 	return fetch, nil
 }
 
-func (b *HasDependents) GetDependentResourcesTypes() map[string]DependentResource {
+func (b *BaseResource) GetDependentResourcesTypes() map[string]DependentResource {
 	return b.dependents
 }
 
-func (b *HasDependents) AddDependentResource(resources ...DependentResource) {
+func (b *BaseResource) AddDependentResource(resources ...DependentResource) {
 	for _, resource := range resources {
 		if resource.Owner() == nil {
 			panic(fmt.Errorf("dependent resource %s must have an owner", resource.Name()))
@@ -94,7 +94,7 @@ func (b *HasDependents) AddDependentResource(resources ...DependentResource) {
 	}
 }
 
-func (b *HasDependents) ComputeStatus(current Resource, err error) (statuses []DependentResourceStatus, needsUpdate bool) {
+func (b *BaseResource) ComputeStatus(current Resource, err error) (statuses []DependentResourceStatus, needsUpdate bool) {
 	if err != nil {
 		return statuses, current.SetErrorStatus(err)
 	}
@@ -117,7 +117,7 @@ func (b *HasDependents) ComputeStatus(current Resource, err error) (statuses []D
 	return statuses, false
 }
 
-func (b *HasDependents) areDependentResourcesReady() (statuses []DependentResourceStatus) {
+func (b *BaseResource) areDependentResourcesReady() (statuses []DependentResourceStatus) {
 	statuses = make([]DependentResourceStatus, 0, len(b.dependents))
 	for _, dependent := range b.dependents {
 		if dependent.ShouldBeCheckedForReadiness() {

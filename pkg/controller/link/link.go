@@ -14,7 +14,7 @@ import (
 
 type Link struct {
 	*halkyon.Link
-	*framework.HasDependents
+	*framework.BaseResource
 }
 
 func (in *Link) Delete() error {
@@ -59,11 +59,11 @@ func (in *Link) CreateOrUpdate() error {
 }
 
 func (in *Link) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
-	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewLink())
+	return in.BaseResource.FetchAndInitNewResource(name, namespace, NewLink())
 }
 
 func (in *Link) ComputeStatus(err error) (needsUpdate bool) {
-	statuses, update := in.HasDependents.ComputeStatus(in, err)
+	statuses, update := in.BaseResource.ComputeStatus(in, err)
 	return in.SetSuccessStatus(statuses, "Ready") || update
 }
 
@@ -78,8 +78,8 @@ func (in *Link) GetAPIObject() runtime.Object {
 func NewLink() *Link {
 	dependents := framework.NewHasDependents(&halkyon.Link{})
 	l := &Link{
-		Link:          &halkyon.Link{},
-		HasDependents: dependents,
+		Link:         &halkyon.Link{},
+		BaseResource: dependents,
 	}
 	dependents.AddDependentResource(newComponent(l))
 	return l
