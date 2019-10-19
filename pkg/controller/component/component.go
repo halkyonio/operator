@@ -15,7 +15,7 @@ import (
 
 type Component struct {
 	*halkyon.Component
-	*framework.HasDependents
+	*framework.BaseResource
 }
 
 func (in *Component) Delete() error {
@@ -57,11 +57,11 @@ func (in *Component) CreateOrUpdate() (err error) {
 }
 
 func (in *Component) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
-	return in.HasDependents.FetchAndInitNewResource(name, namespace, NewComponent())
+	return in.BaseResource.FetchAndInitNewResource(name, namespace, NewComponent())
 }
 
 func (in *Component) ComputeStatus(err error) (needsUpdate bool) {
-	statuses, update := in.HasDependents.ComputeStatus(in, err)
+	statuses, update := in.BaseResource.ComputeStatus(in, err)
 	if len(in.Status.Links) > 0 {
 		for i, link := range in.Status.Links {
 			if link.Status == halkyon.Started {
@@ -120,8 +120,8 @@ func (in *Component) GetAPIObject() runtime.Object {
 func NewComponent() *Component {
 	dependents := framework.NewHasDependents(&halkyon.Component{})
 	c := &Component{
-		Component:     &halkyon.Component{},
-		HasDependents: dependents,
+		Component:    &halkyon.Component{},
+		BaseResource: dependents,
 	}
 	dependents.AddDependentResource(newPvc(c), newDeployment(c), newService(c), newServiceAccount(c), newRoute(c), newIngress(c),
 		newTask(c), newTaskRun(c), newRole(c), newRoleBinding(c), newPod(c))
