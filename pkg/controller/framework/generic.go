@@ -81,7 +81,7 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	if err := resource.CheckValidity(); err != nil {
 		b.updateStatusIfNeeded(resource, err)
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{}, nil
 	}
 
 	b.logger().Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)
