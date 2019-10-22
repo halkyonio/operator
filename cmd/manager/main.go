@@ -20,6 +20,7 @@ import (
 	"os"
 	"runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"time"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -72,7 +73,8 @@ func main() {
 
 	// check if we want to watch a single namespace
 	namespace, found := os.LookupEnv(WatchNamespaceEnvVar)
-	options := manager.Options{}
+	syncPeriod := 30 * time.Second
+	options := manager.Options{SyncPeriod: &syncPeriod}
 	if found {
 		options.Namespace = namespace
 		log.Info("watching namespace " + namespace)
