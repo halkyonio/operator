@@ -109,8 +109,14 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 }
 
 func (b *GenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
-	// compute the status and update the resource if the status has changed
-	if needsStatusUpdate := instance.ComputeStatus(err); needsStatusUpdate {
+	// update the resource if the status has changed
+	updateStatus := false
+	if err == nil {
+		updateStatus = instance.ComputeStatus()
+	} else {
+		updateStatus = instance.SetErrorStatus(err)
+	}
+	if updateStatus {
 		object := instance.GetAPIObject()
 		if e := b.Helper().Client.Status().Update(context.Background(), object); e != nil {
 			b.logger().Error(e, fmt.Sprintf("failed to update status for '%s' %s", instance.GetName(), util.GetObjectName(object)))

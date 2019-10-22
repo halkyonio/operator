@@ -40,8 +40,8 @@ func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resou
 	return in.BaseResource.FetchAndInitNewResource(name, namespace, NewCapability())
 }
 
-func (in *Capability) ComputeStatus(err error) (needsUpdate bool) {
-	statuses, update := in.BaseResource.ComputeStatus(in, err)
+func (in *Capability) ComputeStatus() (needsUpdate bool) {
+	statuses, update := in.BaseResource.ComputeStatus(in)
 	return in.SetSuccessStatus(statuses, "Ready") || update
 }
 
@@ -84,12 +84,14 @@ func (in *Capability) CheckValidity() error {
 }
 
 func (in *Capability) SetErrorStatus(err error) bool {
-	errMsg := err.Error()
-	if halkyon.CapabilityFailed != in.Status.Phase || errMsg != in.Status.Message {
-		in.Status.Phase = halkyon.CapabilityFailed
-		in.Status.Message = errMsg
-		in.SetNeedsRequeue(false)
-		return true
+	if err != nil {
+		errMsg := err.Error()
+		if halkyon.CapabilityFailed != in.Status.Phase || errMsg != in.Status.Message {
+			in.Status.Phase = halkyon.CapabilityFailed
+			in.Status.Message = errMsg
+			in.SetNeedsRequeue(false)
+			return true
+		}
 	}
 	return false
 }
