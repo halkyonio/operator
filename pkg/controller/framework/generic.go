@@ -115,6 +115,7 @@ func (b *GenericReconciler) updateStatusIfNeeded(instance Resource, err error) {
 		updateStatus = instance.ComputeStatus()
 	} else {
 		updateStatus = instance.SetErrorStatus(err)
+		b.logger().Error(err, fmt.Sprintf("'%s' %s has an error", instance.GetName(), util.GetObjectName(instance.GetAPIObject())))
 	}
 	if updateStatus {
 		object := instance.GetAPIObject()
