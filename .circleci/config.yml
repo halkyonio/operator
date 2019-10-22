@@ -62,7 +62,9 @@ commands:
           name: Install helm
           command: |
             # Specify the helm version to be installed.
-            curl -L https://git.io/get_helm.sh --version v2.14.3 | bash
+            curl -L https://git.io/get_helm.sh -O get_helm.sh
+            chmod +x get_helm.sh
+            ./get_helm.sh --version v2.14.3
             helm init
             until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
             kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
