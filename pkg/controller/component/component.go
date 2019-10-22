@@ -60,8 +60,8 @@ func (in *Component) FetchAndCreateNew(name, namespace string) (framework.Resour
 	return in.BaseResource.FetchAndInitNewResource(name, namespace, NewComponent())
 }
 
-func (in *Component) ComputeStatus(err error) (needsUpdate bool) {
-	statuses, update := in.BaseResource.ComputeStatus(in, err)
+func (in *Component) ComputeStatus() (needsUpdate bool) {
+	statuses, update := in.BaseResource.ComputeStatus(in)
 	if len(in.Status.Links) > 0 {
 		for i, link := range in.Status.Links {
 			if link.Status == halkyon.Started {
@@ -158,12 +158,14 @@ func (in *Component) CheckValidity() error {
 }
 
 func (in *Component) SetErrorStatus(err error) bool {
-	errMsg := err.Error()
-	if halkyon.ComponentFailed != in.Status.Phase || errMsg != in.Status.Message {
-		in.Status.Phase = halkyon.ComponentFailed
-		in.Status.Message = errMsg
-		in.SetNeedsRequeue(false)
-		return true
+	if err != nil {
+		errMsg := err.Error()
+		if halkyon.ComponentFailed != in.Status.Phase || errMsg != in.Status.Message {
+			in.Status.Phase = halkyon.ComponentFailed
+			in.Status.Message = errMsg
+			in.SetNeedsRequeue(false)
+			return true
+		}
 	}
 	return false
 }

@@ -15,7 +15,7 @@ type Resource interface {
 	ShouldDelete() bool
 	SetErrorStatus(err error) bool
 	SetInitialStatus(msg string) bool
-	ComputeStatus(err error) (needsUpdate bool)
+	ComputeStatus() (needsUpdate bool)
 	CheckValidity() error
 	Init() bool
 	GetAPIObject() runtime.Object
