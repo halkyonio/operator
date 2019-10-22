@@ -17,9 +17,9 @@ const (
 var registry = RuntimeRegistry{
 	runtimes: map[string]runtimeVersions{
 		"spring-boot":     newRuntime("quay.io/halkyonio/hal-maven-jdk"),
-		"vert.x":          newRuntime("quay.io/halkyonio/openjdk8-s2i"),
-		"quarkus":         newRuntime("quay.io/halkyonio/openjdk8-s2i"),
-		"thorntail":       newRuntime("quay.io/halkyonio/openjdk8-s2i"),
+		"vert.x":          newRuntime("quay.io/halkyonio/hal-maven-jdk"),
+		"quarkus":         newRuntime("quay.io/halkyonio/hal-maven-jdk"),
+		"thorntail":       newRuntime("quay.io/halkyonio/hal-maven-jdk"),
 		"openjdk8":        newRuntime("registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"),
 		"node.js":         newRuntime("nodeshift/centos7-s2i-nodejs"),
 		supervisorImageId: newRuntime("quay.io/halkyonio/supervisord"),
