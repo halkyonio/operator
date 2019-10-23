@@ -13,7 +13,7 @@ CLUSTER_IP=${1:-192.168.99.50}
 NS=${2:-test}
 MODE=${3:-dev}
 
-SLEEP_TIME=30s
+SLEEP_TIME=15s
 TIME=$(date +"%Y-%m-%d_%H-%M")
 REPORT_FILE="report.txt"
 EXPECTED_RESPONSE='{"status":"UP"}'
