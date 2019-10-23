@@ -16,13 +16,13 @@ const (
 // todo: extract into configuration file
 var registry = RuntimeRegistry{
 	runtimes: map[string]runtimeVersions{
-		"spring-boot":     newRuntime("quay.io/halkyonio/hal-maven-jdk"),
-		"vert.x":          newRuntime("quay.io/halkyonio/hal-maven-jdk"),
-		"quarkus":         newRuntime("quay.io/halkyonio/hal-maven-jdk"),
-		"thorntail":       newRuntime("quay.io/halkyonio/hal-maven-jdk"),
-		"openjdk8":        newRuntime("registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"),
-		"node.js":         newRuntime("nodeshift/centos7-s2i-nodejs"),
-		supervisorImageId: newRuntime("quay.io/halkyonio/supervisord"),
+		"spring-boot":     newRuntime("quay.io/halkyonio/hal-maven-jdk", "*"),
+		"vert.x":          newRuntime("quay.io/halkyonio/hal-maven-jdk", "*-all"),
+		"quarkus":         newRuntime("quay.io/halkyonio/hal-maven-jdk", "*-runner"),
+		"thorntail":       newRuntime("quay.io/halkyonio/hal-maven-jdk", "*"),
+		"openjdk8":        newRuntime("registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift", ""),
+		"node.js":         newRuntime("nodeshift/centos7-s2i-nodejs", ""),
+		supervisorImageId: newRuntime("quay.io/halkyonio/supervisord", ""),
 	},
 }
 
@@ -39,8 +39,8 @@ type runtimeVersions struct {
 	defaultVersion Runtime
 }
 
-func newRuntime(ref string) runtimeVersions {
-	return runtimeVersions{defaultVersion: Runtime{RegistryRef: ref}}
+func newRuntime(ref, jarPattern string) runtimeVersions {
+	return runtimeVersions{defaultVersion: Runtime{RegistryRef: ref, defaultEnv: map[string]string{"JARPATTERN": jarPattern}}}
 }
 
 func (rv runtimeVersions) getRuntimeVersionFor(version string) Runtime {
