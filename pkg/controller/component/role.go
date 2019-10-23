@@ -12,8 +12,10 @@ type role struct {
 }
 
 func newRole(owner framework.Resource) role {
-	r := controller.NewOwnedRole(owner, func() string { return "image-scc-privileged-role" })
-	return role{Role: r}
+	generic := controller.NewOwnedRole(owner, func() string { return "image-scc-privileged-role" })
+	r := role{Role: generic}
+	generic.SetDelegate(r) // we need to set the parent's delegate to the object we're creating so that its specific methods are called
+	return r
 }
 
 func (res role) NewInstanceWith(owner framework.Resource) framework.DependentResource {
