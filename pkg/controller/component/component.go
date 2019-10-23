@@ -66,8 +66,7 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 		for i, link := range in.Status.Links {
 			if link.Status == halkyon.Started {
 				p, err := in.FetchUpdatedDependent(&corev1.Pod{})
-				name := p.(*corev1.Pod).Name
-				if err != nil || name == link.OriginalPodName {
+				if err != nil || p.(*corev1.Pod).Name == link.OriginalPodName {
 					in.Status.Phase = halkyon.ComponentLinking
 					in.SetNeedsRequeue(true)
 					return false
@@ -94,7 +93,7 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 
 					link.Status = halkyon.Linked
 					link.OriginalPodName = ""
-					in.Status.PodName = name
+					in.Status.PodName = p.(*corev1.Pod).Name
 					in.Status.Links[i] = link // make sure we update the links with the modified value
 					update = true
 				}
