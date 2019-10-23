@@ -78,8 +78,10 @@ You can already see how Halkyon reduces the cognitive load on developers since t
 details by focusing on the salient aspects of your component: what runtime does it need to run, does it need to be exposed outside
 of the cluster and on what port. Theses aspects are captured along with less important ones in the custom resource fields: 
 `runtime` (and `version`), `exposeService` and `port`. The `runtime` name will condition which container image will be used to 
-run the application. For example, an OpenJDK image will be used for Java runtimes such as Spring Boot or Eclipse Vert.x. If you 
-want to expose your application, you will need to set `exposeService` to `true` and specify which `port` needs to be exposed.
+run the application. Of note, the java-based runtime will use a specific image which allows us to do builds from source as well
+as run binaries. For more information about this image, please take a look at 
+https://github.com/halkyonio/container-images/blob/master/README.md#hal-maven-jdk8-image. If you want to expose your application,
+you will need to set `exposeService` to `true` and specify which `port` needs to be exposed.
 
 Of note, Halkyon offers two deployment modes, controlled by the `deploymentMode` field of the custom resource: `dev` 
 (for "development") and `build`, `dev` being the default mode if none is specified explicitly.
