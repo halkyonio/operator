@@ -94,7 +94,7 @@ func (b *BaseResource) AddDependentResource(resources ...DependentResource) {
 	}
 }
 
-func (b *BaseResource) ComputeStatus(current Resource) (statuses []DependentResourceStatus, needsUpdate bool) {
+func (b *BaseResource) ComputeStatus(current Resource) (statuses []DependentResourceStatus, notReadyWantsUpdate bool) {
 	statuses = b.areDependentResourcesReady()
 	msgs := make([]string, 0, len(statuses))
 	for _, status := range statuses {

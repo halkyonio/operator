@@ -41,8 +41,8 @@ func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resou
 }
 
 func (in *Capability) ComputeStatus() (needsUpdate bool) {
-	statuses, update := in.BaseResource.ComputeStatus(in)
-	return in.SetSuccessStatus(statuses, "Ready") || update
+	statuses, notReadyWantsUpdate := in.BaseResource.ComputeStatus(in)
+	return notReadyWantsUpdate || in.SetSuccessStatus(statuses, "Ready")
 }
 
 func (in *Capability) Init() bool {

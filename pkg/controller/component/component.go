@@ -61,7 +61,7 @@ func (in *Component) FetchAndCreateNew(name, namespace string) (framework.Resour
 }
 
 func (in *Component) ComputeStatus() (needsUpdate bool) {
-	statuses, update := in.BaseResource.ComputeStatus(in)
+	statuses, notReadyWantsUpdate := in.BaseResource.ComputeStatus(in)
 	if len(in.Status.Links) > 0 {
 		for i, link := range in.Status.Links {
 			if link.Status == halkyon.Started {
@@ -95,13 +95,12 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 					link.OriginalPodName = ""
 					in.Status.PodName = p.(*corev1.Pod).Name
 					in.Status.Links[i] = link // make sure we update the links with the modified value
-					update = true
+					notReadyWantsUpdate = true
 				}
 			}
 		}
 	}
-	// make sure we propagate the need for update even if setting the status doesn't change anything
-	return in.SetSuccessStatus(statuses, "Ready") || update
+	return notReadyWantsUpdate || in.SetSuccessStatus(statuses, "Ready")
 }
 
 func (in *Component) Init() bool {
