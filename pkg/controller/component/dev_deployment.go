@@ -31,6 +31,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 	}}
 	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/deployments"})
 	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/usr/src"})
+	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/tmp/artefacts"})
 
 	// create the supervisor init container
 	supervisorContainer, err := getBaseContainerFor(getSupervisor())
