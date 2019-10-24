@@ -87,9 +87,6 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 	b.logger().Info("-> "+typeName, "name", resource.GetName(), "status", initialStatus)
 
 	err = resource.CreateOrUpdate()
-	if err != nil {
-		err = fmt.Errorf("failed to create or update %s '%s': %s", typeName, resource.GetName(), err.Error())
-	}
 
 	// always check status for updates
 	b.updateStatusIfNeeded(resource, err)
@@ -105,7 +102,7 @@ func (b *GenericReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 		b.logger().Info(msg, "name", resource.GetName(), "status", newStatus)
 	}
-	return reconcile.Result{Requeue: requeue}, err
+	return reconcile.Result{Requeue: requeue}, nil
 }
 
 func (b *GenericReconciler) updateStatusIfNeeded(instance Resource, err error) {

@@ -49,7 +49,7 @@ func keyFor(resourceType runtime.Object) (key string) {
 func (b *BaseResource) CreateOrUpdateDependents() error {
 	for _, dep := range b.dependents {
 		if e := dep.CreateOrUpdate(b.Helper()); e != nil {
-			return e
+			return fmt.Errorf("failed to create or update '%s' %s: %s", dep.Name(), util.GetObjectName(dep.Prototype()), e.Error())
 		}
 	}
 	return nil
