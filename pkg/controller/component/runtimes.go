@@ -19,7 +19,7 @@ var registry = RuntimeRegistry{
 		"spring-boot":     newRuntime("quay.io/halkyonio/hal-maven-jdk", "*"),
 		"vert.x":          newRuntime("quay.io/halkyonio/hal-maven-jdk", "*-all"),
 		"quarkus":         newRuntime("quay.io/halkyonio/hal-maven-jdk", "*-runner"),
-		"thorntail":       newRuntime("quay.io/halkyonio/hal-maven-jdk", "*"),
+		"thorntail":       newRuntime("quay.io/halkyonio/hal-maven-jdk", "*-thorntail"),
 		"openjdk8":        newRuntime("registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift", ""),
 		"node.js":         newRuntime("nodeshift/centos7-s2i-nodejs", ""),
 		supervisorImageId: newRuntime("quay.io/halkyonio/supervisord", ""),
