@@ -149,7 +149,7 @@ func (in *Component) SetInitialStatus(msg string) bool {
 
 func (in *Component) CheckValidity() error {
 	// Check if Service port exists, otherwise error out
-	if in.Spec.ExposeService && in.Spec.Port == 0 {
+	if in.Spec.Port == 0 {
 		return fmt.Errorf("component '%s' must provide a port", in.Name)
 	}
 	return nil
