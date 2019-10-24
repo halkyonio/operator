@@ -1,19 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.example</groupId>
-        <artifactId>fruit-sb-project</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
 
+    <groupId>com.example</groupId>
     <artifactId>fruit-backend-sb</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Spring Boot - Fruit backend</name>
     <description>Spring Boot - Fruit backend</description>
-
+    
     <properties>
+        <snowdrop-bom.version>2.1.6.SP3</snowdrop-bom.version>
+        <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
         <postgresql.version>9.4.1212</postgresql.version>
         <db.name>PostgreSQL</db.name>
 
@@ -23,6 +20,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>me.snowdrop</groupId>
+                <artifactId>spring-boot-bom</artifactId>
+                <version>${snowdrop-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
