@@ -108,6 +108,7 @@ func (in *Component) Init() bool {
 		in.Spec.DeploymentMode = halkyon.DevDeploymentMode
 		return true
 	}
+	in.Spec.Storage.Name = PVCName(in)
 	return false
 }
 

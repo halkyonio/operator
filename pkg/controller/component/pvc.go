@@ -41,9 +41,7 @@ func (res pvc) Build() (runtime.Object, error) {
 			},
 		},
 	}
-
-	// Specify the default Storage data - value
-	c.Spec.Storage.Name = name
+	
 	return pvc, nil
 }
 
