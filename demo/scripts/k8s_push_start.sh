@@ -13,10 +13,10 @@ echo "## Pushing $runtime file ${project} to the pod $pod_id ..."
 if [ $runtime = "nodejs" ]; then
   kubectl rsync ${dir}/../$project/ $pod_id:/opt/app-root/src/ --no-perms=true -n ${namespace}
 else
-  kubectl cp ${dir}/../${project}/pom.xml $pod_id:/usr/src -n ${namespace}
-  kubectl cp ${dir}/../${project}/src $pod_id:/usr/src -n ${namespace}
+  kubectl cp ${dir}/../${project}/target/${project}-0.0.1-SNAPSHOT.jar $pod_id:/deployments/app.jar -n ${namespace}
 fi
 
-kubectl exec $pod_id -n ${namespace} /var/lib/supervisord/bin/supervisord ctl start build
+kubectl exec $pod_id -n ${namespace} /var/lib/supervisord/bin/supervisord ctl stop run
+kubectl exec $pod_id -n ${namespace} /var/lib/supervisord/bin/supervisord ctl start run
 
 echo "## component ${component} (re)started"

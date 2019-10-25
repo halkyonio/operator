@@ -82,14 +82,12 @@ kubectl create ns "${NS}"
 printTitle "Deploy the component for the fruit-backend, link and capability"
 mvn package -DskipTests -f "${DIR}"/../fruit-backend-sb
 kubectl apply -n "${NS}" -f "${DIR}"/../fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
-rm -rf "${DIR}"/../fruit-backend-sb/target
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
 
 printTitle "Deploy the component for the fruit-client, link"
 mvn package -DskipTests -f "${DIR}"/../fruit-client-sb
 kubectl apply -n "${NS}" -f "${DIR}"/../fruit-client-sb/target/classes/META-INF/dekorate/halkyon.yml
-rm -rf "${DIR}"/../fruit-client-sb/target
 echo "Sleep ${SLEEP_TIME}"
 sleep ${SLEEP_TIME}
 
