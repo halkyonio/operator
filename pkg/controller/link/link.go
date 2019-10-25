@@ -6,6 +6,7 @@ import (
 	"halkyon.io/api/component/v1beta1"
 	halkyon "halkyon.io/api/link/v1beta1"
 	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,7 +40,7 @@ func (in *Link) CreateOrUpdate() error {
 		}
 
 		// if the deployment has been updated, we need to update the component's status
-		fetch, err := in.FetchUpdatedDependent(&v1beta1.Component{})
+		fetch, err := in.FetchUpdatedDependent(util.GetObjectName(&v1beta1.Component{}))
 		if err != nil {
 			return fmt.Errorf("cannot retrieve associated component")
 		}

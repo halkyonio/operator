@@ -16,6 +16,7 @@ type DependentResource interface {
 	Build() (runtime.Object, error)
 	Update(toUpdate runtime.Object) (bool, error)
 	Owner() Resource
+	GetTypeName() string
 	Prototype() runtime.Object
 	ShouldWatch() bool
 	CanBeCreatedOrUpdated() bool
@@ -53,6 +54,11 @@ type DependentResourceHelper struct {
 	_owner     Resource
 	_prototype runtime.Object
 	_delegate  DependentResource
+	typeName   string
+}
+
+func (res DependentResourceHelper) GetTypeName() string {
+	return res.typeName
 }
 
 func (res DependentResourceHelper) IsReady(underlying runtime.Object) (ready bool, message string) {
@@ -83,8 +89,8 @@ func (res DependentResourceHelper) CanBeCreatedOrUpdated() bool {
 	return true
 }
 
-func NewDependentResource(primaryResourceType runtime.Object, owner Resource) *DependentResourceHelper {
-	return &DependentResourceHelper{_prototype: primaryResourceType, _owner: owner}
+func NewDependentResource(resourceType runtime.Object, owner Resource) *DependentResourceHelper {
+	return &DependentResourceHelper{_prototype: resourceType, _owner: owner, typeName: util.GetObjectName(resourceType)}
 }
 
 func (res *DependentResourceHelper) SetDelegate(delegate DependentResource) {
@@ -124,7 +130,7 @@ func (res DependentResourceHelper) CreateOrUpdate(helper *K8SHelper) error {
 		return nil
 	}
 
-	kind := util.GetObjectName(r.Prototype())
+	kind := r.GetTypeName()
 	object, err := r.Fetch(helper)
 	if err != nil {
 		if errors.IsNotFound(err) {

@@ -23,7 +23,7 @@ type Resource interface {
 	PrimaryResourceType() runtime.Object
 	Delete() error
 	CreateOrUpdate() error
-	GetDependentResourcesTypes() map[string]DependentResource
+	GetDependentResourcesTypes() []DependentResource
 }
 
 func HasChangedFromStatusUpdate(status interface{}, statuses []DependentResourceStatus, msg string) (changed bool, updatedMsg string) {

@@ -26,8 +26,5 @@ func NewFalse() *bool {
 
 func GetObjectName(object runtime.Object) string {
 	t := reflect.TypeOf(object)
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	return t.Name()
+	return t.Elem().Name()
 }

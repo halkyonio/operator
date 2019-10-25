@@ -59,7 +59,7 @@ func NewCapability() *Capability {
 		Capability:   &halkyon.Capability{},
 		BaseResource: dependents,
 	}
-	dependents.AddDependentResource(newSecret(c), newPostgres(c), newRole(c), newRoleBinding(c))
+	dependents.AddDependentResource(newRole(c), newRoleBinding(c), newSecret(c), newPostgres(c))
 	return c
 }
 

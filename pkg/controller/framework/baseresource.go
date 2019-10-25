@@ -2,14 +2,12 @@ package framework
 
 import (
 	"fmt"
-	"halkyon.io/operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 	"strings"
 )
 
 type BaseResource struct {
-	dependents          map[string]DependentResource
+	dependents          []DependentResource
 	requeue             bool
 	helper              *K8SHelper
 	primaryResourceType runtime.Object
@@ -35,21 +33,13 @@ func (b *BaseResource) NeedsRequeue() bool {
 }
 
 func NewHasDependents(primary runtime.Object) *BaseResource {
-	return &BaseResource{dependents: make(map[string]DependentResource, 15), primaryResourceType: primary}
-}
-
-func keyFor(resourceType runtime.Object) (key string) {
-	t := reflect.TypeOf(resourceType)
-	pkg := t.PkgPath()
-	kind := util.GetObjectName(resourceType)
-	key = pkg + "/" + kind
-	return
+	return &BaseResource{dependents: make([]DependentResource, 0, 15), primaryResourceType: primary}
 }
 
 func (b *BaseResource) CreateOrUpdateDependents() error {
 	for _, dep := range b.dependents {
 		if e := dep.CreateOrUpdate(b.Helper()); e != nil {
-			return fmt.Errorf("failed to create or update '%s' %s: %s", dep.Name(), util.GetObjectName(dep.Prototype()), e.Error())
+			return fmt.Errorf("failed to create or update '%s' %s: %s", dep.Name(), dep.GetTypeName(), e.Error())
 		}
 	}
 	return nil
@@ -66,31 +56,36 @@ func (b *BaseResource) FetchAndInitNewResource(name string, namespace string, to
 	return toInit, err
 }
 
-func (b *BaseResource) FetchUpdatedDependent(dependentType runtime.Object) (runtime.Object, error) {
-	key := keyFor(dependentType)
-	resource, ok := b.dependents[key]
-	if !ok {
-		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", util.GetObjectName(dependentType))
+func (b *BaseResource) FetchUpdatedDependent(dependentType string) (runtime.Object, error) {
+	var dependent DependentResource
+	for _, d := range b.dependents {
+		if d.GetTypeName() == dependentType {
+			dependent = d
+			break
+		}
 	}
-	fetch, err := resource.Fetch(b.Helper())
+	if dependent == nil {
+		return nil, fmt.Errorf("couldn't find any dependent resource of kind '%s'", dependentType)
+	}
+	fetch, err := dependent.Fetch(b.Helper())
 	if err != nil {
 		return nil, err
 	}
 	return fetch, nil
 }
 
-func (b *BaseResource) GetDependentResourcesTypes() map[string]DependentResource {
+func (b *BaseResource) GetDependentResourcesTypes() []DependentResource {
 	return b.dependents
 }
 
+// AddDependentResource adds dependent resources to this base resource, keeping the order in which they are added, it is
+// therefore possible to create dependent resources in a specific order since they are created in the same order as specified here
 func (b *BaseResource) AddDependentResource(resources ...DependentResource) {
-	for _, resource := range resources {
-		if resource.Owner() == nil {
-			panic(fmt.Errorf("dependent resource %s must have an owner", resource.Name()))
+	for _, dependent := range resources {
+		if dependent.Owner() == nil {
+			panic(fmt.Errorf("dependent resource %s must have an owner", dependent.Name()))
 		}
-		prototype := resource.Prototype()
-		key := keyFor(prototype)
-		b.dependents[key] = resource
+		b.dependents = append(b.dependents, dependent)
 	}
 }
 
@@ -118,9 +113,8 @@ func (b *BaseResource) areDependentResourcesReady() (statuses []DependentResourc
 	statuses = make([]DependentResourceStatus, 0, len(b.dependents))
 	for _, dependent := range b.dependents {
 		if dependent.ShouldBeCheckedForReadiness() {
-			objectType := dependent.Prototype()
-			fetched, err := b.FetchUpdatedDependent(objectType)
-			name := util.GetObjectName(objectType)
+			name := dependent.GetTypeName()
+			fetched, err := b.FetchUpdatedDependent(name)
 			if err != nil {
 				statuses = append(statuses, NewFailedDependentResourceStatus(name, err))
 			} else {

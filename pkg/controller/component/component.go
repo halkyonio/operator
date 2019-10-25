@@ -6,6 +6,7 @@ import (
 	halkyon "halkyon.io/api/component/v1beta1"
 	hLink "halkyon.io/api/link/v1beta1"
 	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -65,7 +66,7 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 	if len(in.Status.Links) > 0 {
 		for i, link := range in.Status.Links {
 			if link.Status == halkyon.Started {
-				p, err := in.FetchUpdatedDependent(&corev1.Pod{})
+				p, err := in.FetchUpdatedDependent(util.GetObjectName(&corev1.Pod{}))
 				if err != nil || p.(*corev1.Pod).Name == link.OriginalPodName {
 					in.Status.Phase = halkyon.ComponentLinking
 					in.SetNeedsRequeue(true)
@@ -122,8 +123,8 @@ func NewComponent() *Component {
 		Component:    &halkyon.Component{},
 		BaseResource: dependents,
 	}
-	dependents.AddDependentResource(newPvc(c), newDeployment(c), newService(c), newServiceAccount(c), newRoute(c), newIngress(c),
-		newTask(c), newTaskRun(c), newRole(c), newRoleBinding(c), newPod(c))
+	dependents.AddDependentResource(newRole(c), newRoleBinding(c), newServiceAccount(c), newPvc(c), newDeployment(c), newService(c), newRoute(c), newIngress(c),
+		newTask(c), newTaskRun(c), newPod(c))
 	return c
 }
 
