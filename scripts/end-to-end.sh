@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
 #
 # Prerequisite : install tool jq
 # This script assumes that KubeDB & Component operators are installed
@@ -22,7 +21,7 @@ DIR=$(dirname "$0")
 CLUSTER_IP=${1:-192.168.99.50}
 NS=${2:-test}
 MODE=${3:-dev}
-SKIP_DELETE_RESOURCES=${4:-false}
+DELETE_RESOURCES=${4:-false}
 
 SLEEP_TIME=30s
 TIME=$(date +"%Y-%m-%d_%H-%M")
@@ -101,8 +100,13 @@ kubectl create ns ${NS}
 
 printTitle "Compile End to End Demo project"
 sed -i '' "s/\(deploymentMode:\).*/\1 $MODE/g" "${DIR}"/../demo/fruit-backend-sb/src/main/resources/application.yml
+cd "${DIR}"/../demo
+./mvnw clean package -f fruit-backend-sb
+cd -
 sed -i '' "s/\(deploymentMode:\).*/\1 $MODE/g" "${DIR}"/../demo/fruit-client-sb/src/main/resources/application.yml
-mvn clean package -f demo
+cd "${DIR}"/../demo
+./mvnw clean package -f fruit-client-sb
+cd -
 
 printTitle "Deploy the component for the fruit-backend, link and capability"
 kubectl apply -n "${NS}" -f "${DIR}"/../demo/fruit-backend-sb/target/classes/META-INF/dekorate/halkyon.yml
@@ -212,7 +216,7 @@ else
   exit 1
 fi
 
-if [ "$SKIP_DELETE_RESOURCES" == "true" ]; then
+if [ "$DELETE_RESOURCES" == "true" ]; then
   printTitle "Delete the resources components, links and capabilities"
   if [ "$isOpenShift" == "true" ]; then
     kubectl delete components,links,capabilities,imagestreams --all -n ${NS}
