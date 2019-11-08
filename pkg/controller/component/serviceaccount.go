@@ -1,7 +1,7 @@
 package component
 
 import (
-	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator-framework"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	corev1 "k8s.io/api/core/v1"

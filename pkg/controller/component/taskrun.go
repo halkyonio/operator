@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator-framework"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"

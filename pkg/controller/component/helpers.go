@@ -3,7 +3,7 @@ package component
 import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/api/v1beta1"
-	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator-framework"
 	"os"
 )
 

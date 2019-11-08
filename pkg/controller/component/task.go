@@ -3,8 +3,8 @@ package component
 import (
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller/framework"
-	"halkyon.io/operator/pkg/util"
+	"halkyon.io/operator-framework"
+	"halkyon.io/operator-framework/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
