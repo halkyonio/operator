@@ -4,9 +4,7 @@ go 1.12
 
 require (
 	github.com/Azure/azure-sdk-for-go v30.0.0+incompatible // indirect
-	github.com/appscode/go v0.0.0-20190424183524-60025f1135c9
 	github.com/aws/aws-sdk-go v1.19.41 // indirect
-	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/google/go-containerregistry v0.0.0-20190531175139-2687bd5ba651 // indirect
@@ -26,27 +24,32 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/tektoncd/pipeline v0.3.1
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
-	golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c
+	golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c // indirect
 	halkyon.io/api v1.0.0-beta.7
-	k8s.io/api v0.0.0-20190725062911-6607c48751ae
-	k8s.io/apimachinery v0.0.0-20190719140911-bfcf53abc9f8
-	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/kubernetes v1.14.5
+	halkyon.io/operator-framework v0.0.0
+	halkyon.io/plugins v0.0.0
+	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
+	k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
+	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible
+	k8s.io/kubernetes v1.14.5 // indirect
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec // indirect
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817 // indirect
 	kmodules.xyz/objectstore-api v0.0.0-20190516233206-ea3ba546e348 // indirect
-	kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061
-	sigs.k8s.io/controller-runtime v0.1.9
+	kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061 // indirect
+	sigs.k8s.io/controller-runtime v0.3.0
 	sigs.k8s.io/controller-tools v0.1.10 // indirect
-	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
+	sigs.k8s.io/testing_frameworks v0.1.2 // indirect
 )
 
 replace (
 	github.com/graymeta/stow => github.com/appscode/stow v0.0.0-20190506085026-ca5baa008ea3
+	halkyon.io/operator-framework => ../operator-framework
+	halkyon.io/plugins => ../plugins
 	k8s.io/api => k8s.io/api v0.0.0-20181126151915-b503174bad59
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
 	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.0.0-20190423074438-a3cbe62563e6
 	k8s.io/apiserver => github.com/kmodules/apiserver v0.0.0-20190423074744-1ff296932385
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20181126152608-d082d5923d3c
 	k8s.io/code-generator => k8s.io/code-generator v0.0.0-20190311093542-50b561225d70
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.1.9
 )

@@ -1,8 +1,8 @@
 package component
 
 import (
+	"halkyon.io/operator-framework"
 	"halkyon.io/operator/pkg/controller"
-	"halkyon.io/operator/pkg/controller/framework"
 	authorizv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

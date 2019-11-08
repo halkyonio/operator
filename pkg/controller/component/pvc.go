@@ -2,7 +2,7 @@ package component
 
 import (
 	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator-framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,7 +41,7 @@ func (res pvc) Build() (runtime.Object, error) {
 			},
 		},
 	}
-	
+
 	return pvc, nil
 }
 
