@@ -3,8 +3,13 @@ package capability
 import (
 	"fmt"
 	halkyon "halkyon.io/api/capability/v1beta1"
-	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator-framework"
+	"halkyon.io/plugins/capability"
+	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime"
+	"os"
+	"path/filepath"
+	"plugin"
 )
 
 const (
@@ -21,6 +26,14 @@ const (
 	DB_NAME        = "DB_NAME"
 	DB_USER        = "DB_USER"
 	DB_PASSWORD    = "DB_PASSWORD"
+)
+
+type typeRegistry map[halkyon.CapabilityType]bool
+type categoryRegistry map[halkyon.CapabilityCategory]typeRegistry
+
+var (
+	plugins             []capability.Plugin
+	supportedCategories categoryRegistry
 )
 
 // blank assignment to check that Capabilit implements Resource
@@ -62,7 +75,9 @@ func NewCapability() *Capability {
 		Capability:   &halkyon.Capability{},
 		BaseResource: dependents,
 	}
-	dependents.AddDependentResource(newRole(c), newRoleBinding(c), newSecret(c), newPostgres(c))
+	for _, p := range plugins {
+		dependents.AddDependentResource(p.GetDependentResources()...)
+	}
 	return c
 }
 
@@ -77,11 +92,14 @@ func (in *Capability) SetInitialStatus(msg string) bool {
 }
 
 func (in *Capability) CheckValidity() error {
-	if !halkyon.DatabaseCategory.Equals(in.Spec.Category) {
-		return fmt.Errorf("unsupported '%s' capability category", in.Spec.Category)
+	category := in.Spec.Category
+	types := supportedCategories[category]
+	if len(types) == 0 {
+		return fmt.Errorf("unsupported '%s' capability category", category)
 	}
-	if !halkyon.PostgresType.Equals(in.Spec.Type) {
-		return fmt.Errorf("unsupported '%s' database type", in.Spec.Type)
+	t := in.Spec.Type
+	if !types[t] {
+		return fmt.Errorf("unsupported '%s' type for '%s'", t, category)
 	}
 	return nil
 }
@@ -121,4 +139,39 @@ func (in *Capability) GetStatusAsString() string {
 
 func (in *Capability) ShouldDelete() bool {
 	return true
+}
+
+func init() {
+	plugins = make([]capability.Plugin, 0, 7)
+	supportedCategories = make(categoryRegistry, 7)
+	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	pluginsDir := filepath.Join(currentDir, "plugins")
+	goPlugins, err := ioutil.ReadDir(pluginsDir)
+	if err != nil {
+		panic(err)
+	}
+	for _, p := range goPlugins {
+		pluginPath := filepath.Join(pluginsDir, p.Name())
+		if goPlugin, err := plugin.Open(pluginPath); err == nil {
+			if maybePlugin, err := goPlugin.Lookup("Plugin"); err == nil {
+				if plug, ok := maybePlugin.(capability.Plugin); ok {
+					plugins = append(plugins, plug)
+					category := plug.GetCategory()
+					types, ok := supportedCategories[category]
+					if !ok {
+						types = make(typeRegistry, 3)
+						supportedCategories[category] = types
+					}
+					types[plug.GetType()] = true
+				}
+			} else {
+				panic("Couldn't load Plugin var from plugin " + pluginPath)
+			}
+		} else {
+			panic(err)
+		}
+	}
 }

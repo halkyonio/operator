@@ -2,7 +2,7 @@ package component
 
 import (
 	halkyon "halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator-framework"
 )
 
 func DeploymentName(c *Component) string {

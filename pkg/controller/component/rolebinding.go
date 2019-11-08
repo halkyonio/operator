@@ -1,8 +1,8 @@
 package component
 
 import (
+	"halkyon.io/operator-framework"
 	"halkyon.io/operator/pkg/controller"
-	"halkyon.io/operator/pkg/controller/framework"
 )
 
 type roleBinding struct {

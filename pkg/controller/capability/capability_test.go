@@ -1,7 +1,7 @@
 package capability
 
 import (
-	"halkyon.io/operator/pkg/controller/framework"
+	"halkyon.io/operator-framework"
 	"strings"
 	"testing"
 )

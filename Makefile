@@ -23,7 +23,8 @@ clean:
 .PHONY: build
 build: clean
 	@echo "> Build go application"
-	GO111MODULE=on go build ${BUILD_FLAGS} -o ${BIN_DIR}/halkyon-${PROJECT_NAME} ${BUILD_PATH}
+	go build ${BUILD_FLAGS} -o ${BIN_DIR}/halkyon-${PROJECT_NAME} ${BUILD_PATH}
+
 
 .PHONY: build-linux
 build-linux: clean
