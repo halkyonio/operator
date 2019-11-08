@@ -27,8 +27,8 @@ require (
 	golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 	halkyon.io/api v1.0.0-beta.7
-	halkyon.io/operator-framework v0.0.0
-	halkyon.io/plugins v0.0.0
+	halkyon.io/operator-framework v0.0.0-20191108175501-3d0a053bc383
+	halkyon.io/plugins v0.0.0-20191108175809-0426164e2120
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
 	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible
@@ -46,8 +46,6 @@ require (
 replace (
 	github.com/go-check/check => github.com/go-check/check v0.0.0-20180628173108-788fd7840127
 	github.com/graymeta/stow => github.com/appscode/stow v0.0.0-20190506085026-ca5baa008ea3
-	halkyon.io/operator-framework => ../operator-framework
-	halkyon.io/plugins => ../plugins
 	k8s.io/api => k8s.io/api v0.0.0-20181126151915-b503174bad59
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
 	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.0.0-20190423074438-a3cbe62563e6
