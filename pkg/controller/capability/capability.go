@@ -7,25 +7,9 @@ import (
 	"halkyon.io/plugins/capability"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"os"
 	"path/filepath"
-	"plugin"
-)
-
-const (
-	SECRET = "Secret"
-	// KubeDB Postgres const
-	KUBEDB_PG_DATABASE      = "Postgres"
-	KUBEDB_PG_DATABASE_NAME = "POSTGRES_DB"
-	KUBEDB_PG_USER          = "POSTGRES_USER"
-	KUBEDB_PG_PASSWORD      = "POSTGRES_PASSWORD"
-	// Capability const
-	DB_CONFIG_NAME = "DB_CONFIG_NAME"
-	DB_HOST        = "DB_HOST"
-	DB_PORT        = "DB_PORT"
-	DB_NAME        = "DB_NAME"
-	DB_USER        = "DB_USER"
-	DB_PASSWORD    = "DB_PASSWORD"
 )
 
 type typeRegistry map[halkyon.CapabilityType]bool
@@ -50,7 +34,27 @@ func (in *Capability) CreateOrUpdate() error {
 }
 
 func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
-	return in.BaseResource.FetchAndInitNewResource(name, namespace, NewCapability())
+	c := newEmptyCapability()
+	_, err := in.BaseResource.FetchAndInitNewResource(name, namespace, c)
+	if err != nil {
+		return nil, err
+	}
+	// get plugin associated with category and type
+	found := false
+	category := c.Spec.Category
+	capabilityType := c.Spec.Type
+	for _, p := range plugins {
+		if p.GetCategory() == category && p.GetType() == capabilityType {
+			// init dependents for given capability type
+			c.BaseResource.AddDependentResource(p)
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("couldn't find a plugin to handle capability with category %s and type %s", category, capabilityType)
+	}
+	return c, nil
 }
 
 func (in *Capability) ComputeStatus() (needsUpdate bool) {
@@ -67,13 +71,22 @@ func (in *Capability) GetAPIObject() runtime.Object {
 }
 
 func NewCapability() *Capability {
+	return newEmptyCapability()
+}
+
+func (in *Capability) GetWatchedResourcesTypes() []schema.GroupVersionKind {
+	watched := make([]schema.GroupVersionKind, 0, len(plugins)*2)
+	for _, p := range plugins {
+		watched = append(watched, p.GetWatchedResourcesTypes()...)
+	}
+	return watched
+}
+
+func newEmptyCapability() *Capability {
 	dependents := framework.NewHasDependents(&halkyon.Capability{})
 	c := &Capability{
 		Capability:   &halkyon.Capability{},
 		BaseResource: dependents,
-	}
-	for _, p := range plugins {
-		dependents.AddDependentResource(p.GetDependentResources()...)
 	}
 	return c
 }
@@ -152,21 +165,15 @@ func init() {
 	}
 	for _, p := range goPlugins {
 		pluginPath := filepath.Join(pluginsDir, p.Name())
-		if goPlugin, err := plugin.Open(pluginPath); err == nil {
-			if maybePlugin, err := goPlugin.Lookup("Plugin"); err == nil {
-				if plug, ok := maybePlugin.(capability.Plugin); ok {
-					plugins = append(plugins, plug)
-					category := plug.GetCategory()
-					types, ok := supportedCategories[category]
-					if !ok {
-						types = make(typeRegistry, 3)
-						supportedCategories[category] = types
-					}
-					types[plug.GetType()] = true
-				}
-			} else {
-				panic("Couldn't load Plugin var from plugin " + pluginPath)
+		if plugin, err := capability.NewPlugin(pluginPath); err == nil {
+			plugins = append(plugins, plugin)
+			category := plugin.GetCategory()
+			types, ok := supportedCategories[category]
+			if !ok {
+				types = make(typeRegistry, 3)
+				supportedCategories[category] = types
 			}
+			types[plugin.GetType()] = true
 		} else {
 			panic(err)
 		}
