@@ -19,6 +19,9 @@ type Component struct {
 	*framework.BaseResource
 }
 
+// blank assignment to check that Component implements Resource
+var _ framework.Resource = &Component{}
+
 func (in *Component) Delete() error {
 	if framework.IsTargetClusterRunningOpenShift() {
 		// Delete the ImageStream created by OpenShift if it exists as the Component doesn't own this resource

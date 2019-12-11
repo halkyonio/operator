@@ -18,6 +18,9 @@ type Link struct {
 	*framework.BaseResource
 }
 
+// blank assignment to check that Link implements Resource
+var _ framework.Resource = &Link{}
+
 func (in *Link) Delete() error {
 	return nil
 }

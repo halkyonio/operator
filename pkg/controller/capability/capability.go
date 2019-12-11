@@ -23,6 +23,9 @@ const (
 	DB_PASSWORD    = "DB_PASSWORD"
 )
 
+// blank assignment to check that Capabilit implements Resource
+var _ framework.Resource = &Capability{}
+
 type Capability struct {
 	*halkyon.Capability
 	*framework.BaseResource
