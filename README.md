@@ -243,41 +243,19 @@ minikube addons enable registry
 minikube start
 ```
 
-When `minikube` has started, initialize `Helm` to install `Tiller` on the cluster:
-```bash
-helm init
-until kubectl get pods -n kube-system -l name=tiller | grep 1/1; do sleep 1; done
-kubectl create clusterrolebinding tiller-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
-```
-
 Install Tekton Pipelines:
 ```bash
 kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.5.2/release.yaml
 ```
 
-Install the `KubeDB` operator and its `PostgreSQL` catalog supporting different database versions:
+Install the `KubeDB` operator and the catalog of the databases using the following bash script as described within the `kubedb` [doc](https://kubedb.com/docs/0.12.0/setup/install/):
 ```bash
-KUBEDB_VERSION=0.12.0
-helm repo add appscode https://charts.appscode.com/stable/
-helm repo update
-helm install appscode/kubedb --name kubedb-operator --version ${KUBEDB_VERSION} \
-  --namespace kubedb --set apiserver.enableValidatingWebhook=true,apiserver.enableMutatingWebhook=true
+kubectl create ns kubedb
+curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.12.0/hack/deploy/kubedb.sh \
+    | bash -s -- --namespace=kubedb
 ```
 
-Wait until the Operator has started before installing the catalog:
-```bash
-TIMER=0
-until kubectl get crd elasticsearchversions.catalog.kubedb.com memcachedversions.catalog.kubedb.com mongodbversions.catalog.kubedb.com mysqlversions.catalog.kubedb.com postgresversions.catalog.kubedb.com redisversions.catalog.kubedb.com || [[ ${TIMER} -eq 60 ]]; do
-  sleep 5
-  TIMER=$((TIMER + 1))
-done
-```
-
-Install the PostgreSQL catalog:
-```bash
-helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
-  --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
-```
+**Note**: To remove it, use the following parameters `kubedb.sh --namespace=kubedb --uninstall --purge`
 
 ## Installing the Halkyon Operator
 
