@@ -49,7 +49,7 @@ func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resou
 	for _, p := range plugins {
 		if p.GetCategory() == category && p.GetType() == capabilityType {
 			// init dependents for given capability type
-			c.BaseResource.AddDependentResource(p)
+			c.BaseResource.AddDependentResource(p.ReadyFor(c))
 			found = true
 			break
 		}
