@@ -65,8 +65,8 @@ func (res task) Build() (runtime.Object, error) {
 						"build",
 					},
 					Args: []string{
-						"${inputs.params.workspacePath}/${inputs.params.contextPath}",
-						"${inputs.params.baseImage}",
+						"$(inputs.params.workspacePath)/$(inputs.params.contextPath)",
+						"$(inputs.params.baseImage)",
 						"--as-dockerfile",
 						"/sources/Dockerfile.gen",
 						"--image-scripts-url",
@@ -74,9 +74,9 @@ func (res task) Build() (runtime.Object, error) {
 						"--loglevel",
 						"5",
 						"--env",
-						"MAVEN_ARGS_APPEND=-pl ${inputs.params.moduleDirName}",
+						"MAVEN_ARGS_APPEND=-pl $(inputs.params.moduleDirName)",
 						"--env",
-						"MAVEN_S2I_ARTIFACT_DIRS=${inputs.params.moduleDirName}/target",
+						"MAVEN_S2I_ARTIFACT_DIRS=$(inputs.params.moduleDirName)/target",
 						"--env",
 						"S2I_SOURCE_DEPLOYMENTS_FILTER=*.jar",
 					},
@@ -96,12 +96,12 @@ func (res task) Build() (runtime.Object, error) {
 					},
 					Args: []string{
 						"bud",
-						"--tls-verify=${inputs.params.verifyTLS}",
+						"--tls-verify=$(inputs.params.verifyTLS)",
 						"--layers",
 						"-f",
 						"/sources/Dockerfile.gen",
 						"-t",
-						"${outputs.resources.image.url}",
+						"$(outputs.resources.image.url)",
 						"."},
 					VolumeMounts: []corev1.VolumeMount{
 						{
@@ -130,9 +130,9 @@ func (res task) Build() (runtime.Object, error) {
 					},
 					Args: []string{
 						"push",
-						"--tls-verify=${inputs.params.verifyTLS}",
-						"${outputs.resources.image.url}",
-						"docker://${outputs.resources.image.url}",
+						"--tls-verify=$(inputs.params.verifyTLS)",
+						"$(outputs.resources.image.url)",
+						"docker://$(outputs.resources.image.url)",
 					},
 					VolumeMounts: []corev1.VolumeMount{
 						{
