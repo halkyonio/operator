@@ -24,9 +24,10 @@ require (
 	github.com/rogpeppe/go-internal v1.3.0 // indirect
 	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/pflag v1.0.3
-	github.com/tektoncd/pipeline v0.3.1
+	github.com/tektoncd/pipeline v0.9.1
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c
+	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 	halkyon.io/api v1.0.0-beta.7
 	k8s.io/api v0.0.0-20190725062911-6607c48751ae
 	k8s.io/apimachinery v0.0.0-20190719140911-bfcf53abc9f8
@@ -36,6 +37,7 @@ require (
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817 // indirect
 	kmodules.xyz/objectstore-api v0.0.0-20190516233206-ea3ba546e348 // indirect
 	kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061
+	knative.dev/pkg v0.0.0-20191211150249-bebd5557feae
 	sigs.k8s.io/controller-runtime v0.1.9
 	sigs.k8s.io/controller-tools v0.1.10 // indirect
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect

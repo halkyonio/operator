@@ -34,25 +34,30 @@ func (res task) Build() (runtime.Object, error) {
 				// under by default the following directory : /workspace/{resource-name}
 				// Resource name has been defined to git hereafter
 				Resources: []v1alpha1.TaskResource{{
-					Name: "git",
-					Type: "git",
+					ResourceDeclaration: v1alpha1.ResourceDeclaration{
+						Name: "git",
+						Type: "git",
+					},
 				}},
-				Params: []v1alpha1.TaskParam{
-					{Name: "baseImage", Default: "quay.io/halkyonio/spring-boot-maven-s2i", Description: "S2i base image"},
-					{Name: "contextPath", Default: ".", Description: "The location of the path to run s2i from"},
-					{Name: "moduleDirName", Default: ".", Description: "The name of the directory containing the project (maven, ...) to be compiled"},
-					{Name: "verifyTLS", Default: "false", Description: "Verify registry certificates"},
-					{Name: "workspacePath", Default: "/workspace/git", Description: "Git path where project is cloned"},
-				}},
+				Params: []v1alpha1.ParamSpec{
+					{Name: "baseImage", Type: v1alpha1.ParamTypeString, Default: &v1alpha1.ArrayOrString{Type: v1alpha1.ParamTypeString, StringVal: "quay.io/halkyonio/spring-boot-maven-s2i"}, Description: "S2i base image"},
+					{Name: "contextPath", Type: v1alpha1.ParamTypeString, Default: &v1alpha1.ArrayOrString{Type: v1alpha1.ParamTypeString, StringVal: "."}, Description: "The location of the path to run s2i from"},
+					{Name: "moduleDirName", Type: v1alpha1.ParamTypeString, Default: &v1alpha1.ArrayOrString{Type: v1alpha1.ParamTypeString, StringVal: "."}, Description: "The name of the directory containing the project (maven, ...) to be compiled"},
+					{Name: "verifyTLS", Type: v1alpha1.ParamTypeString, Default: &v1alpha1.ArrayOrString{Type: v1alpha1.ParamTypeString, StringVal: "false"}, Description: "Verify registry certificates"},
+					{Name: "workspacePath", Type: v1alpha1.ParamTypeString, Default: &v1alpha1.ArrayOrString{Type: v1alpha1.ParamTypeString, StringVal: "/workspace/git"}, Description: "Git path where project is cloned"},
+				},
+			},
 			Outputs: &v1alpha1.Outputs{
 				Resources: []v1alpha1.TaskResource{{
-					Name: "image",
-					Type: "image",
+					ResourceDeclaration: v1alpha1.ResourceDeclaration{
+						Name: "image",
+						Type: "image",
+					},
 				}},
 			},
-			Steps: []corev1.Container{
-				// # Generate a Dockerfile using the s2i tool
-				{
+			Steps: []v1alpha1.Step{
+				{Container: corev1.Container{
+					// # Generate a Dockerfile using the s2i tool
 					Name:  "generate",
 					Image: "quay.io/openshift-pipeline/s2i",
 					Command: []string{
@@ -80,9 +85,9 @@ func (res task) Build() (runtime.Object, error) {
 							MountPath: "/sources",
 							Name:      "generatedsources"},
 					},
-				},
-				// Build a Container image using the dockerfile created previously
-				{
+				}},
+				{Container: corev1.Container{
+					// Build a Container image using the dockerfile created previously
 					Name:       "build",
 					Image:      "quay.io/buildah/stable:v1.9.0",
 					WorkingDir: "/sources",
@@ -111,10 +116,10 @@ func (res task) Build() (runtime.Object, error) {
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: util.NewTrue(),
 					},
-				},
-				// Push the image created to quay.io using as credentials the secret mounted within
-				// the service account
-				{
+				}},
+				{Container: corev1.Container{
+					// Push the image created to quay.io using as credentials the secret mounted within
+					// the service account
 					Name:  "push",
 					Image: "quay.io/buildah/stable:v1.9.0",
 					Command: []string{
@@ -137,21 +142,11 @@ func (res task) Build() (runtime.Object, error) {
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: util.NewTrue(),
 					},
-				},
+				}},
 			},
 			Volumes: []corev1.Volume{
-				{
-					Name: "generatedsources",
-					VolumeSource: corev1.VolumeSource{
-						EmptyDir: &corev1.EmptyDirVolumeSource{},
-					},
-				},
-				{
-					Name: "libcontainers",
-					VolumeSource: corev1.VolumeSource{
-						EmptyDir: &corev1.EmptyDirVolumeSource{},
-					},
-				},
+				{Name: "generatedsources", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+				{Name: "libcontainers", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 			},
 		},
 	}
