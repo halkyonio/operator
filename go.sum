@@ -377,6 +377,9 @@ github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/tektoncd/pipeline v0.3.1 h1:LZ0U+HJ3jg3o7e5A7+8nRDEt0G5yJ5seb/uoTxHtBR0=
 github.com/tektoncd/pipeline v0.3.1/go.mod h1:IZzJdiX9EqEMuUcgdnElozdYYRh0/ZRC+NKMLj1K3Yw=
+github.com/tektoncd/pipeline v0.8.0/go.mod h1:IZzJdiX9EqEMuUcgdnElozdYYRh0/ZRC+NKMLj1K3Yw=
+github.com/tektoncd/pipeline v0.9.1 h1:nfhhQKxmo2TeL+LGR5pXlArEaFaRwnw7oAN3F0Gy55U=
+github.com/tektoncd/pipeline v0.9.1/go.mod h1:IZzJdiX9EqEMuUcgdnElozdYYRh0/ZRC+NKMLj1K3Yw=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/yudai/gojsondiff v0.0.0-20180504020246-0525c875b75c h1:/8Xb/f8s2/ZZpzMzBkFwW2Jvj7Pglk+AW8m8FFqOoIQ=
@@ -476,6 +479,8 @@ golang.org/x/tools v0.0.0-20190328211700-ab21143f2384/go.mod h1:LCzVGOaR6xXOjkQ3
 golang.org/x/tools v0.0.0-20190425150028-36563e24a262/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
 golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c h1:97SnQk1GYRXJgvwZ8fadnxDOWfKvkNQHH3CtZntPSrM=
 golang.org/x/tools v0.0.0-20190506145303-2d16b83fe98c/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
+golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
+golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 gomodules.xyz/version v0.0.0-20190507203204-7cec7ee542d3/go.mod h1:Y8xuV02mL/45psyPKG3NCVOwvAOy6T5Kx0l3rCjKSjU=
 google.golang.org/api v0.0.0-20180910000450-7ca32eb868bf/go.mod h1:4mhQ8q/RsB7i+udVvVy5NUi08OU8ZlA0gRVgrF7VFY0=
 google.golang.org/api v0.4.0 h1:KKgc1aqhV8wDPbDzlDtpvyjZFY3vjz85FP7p4wcQUyI=
@@ -583,6 +588,8 @@ kmodules.xyz/objectstore-api v0.0.0-20190516233206-ea3ba546e348 h1:GViDM6wui0Em6
 kmodules.xyz/objectstore-api v0.0.0-20190516233206-ea3ba546e348/go.mod h1:90TB4uAMAFUHLSbxSl+uAgs/5GIdv5hSAJis4NhC8YU=
 kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061 h1:ge49on2TYYdSeYggSHB01u+YFvm89UvcHW278sbp7oM=
 kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061/go.mod h1:LT3dsKZJjJIWGGGyzLd6AR3YF5eXDc90B4zC54V3b7Q=
+knative.dev/pkg v0.0.0-20191211150249-bebd5557feae h1:aoXwtJERQEgjDWUAkDda4eurLs6IiWB3baWodGJkMW0=
+knative.dev/pkg v0.0.0-20191211150249-bebd5557feae/go.mod h1:pgODObA1dTyhNoFxPZTTjNWfx6F0aKsKzn+vaT9XO/Q=
 sigs.k8s.io/controller-runtime v0.1.9 h1:ZcnTZfnCGynyToVwHsqV3bMoGXwViYlnUF8kfMgghK8=
 sigs.k8s.io/controller-runtime v0.1.9/go.mod h1:HFAYoOh6XMV+jKF1UjFwrknPbowfyHEHHRdJMf2jMX8=
 sigs.k8s.io/controller-tools v0.1.10 h1:onJbaVxkLKbLhy3BcLdesjkP6y+6WFVzg1BJv28BpCo=
