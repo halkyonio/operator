@@ -119,6 +119,8 @@ func main() {
 				capability2.SupportedCategories[category] = types
 			}
 			types[plugin.GetType()] = true
+			plugin.Init(mgr.GetScheme())
+			defer plugin.Kill()
 		} else {
 			panic(err)
 		}
