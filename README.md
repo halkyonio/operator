@@ -245,7 +245,7 @@ minikube start
 
 Install Tekton Pipelines:
 ```bash
-kubectl apply -f https://storage.googleapis.com/tekton-releases/previous/v0.5.2/release.yaml
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.9.1/release.yaml
 ```
 
 Install the `KubeDB` operator and the catalog of the databases using the following bash script as described within the `kubedb` [doc](https://kubedb.com/docs/0.12.0/setup/install/):
@@ -422,7 +422,7 @@ kubectl delete -n operators -f deploy/operator.yaml
 
 ## Compatibility matrix
 
-|                     | Kubernetes >= 1.13 | OpenShift 3.x | OpenShift 4.x | KubeDB 0.12 | Tekton v0.5.x | 
+|                     | Kubernetes >= 1.13 | OpenShift 3.x | OpenShift 4.x | KubeDB 0.12 | Tekton v0.9.x | 
 |---------------------|--------------------|---------------|---------------|-------------|---------------|
 | halkyon v0.1.x      | ✓                  | ✓             | ✓             | ✓           | ✓             |
 
