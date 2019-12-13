@@ -33,8 +33,7 @@ func (res taskRun) Build() (runtime.Object, error) {
 			Labels:    ls,
 		},
 		Spec: v1alpha1.TaskRunSpec{
-			//ServiceAccountName: ServiceAccountName(c),
-			ServiceAccountName: "build-bot",
+			ServiceAccountName: ServiceAccountName(c),
 			TaskRef: &v1alpha1.TaskRef{
 				Name: TaskName(c),
 			},
