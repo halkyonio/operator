@@ -36,11 +36,9 @@ const (
 )
 
 var (
-	Version             = "Unset"
-	GitCommit           = "HEAD"
-	log                 = logf.Log.WithName("cmd")
-	plugins             []capability2.Plugin
-	supportedCategories capability2.CategoryRegistry
+	Version   = "Unset"
+	GitCommit = "HEAD"
+	log       = logf.Log.WithName("cmd")
 )
 
 func printVersion() {
@@ -106,19 +104,19 @@ func main() {
 	}
 	pluginsDir := filepath.Join(currentDir, "plugins")
 	goPlugins, err := ioutil.ReadDir(pluginsDir)
-	plugins = make([]capability2.Plugin, 0, len(goPlugins))
+	capability2.Plugins = make([]capability2.Plugin, 0, len(goPlugins))
 	if err != nil {
 		panic(err)
 	}
 	for _, p := range goPlugins {
 		pluginPath := filepath.Join(pluginsDir, p.Name())
 		if plugin, err := capability2.NewPlugin(pluginPath); err == nil {
-			plugins = append(plugins, plugin)
+			capability2.Plugins = append(capability2.Plugins, plugin)
 			category := plugin.GetCategory()
-			types, ok := supportedCategories[category]
+			types, ok := capability2.SupportedCategories[category]
 			if !ok {
 				types = make(capability2.TypeRegistry, 3)
-				supportedCategories[category] = types
+				capability2.SupportedCategories[category] = types
 			}
 			types[plugin.GetType()] = true
 		} else {
