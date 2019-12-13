@@ -4,20 +4,9 @@ import (
 	"fmt"
 	halkyon "halkyon.io/api/capability/v1beta1"
 	"halkyon.io/operator-framework"
-	"halkyon.io/plugins/capability"
-	"io/ioutil"
+	capability2 "halkyon.io/plugins/capability"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"os"
-	"path/filepath"
-)
-
-type typeRegistry map[halkyon.CapabilityType]bool
-type categoryRegistry map[halkyon.CapabilityCategory]typeRegistry
-
-var (
-	plugins             []capability.Plugin
-	supportedCategories categoryRegistry
 )
 
 // blank assignment to check that Capabilit implements Resource
@@ -46,7 +35,7 @@ func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resou
 	found := false
 	category := c.Spec.Category
 	capabilityType := c.Spec.Type
-	for _, p := range plugins {
+	for _, p := range capability2.Plugins {
 		if p.GetCategory() == category && p.GetType() == capabilityType {
 			// init dependents for given capability type
 			c.BaseResource.AddDependentResource(p.ReadyFor(c))
@@ -78,8 +67,8 @@ func NewCapability() *Capability {
 }
 
 func (in *Capability) GetWatchedResourcesTypes() []schema.GroupVersionKind {
-	watched := make([]schema.GroupVersionKind, 0, len(plugins)*2)
-	for _, p := range plugins {
+	watched := make([]schema.GroupVersionKind, 0, len(capability2.Plugins)*2)
+	for _, p := range capability2.Plugins {
 		watched = append(watched, p.GetWatchedResourcesTypes()...)
 	}
 	return watched
@@ -106,7 +95,7 @@ func (in *Capability) SetInitialStatus(msg string) bool {
 
 func (in *Capability) CheckValidity() error {
 	category := in.Spec.Category
-	types := supportedCategories[category]
+	types := capability2.SupportedCategories[category]
 	if len(types) == 0 {
 		return fmt.Errorf("unsupported '%s' capability category", category)
 	}
@@ -152,33 +141,4 @@ func (in *Capability) GetStatusAsString() string {
 
 func (in *Capability) ShouldDelete() bool {
 	return true
-}
-
-func init() {
-	plugins = make([]capability.Plugin, 0, 7)
-	supportedCategories = make(categoryRegistry, 7)
-	currentDir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	pluginsDir := filepath.Join(currentDir, "plugins")
-	goPlugins, err := ioutil.ReadDir(pluginsDir)
-	if err != nil {
-		panic(err)
-	}
-	for _, p := range goPlugins {
-		pluginPath := filepath.Join(pluginsDir, p.Name())
-		if plugin, err := capability.NewPlugin(pluginPath); err == nil {
-			plugins = append(plugins, plugin)
-			category := plugin.GetCategory()
-			types, ok := supportedCategories[category]
-			if !ok {
-				types = make(typeRegistry, 3)
-				supportedCategories[category] = types
-			}
-			types[plugin.GetType()] = true
-		} else {
-			panic(err)
-		}
-	}
 }
