@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	kubedbv1 "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	authorizv1 "github.com/openshift/api/authorization/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
@@ -17,7 +16,10 @@ import (
 	"halkyon.io/operator/pkg/controller/capability"
 	"halkyon.io/operator/pkg/controller/component"
 	"halkyon.io/operator/pkg/controller/link"
+	capability2 "halkyon.io/plugins/capability"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"time"
@@ -34,11 +36,12 @@ const (
 )
 
 var (
-	Version   = "Unset"
-	GitCommit = "HEAD"
+	Version             = "Unset"
+	GitCommit           = "HEAD"
+	log                 = logf.Log.WithName("cmd")
+	plugins             []capability2.Plugin
+	supportedCategories capability2.CategoryRegistry
 )
-
-var log = logf.Log.WithName("cmd")
 
 func printVersion() {
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
@@ -95,6 +98,34 @@ func main() {
 	log.Info("Registering 3rd party resources")
 	registerAdditionalResources(mgr)
 
+	// load plugins
+	capability2.SupportedCategories = make(capability2.CategoryRegistry, 7)
+	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	pluginsDir := filepath.Join(currentDir, "plugins")
+	goPlugins, err := ioutil.ReadDir(pluginsDir)
+	plugins = make([]capability2.Plugin, 0, len(goPlugins))
+	if err != nil {
+		panic(err)
+	}
+	for _, p := range goPlugins {
+		pluginPath := filepath.Join(pluginsDir, p.Name())
+		if plugin, err := capability2.NewPlugin(pluginPath); err == nil {
+			plugins = append(plugins, plugin)
+			category := plugin.GetCategory()
+			types, ok := supportedCategories[category]
+			if !ok {
+				types = make(capability2.TypeRegistry, 3)
+				supportedCategories[category] = types
+			}
+			types[plugin.GetType()] = true
+		} else {
+			panic(err)
+		}
+	}
+
 	// Create component controller and add it to the manager
 	if err := framework.RegisterNewReconciler(component.NewComponent(), mgr); err != nil {
 		log.Error(err, "")
@@ -124,9 +155,9 @@ func registerAdditionalResources(m manager.Manager) {
 	if err := securityv1.Install(scheme); err != nil {
 		log.Error(err, "")
 	}
-	if err := kubedbv1.AddToScheme(scheme); err != nil {
+	/*if err := kubedbv1.AddToScheme(scheme); err != nil {
 		log.Error(err, "")
-	}
+	}*/
 	if err := route.Install(scheme); err != nil {
 		log.Error(err, "")
 	}
