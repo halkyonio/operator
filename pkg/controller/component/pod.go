@@ -53,7 +53,7 @@ func (res pod) ShouldBeCheckedForReadiness() bool {
 }
 
 func (res pod) OwnerStatusField() string {
-	return res.ownerAsComponent().DependentStatusFieldName()
+	return res.asComponent(res.OwnerAsResource()).DependentStatusFieldName()
 }
 
 func (res pod) Fetch(helper *framework.K8SHelper) (runtime.Object, error) {

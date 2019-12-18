@@ -87,7 +87,7 @@ func (res taskRun) Build() (runtime.Object, error) {
 }
 
 func (res taskRun) OwnerStatusField() string {
-	return res.ownerAsComponent().DependentStatusFieldName()
+	return res.asComponent(res.OwnerAsResource()).DependentStatusFieldName()
 }
 
 func (res taskRun) ShouldBeCheckedForReadiness() bool {

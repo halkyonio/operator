@@ -25,7 +25,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	// and we will enrich the deployment resource of the runtime container
 	// create a "dev" version of the component to be able to check if the dev deployment exists
 	devDeployment := &appsv1.Deployment{}
-	_, err = c.Helper().Fetch(DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
+	_, err = res.OwnerAsResource().Helper().Fetch(DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
 	if err == nil {
 		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
 		runtimeContainer.Env = devContainer.Env
@@ -68,7 +68,7 @@ func (res deployment) installBuild() (runtime.Object, error) {
 	return dep, nil
 }
 
-func getRuntimeContainerFor(component *Component) (corev1.Container, error) {
+func getRuntimeContainerFor(component *component.Component) (corev1.Container, error) {
 	container := corev1.Container{
 		Env:             populatePodEnvVar(component.Spec),
 		Image:           dockerImageURL(component),

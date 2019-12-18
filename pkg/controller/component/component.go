@@ -50,10 +50,10 @@ func (in *Component) CreateOrUpdate() (err error) {
 		err = in.CreateOrUpdateDependents()
 	} else {
 		// Enrich Component with k8s recommend Labels
-		in.ObjectMeta.Labels = PopulateK8sLabels(in, "Backend")
+		in.ObjectMeta.Labels = PopulateK8sLabels(in.Component, "Backend")
 
 		// Enrich Env Vars with Default values
-		populateEnvVar(in)
+		populateEnvVar(in.Component)
 
 		return in.CreateOrUpdateDependents()
 	}
@@ -112,7 +112,7 @@ func (in *Component) Init() bool {
 		in.Spec.DeploymentMode = halkyon.DevDeploymentMode
 		return true
 	}
-	in.Spec.Storage.Name = PVCName(in)
+	in.Spec.Storage.Name = PVCName(in.Component)
 	return false
 }
 
