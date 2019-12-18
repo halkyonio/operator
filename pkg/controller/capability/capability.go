@@ -1,6 +1,7 @@
 package capability
 
 import (
+	"encoding/gob"
 	"fmt"
 	halkyon "halkyon.io/api/capability/v1beta1"
 	"halkyon.io/operator-framework"
@@ -141,4 +142,10 @@ func (in *Capability) GetStatusAsString() string {
 
 func (in *Capability) ShouldDelete() bool {
 	return true
+}
+
+func init() {
+	gob.Register(map[string]interface{}{})
+	gob.Register([]interface{}{})
+	gob.Register(Capability{})
 }
