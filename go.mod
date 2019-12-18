@@ -12,7 +12,6 @@ require (
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
-	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/go-containerregistry v0.0.0-20190531175139-2687bd5ba651 // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20190509032623-7892efa714f1 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
@@ -31,13 +30,13 @@ require (
 	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5 // indirect
-	github.com/spf13/pflag v1.0.3
+	github.com/spf13/pflag v1.0.5
 	github.com/tektoncd/pipeline v0.9.1
 	go.uber.org/zap v1.13.0 // indirect
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
-	halkyon.io/api v1.0.0-beta.7
-	halkyon.io/operator-framework v0.0.0-20191212091852-c4cae77ce280
-	halkyon.io/plugins v0.0.0-20191213232056-e1167d83b698
+	halkyon.io/api v1.0.0-beta.8
+	halkyon.io/operator-framework v0.0.0-20191218162228-8520e4863185
+	halkyon.io/plugins v0.0.0-20191218170816-52ab385e28af
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 // indirect
 	k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
@@ -51,7 +50,6 @@ require (
 replace (
 	github.com/go-check/check => github.com/go-check/check v0.0.0-20180628173108-788fd7840127
 	github.com/graymeta/stow => github.com/appscode/stow v0.0.0-20190506085026-ca5baa008ea3
-	// halkyon.io/plugins => ../plugins
 	k8s.io/api => k8s.io/api v0.0.0-20181126151915-b503174bad59
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
 	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.0.0-20190423074438-a3cbe62563e6
