@@ -32,11 +32,11 @@ func (res pvc) Build() (runtime.Object, error) {
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{
-				getAccessMode(c.Component),
+				getAccessMode(c),
 			},
 			Resources: corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
-					corev1.ResourceStorage: getCapacity(c.Component),
+					corev1.ResourceStorage: getCapacity(c),
 				},
 			},
 		},

@@ -15,7 +15,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 	ls := getAppLabels(DeploymentName(c))
 
 	// create runtime container
-	runtimeContainer, err := getBaseContainerFor(c.Component)
+	runtimeContainer, err := getBaseContainerFor(c)
 	if err != nil {
 		return nil, err
 	}
