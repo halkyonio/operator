@@ -20,7 +20,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	plugin2 "plugin"
 	"runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"time"
@@ -120,17 +119,6 @@ func main() {
 				capability2.SupportedCategories[category] = types
 			}
 			types[plugin.GetType()] = true
-
-			goPluginPath := pluginPath + "-registration"
-			if goPlugin, err := plugin2.Open(goPluginPath); err == nil {
-				initializer, err := goPlugin.Lookup("Initializer")
-				if err != nil {
-					panic(err)
-				}
-				initializer.(capability2.SchemeInitializer).Init(mgr.GetScheme())
-			} else {
-				panic(err)
-			}
 			defer plugin.Kill()
 		} else {
 			panic(err)
