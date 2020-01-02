@@ -1,6 +1,8 @@
 package component
 
 import (
+	component "halkyon.io/api/component/v1beta1"
+	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,23 +14,26 @@ type ingress struct {
 	base
 }
 
-func newIngress(owner framework.Resource) ingress {
-	dependent := newBaseDependent(&v1beta1.Ingress{}, owner)
-	i := ingress{base: dependent}
-	dependent.SetDelegate(i)
-	return i
+var _ framework.DependentResource = &ingress{}
+
+func newIngress(owner v1beta12.HalkyonResource) ingress {
+	config := framework.NewConfig(v1beta1.SchemeGroupVersion.WithKind("Ingress"), owner.GetNamespace())
+	config.Watched = !framework.IsTargetClusterRunningOpenShift()
+	config.CreatedOrUpdated = owner.(*component.Component).Spec.ExposeService && config.Watched
+	return ingress{base: newConfiguredBaseDependent(owner, config)}
 }
 
-func (res ingress) Build() (runtime.Object, error) {
-	c := res.ownerAsComponent()
-	ls := getAppLabels(DeploymentName(c))
-	ingress := &v1beta1.Ingress{
-		ObjectMeta: v1.ObjectMeta{
+func (res ingress) Build(empty bool) (runtime.Object, error) {
+	ingress := &v1beta1.Ingress{}
+	if !empty {
+		c := res.ownerAsComponent()
+		ls := getAppLabels(DeploymentName(c))
+		ingress.ObjectMeta = v1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
-		},
-		Spec: v1beta1.IngressSpec{
+		}
+		ingress.Spec = v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{
 				{Host: c.Name,
 					IngressRuleValue: v1beta1.IngressRuleValue{
@@ -49,16 +54,8 @@ func (res ingress) Build() (runtime.Object, error) {
 					},
 				},
 			},
-		},
+		}
 	}
 
 	return ingress, nil
-}
-
-func (res ingress) ShouldWatch() bool {
-	return !framework.IsTargetClusterRunningOpenShift()
-}
-
-func (res ingress) CanBeCreatedOrUpdated() bool {
-	return res.ownerAsComponent().Spec.ExposeService && res.ShouldWatch()
 }

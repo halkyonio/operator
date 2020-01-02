@@ -33,13 +33,13 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/tektoncd/pipeline v0.9.1
 	go.uber.org/zap v1.13.0 // indirect
-	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
-	halkyon.io/api v1.0.0-beta.8
-	halkyon.io/operator-framework v0.0.0-20191218162228-8520e4863185
-	halkyon.io/plugins v0.0.0-20191218170816-52ab385e28af
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+	halkyon.io/api v1.0.0-beta.8.0.20191219201020-14dfa325eab8
+	halkyon.io/operator-framework v0.0.0-20200102215814-202e364c4941
+	halkyon.io/plugins v0.0.0-20200102220524-4c27a092f146
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 // indirect
-	k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
+	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible
 	k8s.io/kubernetes v1.14.5 // indirect
 	sigs.k8s.io/controller-runtime v0.3.0

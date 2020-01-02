@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
+	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,25 +15,27 @@ type taskRun struct {
 	base
 }
 
-func newTaskRun(owner framework.Resource) taskRun {
-	dependent := newBaseDependent(&v1alpha1.TaskRun{}, owner)
-	t := taskRun{
-		base: dependent,
-	}
-	dependent.SetDelegate(t)
-	return t
+var _ framework.DependentResource = &taskRun{}
+
+func newTaskRun(owner v1beta12.HalkyonResource) taskRun {
+	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("TaskRun"), owner.GetNamespace())
+	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == owner.(*v1beta1.Component).Spec.DeploymentMode
+	config.CreatedOrUpdated = config.CheckedForReadiness
+	config.OwnerStatusField = owner.(*Component).DependentStatusFieldName()
+	return taskRun{base: newConfiguredBaseDependent(owner, config)}
 }
 
-func (res taskRun) Build() (runtime.Object, error) {
-	c := res.ownerAsComponent()
-	ls := getBuildLabels(c.Name)
-	taskRun := &v1alpha1.TaskRun{
-		ObjectMeta: metav1.ObjectMeta{
+func (res taskRun) Build(empty bool) (runtime.Object, error) {
+	taskRun := &v1alpha1.TaskRun{}
+	if !empty {
+		c := res.ownerAsComponent()
+		ls := getBuildLabels(c.Name)
+		taskRun.ObjectMeta = metav1.ObjectMeta{
 			Namespace: c.Namespace,
 			Name:      res.Name(),
 			Labels:    ls,
-		},
-		Spec: v1alpha1.TaskRunSpec{
+		}
+		taskRun.Spec = v1alpha1.TaskRunSpec{
 			ServiceAccountName: ServiceAccountName(c),
 			TaskRef: &v1alpha1.TaskRef{
 				Name: TaskName(c),
@@ -80,22 +83,10 @@ func (res taskRun) Build() (runtime.Object, error) {
 					},
 				}},
 			},
-		},
+		}
 	}
 
 	return taskRun, nil
-}
-
-func (res taskRun) OwnerStatusField() string {
-	return res.asComponent(res.OwnerAsResource()).DependentStatusFieldName()
-}
-
-func (res taskRun) ShouldBeCheckedForReadiness() bool {
-	return v1beta1.BuildDeploymentMode == res.ownerAsComponent().Spec.DeploymentMode
-}
-
-func (res taskRun) CanBeCreatedOrUpdated() bool {
-	return res.ShouldBeCheckedForReadiness()
 }
 
 func (res taskRun) IsReady(underlying runtime.Object) (ready bool, message string) {

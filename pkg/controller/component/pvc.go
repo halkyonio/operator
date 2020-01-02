@@ -2,7 +2,8 @@ package component
 
 import (
 	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/operator-framework"
+	"halkyon.io/api/v1beta1"
+	framework "halkyon.io/operator-framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,24 +14,25 @@ type pvc struct {
 	base
 }
 
-func newPvc(owner framework.Resource) pvc {
-	dependent := newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)
-	p := pvc{base: dependent}
-	dependent.SetDelegate(p)
-	return p
+var _ framework.DependentResource = &pvc{}
+
+func newPvc(owner v1beta1.HalkyonResource) pvc {
+	return pvc{base: newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)}
 }
 
-func (res pvc) Build() (runtime.Object, error) {
-	c := res.ownerAsComponent()
-	ls := getAppLabels(DeploymentName(c))
-	name := res.Name()
-	pvc := &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
+func (res pvc) Build(empty bool) (runtime.Object, error) {
+	pvc := &corev1.PersistentVolumeClaim{}
+
+	if !empty {
+		c := res.ownerAsComponent()
+		ls := getAppLabels(DeploymentName(c))
+		name := res.Name()
+		pvc.ObjectMeta = metav1.ObjectMeta{
 			Name:      name,
 			Namespace: c.Namespace,
 			Labels:    ls,
-		},
-		Spec: corev1.PersistentVolumeClaimSpec{
+		}
+		pvc.Spec = corev1.PersistentVolumeClaimSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{
 				getAccessMode(c),
 			},
@@ -39,7 +41,7 @@ func (res pvc) Build() (runtime.Object, error) {
 					corev1.ResourceStorage: getCapacity(c),
 				},
 			},
-		},
+		}
 	}
 
 	return pvc, nil

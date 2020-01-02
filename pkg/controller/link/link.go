@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"halkyon.io/api/component/v1beta1"
 	halkyon "halkyon.io/api/link/v1beta1"
+	halkyon2 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"halkyon.io/operator-framework/util"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -75,7 +75,7 @@ func (in *Link) Init() bool {
 	return false
 }
 
-func (in *Link) GetAPIObject() runtime.Object {
+func (in *Link) GetAsHalkyonResource() halkyon2.HalkyonResource {
 	return in.Link
 }
 
