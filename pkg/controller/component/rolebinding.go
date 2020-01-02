@@ -1,24 +1,19 @@
 package component
 
 import (
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
-	"halkyon.io/operator/pkg/controller"
 )
 
 type roleBinding struct {
-	controller.RoleBinding
+	framework.RoleBinding
 }
 
-func newRoleBinding(owner framework.Resource) roleBinding {
-	generic := controller.NewOwnedRoleBinding(owner,
+func newRoleBinding(owner v1beta1.HalkyonResource) roleBinding {
+	generic := framework.NewOwnedRoleBinding(owner,
 		func() string { return "use-image-scc-privileged" },
 		func() string { return newRole(owner).Name() },
 		func() string { return ServiceAccountName(owner) })
 	rb := roleBinding{RoleBinding: generic}
-	generic.SetDelegate(rb)
 	return rb
-}
-
-func (res roleBinding) NewInstanceWith(owner framework.Resource) framework.DependentResource {
-	return newRoleBinding(owner)
 }

@@ -3,6 +3,7 @@ package component
 import (
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
+	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"halkyon.io/operator-framework/util"
 	corev1 "k8s.io/api/core/v1"
@@ -14,21 +15,24 @@ type task struct {
 	base
 }
 
-func newTask(owner framework.Resource) task {
-	dependent := newBaseDependent(&v1alpha1.Task{}, owner)
-	t := task{base: dependent}
-	dependent.SetDelegate(t)
-	return t
+var _ framework.DependentResource = &task{}
+
+func newTask(owner v1beta12.HalkyonResource) task {
+	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("Task"), owner.GetNamespace())
+	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == owner.(*v1beta1.Component).Spec.DeploymentMode
+	config.CreatedOrUpdated = config.CheckedForReadiness
+	return task{base: newConfiguredBaseDependent(owner, config)}
 }
 
-func (res task) Build() (runtime.Object, error) {
-	c := res.ownerAsComponent()
-	task := &v1alpha1.Task{
-		ObjectMeta: metav1.ObjectMeta{
+func (res task) Build(empty bool) (runtime.Object, error) {
+	task := &v1alpha1.Task{}
+	if !empty {
+		c := res.ownerAsComponent()
+		task.ObjectMeta = metav1.ObjectMeta{
 			Namespace: c.Namespace,
 			Name:      res.Name(),
-		},
-		Spec: v1alpha1.TaskSpec{
+		}
+		task.Spec = v1alpha1.TaskSpec{
 			Inputs: &v1alpha1.Inputs{
 				// This input corresponds to a pre-task step as the project will be cloned
 				// under by default the following directory : /workspace/{resource-name}
@@ -148,18 +152,10 @@ func (res task) Build() (runtime.Object, error) {
 				{Name: "generatedsources", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 				{Name: "libcontainers", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 			},
-		},
+		}
 	}
 
 	return task, nil
-}
-
-func (res task) ShouldBeCheckedForReadiness() bool {
-	return v1beta1.BuildDeploymentMode == res.ownerAsComponent().Spec.DeploymentMode
-}
-
-func (res task) CanBeCreatedOrUpdated() bool {
-	return res.ShouldBeCheckedForReadiness()
 }
 
 func (res task) Name() string {

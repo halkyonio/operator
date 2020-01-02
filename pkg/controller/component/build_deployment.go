@@ -11,42 +11,43 @@ import (
 )
 
 //createBuildDeployment returns the Deployment config object to be used for deployment using a container image build by Tekton
-func (res deployment) installBuild() (runtime.Object, error) {
-	c := res.ownerAsComponent()
-	ls := getAppLabels(DeploymentName(c))
+func (res deployment) installBuild(empty bool) (runtime.Object, error) {
+	dep := &appsv1.Deployment{}
+	if !empty {
+		c := res.ownerAsComponent()
+		ls := getAppLabels(DeploymentName(c))
 
-	// create runtime container using built image (= created by the Tekton build task)
-	runtimeContainer, err := getRuntimeContainerFor(c)
-	if err != nil {
-		return nil, err
-	}
-	// We will check if a Dev Deployment exists.
-	// If this is the case, then that means that we are switching from dev to build mode
-	// and we will enrich the deployment resource of the runtime container
-	// create a "dev" version of the component to be able to check if the dev deployment exists
-	devDeployment := &appsv1.Deployment{}
-	_, err = res.OwnerAsResource().Helper().Fetch(DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
-	if err == nil {
-		devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
-		runtimeContainer.Env = devContainer.Env
-		runtimeContainer.EnvFrom = devContainer.EnvFrom
-		runtimeContainer.Env = updateEnv(runtimeContainer.Env, c.Annotations["app.openshift.io/java-app-jar"])
-		runtimeContainer.Ports = devContainer.Ports
-	} else {
-		runtimeContainer.Ports = []corev1.ContainerPort{{
-			ContainerPort: c.Spec.Port,
-			Name:          "http",
-			Protocol:      "TCP",
-		}}
-	}
+		// create runtime container using built image (= created by the Tekton build task)
+		runtimeContainer, err := getRuntimeContainerFor(c)
+		if err != nil {
+			return nil, err
+		}
+		// We will check if a Dev Deployment exists.
+		// If this is the case, then that means that we are switching from dev to build mode
+		// and we will enrich the deployment resource of the runtime container
+		// create a "dev" version of the component to be able to check if the dev deployment exists
+		devDeployment := &appsv1.Deployment{}
+		_, err = res.Owner().(*Component).Helper().Fetch(DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
+		if err == nil {
+			devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
+			runtimeContainer.Env = devContainer.Env
+			runtimeContainer.EnvFrom = devContainer.EnvFrom
+			runtimeContainer.Env = updateEnv(runtimeContainer.Env, c.Annotations["app.openshift.io/java-app-jar"])
+			runtimeContainer.Ports = devContainer.Ports
+		} else {
+			runtimeContainer.Ports = []corev1.ContainerPort{{
+				ContainerPort: c.Spec.Port,
+				Name:          "http",
+				Protocol:      "TCP",
+			}}
+		}
 
-	dep := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
+		dep.ObjectMeta = metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
-		},
-		Spec: v1.DeploymentSpec{
+		}
+		dep.Spec = v1.DeploymentSpec{
 			Strategy: v1.DeploymentStrategy{
 				Type: v1.RollingUpdateDeploymentStrategyType,
 			},
@@ -61,7 +62,8 @@ func (res deployment) installBuild() (runtime.Object, error) {
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{runtimeContainer},
 				}},
-		},
+		}
+
 	}
 
 	// Set Component instance as the owner and controller

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"halkyon.io/api/component/v1beta1"
+	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,24 +15,26 @@ type pod struct {
 	base
 }
 
-func newPod(owner framework.Resource) pod {
-	dependent := newBaseDependent(&corev1.Pod{}, owner)
-	i := pod{base: dependent}
-	dependent.SetDelegate(i)
-	return i
+var _ framework.DependentResource = &pod{}
+
+func newPod(owner v1beta12.HalkyonResource) pod {
+	config := framework.NewConfig(corev1.SchemeGroupVersion.WithKind("Pod"), owner.GetNamespace())
+	config.CheckedForReadiness = v1beta1.DevDeploymentMode == owner.(*v1beta1.Component).Spec.DeploymentMode
+	config.OwnerStatusField = owner.(*Component).DependentStatusFieldName()
+	config.CreatedOrUpdated = false
+	return pod{base: newConfiguredBaseDependent(owner, config)}
 }
 
-func (res pod) Build() (runtime.Object, error) {
+func (res pod) Build(empty bool) (runtime.Object, error) {
+	if empty {
+		return &corev1.Pod{}, nil
+	}
 	// we don't want to be building anything: the pod is under the deployment's control
 	return nil, nil
 }
 
 func (res pod) NameFrom(underlying runtime.Object) string {
 	return underlying.(*corev1.Pod).Name
-}
-
-func (res pod) CanBeCreatedOrUpdated() bool {
-	return false
 }
 
 func (res pod) IsReady(underlying runtime.Object) (bool, string) {
@@ -46,14 +49,6 @@ func (res pod) IsReady(underlying runtime.Object) (bool, string) {
 		msg = ": " + p.Status.Message
 	}
 	return false, fmt.Sprintf("%s is not ready%s", p.Name, msg)
-}
-
-func (res pod) ShouldBeCheckedForReadiness() bool {
-	return v1beta1.DevDeploymentMode == res.ownerAsComponent().Spec.DeploymentMode
-}
-
-func (res pod) OwnerStatusField() string {
-	return res.asComponent(res.OwnerAsResource()).DependentStatusFieldName()
 }
 
 func (res pod) Fetch(helper *framework.K8SHelper) (runtime.Object, error) {

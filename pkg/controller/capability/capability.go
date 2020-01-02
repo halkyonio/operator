@@ -4,9 +4,9 @@ import (
 	"encoding/gob"
 	"fmt"
 	halkyon "halkyon.io/api/capability/v1beta1"
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	capability2 "halkyon.io/plugins/capability"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -39,7 +39,7 @@ func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resou
 	for _, p := range capability2.Plugins {
 		if p.GetCategory() == category && p.GetType() == capabilityType {
 			// init dependents for given capability type
-			c.BaseResource.AddDependentResource(p.ReadyFor(c.Capability))
+			c.BaseResource.AddDependentResource(p.ReadyFor(c.Capability)...)
 			found = true
 			break
 		}
@@ -59,7 +59,7 @@ func (in *Capability) Init() bool {
 	return false
 }
 
-func (in *Capability) GetAPIObject() runtime.Object {
+func (in *Capability) GetAsHalkyonResource() v1beta1.HalkyonResource {
 	return in.Capability
 }
 

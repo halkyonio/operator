@@ -1,6 +1,7 @@
 package component
 
 import (
+	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,23 +13,23 @@ type service struct {
 	base
 }
 
-func newService(owner framework.Resource) service {
-	dependent := newBaseDependent(&corev1.Service{}, owner)
-	s := service{base: dependent}
-	dependent.SetDelegate(s)
-	return s
+var _ framework.DependentResource = &service{}
+
+func newService(owner v1beta1.HalkyonResource) service {
+	return service{base: newBaseDependent(&corev1.Service{}, owner)}
 }
 
-func (res service) Build() (runtime.Object, error) {
-	c := res.ownerAsComponent()
-	ls := getAppLabels(DeploymentName(c))
-	ser := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
+func (res service) Build(empty bool) (runtime.Object, error) {
+	ser := &corev1.Service{}
+	if !empty {
+		c := res.ownerAsComponent()
+		ls := getAppLabels(DeploymentName(c))
+		ser.ObjectMeta = metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
-		},
-		Spec: corev1.ServiceSpec{
+		}
+		ser.Spec = corev1.ServiceSpec{
 			Selector: ls,
 			Type:     corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{
@@ -41,7 +42,7 @@ func (res service) Build() (runtime.Object, error) {
 					Protocol: "TCP",
 				},
 			},
-		},
+		}
 	}
 	return ser, nil
 }

@@ -2,27 +2,35 @@ package link
 
 import (
 	"halkyon.io/api/component/v1beta1"
+	v1beta12 "halkyon.io/api/link/v1beta1"
+	v1beta13 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type component struct {
-	*framework.DependentResourceHelper
+	*framework.BaseDependentResource
 }
+
+func (res component) NameFrom(underlying runtime.Object) string {
+	return framework.DefaultNameFrom(res, underlying)
+}
+
+func (res component) Fetch(helper *framework.K8SHelper) (runtime.Object, error) {
+	return framework.DefaultFetcher(res, helper)
+}
+
+var _ framework.DependentResource = &component{}
 
 func (res component) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func newComponent(owner framework.Resource) component {
-	resource := framework.NewDependentResource(&v1beta1.Component{}, owner)
-	c := component{DependentResourceHelper: resource}
-	resource.SetDelegate(c)
-	return c
-}
-
-func (component) ShouldBeCheckedForReadiness() bool {
-	return true
+func newComponent(owner v1beta13.HalkyonResource) component {
+	config := framework.NewConfig(v1beta1.SchemeGroupVersion.WithKind(v1beta1.Kind), owner.GetNamespace())
+	config.CheckedForReadiness = true
+	config.CreatedOrUpdated = false
+	return component{framework.NewConfiguredBaseDependentResource(owner, config)}
 }
 
 func (res component) IsReady(underlying runtime.Object) (ready bool, message string) {
@@ -35,14 +43,13 @@ func (res component) IsReady(underlying runtime.Object) (ready bool, message str
 }
 
 func (res component) Name() string {
-	return res.Owner().(*Link).Spec.ComponentName
+	return res.Owner().(*v1beta12.Link).Spec.ComponentName
 }
 
-func (res component) Build() (runtime.Object, error) {
+func (res component) Build(empty bool) (runtime.Object, error) {
+	if empty {
+		return &v1beta1.Component{}, nil
+	}
 	// we don't want to be building anything: components are dealt with by the component controller
 	return nil, nil
-}
-
-func (res component) CanBeCreatedOrUpdated() bool {
-	return false
 }

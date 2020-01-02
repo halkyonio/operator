@@ -10,44 +10,46 @@ import (
 )
 
 //buildDevDeployment returns the Deployment config object
-func (res deployment) installDev() (runtime.Object, error) {
-	c := res.ownerAsComponent()
-	ls := getAppLabels(DeploymentName(c))
+func (res deployment) installDev(empty bool) (runtime.Object, error) {
+	dep := &appsv1.Deployment{}
 
-	// create runtime container
-	runtimeContainer, err := getBaseContainerFor(c)
-	if err != nil {
-		return nil, err
-	}
-	runtimeContainer.Args = []string{
-		"-c",
-		"/var/lib/supervisord/conf/supervisor.conf",
-	}
-	runtimeContainer.Command = []string{"/var/lib/supervisord/bin/supervisord"}
-	runtimeContainer.Ports = []corev1.ContainerPort{{
-		ContainerPort: c.Spec.Port,
-		Name:          "http",
-		Protocol:      "TCP",
-	}}
-	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/deployments"})
-	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/usr/src"})
-	runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/tmp/artefacts"})
+	if !empty {
+		c := res.ownerAsComponent()
+		ls := getAppLabels(DeploymentName(c))
 
-	// create the supervisor init container
-	supervisorContainer, err := getBaseContainerFor(getSupervisor())
-	if err != nil {
-		return nil, err
-	}
-	supervisorContainer.TerminationMessagePath = "/dev/termination-log"
-	supervisorContainer.TerminationMessagePolicy = "File"
+		// create runtime container
+		runtimeContainer, err := getBaseContainerFor(c)
+		if err != nil {
+			return nil, err
+		}
+		runtimeContainer.Args = []string{
+			"-c",
+			"/var/lib/supervisord/conf/supervisor.conf",
+		}
+		runtimeContainer.Command = []string{"/var/lib/supervisord/bin/supervisord"}
+		runtimeContainer.Ports = []corev1.ContainerPort{{
+			ContainerPort: c.Spec.Port,
+			Name:          "http",
+			Protocol:      "TCP",
+		}}
+		runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/deployments"})
+		runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/usr/src"})
+		runtimeContainer.VolumeMounts = append(runtimeContainer.VolumeMounts, corev1.VolumeMount{Name: c.Spec.Storage.Name, MountPath: "/tmp/artefacts"})
 
-	dep := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
+		// create the supervisor init container
+		supervisorContainer, err := getBaseContainerFor(getSupervisor())
+		if err != nil {
+			return nil, err
+		}
+		supervisorContainer.TerminationMessagePath = "/dev/termination-log"
+		supervisorContainer.TerminationMessagePolicy = "File"
+
+		dep.ObjectMeta = metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
 			Labels:    ls,
-		},
-		Spec: v1.DeploymentSpec{
+		}
+		dep.Spec = v1.DeploymentSpec{
 			Strategy: v1.DeploymentStrategy{
 				Type: v1.RollingUpdateDeploymentStrategyType,
 			},
@@ -69,7 +71,7 @@ func (res deployment) installDev() (runtime.Object, error) {
 							VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: c.Spec.Storage.Name}}},
 					},
 				}},
-		},
+		}
 	}
 
 	// Set Component instance as the owner and controller
