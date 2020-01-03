@@ -43,8 +43,16 @@ func newConfiguredBaseDependent(owner v1beta12.HalkyonResource, config framework
 	return base{framework.NewConfiguredBaseDependentResource(owner, config)}
 }
 
+func asHalkyonComponent(res v1beta12.HalkyonResource) *v1beta1.Component {
+	return res.(*Component).Component
+}
+
+func ownerAsHalkyonComponent(res framework.DependentResource) *v1beta1.Component {
+	return asHalkyonComponent(res.Owner())
+}
+
 func (res base) ownerAsComponent() *v1beta1.Component {
-	return res.Owner().(*v1beta1.Component)
+	return ownerAsHalkyonComponent(res)
 }
 
 func (res base) asComponent(object runtime.Object) *Component {
