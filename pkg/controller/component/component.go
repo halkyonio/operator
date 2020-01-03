@@ -19,6 +19,11 @@ type Component struct {
 	*framework.BaseResource
 }
 
+func (in *Component) InitDependents() {
+	in.BaseResource.AddDependentResource(newRole(in), newRoleBinding(in), newServiceAccount(in), newPvc(in), newDeployment(in),
+		newService(in), newRoute(in), newIngress(in), newTask(in), newTaskRun(in), newPod(in))
+}
+
 // blank assignment to check that Component implements Resource
 var _ framework.Resource = &Component{}
 
@@ -126,8 +131,6 @@ func NewComponent() *Component {
 		Component:    &halkyon.Component{},
 		BaseResource: dependents,
 	}
-	dependents.AddDependentResource(newRole(c), newRoleBinding(c), newServiceAccount(c), newPvc(c), newDeployment(c), newService(c), newRoute(c), newIngress(c),
-		newTask(c), newTaskRun(c), newPod(c))
 	return c
 }
 
