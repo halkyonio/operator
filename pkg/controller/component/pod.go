@@ -19,7 +19,7 @@ var _ framework.DependentResource = &pod{}
 
 func newPod(owner v1beta12.HalkyonResource) pod {
 	config := framework.NewConfig(corev1.SchemeGroupVersion.WithKind("Pod"), owner.GetNamespace())
-	config.CheckedForReadiness = v1beta1.DevDeploymentMode == owner.(*v1beta1.Component).Spec.DeploymentMode
+	config.CheckedForReadiness = v1beta1.DevDeploymentMode == asHalkyonComponent(owner).Spec.DeploymentMode
 	config.OwnerStatusField = owner.(*Component).DependentStatusFieldName()
 	config.CreatedOrUpdated = false
 	return pod{base: newConfiguredBaseDependent(owner, config)}

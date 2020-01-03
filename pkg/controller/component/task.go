@@ -19,7 +19,7 @@ var _ framework.DependentResource = &task{}
 
 func newTask(owner v1beta12.HalkyonResource) task {
 	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("Task"), owner.GetNamespace())
-	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == owner.(*v1beta1.Component).Spec.DeploymentMode
+	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == asHalkyonComponent(owner).Spec.DeploymentMode
 	config.CreatedOrUpdated = config.CheckedForReadiness
 	return task{base: newConfiguredBaseDependent(owner, config)}
 }
