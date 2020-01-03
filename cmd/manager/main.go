@@ -154,9 +154,6 @@ func registerAdditionalResources(m manager.Manager) {
 	if err := securityv1.Install(scheme); err != nil {
 		log.Error(err, "")
 	}
-	/*if err := kubedbv1.AddToScheme(scheme); err != nil {
-		log.Error(err, "")
-	}*/
 	if err := route.Install(scheme); err != nil {
 		log.Error(err, "")
 	}
