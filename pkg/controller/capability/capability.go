@@ -18,6 +18,12 @@ type Capability struct {
 	*framework.BaseResource
 }
 
+func (in *Capability) InitDependents() {
+	// nothing
+}
+
+var _ framework.Resource = &Capability{}
+
 func (in *Capability) Delete() error {
 	return nil
 }

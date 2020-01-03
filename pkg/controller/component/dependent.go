@@ -4,6 +4,7 @@ import (
 	"halkyon.io/api/component/v1beta1"
 	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
+	"halkyon.io/operator-framework/util"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -36,7 +37,8 @@ func (res base) Update(toUpdate runtime.Object) (bool, error) {
 }
 
 func newBaseDependent(primaryResourceType runtime.Object, owner v1beta12.HalkyonResource) base {
-	return base{framework.NewBaseDependentResource(primaryResourceType, owner)}
+	gvk := util.GetGVKFor(primaryResourceType, owner.(*Component).Helper().Scheme)
+	return base{framework.NewBaseDependentResource(owner, gvk)}
 }
 
 func newConfiguredBaseDependent(owner v1beta12.HalkyonResource, config framework.DependentResourceConfig) base {

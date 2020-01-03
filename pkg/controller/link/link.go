@@ -18,6 +18,10 @@ type Link struct {
 	*framework.BaseResource
 }
 
+func (in *Link) InitDependents() {
+	in.BaseResource.AddDependentResource(newComponent(in))
+}
+
 // blank assignment to check that Link implements Resource
 var _ framework.Resource = &Link{}
 
@@ -85,7 +89,6 @@ func NewLink() *Link {
 		Link:         &halkyon.Link{},
 		BaseResource: dependents,
 	}
-	dependents.AddDependentResource(newComponent(l))
 	return l
 }
 
