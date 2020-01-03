@@ -76,7 +76,7 @@ func NewCapability() *Capability {
 func (in *Capability) GetWatchedResourcesTypes() []schema.GroupVersionKind {
 	watched := make([]schema.GroupVersionKind, 0, len(capability2.Plugins)*2)
 	for _, p := range capability2.Plugins {
-		watched = append(watched, p.GetWatchedResourcesTypes()...)
+		watched = append(watched, p.GetWatchedResourcesTypes(in.Capability)...)
 	}
 	return watched
 }
