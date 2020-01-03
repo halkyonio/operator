@@ -82,10 +82,14 @@ func main() {
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
-	mgr, err := manager.New(config.GetConfigOrDie(), options)
+	config := config.GetConfigOrDie()
+	mgr, err := manager.New(config, options)
 	if err != nil {
 		log.Error(err, "")
 	}
+
+	// check if we run on OpenShift early so that things are initialized for DependentResources which might depend on it
+	framework.CheckIfOpenShift(config)
 
 	// Setup Scheme for all resources
 	log.Info("Registering Halkyon resources")
