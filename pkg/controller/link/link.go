@@ -18,8 +18,10 @@ type Link struct {
 	*framework.BaseResource
 }
 
-func (in *Link) InitDependents() {
-	in.BaseResource.AddDependentResource(newComponent(in))
+func (in *Link) InitDependents() []framework.DependentResource {
+	res := []framework.DependentResource{newComponent(in)}
+	in.BaseResource.AddDependentResource(res...)
+	return res
 }
 
 // blank assignment to check that Link implements Resource
