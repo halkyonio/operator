@@ -7,7 +7,6 @@ import (
 	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	capability2 "halkyon.io/plugins/capability"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // blank assignment to check that Capabilit implements Resource
@@ -18,8 +17,12 @@ type Capability struct {
 	*framework.BaseResource
 }
 
-func (in *Capability) InitDependents() {
-	// nothing
+func (in *Capability) InitDependents() []framework.DependentResource {
+	watched := make([]framework.DependentResource, 0, len(capability2.Plugins)*2)
+	for _, p := range capability2.Plugins {
+		watched = append(watched, p.ReadyFor(in.Capability)...)
+	}
+	return watched
 }
 
 var _ framework.Resource = &Capability{}
@@ -71,14 +74,6 @@ func (in *Capability) GetAsHalkyonResource() v1beta1.HalkyonResource {
 
 func NewCapability() *Capability {
 	return newEmptyCapability()
-}
-
-func (in *Capability) GetWatchedResourcesTypes() []schema.GroupVersionKind {
-	watched := make([]schema.GroupVersionKind, 0, len(capability2.Plugins)*2)
-	for _, p := range capability2.Plugins {
-		watched = append(watched, p.GetWatchedResourcesTypes(in.Capability)...)
-	}
-	return watched
 }
 
 func newEmptyCapability() *Capability {

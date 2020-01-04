@@ -19,9 +19,11 @@ type Component struct {
 	*framework.BaseResource
 }
 
-func (in *Component) InitDependents() {
-	in.BaseResource.AddDependentResource(newRole(in), newRoleBinding(in), newServiceAccount(in), newPvc(in), newDeployment(in),
-		newService(in), newRoute(in), newIngress(in), newTask(in), newTaskRun(in), newPod(in))
+func (in *Component) InitDependents() []framework.DependentResource {
+	res := []framework.DependentResource{newRole(in), newRoleBinding(in), newServiceAccount(in), newPvc(in), newDeployment(in),
+		newService(in), newRoute(in), newIngress(in), newTask(in), newTaskRun(in), newPod(in)}
+	in.BaseResource.AddDependentResource(res...)
+	return res
 }
 
 // blank assignment to check that Component implements Resource
