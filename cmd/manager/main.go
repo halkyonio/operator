@@ -101,28 +101,18 @@ func main() {
 	registerAdditionalResources(mgr)
 
 	// load plugins
-	capability2.SupportedCategories = make(capability2.CategoryRegistry, 7)
 	currentDir, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 	pluginsDir := filepath.Join(currentDir, "plugins")
 	goPlugins, err := ioutil.ReadDir(pluginsDir)
-	capability2.Plugins = make([]capability2.Plugin, 0, len(goPlugins))
 	if err != nil {
 		panic(err)
 	}
 	for _, p := range goPlugins {
 		pluginPath := filepath.Join(pluginsDir, p.Name())
 		if plugin, err := capability2.NewPlugin(pluginPath); err == nil {
-			capability2.Plugins = append(capability2.Plugins, plugin)
-			category := plugin.GetCategory()
-			types, ok := capability2.SupportedCategories[category]
-			if !ok {
-				types = make(capability2.TypeRegistry, 3)
-				capability2.SupportedCategories[category] = types
-			}
-			types[plugin.GetType()] = true
 			defer plugin.Kill()
 		} else {
 			panic(err)

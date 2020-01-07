@@ -2,7 +2,6 @@ package capability
 
 import (
 	"encoding/gob"
-	"fmt"
 	halkyon "halkyon.io/api/capability/v1beta1"
 	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
@@ -33,13 +32,11 @@ func (in *Capability) FetchAndCreateNew(name, namespace string, callback framewo
 		// get plugin associated with category and type
 		category := c.Spec.Category
 		capabilityType := c.Spec.Type
-		for _, p := range capability2.Plugins {
-			if p.GetCategory() == category && p.GetType() == capabilityType {
-				// init dependents for given capability type
-				return p.ReadyFor(c), nil
-			}
+		p, err := capability2.GetPluginFor(category, capabilityType)
+		if err != nil {
+			return nil, err
 		}
-		return nil, fmt.Errorf("couldn't find a plugin to handle capability with category %s and type %s", category, capabilityType)
+		return p.ReadyFor(c), nil
 	})
 }
 
@@ -80,14 +77,8 @@ func (in *Capability) SetInitialStatus(msg string) bool {
 }
 
 func (in *Capability) CheckValidity() error {
-	category := in.Spec.Category
-	types := capability2.SupportedCategories[category]
-	if len(types) == 0 {
-		return fmt.Errorf("unsupported '%s' capability category", category)
-	}
-	t := in.Spec.Type
-	if !types[t] {
-		return fmt.Errorf("unsupported '%s' type for '%s'", t, category)
+	if _, err := capability2.GetPluginFor(in.Spec.Category, in.Spec.Type); err != nil {
+		return err
 	}
 	return nil
 }
