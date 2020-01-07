@@ -3,7 +3,6 @@ package link
 import (
 	"halkyon.io/api/component/v1beta1"
 	v1beta12 "halkyon.io/api/link/v1beta1"
-	v1beta13 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -16,8 +15,8 @@ func (res component) NameFrom(underlying runtime.Object) string {
 	return framework.DefaultNameFrom(res, underlying)
 }
 
-func (res component) Fetch(helper *framework.K8SHelper) (runtime.Object, error) {
-	return framework.DefaultFetcher(res, helper)
+func (res component) Fetch() (runtime.Object, error) {
+	return framework.DefaultFetcher(res)
 }
 
 var _ framework.DependentResource = &component{}
@@ -26,7 +25,7 @@ func (res component) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func newComponent(owner v1beta13.HalkyonResource) component {
+func newComponent(owner *v1beta12.Link) component {
 	config := framework.NewConfig(v1beta1.SchemeGroupVersion.WithKind(v1beta1.Kind), owner.GetNamespace())
 	config.CheckedForReadiness = true
 	config.CreatedOrUpdated = false

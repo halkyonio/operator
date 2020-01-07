@@ -2,7 +2,6 @@ package component
 
 import (
 	component "halkyon.io/api/component/v1beta1"
-	"halkyon.io/api/v1beta1"
 	framework "halkyon.io/operator-framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -16,7 +15,7 @@ type pvc struct {
 
 var _ framework.DependentResource = &pvc{}
 
-func newPvc(owner v1beta1.HalkyonResource) pvc {
+func newPvc(owner *component.Component) pvc {
 	return pvc{base: newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)}
 }
 

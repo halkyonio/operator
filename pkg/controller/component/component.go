@@ -20,8 +20,9 @@ type Component struct {
 }
 
 func (in *Component) InitDependents() []framework.DependentResource {
-	res := []framework.DependentResource{newRole(in), newRoleBinding(in), newServiceAccount(in), newPvc(in), newDeployment(in),
-		newService(in), newRoute(in), newIngress(in), newTask(in), newTaskRun(in), newPod(in)}
+	c := in.Component
+	res := []framework.DependentResource{newRole(c), newRoleBinding(c), newServiceAccount(c), newPvc(c), newDeployment(c),
+		newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c, in.DependentStatusFieldName()), newPod(c, in.DependentStatusFieldName())}
 	in.BaseResource.AddDependentResource(res...)
 	return res
 }
@@ -45,7 +46,7 @@ func (in *Component) Delete() error {
 		}
 
 		// attempt to delete the imagestream if it exists
-		if e := in.Helper().Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
+		if e := framework.Helper.Client.Delete(context.TODO(), imageStream); e != nil && !errors.IsNotFound(e) {
 			return e
 		}
 	}
@@ -84,7 +85,7 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 				} else {
 					// update link status
 					l := &hLink.Link{}
-					err := in.Helper().Client.Get(context.TODO(), types.NamespacedName{
+					err := framework.Helper.Client.Get(context.TODO(), types.NamespacedName{
 						Namespace: in.Namespace,
 						Name:      link.Name,
 					}, l)
@@ -96,10 +97,10 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 					}
 
 					l.Status.Message = fmt.Sprintf("'%s' finished linking", in.Name)
-					err = in.Helper().Client.Status().Update(context.TODO(), l)
+					err = framework.Helper.Client.Status().Update(context.TODO(), l)
 					if err != nil {
 						// todo: fix-me
-						in.Helper().ReqLogger.Error(err, "couldn't update link status", "link name", l.Name)
+						panic(fmt.Errorf("couldn't update %s link status: %v", l.Name, err))
 					}
 
 					link.Status = halkyon.Linked

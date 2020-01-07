@@ -2,7 +2,6 @@ package component
 
 import (
 	"halkyon.io/api/component/v1beta1"
-	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"halkyon.io/operator-framework/util"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,8 +23,8 @@ func (res base) NameFrom(underlying runtime.Object) string {
 	return framework.DefaultNameFrom(res, underlying)
 }
 
-func (res base) Fetch(helper *framework.K8SHelper) (runtime.Object, error) {
-	return framework.DefaultFetcher(res, helper)
+func (res base) Fetch() (runtime.Object, error) {
+	return framework.DefaultFetcher(res)
 }
 
 func (res base) IsReady(underlying runtime.Object) (ready bool, message string) {
@@ -36,25 +35,17 @@ func (res base) Update(toUpdate runtime.Object) (bool, error) {
 	return false, nil
 }
 
-func newBaseDependent(primaryResourceType runtime.Object, owner v1beta12.HalkyonResource) base {
-	gvk := util.GetGVKFor(primaryResourceType, owner.(*Component).Helper().Scheme)
+func newBaseDependent(primaryResourceType runtime.Object, owner *v1beta1.Component) base {
+	gvk := util.GetGVKFor(primaryResourceType, framework.Helper.Scheme)
 	return base{framework.NewBaseDependentResource(owner, gvk)}
 }
 
-func newConfiguredBaseDependent(owner v1beta12.HalkyonResource, config framework.DependentResourceConfig) base {
+func newConfiguredBaseDependent(owner *v1beta1.Component, config framework.DependentResourceConfig) base {
 	return base{framework.NewConfiguredBaseDependentResource(owner, config)}
 }
 
-func asHalkyonComponent(res v1beta12.HalkyonResource) *v1beta1.Component {
-	return res.(*Component).Component
-}
-
-func ownerAsHalkyonComponent(res framework.DependentResource) *v1beta1.Component {
-	return asHalkyonComponent(res.Owner())
-}
-
 func (res base) ownerAsComponent() *v1beta1.Component {
-	return ownerAsHalkyonComponent(res)
+	return res.Owner().(*v1beta1.Component)
 }
 
 func (res base) asComponent(object runtime.Object) *Component {

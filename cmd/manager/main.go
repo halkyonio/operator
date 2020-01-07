@@ -89,7 +89,7 @@ func main() {
 	}
 
 	// check if we run on OpenShift early so that things are initialized for DependentResources which might depend on it
-	framework.CheckIfOpenShift(config)
+	framework.InitHelper(mgr)
 
 	// Setup Scheme for all resources
 	log.Info("Registering Halkyon resources")

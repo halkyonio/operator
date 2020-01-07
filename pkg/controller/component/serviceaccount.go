@@ -1,7 +1,7 @@
 package component
 
 import (
-	"halkyon.io/api/v1beta1"
+	v1beta12 "halkyon.io/api/component/v1beta1"
 	framework "halkyon.io/operator-framework"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -15,7 +15,7 @@ type serviceAccount struct {
 
 var _ framework.DependentResource = &serviceAccount{}
 
-func newServiceAccount(owner v1beta1.HalkyonResource) serviceAccount {
+func newServiceAccount(owner *v1beta12.Component) serviceAccount {
 	return serviceAccount{base: newBaseDependent(&corev1.ServiceAccount{}, owner)}
 }
 
