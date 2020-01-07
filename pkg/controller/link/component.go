@@ -26,7 +26,7 @@ func (res component) Update(toUpdate runtime.Object) (bool, error) {
 }
 
 func newComponent(owner *v1beta12.Link) component {
-	config := framework.NewConfig(v1beta1.SchemeGroupVersion.WithKind(v1beta1.Kind), owner.GetNamespace())
+	config := framework.NewConfig(v1beta1.SchemeGroupVersion.WithKind(v1beta1.Kind))
 	config.CheckedForReadiness = true
 	config.CreatedOrUpdated = false
 	return component{framework.NewConfiguredBaseDependentResource(owner, config)}
