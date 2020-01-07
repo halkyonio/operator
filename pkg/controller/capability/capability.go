@@ -17,14 +17,6 @@ type Capability struct {
 	*framework.BaseResource
 }
 
-func (in *Capability) InitDependents() []framework.DependentResource {
-	watched := make([]framework.DependentResource, 0, len(capability2.Plugins)*2)
-	for _, p := range capability2.Plugins {
-		watched = append(watched, p.ReadyFor(in.Capability)...)
-	}
-	return watched
-}
-
 var _ framework.Resource = &Capability{}
 
 func (in *Capability) Delete() error {
@@ -35,28 +27,20 @@ func (in *Capability) CreateOrUpdate() error {
 	return in.CreateOrUpdateDependents()
 }
 
-func (in *Capability) FetchAndCreateNew(name, namespace string) (framework.Resource, error) {
-	c := newEmptyCapability()
-	_, err := in.BaseResource.FetchAndInitNewResource(name, namespace, c)
-	if err != nil {
-		return nil, err
-	}
-	// get plugin associated with category and type
-	found := false
-	category := c.Spec.Category
-	capabilityType := c.Spec.Type
-	for _, p := range capability2.Plugins {
-		if p.GetCategory() == category && p.GetType() == capabilityType {
-			// init dependents for given capability type
-			c.BaseResource.AddDependentResource(p.ReadyFor(c.Capability)...)
-			found = true
-			break
+func (in *Capability) FetchAndCreateNew(name, namespace string, callback framework.WatchCallback) (framework.Resource, error) {
+	return framework.FetchAndInitNewResource(name, namespace, newEmptyCapability(), callback, func(toInit v1beta1.HalkyonResource) ([]framework.DependentResource, error) {
+		c := toInit.(*halkyon.Capability)
+		// get plugin associated with category and type
+		category := c.Spec.Category
+		capabilityType := c.Spec.Type
+		for _, p := range capability2.Plugins {
+			if p.GetCategory() == category && p.GetType() == capabilityType {
+				// init dependents for given capability type
+				return p.ReadyFor(c), nil
+			}
 		}
-	}
-	if !found {
 		return nil, fmt.Errorf("couldn't find a plugin to handle capability with category %s and type %s", category, capabilityType)
-	}
-	return c, nil
+	})
 }
 
 func (in *Capability) ComputeStatus() (needsUpdate bool) {
