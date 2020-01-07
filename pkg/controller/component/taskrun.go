@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
-	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,11 +16,11 @@ type taskRun struct {
 
 var _ framework.DependentResource = &taskRun{}
 
-func newTaskRun(owner v1beta12.HalkyonResource) taskRun {
+func newTaskRun(owner *v1beta1.Component, ownerStatusField string) taskRun {
 	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("TaskRun"), owner.GetNamespace())
-	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == asHalkyonComponent(owner).Spec.DeploymentMode
+	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == owner.Spec.DeploymentMode
 	config.CreatedOrUpdated = config.CheckedForReadiness
-	config.OwnerStatusField = owner.(*Component).DependentStatusFieldName()
+	config.OwnerStatusField = ownerStatusField
 	return taskRun{base: newConfiguredBaseDependent(owner, config)}
 }
 

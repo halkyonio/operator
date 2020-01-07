@@ -1,7 +1,7 @@
 package component
 
 import (
-	v1beta12 "halkyon.io/api/v1beta1"
+	v1beta12 "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator-framework"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,10 +15,10 @@ type ingress struct {
 
 var _ framework.DependentResource = &ingress{}
 
-func newIngress(owner v1beta12.HalkyonResource) ingress {
+func newIngress(owner *v1beta12.Component) ingress {
 	config := framework.NewConfig(v1beta1.SchemeGroupVersion.WithKind("Ingress"), owner.GetNamespace())
 	config.Watched = !framework.IsTargetClusterRunningOpenShift()
-	config.CreatedOrUpdated = asHalkyonComponent(owner).Spec.ExposeService && config.Watched
+	config.CreatedOrUpdated = owner.Spec.ExposeService && config.Watched
 	return ingress{base: newConfiguredBaseDependent(owner, config)}
 }
 

@@ -3,7 +3,6 @@ package component
 import (
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
-	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"halkyon.io/operator-framework/util"
 	corev1 "k8s.io/api/core/v1"
@@ -17,9 +16,9 @@ type task struct {
 
 var _ framework.DependentResource = &task{}
 
-func newTask(owner v1beta12.HalkyonResource) task {
+func newTask(owner *v1beta1.Component) task {
 	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("Task"), owner.GetNamespace())
-	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == asHalkyonComponent(owner).Spec.DeploymentMode
+	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == owner.Spec.DeploymentMode
 	config.CreatedOrUpdated = config.CheckedForReadiness
 	return task{base: newConfiguredBaseDependent(owner, config)}
 }

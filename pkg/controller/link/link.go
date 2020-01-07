@@ -19,7 +19,7 @@ type Link struct {
 }
 
 func (in *Link) InitDependents() []framework.DependentResource {
-	res := []framework.DependentResource{newComponent(in)}
+	res := []framework.DependentResource{newComponent(in.Link)}
 	in.BaseResource.AddDependentResource(res...)
 	return res
 }
@@ -59,7 +59,7 @@ func (in *Link) CreateOrUpdate() error {
 		compStatus.SetLinkingStatus(in.Name, v1beta1.Started, compStatus.PodName)
 		compStatus.PodName = ""
 		compStatus.Message = fmt.Sprintf("Initiating link %s", in.Name)
-		err = in.Helper().Client.Status().Update(context.TODO(), c)
+		err = framework.Helper.Client.Status().Update(context.TODO(), c)
 		if err != nil {
 			return err
 		}
@@ -140,15 +140,14 @@ func (in *Link) ShouldDelete() bool {
 }
 
 func fetchDeployment(link *halkyon.Link) (*appsv1.Deployment, error) {
-	helper := framework.GetHelperFor(link)
 	deployment := &appsv1.Deployment{}
 	name := link.Spec.ComponentName
-	if err := helper.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err == nil {
+	if err := framework.Helper.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err == nil {
 		return deployment, nil
-	} else if err := helper.Client.Get(context.TODO(), types.NamespacedName{Name: name + "-build", Namespace: link.Namespace}, deployment); err == nil {
+	} else if err := framework.Helper.Client.Get(context.TODO(), types.NamespacedName{Name: name + "-build", Namespace: link.Namespace}, deployment); err == nil {
 		return deployment, nil
 	} else {
-		helper.ReqLogger.Info("Deployment doesn't exist", "Name", name)
+		framework.LoggerFor(link).Info("Deployment doesn't exist", "Name", name)
 		return deployment, err
 	}
 }
@@ -201,23 +200,14 @@ func updateContainersWithLinkInfo(l *halkyon.Link, containers []v1.Container) ([
 	return containers, isModified
 }
 
-func update(d *appsv1.Deployment) error {
-	helper := framework.GetHelperFor(&halkyon.Link{})
-	err := helper.Client.Update(context.TODO(), d)
-	if err != nil {
-		return err
-	}
-
-	helper.ReqLogger.Info("Deployment updated.")
-	return nil
-}
-
 func updateDeploymentWithLink(d *appsv1.Deployment, link *Link) error {
 	// Update the Deployment of the component
-	if err := update(d); err != nil {
-		link.Helper().ReqLogger.Info("Failed to update deployment.")
+	logger := framework.LoggerFor(link.GetAsHalkyonResource())
+	if err := framework.Helper.Client.Update(context.TODO(), d); err != nil {
+		logger.Info("Failed to update deployment.")
 		return err
 	}
+	logger.Info("Deployment updated.")
 
 	name := link.Spec.ComponentName
 	link.SetSuccessStatus([]framework.DependentResourceStatus{}, fmt.Sprintf("linked to '%s' component", name))

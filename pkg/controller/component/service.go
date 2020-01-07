@@ -1,7 +1,7 @@
 package component
 
 import (
-	"halkyon.io/api/v1beta1"
+	v1beta12 "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator-framework"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,7 +15,7 @@ type service struct {
 
 var _ framework.DependentResource = &service{}
 
-func newService(owner v1beta1.HalkyonResource) service {
+func newService(owner *v1beta12.Component) service {
 	return service{base: newBaseDependent(&corev1.Service{}, owner)}
 }
 

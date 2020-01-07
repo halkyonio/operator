@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"halkyon.io/api/component/v1beta1"
-	v1beta12 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,10 +16,10 @@ type pod struct {
 
 var _ framework.DependentResource = &pod{}
 
-func newPod(owner v1beta12.HalkyonResource) pod {
+func newPod(owner *v1beta1.Component, ownerStatusField string) pod {
 	config := framework.NewConfig(corev1.SchemeGroupVersion.WithKind("Pod"), owner.GetNamespace())
-	config.CheckedForReadiness = v1beta1.DevDeploymentMode == asHalkyonComponent(owner).Spec.DeploymentMode
-	config.OwnerStatusField = owner.(*Component).DependentStatusFieldName()
+	config.CheckedForReadiness = v1beta1.DevDeploymentMode == owner.Spec.DeploymentMode
+	config.OwnerStatusField = ownerStatusField
 	config.CreatedOrUpdated = false
 	return pod{base: newConfiguredBaseDependent(owner, config)}
 }
@@ -51,14 +50,13 @@ func (res pod) IsReady(underlying runtime.Object) (bool, string) {
 	return false, fmt.Sprintf("%s is not ready%s", p.Name, msg)
 }
 
-func (res pod) Fetch(helper *framework.K8SHelper) (runtime.Object, error) {
+func (res pod) Fetch() (runtime.Object, error) {
 	pods := &corev1.PodList{}
 	lo := &client.ListOptions{}
 	component := res.ownerAsComponent()
 	lo.InNamespace(component.Namespace)
 	lo.MatchingLabels(map[string]string{"app": component.Name})
-	if err := helper.Client.List(context.TODO(), lo, pods); err != nil {
-		helper.ReqLogger.Info("Pod(s) don't exist")
+	if err := framework.Helper.Client.List(context.TODO(), lo, pods); err != nil {
 		return nil, err
 	} else {
 		// We assume that there is only one Pod containing the label app=component name AND we return it

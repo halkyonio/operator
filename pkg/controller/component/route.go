@@ -2,7 +2,7 @@ package component
 
 import (
 	routev1 "github.com/openshift/api/route/v1"
-	"halkyon.io/api/v1beta1"
+	v1beta12 "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator-framework"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,10 +14,10 @@ type route struct {
 
 var _ framework.DependentResource = &route{}
 
-func newRoute(owner v1beta1.HalkyonResource) route {
+func newRoute(owner *v1beta12.Component) route {
 	config := framework.NewConfig(routev1.GroupVersion.WithKind("Route"), owner.GetNamespace())
 	config.Watched = framework.IsTargetClusterRunningOpenShift()
-	config.CreatedOrUpdated = asHalkyonComponent(owner).Spec.ExposeService && config.Watched
+	config.CreatedOrUpdated = owner.Spec.ExposeService && config.Watched
 	return route{base: newConfiguredBaseDependent(owner, config)}
 }
 
