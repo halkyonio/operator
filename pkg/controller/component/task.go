@@ -17,7 +17,7 @@ type task struct {
 var _ framework.DependentResource = &task{}
 
 func newTask(owner *v1beta1.Component) task {
-	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("Task"), owner.GetNamespace())
+	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("Task"))
 	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == owner.Spec.DeploymentMode
 	config.CreatedOrUpdated = config.CheckedForReadiness
 	return task{base: newConfiguredBaseDependent(owner, config)}

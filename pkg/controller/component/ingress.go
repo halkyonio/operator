@@ -16,7 +16,7 @@ type ingress struct {
 var _ framework.DependentResource = &ingress{}
 
 func newIngress(owner *v1beta12.Component) ingress {
-	config := framework.NewConfig(v1beta1.SchemeGroupVersion.WithKind("Ingress"), owner.GetNamespace())
+	config := framework.NewConfig(v1beta1.SchemeGroupVersion.WithKind("Ingress"))
 	config.Watched = !framework.IsTargetClusterRunningOpenShift()
 	config.CreatedOrUpdated = owner.Spec.ExposeService && config.Watched
 	return ingress{base: newConfiguredBaseDependent(owner, config)}

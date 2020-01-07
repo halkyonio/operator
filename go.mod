@@ -34,9 +34,9 @@ require (
 	github.com/tektoncd/pipeline v0.9.1
 	go.uber.org/zap v1.13.0 // indirect
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
-	halkyon.io/api v1.0.0-beta.8.0.20191219201020-14dfa325eab8
-	halkyon.io/operator-framework v0.0.0-20200107133724-b21fb275c103
-	halkyon.io/plugins v0.0.0-20200104213012-f9f8c6d3e2ca
+	halkyon.io/api v1.0.0-beta.8.0.20200107175629-6ff499303202
+	halkyon.io/operator-framework v0.0.0-20200107200422-d6cc075a7901
+	halkyon.io/plugins v0.0.0-20200107201349-3f1153ab2377
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 // indirect
 	k8s.io/apimachinery v0.17.0
