@@ -277,19 +277,19 @@ jobs:
   k8s-dev-e2e-test:
     machine: true
     steps:
-      - install-postgres-capability
       - checkout
-    - install-kubectl
-    - install-snap
-    - install-microk8s
-    - install-helm
-    - install-kubedb
-    - install-kubedb-catalog
-    - install-halkyon-operator
-    - install-tekton
-    - test-e2e:
-        namespace: e2e-dev
-        mode: dev
+      - install-postgres-capability
+      - install-kubectl
+      - install-snap
+      - install-microk8s
+      - install-helm
+      - install-kubedb
+      - install-kubedb-catalog
+      - install-halkyon-operator
+      - install-tekton
+      - test-e2e:
+          namespace: e2e-dev
+          mode: dev
 
   k8s-e2e-test-dekorate-snapshot:
     machine: true
