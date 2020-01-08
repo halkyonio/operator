@@ -17,6 +17,16 @@ executors:
     working_directory: /go/src/halkyon.io/operator
 
 commands:
+  install-postgres-capability:
+    steps:
+      - run:
+          name: Install postgres-capability plugin
+          command: |
+            mkdir plugins
+            cd plugins
+            git clone https://github.com/halkyonio/postgresql-capability.git
+            cd postgresql-capability
+            go build -o postgresql-capability *.go && mv postgresql-capability ../
   install-kubectl:
     steps:
       - run:
@@ -218,6 +228,7 @@ jobs:
     - install-kubedb-catalog
     - install-halkyon-operator
     - install-tekton
+    - install-postgres-capability
     - setup-registry-dns:
         ns: default
         svc: docker-registry
@@ -235,6 +246,7 @@ jobs:
       - install-kubedb-catalog
       - install-halkyon-operator
       - install-tekton
+      - install-postgres-capability
       - setup-registry-dns:
           ns: default
           svc: docker-registry
@@ -253,6 +265,7 @@ jobs:
     - install-halkyon-operator
     - install-tekton
     - install-dekorate-snapshot
+    - install-postgres-capability
     - setup-registry-dns:
         ns: default
         svc: docker-registry
@@ -275,6 +288,7 @@ jobs:
     - install-kubedb-catalog
     - install-halkyon-operator
     - install-tekton
+    - install-postgres-capability
     - test-e2e:
         namespace: e2e-dev
         mode: dev
@@ -292,6 +306,7 @@ jobs:
     - install-halkyon-operator
     - install-tekton
     - install-dekorate-snapshot
+    - install-postgres-capability
     - test-e2e:
         namespace: e2e-dev
         mode: dev
