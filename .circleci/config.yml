@@ -22,9 +22,13 @@ commands:
       - run:
           name: Install postgres-capability plugin
           command: |
-            go install halkyon.io/postgresql-capability
             mkdir plugins
-            cp /go/bin/postgresql-capability ${CIRCLE_WORKING_DIRECTORY}/plugins/
+            cd plugins
+            version=1.0.0-beta.2
+            curl -LO https://github.com/halkyonio/postgresql-capability/releases/download/v${version}/postgresql-capability_1.0.0-beta.2_linux_x86_64.tar.gz
+            tar xzf postgresql-capability_${version}_linux_x86_64.tar.gz
+            chmod +x postgresql-capability
+            rm postgresql-capability_${version}_linux_x86_64.tar.gz
   install-kubectl:
     steps:
       - run:
