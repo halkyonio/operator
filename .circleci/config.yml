@@ -22,12 +22,9 @@ commands:
       - run:
           name: Install postgres-capability plugin
           command: |
-            export GO111MODULE="on"
-            go get halkyon.io/postgresql-capability
+            go install halkyon.io/postgresql-capability
             mkdir plugins
-            cd /go/src/halkyon.io/postgresql-capability
-            go build -o postgresql-capability *.go
-            mv postgresql-capability ${CIRCLE_WORKING_DIRECTORY}/plugins/
+            cp /go/bin/postgresql-capability ${CIRCLE_WORKING_DIRECTORY}/plugins/
   install-kubectl:
     steps:
       - run:
@@ -223,13 +220,13 @@ jobs:
     machine: true
     steps:
     - checkout
+    - install-postgres-capability
     - openshift/launch_openshift
     - install-helm
     - install-kubedb
     - install-kubedb-catalog
     - install-halkyon-operator
     - install-tekton
-    - install-postgres-capability
     - setup-registry-dns:
         ns: default
         svc: docker-registry
@@ -241,13 +238,13 @@ jobs:
     machine: true
     steps:
       - checkout
+      - install-postgres-capability
       - openshift/launch_openshift
       - install-helm
       - install-kubedb
       - install-kubedb-catalog
       - install-halkyon-operator
       - install-tekton
-      - install-postgres-capability
       - setup-registry-dns:
           ns: default
           svc: docker-registry
@@ -259,6 +256,7 @@ jobs:
     machine: true
     steps:
     - checkout
+    - install-postgres-capability
     - openshift/launch_openshift
     - install-helm
     - install-kubedb
@@ -266,7 +264,6 @@ jobs:
     - install-halkyon-operator
     - install-tekton
     - install-dekorate-snapshot
-    - install-postgres-capability
     - setup-registry-dns:
         ns: default
         svc: docker-registry
@@ -280,7 +277,8 @@ jobs:
   k8s-dev-e2e-test:
     machine: true
     steps:
-    - checkout
+      - install-postgres-capability
+      - checkout
     - install-kubectl
     - install-snap
     - install-microk8s
@@ -289,7 +287,6 @@ jobs:
     - install-kubedb-catalog
     - install-halkyon-operator
     - install-tekton
-    - install-postgres-capability
     - test-e2e:
         namespace: e2e-dev
         mode: dev
@@ -298,6 +295,7 @@ jobs:
     machine: true
     steps:
     - checkout
+    - install-postgres-capability
     - install-kubectl
     - install-snap
     - install-microk8s
@@ -307,7 +305,6 @@ jobs:
     - install-halkyon-operator
     - install-tekton
     - install-dekorate-snapshot
-    - install-postgres-capability
     - test-e2e:
         namespace: e2e-dev
         mode: dev
