@@ -99,7 +99,7 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 					err = framework.Helper.Client.Status().Update(context.TODO(), l)
 					if err != nil {
 						// todo: fix-me
-						panic(fmt.Errorf("couldn't update %s link status: %v", l.Name, err))
+						framework.LoggerFor(in.Component).Error(err, "couldn't update link status", "link name", l.Name)
 					}
 
 					link.Status = halkyon.Linked
