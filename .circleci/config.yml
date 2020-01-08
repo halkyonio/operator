@@ -22,11 +22,12 @@ commands:
       - run:
           name: Install postgres-capability plugin
           command: |
+            export GO111MODULE="on"
+            go get halkyon.io/postgresql-capability
             mkdir plugins
-            cd plugins
-            git clone https://github.com/halkyonio/postgresql-capability.git
-            cd postgresql-capability
-            go build -o postgresql-capability *.go && mv postgresql-capability ../
+            cd /go/src/halkyon.io/postgresql-capability
+            go build -o postgresql-capability *.go
+            mv postgresql-capability ${CIRCLE_WORKING_DIRECTORY}/plugins/
   install-kubectl:
     steps:
       - run:
