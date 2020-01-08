@@ -68,10 +68,12 @@ func (in *Link) CreateOrUpdate() error {
 	return nil
 }
 
-func (in *Link) FetchAndCreateNew(name, namespace string, callback framework.WatchCallback) (framework.Resource, error) {
-	return framework.FetchAndInitNewResource(name, namespace, NewLink(), callback, func(toInit halkyon2.HalkyonResource) ([]framework.DependentResource, error) {
-		return []framework.DependentResource{newComponent(toInit.(*halkyon.Link))}, nil
-	})
+func (in *Link) NewEmpty() framework.Resource {
+	return NewLink()
+}
+
+func (in *Link) InitDependentResources() ([]framework.DependentResource, error) {
+	return in.BaseResource.AddDependentResource(newComponent(in.Link)), nil
 }
 
 func (in *Link) ComputeStatus() (needsUpdate bool) {

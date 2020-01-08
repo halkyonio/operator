@@ -19,12 +19,15 @@ type Component struct {
 	*framework.BaseResource
 }
 
-func (in *Component) InitDependents() []framework.DependentResource {
+func (in *Component) NewEmpty() framework.Resource {
+	return NewComponent()
+}
+
+func (in *Component) InitDependentResources() ([]framework.DependentResource, error) {
 	c := in.Component
-	res := []framework.DependentResource{newRole(c), newRoleBinding(c), newServiceAccount(c), newPvc(c), newDeployment(c),
-		newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c, in.DependentStatusFieldName()), newPod(c, in.DependentStatusFieldName())}
-	in.BaseResource.AddDependentResource(res...)
-	return res
+	return in.BaseResource.AddDependentResource(newRole(c), newRoleBinding(c), newServiceAccount(c), newPvc(c),
+		newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c, in.DependentStatusFieldName()),
+		newPod(c, in.DependentStatusFieldName())), nil
 }
 
 // blank assignment to check that Component implements Resource
@@ -66,15 +69,6 @@ func (in *Component) CreateOrUpdate() (err error) {
 		return in.CreateOrUpdateDependents()
 	}
 	return err
-}
-
-func (in *Component) FetchAndCreateNew(name, namespace string, callback framework.WatchCallback) (framework.Resource, error) {
-	return framework.FetchAndInitNewResource(name, namespace, NewComponent(), callback, func(toInit v1beta1.HalkyonResource) ([]framework.DependentResource, error) {
-		c := toInit.(*halkyon.Component)
-		return []framework.DependentResource{newRole(c), newRoleBinding(c), newServiceAccount(c), newPvc(c),
-			newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c, in.DependentStatusFieldName()),
-			newPod(c, in.DependentStatusFieldName())}, nil
-	})
 }
 
 func (in *Component) ComputeStatus() (needsUpdate bool) {

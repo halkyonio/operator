@@ -26,18 +26,18 @@ func (in *Capability) CreateOrUpdate() error {
 	return in.CreateOrUpdateDependents()
 }
 
-func (in *Capability) FetchAndCreateNew(name, namespace string, callback framework.WatchCallback) (framework.Resource, error) {
-	return framework.FetchAndInitNewResource(name, namespace, newEmptyCapability(), callback, func(toInit v1beta1.HalkyonResource) ([]framework.DependentResource, error) {
-		c := toInit.(*halkyon.Capability)
-		// get plugin associated with category and type
-		category := c.Spec.Category
-		capabilityType := c.Spec.Type
-		p, err := capability2.GetPluginFor(category, capabilityType)
-		if err != nil {
-			return nil, err
-		}
-		return p.ReadyFor(c), nil
-	})
+func (in *Capability) NewEmpty() framework.Resource {
+	return NewCapability()
+}
+
+func (in *Capability) InitDependentResources() ([]framework.DependentResource, error) {
+	c := in.Capability
+	// get plugin associated with category and type
+	p, err := capability2.GetPluginFor(c.Spec.Category, c.Spec.Type)
+	if err != nil {
+		return nil, err
+	}
+	return in.BaseResource.AddDependentResource(p.ReadyFor(c)...), nil
 }
 
 func (in *Capability) ComputeStatus() (needsUpdate bool) {
@@ -54,10 +54,6 @@ func (in *Capability) GetAsHalkyonResource() v1beta1.HalkyonResource {
 }
 
 func NewCapability() *Capability {
-	return newEmptyCapability()
-}
-
-func newEmptyCapability() *Capability {
 	dependents := framework.NewHasDependents(&halkyon.Capability{})
 	c := &Capability{
 		Capability:   &halkyon.Capability{},
