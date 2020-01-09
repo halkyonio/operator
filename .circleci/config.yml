@@ -17,18 +17,6 @@ executors:
     working_directory: /go/src/halkyon.io/operator
 
 commands:
-  install-postgres-capability:
-    steps:
-      - run:
-          name: Install postgres-capability plugin
-          command: |
-            mkdir plugins
-            cd plugins
-            version=1.0.0-beta.2
-            curl -LO https://github.com/halkyonio/postgresql-capability/releases/download/v${version}/postgresql-capability_${version}_linux_x86_64.tar.gz
-            tar xzf postgresql-capability_${version}_linux_x86_64.tar.gz
-            chmod +x postgresql-capability
-            rm postgresql-capability_${version}_linux_x86_64.tar.gz
   install-kubectl:
     steps:
       - run:
@@ -224,7 +212,6 @@ jobs:
     machine: true
     steps:
     - checkout
-    - install-postgres-capability
     - openshift/launch_openshift
     - install-helm
     - install-kubedb
@@ -242,7 +229,6 @@ jobs:
     machine: true
     steps:
       - checkout
-      - install-postgres-capability
       - openshift/launch_openshift
       - install-helm
       - install-kubedb
@@ -260,7 +246,6 @@ jobs:
     machine: true
     steps:
     - checkout
-    - install-postgres-capability
     - openshift/launch_openshift
     - install-helm
     - install-kubedb
@@ -282,7 +267,6 @@ jobs:
     machine: true
     steps:
       - checkout
-      - install-postgres-capability
       - install-kubectl
       - install-snap
       - install-microk8s
@@ -299,7 +283,6 @@ jobs:
     machine: true
     steps:
     - checkout
-    - install-postgres-capability
     - install-kubectl
     - install-snap
     - install-microk8s
