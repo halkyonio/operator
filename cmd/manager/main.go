@@ -106,6 +106,7 @@ func main() {
 	registerAdditionalResources(mgr)
 
 	// load plugins based on specified list
+	log.Info("Loading plugins")
 	if pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar); found {
 		currentDir, err := os.Getwd()
 		if err != nil {
@@ -114,12 +115,25 @@ func main() {
 		pluginsDir := filepath.Join(currentDir, "plugins")
 		pluginDefs := strings.Split(pluginList, ",")
 		for _, pluginDef := range pluginDefs {
-			pluginParts := strings.Split(pluginDef, "@")
-			url := "https://github.com/" + pluginParts[0] + "/releases/download/" + pluginParts[1] + "/halkyon_plugin_" + runtime.GOOS + ".tar.gz"
-			log.Info("downloading plugin " + pluginDef + " from " + url)
-			err := getter.GetAny(pluginsDir, url)
-			if err != nil {
-				log.Error(err, "couldn't download plugin at "+url)
+			// only download the plugin if we haven't already done so before
+			markerFileName := strings.ReplaceAll("."+pluginDef, "/", "___")
+			markerFileName = filepath.Join(pluginsDir, markerFileName)
+			if _, err := os.Stat(markerFileName); err == nil {
+				log.Info(pluginDef + ": already downloaded")
+			} else {
+				pluginParts := strings.Split(pluginDef, "@")
+				url := "https://github.com/" + pluginParts[0] + "/releases/download/" + pluginParts[1] + "/halkyon_plugin_" + runtime.GOOS + ".tar.gz"
+				log.Info(pluginDef + ": downloading from " + url)
+				err := getter.GetAny(pluginsDir, url)
+				if err != nil {
+					log.Error(err, "couldn't download plugin at "+url)
+				}
+				// create marker file to avoid re-downloading the plugin at next re-start
+				marker, err := os.Create(markerFileName)
+				if err != nil {
+					panic(err)
+				}
+				_ = marker.Close()
 			}
 		}
 		// initialize downloaded plugins
@@ -128,14 +142,17 @@ func main() {
 			panic(err)
 		}
 		for _, p := range goPlugins {
-			pluginPath := filepath.Join(pluginsDir, p.Name())
-			if runtime.GOOS == "windows" {
-				pluginPath += ".exe"
-			}
-			if plugin, err := capability2.NewPlugin(pluginPath); err == nil {
-				defer plugin.Kill()
-			} else {
-				panic(err)
+			// ignore marker files
+			if !strings.HasPrefix(p.Name(), ".") {
+				pluginPath := filepath.Join(pluginsDir, p.Name())
+				if runtime.GOOS == "windows" {
+					pluginPath += ".exe"
+				}
+				if plugin, err := capability2.NewPlugin(pluginPath); err == nil {
+					defer plugin.Kill()
+				} else {
+					panic(err)
+				}
 			}
 		}
 	}
