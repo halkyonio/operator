@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/hashicorp/go-getter"
 	authorizv1 "github.com/openshift/api/authorization/v1"
 	image "github.com/openshift/api/image/v1"
 	route "github.com/openshift/api/route/v1"
@@ -22,6 +23,7 @@ import (
 	"path/filepath"
 	"runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"strings"
 	"time"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -33,6 +35,9 @@ const (
 	// WatchNamespaceEnvVar holds the name of the env variable containing the name of the namespace to watch for components
 	// If left empty, the operator will watch all namespaces
 	WatchNamespaceEnvVar = "WATCH_NAMESPACE"
+	// HalkyonPluginsEnvVar holds the name of the env variable defining which plugins need to be downloaded as a comma-separated
+	// list of values following the <github org>/<github project>@<version> format e.g. halkyonio/postgresql-capability@v1.0.0-beta.3
+	HalkyonPluginsEnvVar = "HALKYON_PLUGINS"
 )
 
 var (
@@ -100,22 +105,38 @@ func main() {
 	log.Info("Registering 3rd party resources")
 	registerAdditionalResources(mgr)
 
-	// load plugins
-	currentDir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	pluginsDir := filepath.Join(currentDir, "plugins")
-	goPlugins, err := ioutil.ReadDir(pluginsDir)
-	if err != nil {
-		panic(err)
-	}
-	for _, p := range goPlugins {
-		pluginPath := filepath.Join(pluginsDir, p.Name())
-		if plugin, err := capability2.NewPlugin(pluginPath); err == nil {
-			defer plugin.Kill()
-		} else {
+	// load plugins based on specified list
+	if pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar); found {
+		currentDir, err := os.Getwd()
+		if err != nil {
 			panic(err)
+		}
+		pluginsDir := filepath.Join(currentDir, "plugins")
+		pluginDefs := strings.Split(pluginList, ",")
+		for _, pluginDef := range pluginDefs {
+			pluginParts := strings.Split(pluginDef, "@")
+			url := "https://github.com/" + pluginParts[0] + "/releases/download/" + pluginParts[1] + "/halkyon_plugin_" + runtime.GOOS + ".tar.gz"
+			log.Info("downloading plugin " + pluginDef + " from " + url)
+			err := getter.GetAny(pluginsDir, url)
+			if err != nil {
+				log.Error(err, "couldn't download plugin at "+url)
+			}
+		}
+		// initialize downloaded plugins
+		goPlugins, err := ioutil.ReadDir(pluginsDir)
+		if err != nil {
+			panic(err)
+		}
+		for _, p := range goPlugins {
+			pluginPath := filepath.Join(pluginsDir, p.Name())
+			if runtime.GOOS == "windows" {
+				pluginPath += ".exe"
+			}
+			if plugin, err := capability2.NewPlugin(pluginPath); err == nil {
+				defer plugin.Kill()
+			} else {
+				panic(err)
+			}
 		}
 	}
 

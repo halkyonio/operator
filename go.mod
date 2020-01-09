@@ -12,6 +12,7 @@ require (
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20190509032623-7892efa714f1 // indirect
+	github.com/hashicorp/go-getter v1.4.1
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/markbates/inflect v1.0.4 // indirect
@@ -35,7 +36,7 @@ require (
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	google.golang.org/api v0.15.0 // indirect
 	halkyon.io/api v1.0.0-rc.1
-	halkyon.io/operator-framework v1.0.0-beta.1
+	halkyon.io/operator-framework v1.0.0-beta.1.0.20200109155817-ef5be3bee3a7
 	halkyon.io/plugins v1.0.0-beta.1
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 // indirect
