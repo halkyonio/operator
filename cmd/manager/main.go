@@ -107,7 +107,12 @@ func main() {
 
 	// load plugins based on specified list
 	log.Info("Loading plugins")
-	if pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar); found {
+	pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar)
+	if !found {
+		pluginList = "halkyonio/postgresql-capability@v1.0.0-beta.4"
+		found = true
+	}
+	if found {
 		currentDir, err := os.Getwd()
 		if err != nil {
 			panic(err)
