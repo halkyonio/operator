@@ -108,12 +108,12 @@ func main() {
 	// load plugins based on specified list
 	log.Info("Loading plugins")
 	pluginCount := 0
+	currentDir, err := os.Getwd()
+	pluginsDir := filepath.Join(currentDir, "plugins")
 	if pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar); found {
-		currentDir, err := os.Getwd()
 		if err != nil {
 			panic(err)
 		}
-		pluginsDir := filepath.Join(currentDir, "plugins")
 		pluginDefs := strings.Split(pluginList, ",")
 		for _, pluginDef := range pluginDefs {
 			// only download the plugin if we haven't already done so before
@@ -137,24 +137,24 @@ func main() {
 				_ = marker.Close()
 			}
 		}
-		// initialize downloaded plugins
-		goPlugins, err := ioutil.ReadDir(pluginsDir)
-		if err != nil {
-			panic(err)
-		}
-		for _, p := range goPlugins {
-			// ignore marker files
-			if !strings.HasPrefix(p.Name(), ".") {
-				pluginPath := filepath.Join(pluginsDir, p.Name())
-				if runtime.GOOS == "windows" {
-					pluginPath += ".exe"
-				}
-				if plugin, err := capability2.NewPlugin(pluginPath, log); err == nil {
-					pluginCount++
-					defer plugin.Kill()
-				} else {
-					panic(err)
-				}
+	}
+	// initialize plugins
+	goPlugins, err := ioutil.ReadDir(pluginsDir)
+	if err != nil {
+		panic(err)
+	}
+	for _, p := range goPlugins {
+		// ignore marker files
+		if !strings.HasPrefix(p.Name(), ".") {
+			pluginPath := filepath.Join(pluginsDir, p.Name())
+			if runtime.GOOS == "windows" {
+				pluginPath += ".exe"
+			}
+			if plugin, err := capability2.NewPlugin(pluginPath, log); err == nil {
+				pluginCount++
+				defer plugin.Kill()
+			} else {
+				panic(err)
 			}
 		}
 	}
