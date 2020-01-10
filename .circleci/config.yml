@@ -92,6 +92,8 @@ commands:
             helm install appscode/kubedb-catalog --name kubedb-catalog --version ${KUBEDB_VERSION} \
             --namespace kubedb --set catalog.postgres=true,catalog.elasticsearch=false,catalog.etcd=false,catalog.memcached=false,catalog.mongo=false,catalog.mysql=false,catalog.redis=false
   install-halkyon-operator:
+    environment:
+      HALKYON_PLUGINS: "halkyonio/postgresql-capability@v1.0.0-beta.4"
     steps:
       - run:
           name: Install halkyon operator
@@ -210,8 +212,6 @@ jobs:
 
   okd-dev-e2e-test:
     machine: true
-    environment:
-      HALKYON_PLUGINS: "halkyonio/postgresql-capability@v1.0.0-beta.4"
     steps:
     - checkout
     - openshift/launch_openshift
@@ -229,8 +229,6 @@ jobs:
 
   okd-build-e2e-test:
     machine: true
-    environment:
-      HALKYON_PLUGINS: "halkyonio/postgresql-capability@v1.0.0-beta.4"
     steps:
       - checkout
       - openshift/launch_openshift
@@ -248,8 +246,6 @@ jobs:
 
   okd-e2e-test-dekorate-snapshot:
     machine: true
-    environment:
-      HALKYON_PLUGINS: "halkyonio/postgresql-capability@v1.0.0-beta.4"
     steps:
     - checkout
     - openshift/launch_openshift
@@ -271,8 +267,6 @@ jobs:
 
   k8s-dev-e2e-test:
     machine: true
-    environment:
-      HALKYON_PLUGINS: "halkyonio/postgresql-capability@v1.0.0-beta.4"
     steps:
       - checkout
       - install-kubectl
@@ -289,8 +283,6 @@ jobs:
 
   k8s-e2e-test-dekorate-snapshot:
     machine: true
-    environment:
-      HALKYON_PLUGINS: "halkyonio/postgresql-capability@v1.0.0-beta.4"
     steps:
     - checkout
     - install-kubectl
