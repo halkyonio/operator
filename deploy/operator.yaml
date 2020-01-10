@@ -17,10 +17,13 @@ spec:
         - name: halkyon-operator
           image: quay.io/halkyonio/operator:latest
           ports:
-          - containerPort: 60000
-            name: metrics
+            - containerPort: 60000
+              name: metrics
+          volumeMounts:
+            - mountPath: plugins
+              name: halkyon-plugins
           command:
-          - halkyon-operator
+            - halkyon-operator
           args:
             - --zap-encoder
             - $(ZAP_ENCODER)
@@ -38,3 +41,6 @@ spec:
             #   value: "quay.io/halkyonio/spring-boot-maven-s2i"
             # - name: REGISTRY_ADDRESS
             #   value: "docker-registry.default.svc:5000"
+      volumes:
+        - emptyDir: {}
+          name: halkyon-plugins
