@@ -94,8 +94,6 @@ commands:
   install-halkyon-operator:
     steps:
       - run:
-          environment:
-            HALKYON_PLUGINS: "halkyonio/postgresql-capability@v1.0.0-beta.4"
           name: Install halkyon operator
           command: |
             kubectl create namespace operators
@@ -107,6 +105,7 @@ commands:
             kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/capability.yaml
             kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component.yaml
             kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/link.yaml
+            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/configmap.yaml -n operators
             kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/operator.yaml -n operators
   install-tekton:
     steps:
