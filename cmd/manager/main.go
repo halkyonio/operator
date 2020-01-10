@@ -107,13 +107,8 @@ func main() {
 
 	// load plugins based on specified list
 	log.Info("Loading plugins")
-	pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar)
-	if !found {
-		log.Info("HACK ACTIVATED")
-		pluginList = "halkyonio/postgresql-capability@v1.0.0-beta.4"
-		found = true
-	}
-	if found {
+	pluginCount := 0
+	if pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar); found {
 		currentDir, err := os.Getwd()
 		if err != nil {
 			panic(err)
@@ -155,6 +150,7 @@ func main() {
 					pluginPath += ".exe"
 				}
 				if plugin, err := capability2.NewPlugin(pluginPath, log); err == nil {
+					pluginCount++
 					defer plugin.Kill()
 				} else {
 					panic(err)
@@ -162,6 +158,7 @@ func main() {
 			}
 		}
 	}
+	log.Info(fmt.Sprintf("Loaded %d plugin(s)", pluginCount))
 
 	// Create component controller and add it to the manager
 	if err := framework.RegisterNewReconciler(component.NewComponent(), mgr); err != nil {
