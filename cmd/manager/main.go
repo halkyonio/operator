@@ -109,6 +109,7 @@ func main() {
 	log.Info("Loading plugins")
 	pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar)
 	if !found {
+		log.Info("HACK ACTIVATED")
 		pluginList = "halkyonio/postgresql-capability@v1.0.0-beta.4"
 		found = true
 	}
