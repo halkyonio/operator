@@ -154,7 +154,7 @@ func main() {
 				if runtime.GOOS == "windows" {
 					pluginPath += ".exe"
 				}
-				if plugin, err := capability2.NewPlugin(pluginPath); err == nil {
+				if plugin, err := capability2.NewPlugin(pluginPath, log); err == nil {
 					defer plugin.Kill()
 				} else {
 					panic(err)
