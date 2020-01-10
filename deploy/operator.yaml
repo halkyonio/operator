@@ -37,6 +37,8 @@ spec:
               value: "halkyon-operator"
             - name: ZAP_ENCODER
               value: "console"
+            - name: HALKYON_PLUGINS
+              value: ""
             # - name: BASE_S2I_IMAGE
             #   value: "quay.io/halkyonio/spring-boot-maven-s2i"
             # - name: REGISTRY_ADDRESS
