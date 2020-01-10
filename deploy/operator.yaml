@@ -34,11 +34,20 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "halkyon-operator"
+              valueFrom:
+                configMapKeyRef:
+                  name: halkyon-config
+                  key: OPERATOR_NAME
             - name: ZAP_ENCODER
-              value: "console"
+              valueFrom:
+                configMapKeyRef:
+                  name: halkyon-config
+                  key: ZAP_ENCODER
             - name: HALKYON_PLUGINS
-              value: ""
+              valueFrom:
+                configMapKeyRef:
+                  name: halkyon-config
+                  key: HALKYON_PLUGINS
             # - name: BASE_S2I_IMAGE
             #   value: "quay.io/halkyonio/spring-boot-maven-s2i"
             # - name: REGISTRY_ADDRESS

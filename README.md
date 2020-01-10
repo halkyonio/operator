@@ -269,6 +269,7 @@ kubectl apply -f deploy/cluster-role-binding.yaml
 kubectl apply -f deploy/crds/capability.yaml
 kubectl apply -f deploy/crds/component.yaml
 kubectl apply -f deploy/crds/link.yaml
+kubectl apply -n operators -f deploy/configmap.yaml
 kubectl apply -n operators -f deploy/operator.yaml
 ```
 
