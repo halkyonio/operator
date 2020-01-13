@@ -17,6 +17,7 @@ require (
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/markbates/inflect v1.0.4 // indirect
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
+	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/openshift/api v0.0.0-20190322043348-8741ff068a47
