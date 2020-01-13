@@ -37,7 +37,7 @@ require (
 	google.golang.org/api v0.15.0 // indirect
 	halkyon.io/api v1.0.0-rc.1
 	halkyon.io/operator-framework v1.0.0-beta.2
-	halkyon.io/plugins v1.0.0-beta.2
+	halkyon.io/plugins v1.0.0-beta.3
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 // indirect
 	k8s.io/apimachinery v0.17.0
