@@ -3,6 +3,7 @@ package component
 import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator-framework"
+	"halkyon.io/operator/pkg"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -26,5 +27,5 @@ func (res deployment) Build(empty bool) (runtime.Object, error) {
 }
 
 func (res deployment) Name() string {
-	return DeploymentName(res.ownerAsComponent())
+	return pkg.DeploymentName(res.ownerAsComponent())
 }

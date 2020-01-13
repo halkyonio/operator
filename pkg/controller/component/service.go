@@ -3,6 +3,7 @@ package component
 import (
 	v1beta12 "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator-framework"
+	"halkyon.io/operator/pkg"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,7 +24,7 @@ func (res service) Build(empty bool) (runtime.Object, error) {
 	ser := &corev1.Service{}
 	if !empty {
 		c := res.ownerAsComponent()
-		ls := getAppLabels(DeploymentName(c))
+		ls := getAppLabels(pkg.DeploymentName(c))
 		ser.ObjectMeta = metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
@@ -50,7 +51,7 @@ func (res service) Build(empty bool) (runtime.Object, error) {
 func (res service) Update(toUpdate runtime.Object) (bool, error) {
 	c := res.ownerAsComponent()
 	svc := toUpdate.(*corev1.Service)
-	name := DeploymentName(c)
+	name := pkg.DeploymentName(c)
 	if svc.Spec.Selector["app"] != name {
 		labels := getAppLabels(name)
 		for key, value := range labels {

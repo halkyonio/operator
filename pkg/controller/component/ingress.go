@@ -3,6 +3,7 @@ package component
 import (
 	v1beta12 "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator-framework"
+	"halkyon.io/operator/pkg"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,7 +27,7 @@ func (res ingress) Build(empty bool) (runtime.Object, error) {
 	ingress := &v1beta1.Ingress{}
 	if !empty {
 		c := res.ownerAsComponent()
-		ls := getAppLabels(DeploymentName(c))
+		ls := getAppLabels(pkg.DeploymentName(c))
 		ingress.ObjectMeta = v1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
