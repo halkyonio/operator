@@ -24,7 +24,7 @@ func (res service) Build(empty bool) (runtime.Object, error) {
 	ser := &corev1.Service{}
 	if !empty {
 		c := res.ownerAsComponent()
-		ls := getAppLabels(pkg.DeploymentName(c))
+		ls := getAppLabels(c)
 		ser.ObjectMeta = metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,
@@ -51,9 +51,8 @@ func (res service) Build(empty bool) (runtime.Object, error) {
 func (res service) Update(toUpdate runtime.Object) (bool, error) {
 	c := res.ownerAsComponent()
 	svc := toUpdate.(*corev1.Service)
-	name := pkg.DeploymentName(c)
-	if svc.Spec.Selector["app"] != name {
-		labels := getAppLabels(name)
+	labels := getAppLabels(c)
+	if svc.Spec.Selector["app"] != labels["app"] {
 		for key, value := range labels {
 			svc.Spec.Selector[key] = value
 		}

@@ -3,7 +3,6 @@ package component
 import (
 	v1beta12 "halkyon.io/api/component/v1beta1"
 	framework "halkyon.io/operator-framework"
-	"halkyon.io/operator/pkg"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	corev1 "k8s.io/api/core/v1"
@@ -25,7 +24,7 @@ func (res serviceAccount) Build(empty bool) (runtime.Object, error) {
 	sa := &corev1.ServiceAccount{}
 	if !empty {
 		c := res.ownerAsComponent()
-		ls := getAppLabels(pkg.DeploymentName(c))
+		ls := getAppLabels(c)
 		sa.ObjectMeta = metav1.ObjectMeta{
 			Name:      res.Name(),
 			Namespace: c.Namespace,

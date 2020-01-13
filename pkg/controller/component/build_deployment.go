@@ -17,7 +17,7 @@ func (res deployment) installBuild(empty bool) (runtime.Object, error) {
 	dep := &appsv1.Deployment{}
 	if !empty {
 		c := res.ownerAsComponent()
-		ls := getAppLabels(pkg.DeploymentName(c))
+		ls := getAppLabels(c)
 
 		// create runtime container using built image (= created by the Tekton build task)
 		runtimeContainer, err := getRuntimeContainerFor(c)

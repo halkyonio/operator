@@ -3,7 +3,6 @@ package component
 import (
 	component "halkyon.io/api/component/v1beta1"
 	framework "halkyon.io/operator-framework"
-	"halkyon.io/operator/pkg"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +24,7 @@ func (res pvc) Build(empty bool) (runtime.Object, error) {
 
 	if !empty {
 		c := res.ownerAsComponent()
-		ls := getAppLabels(pkg.DeploymentName(c))
+		ls := getAppLabels(c)
 		name := res.Name()
 		pvc.ObjectMeta = metav1.ObjectMeta{
 			Name:      name,
