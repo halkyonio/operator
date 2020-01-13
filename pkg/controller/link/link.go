@@ -8,6 +8,7 @@ import (
 	halkyon2 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"halkyon.io/operator-framework/util"
+	"halkyon.io/operator/pkg"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -32,40 +33,15 @@ func (in *Link) Delete() error {
 }
 
 func (in *Link) CreateOrUpdate() error {
-	found, err := fetchDeployment(in.Link)
+	// get the associated component
+	fetch, err := in.FetchUpdatedDependent(util.GetObjectName(&v1beta1.Component{}))
 	if err != nil {
-		in.SetNeedsRequeue(true)
-		return err
+		return fmt.Errorf("couldn't find associated component named '%s'", in.Spec.ComponentName)
 	}
+	c := fetch.(*v1beta1.Component)
+
 	// Enrich the Deployment object using the information passed within the Link Spec (e.g Env Vars, EnvFrom, ...) if needed
-	if containers, isModified := updateContainersWithLinkInfo(in.Link, found.Spec.Template.Spec.Containers); isModified {
-		found.Spec.Template.Spec.Containers = containers
-
-		if err = updateDeploymentWithLink(found, in); err != nil {
-			// As it could be possible that we can't update the Deployment as it has been modified by another
-			// process, then we will requeue
-			in.SetNeedsRequeue(true)
-			return err
-		}
-
-		// if the deployment has been updated, we need to update the component's status
-		fetch, err := in.FetchUpdatedDependent(util.GetObjectName(&v1beta1.Component{}))
-		if err != nil {
-			return fmt.Errorf("cannot retrieve associated component")
-		}
-		c := fetch.(*v1beta1.Component)
-		compStatus := &c.Status
-		compStatus.Phase = v1beta1.ComponentLinking
-		compStatus.SetLinkingStatus(in.Name, v1beta1.Started, compStatus.PodName)
-		compStatus.PodName = ""
-		compStatus.Message = fmt.Sprintf("Initiating link %s", in.Name)
-		err = framework.Helper.Client.Status().Update(context.TODO(), c)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return updateComponentWithLinkInfo(in, c)
 }
 
 func (in *Link) NewEmpty() framework.Resource {
@@ -143,22 +119,14 @@ func (in *Link) ShouldDelete() bool {
 	return true
 }
 
-func fetchDeployment(link *halkyon.Link) (*appsv1.Deployment, error) {
-	deployment := &appsv1.Deployment{}
-	name := link.Spec.ComponentName
-	if err := framework.Helper.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: link.Namespace}, deployment); err == nil {
-		return deployment, nil
-	} else if err := framework.Helper.Client.Get(context.TODO(), types.NamespacedName{Name: name + "-build", Namespace: link.Namespace}, deployment); err == nil {
-		return deployment, nil
-	} else {
-		framework.LoggerFor(link).Info("Deployment doesn't exist", "Name", name)
-		return deployment, err
-	}
-}
-
-func updateContainersWithLinkInfo(l *halkyon.Link, containers []v1.Container) ([]v1.Container, bool) {
+func updateComponentWithLinkInfo(l *Link, component *v1beta1.Component) error {
 	var isModified = false
 	linkType := l.Spec.Type
+	deployment := &appsv1.Deployment{}
+	if err := framework.Helper.Client.Get(context.TODO(), types.NamespacedName{Name: pkg.DeploymentName(component), Namespace: l.Namespace}, deployment); err != nil {
+		return fmt.Errorf("couldn't retrieve deployment for component '%s'", component.Name)
+	}
+	containers := deployment.Spec.Template.Spec.Containers
 	switch linkType {
 	case halkyon.SecretLinkType:
 		secretName := l.Spec.Ref
@@ -201,20 +169,25 @@ func updateContainersWithLinkInfo(l *halkyon.Link, containers []v1.Container) ([
 		}
 	}
 
-	return containers, isModified
-}
-
-func updateDeploymentWithLink(d *appsv1.Deployment, link *Link) error {
-	// Update the Deployment of the component
-	logger := framework.LoggerFor(link.GetAsHalkyonResource())
-	if err := framework.Helper.Client.Update(context.TODO(), d); err != nil {
-		logger.Info("Failed to update deployment.")
-		return err
+	if isModified {
+		deployment.Spec.Template.Spec.Containers = containers
+		if err := framework.Helper.Client.Update(context.TODO(), deployment); err != nil {
+			// As it could be possible that we can't update the Deployment as it has been modified by another
+			// process, then we will requeue
+			l.SetNeedsRequeue(true)
+			return err
+		}
+		compStatus := &component.Status
+		compStatus.Phase = v1beta1.ComponentLinking
+		compStatus.SetLinkingStatus(l.Name, v1beta1.Started, compStatus.PodName)
+		compStatus.PodName = ""
+		compStatus.Message = fmt.Sprintf("Initiating link %s", l.Name)
+		err := framework.Helper.Client.Status().Update(context.TODO(), component)
+		if err != nil {
+			return err
+		}
 	}
-	logger.Info("Deployment updated.")
 
-	name := link.Spec.ComponentName
-	link.SetSuccessStatus([]framework.DependentResourceStatus{}, fmt.Sprintf("linked to '%s' component", name))
 	return nil
 }
 
