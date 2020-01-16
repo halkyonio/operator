@@ -1,0 +1,98 @@
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: spring-boot-2.1.6
+spec:
+  name: "spring-boot"
+  image: "quay.io/halkyonio/hal-maven-jdk"
+  executablePattern: "*"
+  version: "2.1.6.RELEASE"
+  generator: "https://generator.snowdrop.me/app?springbootversion={{.RuntimeVersion}}&groupid={{.GroupId}}&artifactid={{.ArtifactId}}&version={{.ProjectVersion}}&template={{.ProjectTemplate}}&packagename={{.PackageName}}&outdir={{.ArchiveName}}"
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: spring-boot-1.5.19
+spec:
+  name: "spring-boot"
+  image: "quay.io/halkyonio/hal-maven-jdk"
+  executablePattern: "*"
+  version: "1.5.19.RELEASE"
+  generator: "https://generator.snowdrop.me/app?springbootversion={{.RuntimeVersion}}&groupid={{.GroupId}}&artifactid={{.ArtifactId}}&version={{.ProjectVersion}}&template={{.ProjectTemplate}}&packagename={{.PackageName}}&outdir={{.ArchiveName}}"
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: quarkus-1.1.1
+spec:
+  name: "quarkus"
+  image: "quay.io/halkyonio/hal-maven-jdk"
+  executablePattern: "*-runner"
+  version: "1.1.1.Final"
+  generator: "https://code.quarkus.io/api/download?g={{.GroupId}}&a={{.ArtifactId}}&v={{.ProjectVersion}}&c={{.PackageName}}.ResourceExample"
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: vertx-3.8.4
+spec:
+  name: "vert.x"
+  image: "quay.io/halkyonio/hal-maven-jdk"
+  executablePattern: "*-all"
+  version: "3.8.4"
+  generator: "https://start.vertx.io/starter.zip?vertxVersion={{.RuntimeVersion}}&groupId={{.GroupId}}&artifactId={{.ArtifactId}}&packageName={{.PackageName}}"
+  default: true
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: thorntail-2.5.0
+spec:
+  name: "thorntail"
+  image: "quay.io/halkyonio/hal-maven-jdk"
+  executablePattern: "*-thorntail"
+  version: "2.5.0.Final"
+  generator: "http://generator.thorntail.io/generator?g={{.GroupId}}&a={{.ArtifactId}}&v={{.ProjectVersion}}&p={{.PackageName}}&sv={{.RuntimeVersion}}&d=cdi&d=jaxrs&d=microprofile-health&nested=false"
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: thorntail-2.4.0
+spec:
+  name: "thorntail"
+  image: "quay.io/halkyonio/hal-maven-jdk"
+  executablePattern: "*-thorntail"
+  version: "2.4.0.Final"
+  generator: "http://generator.thorntail.io/generator?g={{.GroupId}}&a={{.ArtifactId}}&v={{.ProjectVersion}}&p={{.PackageName}}&sv={{.RuntimeVersion}}&d=cdi&d=jaxrs&d=microprofile-health&nested=false"
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: nodejs-12
+spec:
+  name: "node.js"
+  image: "registry.access.redhat.com/ubi8/nodejs-12"
+  executablePattern: ""
+  version: "12.x"
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: nodejs-10
+spec:
+  name: "node.js"
+  image: "registry.access.redhat.com/ubi8/nodejs-10"
+  executablePattern: ""
+  version: "10.x"
+---
+apiVersion: halkyon.io/v1beta1
+kind: Runtime
+metadata:
+  name: openjdk-8
+spec:
+  name: "openjdk"
+  image: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"
+  executablePattern: ""
+  version: "8"
+---

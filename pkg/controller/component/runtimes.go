@@ -3,61 +3,61 @@ package component
 import (
 	"fmt"
 	"halkyon.io/api/component/v1beta1"
+	"halkyon.io/api/runtime/clientset/versioned"
+	v1beta12 "halkyon.io/api/runtime/clientset/versioned/typed/runtime/v1beta1"
 	halkyon "halkyon.io/api/v1beta1"
+	framework "halkyon.io/operator-framework"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
 	supervisorContainerName = "copy-supervisord"
 	supervisorImageId       = "supervisord"
-	latestVersionTag        = "latest"
 )
 
-// todo: extract into configuration file
-var registry = RuntimeRegistry{
-	runtimes: map[string]runtimeVersions{
-		"spring-boot":     newRuntime("quay.io/halkyonio/hal-maven-jdk", "*"),
-		"vert.x":          newRuntime("quay.io/halkyonio/hal-maven-jdk", "*-all"),
-		"quarkus":         newRuntime("quay.io/halkyonio/hal-maven-jdk", "*-runner"),
-		"thorntail":       newRuntime("quay.io/halkyonio/hal-maven-jdk", "*-thorntail"),
-		"openjdk8":        newRuntime("registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift", ""),
-		"node.js":         newRuntime("nodeshift/centos7-s2i-nodejs", ""),
-		supervisorImageId: newRuntime("quay.io/halkyonio/supervisord", ""),
-	},
-}
+var runtimesClient v1beta12.RuntimeInterface
 
 type Runtime struct {
 	RegistryRef string
 	defaultEnv  map[string]string
 }
 
-type RuntimeRegistry struct {
-	runtimes map[string]runtimeVersions
-}
-
-type runtimeVersions struct {
-	defaultVersion Runtime
-}
-
-func newRuntime(ref, jarPattern string) runtimeVersions {
-	return runtimeVersions{defaultVersion: Runtime{RegistryRef: ref, defaultEnv: map[string]string{"JARPATTERN": jarPattern}}}
-}
-
-func (rv runtimeVersions) getRuntimeVersionFor(version string) Runtime {
-	// todo: compute image version based on runtime version
-	defaultVersion := rv.defaultVersion
-	ref := fmt.Sprintf("%s:%s", defaultVersion.RegistryRef, latestVersionTag)
-	runtime := Runtime{RegistryRef: ref, defaultEnv: defaultVersion.defaultEnv}
-	return runtime
-}
-
 func getImageInfo(component v1beta1.ComponentSpec) (Runtime, error) {
-	versions, ok := registry.runtimes[component.Runtime]
-	if !ok {
-		return Runtime{}, fmt.Errorf("unknown image identifier: %s", component.Runtime)
+	if component.Runtime == supervisorImageId {
+		return Runtime{RegistryRef: "quay.io/halkyonio/supervisord"}, nil
 	}
 
-	return versions.getRuntimeVersionFor(component.Version), nil
+	if runtimesClient == nil {
+		runtimesClient = versioned.NewForConfigOrDie(framework.Helper.Config).HalkyonV1beta1().Runtimes()
+	}
+	list, err := runtimesClient.List(v1.ListOptions{})
+	if err != nil {
+		return Runtime{}, fmt.Errorf("couldn't retrieve available runtimes: %e", err)
+	}
+
+	runtimeFound := false
+	knownVersions := ""
+	knownRuntimes := ""
+	for _, item := range list.Items {
+		if item.Spec.Name == component.Runtime {
+			runtimeFound = true
+			version := item.Spec.Version
+			if version == component.Version {
+				runtime := Runtime{RegistryRef: item.Spec.Image}
+				if len(item.Spec.ExecutablePattern) > 0 {
+					runtime.defaultEnv = map[string]string{"JARPATTERN": item.Spec.ExecutablePattern}
+				}
+				return runtime, nil
+			}
+			knownVersions += version + ", "
+		}
+		knownRuntimes += item.Name + ", "
+	}
+
+	if runtimeFound {
+		return Runtime{}, fmt.Errorf("couldn't find '%s' version for '%s' runtime, known versions: %s", component.Version, component.Runtime, knownVersions)
+	}
+	return Runtime{}, fmt.Errorf("couldn't find '%s' runtime, known runtimes: %s", component.Runtime, knownRuntimes)
 }
 
 func getSupervisor() *v1beta1.Component {
