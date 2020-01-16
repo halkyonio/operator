@@ -21,19 +21,6 @@ spec:
   scope: Namespaced
   subresources:
     status: {}
-  validation:
-    # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schemaObject
-    openAPIV3Schema:
-      properties:
-        spec:
-          properties:
-            runtime:
-              type: string
-              enum:
-                - spring-boot
-                - vert.x
-                - thorntail
-                - quarkus
   additionalPrinterColumns:
   - name: Runtime
     type: string
