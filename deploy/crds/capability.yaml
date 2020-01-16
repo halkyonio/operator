@@ -25,7 +25,7 @@ spec:
     type: string
     description: "The category of the capability: database, logging, metric."
     JSONPath: .spec.category
-  - name: Kind
+  - name: Type
     type: string
     description: "The capability type for the given category. For a database category, that will be : postgres, mysql, ..."
     JSONPath: .spec.type
