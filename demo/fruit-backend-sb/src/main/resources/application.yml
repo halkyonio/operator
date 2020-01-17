@@ -11,7 +11,7 @@ dekorate:
     name: link-to-database
     componentName: fruit-backend-sb
     type: Secret
-    ref: postgres-db-config
+    ref: postgres-db-auth
   capability:
     name: postgres-db
     category: database
