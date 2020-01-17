@@ -16,7 +16,7 @@ dekorate:
     name: postgres-db
     category: database
     type: postgres
-    version: "10"
+    version: "10.6"
     parameters:
     - name: DB_USER
       value: admin
