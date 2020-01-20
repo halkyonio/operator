@@ -13,8 +13,8 @@ const (
 	BaseS2iImage          = "BASE_S2I_IMAGE"
 )
 
-func getEnvAsMap(component component.ComponentSpec) (map[string]string, error) {
-	envs := component.Envs
+func getEnvAsMap(component *component.Component) (map[string]string, error) {
+	envs := component.Spec.Envs
 	tmpEnvVar := make(map[string]string)
 
 	for _, v := range envs {
@@ -36,10 +36,10 @@ func getEnvAsMap(component component.ComponentSpec) (map[string]string, error) {
 	return tmpEnvVar, nil
 }
 
-func populateEnvVar(component *component.Component) {
-	tmpEnvVar, err := getEnvAsMap(component.Spec)
+func populateEnvVar(component *component.Component) error {
+	tmpEnvVar, err := getEnvAsMap(component)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Convert Map to Slice
@@ -50,6 +50,7 @@ func populateEnvVar(component *component.Component) {
 
 	// Store result
 	component.Spec.Envs = newEnvVars
+	return nil
 }
 
 //getAppLabels returns a string map with the Application labels which will be associated to the kubernetes/ocp resource created and managed by this operator

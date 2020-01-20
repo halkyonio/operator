@@ -22,8 +22,9 @@ type Runtime struct {
 	defaultEnv  map[string]string
 }
 
-func getImageInfo(component v1beta1.ComponentSpec) (Runtime, error) {
-	if component.Runtime == supervisorImageId {
+func getImageInfo(component *v1beta1.Component) (Runtime, error) {
+	spec := component.Spec
+	if spec.Runtime == supervisorImageId {
 		return Runtime{RegistryRef: "quay.io/halkyonio/supervisord"}, nil
 	}
 
@@ -39,10 +40,10 @@ func getImageInfo(component v1beta1.ComponentSpec) (Runtime, error) {
 	knownVersions := ""
 	knownRuntimes := ""
 	for _, item := range list.Items {
-		if item.Spec.Name == component.Runtime {
+		if item.Spec.Name == spec.Runtime {
 			runtimeFound = true
 			version := item.Spec.Version
-			if version == component.Version {
+			if version == spec.Version {
 				runtime := Runtime{RegistryRef: item.Spec.Image}
 				if len(item.Spec.ExecutablePattern) > 0 {
 					runtime.defaultEnv = map[string]string{"JARPATTERN": item.Spec.ExecutablePattern}
@@ -55,9 +56,9 @@ func getImageInfo(component v1beta1.ComponentSpec) (Runtime, error) {
 	}
 
 	if runtimeFound {
-		return Runtime{}, fmt.Errorf("couldn't find '%s' version for '%s' runtime, known versions: %s", component.Version, component.Runtime, knownVersions)
+		return Runtime{}, fmt.Errorf("couldn't find '%s' version for '%s' runtime, known versions: %s", spec.Version, spec.Runtime, knownVersions)
 	}
-	return Runtime{}, fmt.Errorf("couldn't find '%s' runtime, known runtimes: %s", component.Runtime, knownRuntimes)
+	return Runtime{}, fmt.Errorf("couldn't find '%s' runtime, known runtimes: %s", spec.Runtime, knownRuntimes)
 }
 
 func getSupervisor() *v1beta1.Component {

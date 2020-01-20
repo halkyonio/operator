@@ -79,13 +79,13 @@ func (res deployment) installDev(empty bool) (runtime.Object, error) {
 }
 
 func getBaseContainerFor(component *component.Component) (corev1.Container, error) {
-	runtimeImage, err := getImageInfo(component.Spec)
+	runtimeImage, err := getImageInfo(component)
 	if err != nil {
 		return corev1.Container{}, err
 	}
 
 	container := corev1.Container{
-		Env:             populatePodEnvVar(component.Spec),
+		Env:             populatePodEnvVar(component),
 		Image:           runtimeImage.RegistryRef,
 		ImagePullPolicy: corev1.PullAlways,
 		Name:            component.Name,
@@ -96,7 +96,7 @@ func getBaseContainerFor(component *component.Component) (corev1.Container, erro
 	return container, nil
 }
 
-func populatePodEnvVar(component component.ComponentSpec) []corev1.EnvVar {
+func populatePodEnvVar(component *component.Component) []corev1.EnvVar {
 	tmpEnvVar, err := getEnvAsMap(component)
 	if err != nil {
 		panic(err)

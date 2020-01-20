@@ -64,7 +64,10 @@ func (in *Component) CreateOrUpdate() (err error) {
 		in.ObjectMeta.Labels = PopulateK8sLabels(in.Component, "Backend")
 
 		// Enrich Env Vars with Default values
-		populateEnvVar(in.Component)
+		err = populateEnvVar(in.Component)
+		if err != nil {
+			return err
+		}
 
 		return in.CreateOrUpdateDependents()
 	}
