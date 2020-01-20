@@ -107,13 +107,12 @@ func main() {
 
 	// load plugins based on specified list
 	log.Info("Loading plugins")
-	pluginCount := 0
 	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 	pluginsDir := filepath.Join(currentDir, "plugins")
 	if pluginList, found := os.LookupEnv(HalkyonPluginsEnvVar); found {
-		if err != nil {
-			panic(err)
-		}
 		pluginDefs := strings.Split(pluginList, ",")
 		for _, pluginDef := range pluginDefs {
 			// only download the plugin if we haven't already done so before
@@ -140,25 +139,29 @@ func main() {
 	}
 	// initialize plugins
 	goPlugins, err := ioutil.ReadDir(pluginsDir)
+	pluginCount := 0
+	typeCount := 0
 	if err != nil {
-		panic(err)
-	}
-	for _, p := range goPlugins {
-		// ignore marker files
-		if !strings.HasPrefix(p.Name(), ".") {
-			pluginPath := filepath.Join(pluginsDir, p.Name())
-			if runtime.GOOS == "windows" {
-				pluginPath += ".exe"
-			}
-			if plugin, err := capability2.NewPlugin(pluginPath, log); err == nil {
-				pluginCount++
-				defer plugin.Kill()
-			} else {
-				panic(err)
+		log.Error(err, "cannot read plugins directory")
+	} else {
+		for _, p := range goPlugins {
+			// ignore marker files
+			if !strings.HasPrefix(p.Name(), ".") {
+				pluginPath := filepath.Join(pluginsDir, p.Name())
+				if runtime.GOOS == "windows" {
+					pluginPath += ".exe"
+				}
+				if plugin, err := capability2.NewPlugin(pluginPath, log); err == nil {
+					pluginCount++
+					typeCount += len(plugin.GetTypes())
+					defer plugin.Kill()
+				} else {
+					log.Error(err, "ignoring "+pluginPath+" plugin which couldn't be loaded")
+				}
 			}
 		}
+		log.Info(fmt.Sprintf("Loaded %d plugin(s) for a total of %d capabilities", pluginCount, typeCount))
 	}
-	log.Info(fmt.Sprintf("Loaded %d plugin(s)", pluginCount))
 
 	// Create component controller and add it to the manager
 	if err := framework.RegisterNewReconciler(component.NewComponent(), mgr); err != nil {
