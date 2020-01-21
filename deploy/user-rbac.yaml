@@ -22,3 +22,18 @@ rules:
   - apiGroups: ["halkyon.io"]
     resources: ["runtimes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: halkyon-aggregate-view
+  labels:
+    # Add these permissions to the "view" default role.
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+rules:
+  - apiGroups: ["halkyon.io"]
+    resources: ["capabilityinfos"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["halkyon.io"]
+    resources: ["runtimes"]
+    verbs: ["get", "list", "watch"]
