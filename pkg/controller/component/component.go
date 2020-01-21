@@ -25,7 +25,7 @@ func (in *Component) NewEmpty() framework.Resource {
 
 func (in *Component) InitDependentResources() ([]framework.DependentResource, error) {
 	c := in.Component
-	return in.BaseResource.AddDependentResource(newRole(c), newRoleBinding(c), newServiceAccount(c), newPvc(c),
+	return in.BaseResource.AddDependentResource(newRole(in), framework.NewOwnedRoleBinding(in), newServiceAccount(c), newPvc(c),
 		newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c, in.DependentStatusFieldName()),
 		newPod(c, in.DependentStatusFieldName())), nil
 }
@@ -204,4 +204,24 @@ func (in *Component) GetStatusAsString() string {
 
 func (in *Component) ShouldDelete() bool {
 	return true
+}
+
+func (in *Component) Owner() v1beta1.HalkyonResource {
+	return in.Component
+}
+
+func (in *Component) GetRoleName() string {
+	return "image-scc-privileged-role"
+}
+
+func (in *Component) GetRoleBindingName() string {
+	return "use-image-scc-privileged"
+}
+
+func (in *Component) GetAssociatedRoleName() string {
+	return in.GetRoleName()
+}
+
+func (in *Component) GetServiceAccountName() string {
+	return ServiceAccountName(in.Component)
 }

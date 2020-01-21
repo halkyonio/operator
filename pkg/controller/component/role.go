@@ -1,7 +1,6 @@
 package component
 
 import (
-	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/operator-framework"
 	authorizv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -11,8 +10,8 @@ type role struct {
 	framework.Role
 }
 
-func newRole(owner *component.Component) role {
-	return role{Role: framework.NewOwnedRole(owner, func() string { return "image-scc-privileged-role" })}
+func newRole(owner *Component) role {
+	return role{Role: framework.NewOwnedRole(owner)}
 }
 
 func (res role) Build(empty bool) (runtime.Object, error) {
