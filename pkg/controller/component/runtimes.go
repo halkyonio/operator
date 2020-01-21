@@ -45,9 +45,20 @@ func getImageInfo(component *v1beta1.Component) (Runtime, error) {
 			version := item.Spec.Version
 			if version == spec.Version {
 				runtime := Runtime{RegistryRef: item.Spec.Image}
+
+				envMap := make(map[string]string, len(item.Spec.Envs)+1)
 				if len(item.Spec.ExecutablePattern) > 0 {
-					runtime.defaultEnv = map[string]string{"JARPATTERN": item.Spec.ExecutablePattern}
+					envMap["JARPATTERN"] = item.Spec.ExecutablePattern
 				}
+				for _, valuePair := range item.Spec.Envs {
+					if len(valuePair.Name) > 0 {
+						envMap[valuePair.Name] = valuePair.Value
+					}
+				}
+				if len(envMap) > 0 {
+					runtime.defaultEnv = envMap
+				}
+
 				return runtime, nil
 			}
 			knownVersions += version + ", "

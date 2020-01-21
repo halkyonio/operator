@@ -31,6 +31,9 @@ spec:
   executablePattern: "*-runner"
   version: "1.1.1.Final"
   generator: "https://code.quarkus.io/api/download?g={{.GroupId}}&a={{.ArtifactId}}&v={{.ProjectVersion}}&c={{.PackageName}}.ResourceExample"
+  envs:
+    - name: MAVEN_ARGS
+      value: "-Dquarkus.package.uber-jar=true"
 ---
 apiVersion: halkyon.io/v1beta1
 kind: Runtime
