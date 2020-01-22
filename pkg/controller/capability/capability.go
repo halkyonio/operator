@@ -5,7 +5,7 @@ import (
 	halkyon "halkyon.io/api/capability/v1beta1"
 	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
-	capability2 "halkyon.io/plugins/capability"
+	capability2 "halkyon.io/operator-framework/plugins/capability"
 )
 
 // blank assignment to check that Capabilit implements Resource
