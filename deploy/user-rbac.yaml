@@ -8,13 +8,13 @@ metadata:
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
 rules:
   - apiGroups: ["halkyon.io"]
-    resources: ["components"]
+    resources: ["components", "components/status"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["halkyon.io"]
-    resources: ["links"]
+    resources: ["links", "links/status"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["halkyon.io"]
-    resources: ["capabilities"]
+    resources: ["capabilities", "capabilities/status"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 kind: ClusterRole
