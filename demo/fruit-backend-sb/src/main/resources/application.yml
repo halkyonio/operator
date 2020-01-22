@@ -18,8 +18,6 @@ dekorate:
     type: postgres
     version: "10.6"
     parameters:
-      - name: DB_CONFIG_NAME
-        value: postgres-db-config
       - name: DB_USER
         value: admin
       - name: DB_PASSWORD
