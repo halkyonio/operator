@@ -96,20 +96,8 @@ commands:
       - run:
           name: Install halkyon operator
           command: |
-            kubectl create namespace operators
             CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/sa.yaml -n operators
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-role.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/user-rbac.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/cluster-role-binding.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/capability.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/component.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/link.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/capability-info.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/crds/runtime.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/runtimes.yaml
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/configmap.yaml -n operators
-            kubectl apply -f ${CIRCLE_WORKING_DIRECTORY}/deploy/operator.yaml -n operators
+            ${CIRCLE_WORKING_DIRECTORY}/scripts/halkyon.sh operators install yes
   install-tekton:
     steps:
       - run:
