@@ -16,8 +16,8 @@ if [ "$delete" != delete ]; then
   kubectl apply -n "${namespace}" -f deploy/namespaced
 else
   echo "Deleting Halkyon from namespace ${namespace}"
-  kubectl apply -f deploy/cluster-wide
-  kubectl apply -n "${namespace}" -f deploy/namespaced
+  kubectl delete -n "${namespace}" -f deploy/namespaced
+  kubectl delete -R -f deploy/cluster-wide
   if [ "$ns" == yes ]; then
     echo "Deleting namespace"
     kubectl delete ns "${namespace}"
