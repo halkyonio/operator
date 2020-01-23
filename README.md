@@ -266,10 +266,9 @@ kubectl apply -n operators -f deploy/sa.yaml
 kubectl apply -f deploy/cluster-role.yaml
 kubectl apply -f deploy/user-rbac.yaml
 kubectl apply -f deploy/cluster-role-binding.yaml
-kubectl apply -f deploy/crds/capability.yaml
-kubectl apply -f deploy/crds/component.yaml
-kubectl apply -f deploy/crds/link.yaml
+kubectl apply -f deploy/crds
 kubectl apply -n operators -f deploy/configmap.yaml
+kubectl apply -n operators -f deploy/runtimes.yaml
 kubectl apply -n operators -f deploy/operator.yaml
 ```
 
@@ -416,8 +415,11 @@ kubectl delete -f deploy/cluster-role.yaml
 kubectl delete -f deploy/user-rbac.yaml
 kubectl delete -f deploy/cluster-role-binding.yaml
 kubectl delete -f deploy/crds/capability.yaml
+kubectl delete -f deploy/crds/capability-info.yaml
 kubectl delete -f deploy/crds/component.yaml
 kubectl delete -f deploy/crds/link.yaml
+kubectl delete -f deploy/runtimes.yaml
+kubectl delete -f deploy/configmap.yaml
 kubectl delete -n operators -f deploy/operator.yaml
 ```
 
