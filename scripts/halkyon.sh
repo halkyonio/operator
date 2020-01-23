@@ -11,7 +11,7 @@ if [ "$delete" != delete ]; then
     echo "Creating namespace"
     kubectl create ns "${namespace}"
   fi
-  kubectl apply -f deploy/cluster-wide
+  kubectl apply -R -f deploy/cluster-wide
   kubectl apply -n "${namespace}" -f deploy/namespaced
 else
   echo "Deleting Halkyon from namespace ${namespace}"
