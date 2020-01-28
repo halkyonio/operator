@@ -29,6 +29,9 @@ spec:
     type: string
     description: "The capability type for the given category. For a database category, that will be : postgres, mysql, ..."
     JSONPath: .spec.type
+  - name: Version
+    type: string
+    JSONPath: .spec.version
   - name: Age
     type: date
     JSONPath: .metadata.creationTimestamp
