@@ -20,7 +20,9 @@ func newTask(owner *v1beta1.Component) task {
 	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("Task"))
 	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == owner.Spec.DeploymentMode
 	config.CreatedOrUpdated = config.CheckedForReadiness
-	return task{base: newConfiguredBaseDependent(owner, config)}
+	t := task{base: newConfiguredBaseDependent(owner, config)}
+	t.NameFn = t.Name
+	return t
 }
 
 func (res task) Build(empty bool) (runtime.Object, error) {

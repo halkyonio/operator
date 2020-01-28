@@ -15,7 +15,9 @@ type deployment struct {
 var _ framework.DependentResource = &deployment{}
 
 func newDeployment(owner *component.Component) deployment {
-	return deployment{base: newBaseDependent(&appsv1.Deployment{}, owner)}
+	d := deployment{base: newBaseDependent(&appsv1.Deployment{}, owner)}
+	d.NameFn = d.Name
+	return d
 }
 
 func (res deployment) Build(empty bool) (runtime.Object, error) {

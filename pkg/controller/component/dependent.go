@@ -9,9 +9,13 @@ import (
 
 type base struct {
 	*framework.BaseDependentResource
+	NameFn func() string
 }
 
 func (res base) Name() string {
+	if res.NameFn != nil {
+		return res.NameFn()
+	}
 	return framework.DefaultDependentResourceNameFor(res.Owner())
 }
 
@@ -37,11 +41,11 @@ func (res base) Update(toUpdate runtime.Object) (bool, error) {
 
 func newBaseDependent(primaryResourceType runtime.Object, owner *v1beta1.Component) base {
 	gvk := util.GetGVKFor(primaryResourceType, framework.Helper.Scheme)
-	return base{framework.NewBaseDependentResource(owner, gvk)}
+	return base{BaseDependentResource: framework.NewBaseDependentResource(owner, gvk)}
 }
 
 func newConfiguredBaseDependent(owner *v1beta1.Component, config framework.DependentResourceConfig) base {
-	return base{framework.NewConfiguredBaseDependentResource(owner, config)}
+	return base{BaseDependentResource: framework.NewConfiguredBaseDependentResource(owner, config)}
 }
 
 func (res base) ownerAsComponent() *v1beta1.Component {

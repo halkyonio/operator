@@ -16,7 +16,9 @@ type serviceAccount struct {
 var _ framework.DependentResource = &serviceAccount{}
 
 func newServiceAccount(owner *v1beta12.Component) serviceAccount {
-	return serviceAccount{base: newBaseDependent(&corev1.ServiceAccount{}, owner)}
+	s := serviceAccount{base: newBaseDependent(&corev1.ServiceAccount{}, owner)}
+	s.NameFn = s.Name
+	return s
 }
 
 //buildServiceAccount returns the service resource

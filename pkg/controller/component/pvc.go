@@ -16,7 +16,9 @@ type pvc struct {
 var _ framework.DependentResource = &pvc{}
 
 func newPvc(owner *component.Component) pvc {
-	return pvc{base: newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)}
+	p := pvc{base: newBaseDependent(&corev1.PersistentVolumeClaim{}, owner)}
+	p.NameFn = p.Name
+	return p
 }
 
 func (res pvc) Build(empty bool) (runtime.Object, error) {
