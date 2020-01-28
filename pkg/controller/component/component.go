@@ -24,9 +24,16 @@ func (in *Component) NewEmpty() framework.Resource {
 
 func (in *Component) InitDependentResources() ([]framework.DependentResource, error) {
 	c := in.Component
-	return in.BaseResource.AddDependentResource(newRole(in), framework.NewOwnedRoleBinding(in), newServiceAccount(c), newPvc(c),
+	dependents := make([]framework.DependentResource, 0, 20)
+	dependents = append(dependents, in.BaseResource.AddDependentResource(newRole(in), framework.NewOwnedRoleBinding(in), newServiceAccount(c), newPvc(c),
 		newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c, in.DependentStatusFieldName()),
-		newPod(c, in.DependentStatusFieldName())), nil
+		newPod(c, in.DependentStatusFieldName()))...)
+	requiredCapabilities := c.Spec.Capabilities.Requires
+	for _, config := range requiredCapabilities {
+		dependents = append(dependents, in.BaseResource.AddDependentResource(newCapability(c, config))...)
+	}
+
+	return dependents, nil
 }
 
 // blank assignment to check that Component implements Resource
