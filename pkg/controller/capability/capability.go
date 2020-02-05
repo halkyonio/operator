@@ -16,7 +16,13 @@ type Capability struct {
 	*framework.BaseResource
 }
 
-var _ framework.Resource = &Capability{}
+func (in *Capability) GetStatus() v1beta1.Status {
+	return in.Status.Status
+}
+
+func (in *Capability) SetStatus(status v1beta1.Status) {
+	in.Status.Status = status
+}
 
 func (in *Capability) Delete() error {
 	return nil
@@ -41,8 +47,7 @@ func (in *Capability) InitDependentResources() ([]framework.DependentResource, e
 }
 
 func (in *Capability) ComputeStatus() (needsUpdate bool) {
-	statuses, notReadyWantsUpdate := in.BaseResource.ComputeStatus(in)
-	return notReadyWantsUpdate || in.SetSuccessStatus(statuses, "Ready")
+	return in.BaseResource.ComputeStatus(in)
 }
 
 func (in *Capability) Init() bool {
