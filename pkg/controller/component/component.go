@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	halkyon "halkyon.io/api/component/v1beta1"
-	hLink "halkyon.io/api/link/v1beta1"
 	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type Component struct {
@@ -20,6 +19,14 @@ type Component struct {
 
 func (in *Component) NewEmpty() framework.Resource {
 	return NewComponent()
+}
+
+func (in *Component) GetStatus() v1beta1.Status {
+	return in.Status.Status
+}
+
+func (in *Component) SetStatus(status v1beta1.Status) {
+	in.Status.Status = status
 }
 
 func (in *Component) InitDependentResources() ([]framework.DependentResource, error) {
@@ -75,52 +82,139 @@ func (in *Component) CreateOrUpdate() (err error) {
 			return err
 		}
 
-		return in.CreateOrUpdateDependents()
+		err = in.CreateOrUpdateDependents()
 	}
-	return err
+
+	// link to the capabilities if they're ready
+	for _, required := range in.Spec.Capabilities.Requires {
+		// get dependent corresponding to requirement
+		if dependentCap, err := in.GetDependent(predicateFor(required)); err == nil {
+			// retrieve the associated condition in the status and check if we're not already linked or linking the capability
+			condition := in.Status.GetConditionFor(required.Name, capabilityGVK)
+			if condition == nil || (condition.Type != v1beta1.DependentLinked && condition.Type != v1beta1.DependentLinking) {
+				// fetch associated capability if it exists
+				c, err := dependentCap.Fetch()
+				if err != nil {
+					return err
+				}
+				ready, _ := dependentCap.IsReady(c)
+				if ready {
+					// the capability is not already linked or linking and ready so link it
+					condition.Type = v1beta1.DependentLinking
+					pod, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
+					if err != nil {
+						return err
+					}
+					condition.SetAttribute("OriginalPodName", pod.(*corev1.Pod).Name)
+					required.BoundTo = dependentCap.NameFrom(c)
+					err = in.updateComponentWithLinkInfo(required)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+	}
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (in *Component) updateComponentWithLinkInfo(c halkyon.CapabilityConfig) error {
+	var isModified = false
+	d, err := in.FetchUpdatedDependent(framework.TypePredicateFor(deploymentGVK))
+	if err != nil {
+		return fmt.Errorf("couldn't retrieve deployment for component '%s'", in.Name)
+	}
+	deployment := d.(*appsv1.Deployment)
+	containers := deployment.Spec.Template.Spec.Containers
+	secretName := fmt.Sprintf("%s-config", c.BoundTo) // todo: we need to retrieve the secret name from the capability
+
+	// Check if EnvFrom already exists
+	// If this is the case, exit without error
+	for i := 0; i < len(containers); i++ {
+		var isEnvFromExist = false
+		for _, env := range containers[i].EnvFrom {
+			if env.SecretRef.Name == secretName {
+				// EnvFrom already exists for the Secret Ref
+				isEnvFromExist = true
+			}
+		}
+		if !isEnvFromExist {
+			// Add the Secret as EnvVar to the container
+			containers[i].EnvFrom = append(containers[i].EnvFrom, addSecretAsEnvFromSource(secretName))
+			isModified = true
+		}
+	}
+
+	if isModified {
+		deployment.Spec.Template.Spec.Containers = containers
+		if err := framework.Helper.Client.Update(context.TODO(), deployment); err != nil {
+			// As it could be possible that we can't update the Deployment as it has been modified by another
+			// process, then we will requeue
+			in.SetNeedsRequeue(true)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func addSecretAsEnvFromSource(secretName string) corev1.EnvFromSource {
+	return corev1.EnvFromSource{
+		SecretRef: &corev1.SecretEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
+		},
+	}
+}
+
+type ConfigPredicate struct {
+	config halkyon.CapabilityConfig
+}
+
+func (c ConfigPredicate) Matches(resource framework.DependentResource) bool {
+	capability, ok := resource.(capability)
+	if !ok {
+		return false
+	}
+
+	return c.config.Name == capability.capabilityConfig.Name
+}
+
+func (c ConfigPredicate) String() string {
+	return selectorFor(c.config.Spec).String()
+}
+
+func predicateFor(config halkyon.CapabilityConfig) framework.Predicate {
+	return ConfigPredicate{config: config}
 }
 
 func (in *Component) ComputeStatus() (needsUpdate bool) {
-	statuses, notReadyWantsUpdate := in.BaseResource.ComputeStatus(in)
-	if len(in.Status.Links) > 0 {
-		for i, link := range in.Status.Links {
-			if link.Status == halkyon.Started {
+	needsUpdate = in.BaseResource.ComputeStatus(in)
+
+	if len(in.Status.Conditions) > 0 {
+		for i, link := range in.Status.Conditions {
+			if link.Type == v1beta1.DependentLinking {
 				p, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
-				if err != nil || p.(*corev1.Pod).Name == link.OriginalPodName {
+				if err != nil || p.(*corev1.Pod).Name == link.GetAttribute("OriginalPodName") {
 					in.Status.Phase = halkyon.ComponentLinking
 					in.SetNeedsRequeue(true)
-					return false
+					return true
 				} else {
 					// update link status
-					l := &hLink.Link{}
-					err := framework.Helper.Client.Get(context.TODO(), types.NamespacedName{
-						Namespace: in.Namespace,
-						Name:      link.Name,
-					}, l)
-					if err != nil {
-						// todo: is this appropriate?
-						link.Status = halkyon.Errored
-						in.Status.Message = fmt.Sprintf("couldn't retrieve '%s' link", link.Name)
-						return true
-					}
-
-					l.Status.Message = fmt.Sprintf("'%s' finished linking", in.Name)
-					err = framework.Helper.Client.Status().Update(context.TODO(), l)
-					if err != nil {
-						// todo: fix-me
-						framework.LoggerFor(in.Component).Error(err, "couldn't update link status", "link name", l.Name)
-					}
-
-					link.Status = halkyon.Linked
-					link.OriginalPodName = ""
+					link.Type = v1beta1.DependentLinked
+					link.SetAttribute("OriginalPodName", "")
 					in.Status.PodName = p.(*corev1.Pod).Name
-					in.Status.Links[i] = link // make sure we update the links with the modified value
-					notReadyWantsUpdate = true
+					in.Status.Conditions[i] = link // make sure we update the links with the modified value
+					needsUpdate = true
 				}
 			}
 		}
 	}
-	return notReadyWantsUpdate || in.SetSuccessStatus(statuses, "Ready")
+	return needsUpdate
 }
 
 func (in *Component) Init() bool {

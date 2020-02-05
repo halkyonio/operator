@@ -15,15 +15,19 @@ import (
 type capability struct {
 	base
 	capabilityConfig v1beta1.CapabilityConfig
+	capability       *v1beta12.Capability
 }
 
 var _ framework.DependentResource = &capability{}
+var capabilityGVK = v1beta12.SchemeGroupVersion.WithKind(v1beta12.Kind)
 
 func newCapability(owner *v1beta1.Component, capConfig v1beta1.CapabilityConfig) capability {
-	config := framework.NewConfig(v1beta12.SchemeGroupVersion.WithKind(v1beta12.Kind))
+	config := framework.NewConfig(capabilityGVK)
 	config.CheckedForReadiness = true
 	config.CreatedOrUpdated = false
-	return capability{base: newConfiguredBaseDependent(owner, config), capabilityConfig: capConfig}
+	c := capability{base: newConfiguredBaseDependent(owner, config), capabilityConfig: capConfig}
+	c.NameFn = c.Name
+	return c
 }
 
 func (res capability) Build(empty bool) (runtime.Object, error) {
@@ -32,6 +36,10 @@ func (res capability) Build(empty bool) (runtime.Object, error) {
 	}
 	// we don't want to be building anything: the capability is under halkyon's control, it's not up to the component to create it
 	return nil, nil
+}
+
+func (res capability) Name() string {
+	return res.capabilityConfig.Name
 }
 
 func (res capability) NameFrom(underlying runtime.Object) string {
@@ -44,12 +52,12 @@ func (res capability) IsReady(underlying runtime.Object) (bool, string) {
 }
 
 func (res capability) Fetch() (runtime.Object, error) {
+	if res.capability != nil {
+		return res.capability, nil
+	}
 	config := res.capabilityConfig
 	spec := config.Spec
-	selector := fields.AndSelectors(fields.OneTermEqualSelector("spec.category", spec.Category.String()), fields.OneTermEqualSelector("spec.type", spec.Type.String()))
-	if len(spec.Version) > 0 {
-		selector = fields.AndSelectors(selector, fields.OneTermEqualSelector("spec.version", spec.Version))
-	}
+	selector := selectorFor(spec)
 
 	var result *v1beta12.Capability
 	component := res.ownerAsComponent()
@@ -57,16 +65,18 @@ func (res capability) Fetch() (runtime.Object, error) {
 	// if the component defines a bound value, try to retrieve it and check that it conforms to requirements
 	if len(config.BoundTo) > 0 {
 		result = &v1beta12.Capability{}
-		fetch, err := framework.Helper.Fetch(config.BoundTo, component.Namespace, result)
-
-		// if the referenced capability matches, return it and change the link status to started if we're not already linked
-		if matches(fetch.(*v1beta12.Capability).Spec, spec) {
-			if err := updateLinkingStatus(component, config, true); err != nil {
-				return nil, err
-			}
-			return fetch, nil
+		_, err := framework.Helper.Fetch(config.BoundTo, component.Namespace, result)
+		if err != nil {
+			return nil, err
 		}
-		return nil, err
+
+		// if the referenced capability matches, return it
+		foundSpec := result.Spec
+		if matches(foundSpec, spec) {
+			res.capability = result
+			return result, nil
+		}
+		return nil, fmt.Errorf("specified '%s' bound to capability doesn't match %v requirements, was: %v", config.BoundTo, selector, selectorFor(foundSpec))
 	}
 
 	// retrieve names of matching capabilities along with last (and hopefully, only) matching one
@@ -81,25 +91,7 @@ func (res capability) Fetch() (runtime.Object, error) {
 			return nil, fmt.Errorf("cannot autobind because several capabilities match %v: '%s', use explicit binding instead", selector, strings.Join(names, ", "))
 		}
 		if result != nil {
-			if err := updateLinkingStatus(component, config, false); err != nil {
-				return nil, err
-			}
-			// todo: replace by status update instead of modifying spec
-			requires := component.Spec.Capabilities.Requires
-			for i, cc := range requires {
-				if config.Name == cc.Name {
-					requires[i] = v1beta1.CapabilityConfig{
-						Name:         config.Name,
-						BoundTo:      result.Name,
-						AutoBindable: config.AutoBindable,
-						Spec:         config.Spec,
-					}
-				}
-			}
-			err := framework.Helper.Client.Update(context.Background(), component)
-			if err != nil {
-				return nil, err
-			}
+			res.capability = result
 			return result, nil
 		}
 	}
@@ -114,6 +106,14 @@ func (res capability) Fetch() (runtime.Object, error) {
 	}
 
 	return nil, err
+}
+
+func selectorFor(spec v1beta12.CapabilitySpec) fields.Selector {
+	selector := fields.AndSelectors(fields.OneTermEqualSelector("spec.category", spec.Category.String()), fields.OneTermEqualSelector("spec.type", spec.Type.String()))
+	if len(spec.Version) > 0 {
+		selector = fields.AndSelectors(selector, fields.OneTermEqualSelector("spec.version", spec.Version))
+	}
+	return selector
 }
 
 func capabilitiesNameMatching(spec v1beta12.CapabilitySpec) (names []string, lastMatching *v1beta12.Capability, err error) {
@@ -131,28 +131,6 @@ func capabilitiesNameMatching(spec v1beta12.CapabilitySpec) (names []string, las
 		}
 	}
 	return names, lastMatching, nil
-}
-
-func updateLinkingStatus(component *v1beta1.Component, config v1beta1.CapabilityConfig, boundFound bool) error {
-	status := &component.Status
-	var linkingStatus v1beta1.LinkingStatus
-	updateStatus := false
-	switch status.GetLinkStatus(config.Name) {
-	case v1beta1.Started:
-		if boundFound {
-			linkingStatus = v1beta1.Linked
-			updateStatus = true
-		}
-	default:
-		linkingStatus = v1beta1.Started
-		updateStatus = true
-	}
-
-	if updateStatus {
-		status.SetLinkingStatus(config.Name, linkingStatus, status.PodName)
-		return framework.Helper.Client.Status().Update(context.Background(), component)
-	}
-	return nil
 }
 
 func matches(requested, actual v1beta12.CapabilitySpec) bool {
