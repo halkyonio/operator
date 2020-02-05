@@ -17,7 +17,6 @@ import (
 	capability2 "halkyon.io/operator-framework/plugins/capability"
 	"halkyon.io/operator/pkg/controller/capability"
 	"halkyon.io/operator/pkg/controller/component"
-	"halkyon.io/operator/pkg/controller/link"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -169,10 +168,6 @@ func main() {
 		os.Exit(1)
 	}
 	if err := framework.RegisterNewReconciler(capability.NewCapability(), mgr); err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
-	if err := framework.RegisterNewReconciler(link.NewLink(), mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
