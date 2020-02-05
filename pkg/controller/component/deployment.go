@@ -13,6 +13,7 @@ type deployment struct {
 }
 
 var _ framework.DependentResource = &deployment{}
+var deploymentGVK = appsv1.SchemeGroupVersion.WithKind("Deployment")
 
 func newDeployment(owner *component.Component) deployment {
 	d := deployment{base: newBaseDependent(&appsv1.Deployment{}, owner)}

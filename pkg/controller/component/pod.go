@@ -16,9 +16,10 @@ type pod struct {
 }
 
 var _ framework.DependentResource = &pod{}
+var podGVK = corev1.SchemeGroupVersion.WithKind("Pod")
 
 func newPod(owner *v1beta1.Component, ownerStatusField string) pod {
-	config := framework.NewConfig(corev1.SchemeGroupVersion.WithKind("Pod"))
+	config := framework.NewConfig(podGVK)
 	config.CheckedForReadiness = v1beta1.DevDeploymentMode == owner.Spec.DeploymentMode
 	config.OwnerStatusField = ownerStatusField
 	config.CreatedOrUpdated = false
