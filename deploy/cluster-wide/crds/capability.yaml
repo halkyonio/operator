@@ -37,7 +37,7 @@ spec:
     JSONPath: .metadata.creationTimestamp
   - name: Status
     type: string
-    JSONPath: .status.phase
+    JSONPath: .status.reason
   - name: Message
     type: string
     JSONPath: .status.message

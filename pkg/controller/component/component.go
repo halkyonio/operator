@@ -200,7 +200,7 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 			if link.Type == v1beta1.DependentLinking {
 				p, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
 				if err != nil || p.(*corev1.Pod).Name == link.GetAttribute("OriginalPodName") {
-					in.Status.Phase = halkyon.ComponentLinking
+					in.Status.Reason = halkyon.ComponentLinking
 					in.SetNeedsRequeue(true)
 					return true
 				} else {

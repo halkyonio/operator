@@ -47,7 +47,7 @@ func (res capability) NameFrom(underlying runtime.Object) string {
 
 func (res capability) IsReady(underlying runtime.Object) (bool, string) {
 	c := underlying.(*v1beta12.Capability)
-	return c.Status.Phase == v1beta12.CapabilityReady, c.Status.Message
+	return c.Status.Reason == v1beta12.CapabilityReady, c.Status.Message
 }
 
 func (res capability) Fetch() (runtime.Object, error) {
