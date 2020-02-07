@@ -8,6 +8,7 @@ import (
 	halkyon "halkyon.io/api/v1beta1"
 	framework "halkyon.io/operator-framework"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 const (
@@ -37,8 +38,8 @@ func getImageInfo(component *v1beta1.Component) (Runtime, error) {
 	}
 
 	runtimeFound := false
-	knownVersions := ""
-	knownRuntimes := ""
+	knownVersions := make([]string, 0, len(list.Items))
+	knownRuntimes := make([]string, 0, len(list.Items))
 	for _, item := range list.Items {
 		if item.Spec.Name == spec.Runtime {
 			runtimeFound = true
@@ -61,15 +62,15 @@ func getImageInfo(component *v1beta1.Component) (Runtime, error) {
 
 				return runtime, nil
 			}
-			knownVersions += version + ", "
+			knownVersions = append(knownVersions, version)
 		}
-		knownRuntimes += item.Name + ", "
+		knownRuntimes = append(knownRuntimes, item.Name)
 	}
 
 	if runtimeFound {
-		return Runtime{}, fmt.Errorf("couldn't find '%s' version for '%s' runtime, known versions: %s", spec.Version, spec.Runtime, knownVersions)
+		return Runtime{}, fmt.Errorf("couldn't find '%s' version for '%s' runtime, known versions: %s", spec.Version, spec.Runtime, strings.Join(knownVersions, ","))
 	}
-	return Runtime{}, fmt.Errorf("couldn't find '%s' runtime, known runtimes: %s", spec.Runtime, knownRuntimes)
+	return Runtime{}, fmt.Errorf("couldn't find '%s' runtime, known runtimes: %s", spec.Runtime, strings.Join(knownRuntimes, ","))
 }
 
 func getSupervisor() *v1beta1.Component {
