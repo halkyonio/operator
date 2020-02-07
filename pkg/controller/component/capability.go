@@ -15,7 +15,6 @@ import (
 type capability struct {
 	base
 	capabilityConfig v1beta1.CapabilityConfig
-	capability       *v1beta12.Capability
 }
 
 var _ framework.DependentResource = &capability{}
@@ -52,9 +51,6 @@ func (res capability) IsReady(underlying runtime.Object) (bool, string) {
 }
 
 func (res capability) Fetch() (runtime.Object, error) {
-	if res.capability != nil {
-		return res.capability, nil
-	}
 	config := res.capabilityConfig
 	spec := config.Spec
 	selector := selectorFor(spec)
@@ -73,7 +69,6 @@ func (res capability) Fetch() (runtime.Object, error) {
 		// if the referenced capability matches, return it
 		foundSpec := result.Spec
 		if matches(foundSpec, spec) {
-			res.capability = result
 			return result, nil
 		}
 		return nil, fmt.Errorf("specified '%s' bound to capability doesn't match %v requirements, was: %v", config.BoundTo, selector, selectorFor(foundSpec))
@@ -91,7 +86,6 @@ func (res capability) Fetch() (runtime.Object, error) {
 			return nil, fmt.Errorf("cannot autobind because several capabilities match %v: '%s', use explicit binding instead", selector, strings.Join(names, ", "))
 		}
 		if result != nil {
-			res.capability = result
 			return result, nil
 		}
 	}
