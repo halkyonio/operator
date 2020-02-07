@@ -67,16 +67,6 @@ func NewCapability() *Capability {
 	return c
 }
 
-func (in *Capability) SetInitialStatus(msg string) bool {
-	if halkyon.CapabilityPending != in.Status.Phase || in.Status.Message != msg {
-		in.Status.Phase = halkyon.CapabilityPending
-		in.Status.Message = msg
-		in.SetNeedsRequeue(true)
-		return true
-	}
-	return false
-}
-
 func (in *Capability) CheckValidity() error {
 	if _, err := capability2.GetPluginFor(in.Spec.Category, in.Spec.Type); err != nil {
 		return err
@@ -84,37 +74,9 @@ func (in *Capability) CheckValidity() error {
 	return nil
 }
 
-func (in *Capability) SetErrorStatus(err error) bool {
-	if err != nil {
-		errMsg := err.Error()
-		if halkyon.CapabilityFailed != in.Status.Phase || errMsg != in.Status.Message {
-			in.Status.Phase = halkyon.CapabilityFailed
-			in.Status.Message = errMsg
-			in.SetNeedsRequeue(false)
-			return true
-		}
-	}
-	return false
-}
-
 func (in *Capability) DependentStatusFieldName() string {
 	_ = in.Status.PodName // to make sure we update the value below if that field changes as returned value must match field name
 	return "PodName"
-}
-
-func (in *Capability) SetSuccessStatus(statuses []framework.DependentResourceStatus, msg string) bool {
-	changed, updatedMsg := framework.HasChangedFromStatusUpdate(&in.Status, statuses, msg)
-	if changed || halkyon.CapabilityReady != in.Status.Phase {
-		in.Status.Phase = halkyon.CapabilityReady
-		in.Status.Message = updatedMsg
-		in.SetNeedsRequeue(false)
-		return true
-	}
-	return false
-}
-
-func (in *Capability) GetStatusAsString() string {
-	return in.Status.Phase.String()
 }
 
 func (in *Capability) ShouldDelete() bool {
