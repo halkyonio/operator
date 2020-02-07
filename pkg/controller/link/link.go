@@ -7,7 +7,6 @@ import (
 	halkyon "halkyon.io/api/link/v1beta1"
 	halkyon2 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
-	"halkyon.io/operator-framework/util"
 	"halkyon.io/operator/pkg"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -34,7 +33,7 @@ func (in *Link) Delete() error {
 
 func (in *Link) CreateOrUpdate() error {
 	// get the associated component
-	fetch, err := in.FetchUpdatedDependent(util.GetObjectName(&v1beta1.Component{}))
+	fetch, err := in.FetchUpdatedDependent(framework.TypePredicateFor(v1beta1.SchemeGroupVersion.WithKind(v1beta1.Kind)))
 	if err != nil {
 		return fmt.Errorf("couldn't find associated component named '%s'", in.Spec.ComponentName)
 	}

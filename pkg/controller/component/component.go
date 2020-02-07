@@ -7,7 +7,6 @@ import (
 	hLink "halkyon.io/api/link/v1beta1"
 	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
-	"halkyon.io/operator-framework/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -79,7 +78,7 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 	if len(in.Status.Links) > 0 {
 		for i, link := range in.Status.Links {
 			if link.Status == halkyon.Started {
-				p, err := in.FetchUpdatedDependent(util.GetObjectName(&corev1.Pod{}))
+				p, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
 				if err != nil || p.(*corev1.Pod).Name == link.OriginalPodName {
 					in.Status.Phase = halkyon.ComponentLinking
 					in.SetNeedsRequeue(true)
