@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	"halkyon.io/api/component/v1beta1"
+	beta1 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -88,18 +89,25 @@ func (res taskRun) Build(empty bool) (runtime.Object, error) {
 	return taskRun, nil
 }
 
-func (res taskRun) IsReady(underlying runtime.Object) (ready bool, message string) {
-	tr := underlying.(*v1alpha1.TaskRun)
-	succeeded := tr.Status.GetCondition(apis.ConditionSucceeded)
-	if succeeded != nil {
-		if succeeded.IsTrue() {
-			return true, succeeded.Message
-		} else {
-			return false, fmt.Sprintf("%s didn't succeed: %s", tr.Name, succeeded.Message)
+func (res taskRun) GetCondition(underlying runtime.Object, err error) *beta1.DependentCondition {
+	return framework.DefaultCustomizedGetConditionFor(res, err, underlying, func(underlying runtime.Object, cond *beta1.DependentCondition) {
+		tr := underlying.(*v1alpha1.TaskRun)
+		succeeded := tr.Status.GetCondition(apis.ConditionSucceeded)
+		if succeeded != nil {
+			cond.Message = succeeded.Message
+			cond.Reason = succeeded.Reason
+			if succeeded.IsTrue() {
+				cond.Type = beta1.DependentReady
+				return
+			}
+			if succeeded.IsFalse() {
+				cond.Type = beta1.DependentFailed
+				return
+			}
 		}
-	} else {
-		return false, fmt.Sprintf("%s is not ready", tr.Name)
-	}
+		cond.Type = beta1.DependentPending
+		cond.Message = fmt.Sprintf("%s is not ready", tr.Name)
+	})
 }
 
 func (res taskRun) NameFrom(underlying runtime.Object) string {

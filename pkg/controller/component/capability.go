@@ -5,6 +5,7 @@ import (
 	"fmt"
 	v1beta12 "halkyon.io/api/capability/v1beta1"
 	"halkyon.io/api/component/v1beta1"
+	beta1 "halkyon.io/api/v1beta1"
 	framework "halkyon.io/operator-framework"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,9 +46,14 @@ func (res capability) NameFrom(underlying runtime.Object) string {
 	return underlying.(*v1beta12.Capability).Name
 }
 
-func (res capability) IsReady(underlying runtime.Object) (bool, string) {
-	c := underlying.(*v1beta12.Capability)
-	return c.Status.Reason == v1beta12.CapabilityReady, c.Status.Message
+func (res capability) GetCondition(underlying runtime.Object, err error) *beta1.DependentCondition {
+	return framework.DefaultCustomizedGetConditionFor(res, err, underlying, func(underlying runtime.Object, cond *beta1.DependentCondition) {
+		c := underlying.(*v1beta12.Capability)
+		if c.Status.Reason != v1beta12.CapabilityReady {
+			cond.Type = beta1.DependentPending
+		}
+		cond.Message = c.Status.Message
+	})
 }
 
 func (res capability) Fetch() (runtime.Object, error) {
