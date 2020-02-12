@@ -2,6 +2,7 @@ package component
 
 import (
 	"halkyon.io/api/component/v1beta1"
+	beta1 "halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
 	"halkyon.io/operator-framework/util"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,8 +32,8 @@ func (res base) Fetch() (runtime.Object, error) {
 	return framework.DefaultFetcher(res)
 }
 
-func (res base) IsReady(underlying runtime.Object) (ready bool, message string) {
-	return framework.DefaultIsReady(underlying)
+func (res base) GetCondition(_ runtime.Object, err error) *beta1.DependentCondition {
+	return framework.DefaultGetConditionFor(res, err)
 }
 
 func (res base) Update(toUpdate runtime.Object) (bool, error) {

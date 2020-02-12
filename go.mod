@@ -34,8 +34,8 @@ require (
 	go.uber.org/zap v1.13.0 // indirect
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	google.golang.org/api v0.15.0 // indirect
-	halkyon.io/api v1.0.0-rc.4.0.20200207214728-573979f07f11
-	halkyon.io/operator-framework v1.0.0-beta.4.0.20200207222622-3585e12dda02
+	halkyon.io/api v1.0.0-rc.4.0.20200212202030-807049267e38
+	halkyon.io/operator-framework v1.0.0-beta.4.0.20200212202939-318fb14a0373
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible

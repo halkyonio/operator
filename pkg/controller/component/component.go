@@ -90,15 +90,10 @@ func (in *Component) CreateOrUpdate() (err error) {
 		// get dependent corresponding to requirement
 		if dependentCap, err := in.GetDependent(predicateFor(required)); err == nil {
 			// retrieve the associated condition in the status and check if we're not already linked or linking the capability
-			condition := in.Status.GetConditionFor(required.Name, capabilityGVK)
+			c, err := dependentCap.Fetch()
+			condition := dependentCap.GetCondition(c, err)
 			if condition == nil || (condition.Type != v1beta1.DependentLinked && condition.Type != v1beta1.DependentLinking) {
-				// fetch associated capability if it exists
-				c, err := dependentCap.Fetch()
-				if err != nil {
-					return err
-				}
-				ready, _ := dependentCap.IsReady(c)
-				if ready {
+				if condition.IsReady() {
 					// the capability is not already linked or linking and ready so link it
 					condition.Type = v1beta1.DependentLinking
 					pod, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
@@ -196,24 +191,34 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 	needsUpdate = in.BaseResource.ComputeStatus(in)
 
 	if len(in.Status.Conditions) > 0 {
-		for i, link := range in.Status.Conditions {
-			if link.Type == v1beta1.DependentLinking {
+		for i, dependentCondition := range in.Status.Conditions {
+			if dependentCondition.Type == v1beta1.DependentLinking {
 				p, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
-				if err != nil || p.(*corev1.Pod).Name == link.GetAttribute("OriginalPodName") {
+				if err != nil || p.(*corev1.Pod).Name == dependentCondition.GetAttribute("OriginalPodName") {
 					in.Status.Reason = halkyon.ComponentLinking
 					in.SetNeedsRequeue(true)
 					return true
 				} else {
 					// update link status
-					link.Type = v1beta1.DependentLinked
-					link.SetAttribute("OriginalPodName", "")
+					dependentCondition.Type = v1beta1.DependentLinked
+					dependentCondition.SetAttribute("OriginalPodName", "")
 					in.Status.PodName = p.(*corev1.Pod).Name
-					in.Status.Conditions[i] = link // make sure we update the links with the modified value
+					in.Status.Conditions[i] = dependentCondition // make sure we update the links with the modified value
 					needsUpdate = true
+				}
+			} else {
+				// if pod is ready, update pod name status field
+				if dependentCondition.DependentType == podGVK && dependentCondition.Reason == v1beta1.ReasonReady {
+					podName := dependentCondition.GetAttribute("PodName")
+					if in.Status.PodName != podName {
+						in.Status.PodName = podName
+						needsUpdate = true
+					}
 				}
 			}
 		}
 	}
+
 	return needsUpdate
 }
 
