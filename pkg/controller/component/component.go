@@ -93,7 +93,7 @@ func (in *Component) CreateOrUpdate() (err error) {
 			c, err := dependentCap.Fetch()
 			condition := dependentCap.GetCondition(c, err)
 			if condition == nil || (condition.Type != v1beta1.DependentLinked && condition.Type != v1beta1.DependentLinking) {
-				if condition.IsReady() {
+				if required.AutoBindable && condition.IsReady() {
 					// the capability is not already linked or linking and ready so link it
 					condition.Type = v1beta1.DependentLinking
 					pod, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
