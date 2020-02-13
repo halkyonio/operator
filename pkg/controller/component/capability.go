@@ -92,6 +92,13 @@ func (res capability) Fetch() (runtime.Object, error) {
 			return nil, fmt.Errorf("cannot autobind because several capabilities match %v: '%s', use explicit binding instead", selector, strings.Join(names, ", "))
 		}
 		if result != nil {
+			requires := component.Spec.Capabilities.Requires
+			for i, require := range requires {
+				if require.Name == config.Name {
+					requires[i].BoundTo = result.Name
+					break
+				}
+			}
 			return result, nil
 		}
 	}
