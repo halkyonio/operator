@@ -74,7 +74,7 @@ func (res capability) Fetch() (runtime.Object, error) {
 
 		// if the referenced capability matches, return it
 		foundSpec := result.Spec
-		if matches(foundSpec, spec) {
+		if matches(spec, foundSpec) {
 			return result, nil
 		}
 		return nil, fmt.Errorf("specified '%s' bound to capability doesn't match %v requirements, was: %v", config.BoundTo, selector, selectorFor(foundSpec))
