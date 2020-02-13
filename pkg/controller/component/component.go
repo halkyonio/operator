@@ -85,44 +85,62 @@ func (in *Component) CreateOrUpdate() (err error) {
 		err = in.CreateOrUpdateDependents()
 	}
 
-	// link to the capabilities if they're ready
-	for _, required := range in.Spec.Capabilities.Requires {
-		// get dependent corresponding to requirement
+	if err != nil {
+		return err
+	}
+
+	// link to the capabilities if they're ready and we've bound them to a capability already
+	needsSpecUpdate := false
+	defer func() {
+		if needsSpecUpdate {
+			_ = framework.Helper.Client.Update(context.Background(), in.Component)
+		}
+	}()
+	for i, required := range in.Spec.Capabilities.Requires {
 		if dependentCap, err := in.GetDependent(predicateFor(required)); err == nil {
-			// retrieve the associated condition in the status and check if we're not already linked or linking the capability
+			// attempt to retrieve the associated capability, this will bound the capability if set to auto-bindable
 			c, err := dependentCap.Fetch()
+
+			// if required wasn't bound and it is now, we need to update the spec
+			// "re-fetch" current required since it's been updated when the capability auto-bounded when fetched, hackish I know
+			refreshedRequired := in.Spec.Capabilities.Requires[i]
+			if required.BoundTo != refreshedRequired.BoundTo {
+				required = refreshedRequired
+				needsSpecUpdate = true
+			}
+
+			// if the capability is bound and ready
 			condition := dependentCap.GetCondition(c, err)
-			if condition == nil || (condition.Type != v1beta1.DependentLinked && condition.Type != v1beta1.DependentLinking) {
-				if required.AutoBindable && condition.IsReady() {
-					// the capability is not already linked or linking and ready so link it
-					condition.Type = v1beta1.DependentLinking
-					pod, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
-					if err != nil {
-						return err
-					}
-					condition.SetAttribute("OriginalPodName", pod.(*corev1.Pod).Name)
-					required.BoundTo = dependentCap.NameFrom(c)
-					err = in.updateComponentWithLinkInfo(required)
-					if err != nil {
+			if len(required.BoundTo) > 0 && condition.IsReady() {
+				// check if the capability is already linked by checking if the associated deployment has been updated
+				updatedDeployment, err := in.updateComponentWithLinkInfo(required)
+				if err != nil {
+					return err
+				}
+				// if updated deployment exists, we are not linked yet
+				if updatedDeployment != nil {
+					// mark the component as linking
+					in.Status.Reason = halkyon.ComponentLinking // todo: do we need to track pod name to check if linking is done?
+
+					// send updated deployment
+					if err := framework.Helper.Client.Update(context.Background(), updatedDeployment); err != nil {
+						// As it could be possible that we can't update the Deployment as it has been modified by another
+						// process, then we will requeue
+						in.SetNeedsRequeue(true)
 						return err
 					}
 				}
 			}
 		}
-
 	}
 
-	if err != nil {
-		return err
-	}
-	return nil
+	return
 }
 
-func (in *Component) updateComponentWithLinkInfo(c halkyon.CapabilityConfig) error {
-	var isModified = false
+func (in *Component) updateComponentWithLinkInfo(c halkyon.CapabilityConfig) (updatedDeployment *appsv1.Deployment, err error) {
 	d, err := in.FetchUpdatedDependent(framework.TypePredicateFor(deploymentGVK))
 	if err != nil {
-		return fmt.Errorf("couldn't retrieve deployment for component '%s'", in.Name)
+		return nil, fmt.Errorf("couldn't retrieve deployment for component '%s'", in.Name)
 	}
 	deployment := d.(*appsv1.Deployment)
 	containers := deployment.Spec.Template.Spec.Containers
@@ -130,6 +148,7 @@ func (in *Component) updateComponentWithLinkInfo(c halkyon.CapabilityConfig) err
 
 	// Check if EnvFrom already exists
 	// If this is the case, exit without error
+	isModified := false
 	for i := 0; i < len(containers); i++ {
 		var isEnvFromExist = false
 		for _, env := range containers[i].EnvFrom {
@@ -147,15 +166,10 @@ func (in *Component) updateComponentWithLinkInfo(c halkyon.CapabilityConfig) err
 
 	if isModified {
 		deployment.Spec.Template.Spec.Containers = containers
-		if err := framework.Helper.Client.Update(context.TODO(), deployment); err != nil {
-			// As it could be possible that we can't update the Deployment as it has been modified by another
-			// process, then we will requeue
-			in.SetNeedsRequeue(true)
-			return err
-		}
+		updatedDeployment = deployment
 	}
 
-	return nil
+	return
 }
 
 func addSecretAsEnvFromSource(secretName string) corev1.EnvFromSource {
@@ -190,7 +204,7 @@ func predicateFor(config halkyon.CapabilityConfig) framework.Predicate {
 func (in *Component) ComputeStatus() (needsUpdate bool) {
 	needsUpdate = in.BaseResource.ComputeStatus(in)
 
-	if len(in.Status.Conditions) > 0 {
+	/*if len(in.Status.Conditions) > 0 {
 		for i, dependentCondition := range in.Status.Conditions {
 			if dependentCondition.Type == v1beta1.DependentLinking {
 				p, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
@@ -217,9 +231,9 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 				}
 			}
 		}
-	}
+	}*/
 
-	return needsUpdate
+	return
 }
 
 func (in *Component) Init() bool {
