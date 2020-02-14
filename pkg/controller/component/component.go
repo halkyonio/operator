@@ -37,7 +37,7 @@ func (in *Component) InitDependentResources() ([]framework.DependentResource, er
 		newPod(c, in.DependentStatusFieldName()))...)
 	requiredCapabilities := c.Spec.Capabilities.Requires
 	for _, config := range requiredCapabilities {
-		dependents = append(dependents, in.BaseResource.AddDependentResource(newCapability(c, config))...)
+		dependents = append(dependents, in.BaseResource.AddDependentResource(newRequiredCapability(c, config))...)
 	}
 
 	return dependents, nil
@@ -185,7 +185,7 @@ type ConfigPredicate struct {
 }
 
 func (c ConfigPredicate) Matches(resource framework.DependentResource) bool {
-	capability, ok := resource.(capability)
+	capability, ok := resource.(requiredCapability)
 	if !ok {
 		return false
 	}
