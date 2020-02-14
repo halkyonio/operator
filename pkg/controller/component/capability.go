@@ -25,6 +25,7 @@ func newCapability(owner *v1beta1.Component, capConfig v1beta1.CapabilityConfig)
 	config := framework.NewConfig(capabilityGVK)
 	config.CheckedForReadiness = true
 	config.CreatedOrUpdated = false
+	config.TypeName = "Required Capability"
 	c := capability{base: newConfiguredBaseDependent(owner, config), capabilityConfig: capConfig}
 	c.NameFn = c.Name
 	return c
