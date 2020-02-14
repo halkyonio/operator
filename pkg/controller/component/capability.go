@@ -13,25 +13,25 @@ import (
 	"strings"
 )
 
-type capability struct {
+type requiredCapability struct {
 	base
 	capabilityConfig v1beta1.CapabilityConfig
 }
 
-var _ framework.DependentResource = &capability{}
+var _ framework.DependentResource = &requiredCapability{}
 var capabilityGVK = v1beta12.SchemeGroupVersion.WithKind(v1beta12.Kind)
 
-func newCapability(owner *v1beta1.Component, capConfig v1beta1.CapabilityConfig) capability {
+func newRequiredCapability(owner *v1beta1.Component, capConfig v1beta1.CapabilityConfig) requiredCapability {
 	config := framework.NewConfig(capabilityGVK)
 	config.CheckedForReadiness = true
 	config.CreatedOrUpdated = false
 	config.TypeName = "Required Capability"
-	c := capability{base: newConfiguredBaseDependent(owner, config), capabilityConfig: capConfig}
+	c := requiredCapability{base: newConfiguredBaseDependent(owner, config), capabilityConfig: capConfig}
 	c.NameFn = c.Name
 	return c
 }
 
-func (res capability) Build(empty bool) (runtime.Object, error) {
+func (res requiredCapability) Build(empty bool) (runtime.Object, error) {
 	if empty {
 		return &v1beta12.Capability{}, nil
 	}
@@ -39,15 +39,15 @@ func (res capability) Build(empty bool) (runtime.Object, error) {
 	return nil, nil
 }
 
-func (res capability) Name() string {
+func (res requiredCapability) Name() string {
 	return res.capabilityConfig.Name
 }
 
-func (res capability) NameFrom(underlying runtime.Object) string {
+func (res requiredCapability) NameFrom(underlying runtime.Object) string {
 	return underlying.(*v1beta12.Capability).Name
 }
 
-func (res capability) GetCondition(underlying runtime.Object, err error) *beta1.DependentCondition {
+func (res requiredCapability) GetCondition(underlying runtime.Object, err error) *beta1.DependentCondition {
 	return framework.DefaultCustomizedGetConditionFor(res, err, underlying, func(underlying runtime.Object, cond *beta1.DependentCondition) {
 		c := underlying.(*v1beta12.Capability)
 		if c.Status.Reason != v1beta12.CapabilityReady {
@@ -57,7 +57,7 @@ func (res capability) GetCondition(underlying runtime.Object, err error) *beta1.
 	})
 }
 
-func (res capability) Fetch() (runtime.Object, error) {
+func (res requiredCapability) Fetch() (runtime.Object, error) {
 	config := res.capabilityConfig
 	spec := config.Spec
 	selector := selectorFor(spec)
