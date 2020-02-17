@@ -1,0 +1,58 @@
+---
+apiVersion: "v1"
+kind: "List"
+items:
+- apiVersion: "halkyon.io/v1beta1"
+  kind: "Capability"
+  metadata:
+    name: "postgres"
+  spec:
+    category: "database"
+    type: "postgres"
+    version: "10.6"
+    parameters:
+    - name: "DB_USER"
+      value: "admin"
+    - name: "DB_PASSWORD"
+      value: "admin"
+    - name: "DB_NAME"
+      value: "sample-db"
+- apiVersion: "halkyon.io/v1beta1"
+  kind: "Component"
+  metadata:
+    labels:
+      app: "fruit-backend-sb"
+    name: "fruit-backend-sb"
+  spec:
+    deploymentMode: "dev"
+    runtime: "spring-boot"
+    version: "2.1.6.RELEASE"
+    exposeService: true
+    envs:
+      - name: "SPRING_PROFILES_ACTIVE"
+        value: "kubernetes"
+    capabilities:
+      requires:
+        - name: db
+          boundTo: postgres
+          spec:
+            category: database
+            type: postgres
+      provides:
+        - name: fruits-endpoint
+          spec:
+            category: api
+            type: rest-component
+            version: "1"
+            parameters:
+              - name: context
+                value: /api/fruits
+              - name: port
+                value: "8080"
+    buildConfig:
+      type: "s2i"
+      url: "https://github.com/halkyonio/operator.git"
+      ref: "master"
+      contextPath: "demo/"
+      moduleDirName: "fruit-backend-sb"
+    port: 8080
