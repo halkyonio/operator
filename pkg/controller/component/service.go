@@ -47,7 +47,7 @@ func (res service) Build(empty bool) (runtime.Object, error) {
 	return ser, nil
 }
 
-func (res service) Update(toUpdate runtime.Object) (bool, error) {
+func (res service) Update(toUpdate runtime.Object) (bool, runtime.Object, error) {
 	c := res.ownerAsComponent()
 	svc := toUpdate.(*corev1.Service)
 	labels := getAppLabels(c)
@@ -55,7 +55,7 @@ func (res service) Update(toUpdate runtime.Object) (bool, error) {
 		for key, value := range labels {
 			svc.Spec.Selector[key] = value
 		}
-		return true, nil
+		return true, toUpdate, nil
 	}
-	return false, nil
+	return false, toUpdate, nil
 }

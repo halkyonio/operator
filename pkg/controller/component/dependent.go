@@ -36,8 +36,8 @@ func (res base) GetCondition(_ runtime.Object, err error) *beta1.DependentCondit
 	return framework.DefaultGetConditionFor(res, err)
 }
 
-func (res base) Update(toUpdate runtime.Object) (bool, error) {
-	return false, nil
+func (res base) Update(toUpdate runtime.Object) (bool, runtime.Object, error) {
+	return false, toUpdate, nil
 }
 
 func newBaseDependent(primaryResourceType runtime.Object, owner *v1beta1.Component) base {

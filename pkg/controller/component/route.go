@@ -17,7 +17,7 @@ var _ framework.DependentResource = &route{}
 func newRoute(owner *v1beta12.Component) route {
 	config := framework.NewConfig(routev1.GroupVersion.WithKind("Route"))
 	config.Watched = framework.IsTargetClusterRunningOpenShift()
-	config.CreatedOrUpdated = owner.Spec.ExposeService && config.Watched
+	config.Created = owner.Spec.ExposeService && config.Watched
 	return route{base: newConfiguredBaseDependent(owner, config)}
 }
 
