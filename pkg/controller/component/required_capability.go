@@ -15,16 +15,17 @@ import (
 
 type requiredCapability struct {
 	base
-	capabilityConfig v1beta1.CapabilityConfig
+	capabilityConfig v1beta1.RequiredCapabilityConfig
 }
 
 var _ framework.DependentResource = &requiredCapability{}
 var capabilityGVK = v1beta12.SchemeGroupVersion.WithKind(v1beta12.Kind)
 
-func newRequiredCapability(owner *v1beta1.Component, capConfig v1beta1.CapabilityConfig) requiredCapability {
+func newRequiredCapability(owner *v1beta1.Component, capConfig v1beta1.RequiredCapabilityConfig) requiredCapability {
 	config := framework.NewConfig(capabilityGVK)
 	config.CheckedForReadiness = true
-	config.CreatedOrUpdated = false
+	config.Created = false
+	config.Updated = true
 	config.TypeName = "Required Capability"
 	c := requiredCapability{base: newConfiguredBaseDependent(owner, config), capabilityConfig: capConfig}
 	c.NameFn = c.Name

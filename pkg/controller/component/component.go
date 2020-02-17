@@ -35,9 +35,15 @@ func (in *Component) InitDependentResources() ([]framework.DependentResource, er
 	dependents = append(dependents, in.BaseResource.AddDependentResource(newRole(in), framework.NewOwnedRoleBinding(in), newServiceAccount(c), newPvc(c),
 		newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c, in.DependentStatusFieldName()),
 		newPod(c, in.DependentStatusFieldName()))...)
+
 	requiredCapabilities := c.Spec.Capabilities.Requires
 	for _, config := range requiredCapabilities {
 		dependents = append(dependents, in.BaseResource.AddDependentResource(newRequiredCapability(c, config))...)
+	}
+
+	providedCapabilities := c.Spec.Capabilities.Provides
+	for _, config := range providedCapabilities {
+		dependents = append(dependents, in.BaseResource.AddDependentResource(newProvidedCapability(c, config))...)
 	}
 
 	return dependents, nil
@@ -97,7 +103,7 @@ func (in *Component) CreateOrUpdate() (err error) {
 		}
 	}()
 	for i, required := range in.Spec.Capabilities.Requires {
-		if dependentCap, err := in.GetDependent(predicateFor(required)); err == nil {
+		if dependentCap, err := in.GetDependent(predicateFor(required.CapabilityConfig)); err == nil {
 			// attempt to retrieve the associated capability, this will bound the capability if set to auto-bindable
 			c, err := dependentCap.Fetch()
 
@@ -137,7 +143,7 @@ func (in *Component) CreateOrUpdate() (err error) {
 	return
 }
 
-func (in *Component) updateComponentWithLinkInfo(c halkyon.CapabilityConfig) (updatedDeployment *appsv1.Deployment, err error) {
+func (in *Component) updateComponentWithLinkInfo(c halkyon.RequiredCapabilityConfig) (updatedDeployment *appsv1.Deployment, err error) {
 	d, err := in.FetchUpdatedDependent(framework.TypePredicateFor(deploymentGVK))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't retrieve deployment for component '%s'", in.Name)

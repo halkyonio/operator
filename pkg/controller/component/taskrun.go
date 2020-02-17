@@ -20,7 +20,8 @@ var _ framework.DependentResource = &taskRun{}
 func newTaskRun(owner *v1beta1.Component, ownerStatusField string) taskRun {
 	config := framework.NewConfig(v1alpha1.SchemeGroupVersion.WithKind("TaskRun"))
 	config.CheckedForReadiness = v1beta1.BuildDeploymentMode == owner.Spec.DeploymentMode
-	config.CreatedOrUpdated = config.CheckedForReadiness
+	config.Created = config.CheckedForReadiness
+	config.Updated = config.CheckedForReadiness
 	config.OwnerStatusField = ownerStatusField
 	return taskRun{base: newConfiguredBaseDependent(owner, config)}
 }
