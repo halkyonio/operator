@@ -40,6 +40,43 @@ func (res requiredCapability) Build(empty bool) (runtime.Object, error) {
 	return nil, nil
 }
 
+func (res requiredCapability) Update(toUpdate runtime.Object) (bool, runtime.Object, error) {
+	c := toUpdate.(*v1beta12.Capability)
+	return res.updateIfNeeded(c)
+}
+
+func (res requiredCapability) updateIfNeeded(c *v1beta12.Capability) (bool, runtime.Object, error) {
+	updated := false
+
+	// examine all given parameters that starts by `halkyon` as these denote parameters to pass to the underlying plugin
+	// as opposed to parameters used to match a capability
+	wanted := res.capabilityConfig.Spec.Parameters
+	for _, parameter := range wanted {
+		name := parameter.Name
+		if strings.HasPrefix(name, "halkyon.") {
+			value := parameter.Value
+			// try to see if that parameter was already set for that capability
+			found := false
+			for i, pair := range c.Spec.Parameters {
+				if pair.Name == name {
+					if pair.Value != value {
+						updated = true
+						c.Spec.Parameters[i] = beta1.NameValuePair{Name: name, Value: value}
+					}
+					found = true
+					break
+				}
+			}
+			// if we didn't find the parameter, add it
+			if !found {
+				updated = true
+				c.Spec.Parameters = append(c.Spec.Parameters, beta1.NameValuePair{Name: name, Value: value})
+			}
+		}
+	}
+	return updated, c, nil
+}
+
 func (res requiredCapability) Name() string {
 	return res.capabilityConfig.Name
 }
@@ -77,6 +114,16 @@ func (res requiredCapability) Fetch() (runtime.Object, error) {
 		// if the referenced capability matches, return it
 		foundSpec := result.Spec
 		if matches(spec, foundSpec) {
+			updated, result, err := res.updateIfNeeded(result)
+			if err != nil {
+				return nil, err
+			}
+			if updated {
+				err := framework.Helper.Client.Update(context.Background(), result)
+				if err != nil {
+					return nil, err
+				}
+			}
 			return result, nil
 		}
 		return nil, fmt.Errorf("specified '%s' bound to capability doesn't match %v requirements, was: %v", config.BoundTo, selector, selectorFor(foundSpec))
@@ -99,6 +146,16 @@ func (res requiredCapability) Fetch() (runtime.Object, error) {
 				if require.Name == config.Name {
 					requires[i].BoundTo = result.Name
 					break
+				}
+			}
+			updated, result, err := res.updateIfNeeded(result)
+			if err != nil {
+				return nil, err
+			}
+			if updated {
+				err := framework.Helper.Client.Update(context.Background(), result)
+				if err != nil {
+					return nil, err
 				}
 			}
 			return result, nil
