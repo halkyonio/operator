@@ -8,7 +8,7 @@ import (
 	capability2 "halkyon.io/operator-framework/plugins/capability"
 )
 
-// blank assignment to check that Capabilit implements Resource
+// blank assignment to check that Capability implements Resource
 var _ framework.Resource = &Capability{}
 
 type Capability struct {
