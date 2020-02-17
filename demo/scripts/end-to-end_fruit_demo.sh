@@ -93,12 +93,12 @@ sleep ${SLEEP_TIME}
 
 printTitle "Report status : ${TIME}" >${REPORT_FILE}
 
-printTitle "1. Status of the resources created using the CRDs : Component, Link or Capability" >>${REPORT_FILE}
+printTitle "1. Status of the resources created using the CRDs : Component or Capability" >>${REPORT_FILE}
 declare -a resources=()
 if [ "$isOpenShift" == "true" ]; then
-  resources=(components links capabilities pods deployments services routes pvc postgreses secret/postgres-db-config)
+  resources=(components capabilities pods deployments services routes pvc postgreses secret/postgres-db-config)
 else
-  resources=(components links capabilities pods deployments services ingresses pvc postgreses secret/postgres-db-config)
+  resources=(components capabilities pods deployments services ingresses pvc postgreses secret/postgres-db-config)
 fi
 for i in "${resources[@]}"; do
   printf "Checking %s\n" "$i"
@@ -195,7 +195,7 @@ fi
 
 printTitle "Delete the resources components, links and capabilities"
 if [ "$isOpenShift" == "true" ]; then
-  kubectl delete components,links,capabilities,imagestreams --all -n ${NS}
+  kubectl delete components,capabilities,imagestreams --all -n ${NS}
 else
-  kubectl delete components,links,capabilities --all -n ${NS}
+  kubectl delete components,capabilities --all -n ${NS}
 fi
