@@ -5,7 +5,7 @@ items:
 - apiVersion: "halkyon.io/v1beta1"
   kind: "Capability"
   metadata:
-    name: "postgres"
+    name: "postgres-db"
   spec:
     category: "database"
     type: "postgres"
@@ -34,7 +34,7 @@ items:
     capabilities:
       requires:
         - name: db
-          boundTo: postgres
+          boundTo: postgres-db
           spec:
             category: database
             type: postgres
