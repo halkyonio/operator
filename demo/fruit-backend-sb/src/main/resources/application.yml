@@ -7,11 +7,6 @@ dekorate:
     name: fruit-backend-sb
     deploymentMode: dev
     exposeService: true
-  link:
-    name: link-to-database
-    componentName: fruit-backend-sb
-    type: Secret
-    ref: postgres-db-config
   capability:
     name: postgres-db
     category: database
