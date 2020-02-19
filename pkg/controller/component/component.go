@@ -219,7 +219,7 @@ func (in *Component) Init() bool {
 	return false
 }
 
-func (in *Component) GetAsHalkyonResource() v1beta1.HalkyonResource {
+func (in *Component) GetUnderlyingAPIResource() framework.SerializableResource {
 	return in.Component
 }
 
@@ -244,8 +244,8 @@ func (in *Component) ShouldDelete() bool {
 	return true
 }
 
-func (in *Component) Owner() v1beta1.HalkyonResource {
-	return in.Component
+func (in *Component) Owner() framework.SerializableResource {
+	return in.GetUnderlyingAPIResource()
 }
 
 func (in *Component) GetRoleName() string {

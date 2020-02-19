@@ -54,7 +54,7 @@ func (in *Capability) Init() bool {
 	return false
 }
 
-func (in *Capability) GetAsHalkyonResource() v1beta1.HalkyonResource {
+func (in *Capability) GetUnderlyingAPIResource() framework.SerializableResource {
 	return in.Capability
 }
 
