@@ -2,7 +2,7 @@ package component
 
 import (
 	halkyon "halkyon.io/api/component/v1beta1"
-	"halkyon.io/api/v1beta1"
+	framework "halkyon.io/operator-framework"
 )
 
 func PVCName(c *halkyon.Component) string {
@@ -13,10 +13,10 @@ func PVCName(c *halkyon.Component) string {
 	return "m2-data-" + c.Name // todo: use better default name?
 }
 
-func ServiceAccountName(owner v1beta1.HalkyonResource) string {
+func ServiceAccountName(owner framework.SerializableResource) string {
 	return "build-bot"
 }
 
-func TaskName(owner v1beta1.HalkyonResource) string {
+func TaskName(owner framework.SerializableResource) string {
 	return "s2i-buildah-push"
 }
