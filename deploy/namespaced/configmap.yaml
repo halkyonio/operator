@@ -5,4 +5,4 @@ metadata:
 data:
   OPERATOR_NAME: halkyon-operator
   ZAP_ENCODER: console
-  HALKYON_PLUGINS: halkyonio/kubedb-capability@v1.0.0-beta.15+capabilities-ng,halkyonio/rest-component-capability@v1.0.0-beta.2
+  HALKYON_PLUGINS: halkyonio/kubedb-capability@v1.0.0-beta.16+capabilities-ng,halkyonio/rest-component-capability@v1.0.0-beta.3
