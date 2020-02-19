@@ -14,9 +14,13 @@ type service struct {
 }
 
 var _ framework.DependentResource = &service{}
+var serviceGVK = corev1.SchemeGroupVersion.WithKind("Service")
 
 func newService(owner *v1beta12.Component) service {
-	return service{base: newBaseDependent(&corev1.Service{}, owner)}
+	config := framework.NewConfig(serviceGVK)
+	config.CheckedForReadiness = true
+	config.Updated = true
+	return service{base: newConfiguredBaseDependent(owner, config)}
 }
 
 func (res service) Build(empty bool) (runtime.Object, error) {
