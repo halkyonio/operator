@@ -74,11 +74,6 @@ func (in *Capability) CheckValidity() error {
 	return nil
 }
 
-func (in *Capability) DependentStatusFieldName() string {
-	_ = in.Status.PodName // to make sure we update the value below if that field changes as returned value must match field name
-	return "PodName"
-}
-
 func (in *Capability) ShouldDelete() bool {
 	return true
 }
