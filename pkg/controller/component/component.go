@@ -33,8 +33,7 @@ func (in *Component) InitDependentResources() ([]framework.DependentResource, er
 	c := in.Component
 	dependents := make([]framework.DependentResource, 0, 20)
 	dependents = append(dependents, in.BaseResource.AddDependentResource(newRole(in), framework.NewOwnedRoleBinding(in), newServiceAccount(c), newPvc(c),
-		newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c, in.DependentStatusFieldName()),
-		newPod(c, in.DependentStatusFieldName()))...)
+		newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c), newPod(c))...)
 
 	requiredCapabilities := c.Spec.Capabilities.Requires
 	for _, config := range requiredCapabilities {
@@ -208,38 +207,7 @@ func predicateFor(config halkyon.CapabilityConfig) framework.Predicate {
 }
 
 func (in *Component) ComputeStatus() (needsUpdate bool) {
-	needsUpdate = in.BaseResource.ComputeStatus(in)
-
-	/*if len(in.Status.Conditions) > 0 {
-		for i, dependentCondition := range in.Status.Conditions {
-			if dependentCondition.Type == v1beta1.DependentLinking {
-				p, err := in.FetchUpdatedDependent(framework.TypePredicateFor(podGVK))
-				if err != nil || p.(*corev1.Pod).Name == dependentCondition.GetAttribute("OriginalPodName") {
-					in.Status.Reason = halkyon.ComponentLinking
-					in.SetNeedsRequeue(true)
-					return true
-				} else {
-					// update link status
-					dependentCondition.Type = v1beta1.DependentLinked
-					dependentCondition.SetAttribute("OriginalPodName", "")
-					in.Status.PodName = p.(*corev1.Pod).Name
-					in.Status.Conditions[i] = dependentCondition // make sure we update the links with the modified value
-					needsUpdate = true
-				}
-			} else {
-				// if pod is ready, update pod name status field
-				if dependentCondition.DependentType == podGVK && dependentCondition.Reason == v1beta1.ReasonReady {
-					podName := dependentCondition.GetAttribute("PodName")
-					if in.Status.PodName != podName {
-						in.Status.PodName = podName
-						needsUpdate = true
-					}
-				}
-			}
-		}
-	}*/
-
-	return
+	return in.BaseResource.ComputeStatus(in)
 }
 
 func (in *Component) Init() bool {
@@ -270,11 +238,6 @@ func (in *Component) CheckValidity() error {
 		return fmt.Errorf("component '%s' must provide a port", in.Name)
 	}
 	return nil
-}
-
-func (in *Component) DependentStatusFieldName() string {
-	_ = in.Status.PodName // to make sure we update the value below if that field changes as returned value must match field name
-	return "PodName"
 }
 
 func (in *Component) ShouldDelete() bool {
