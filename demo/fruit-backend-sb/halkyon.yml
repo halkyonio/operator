@@ -52,7 +52,7 @@ items:
     buildConfig:
       type: "s2i"
       url: "https://github.com/halkyonio/operator.git"
-      ref: "capabilities-ng"
+      ref: "master"
       contextPath: "demo/"
       moduleDirName: "fruit-backend-sb"
     port: 8080
