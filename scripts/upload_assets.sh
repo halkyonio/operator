@@ -49,7 +49,7 @@ git checkout -b ${TEMP_BRANCH}
 cp -R /tmp/operator/_output/ ./build/
 
 echo "update all necessary operator related files"
-sed -i "s/:latest/:${TAG}/g" ./deploy/operator.yaml
+sed -i "s/:latest/:${TAG}/g" ./deploy/namespaced/operator.yaml
 sed -i "s/:latest/:${TAG}/g" ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml
 sed -i "s/0.0.0/${VERSION}/g" ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml
 mv ./deploy/olm-catalog/bundle/halkyon.v0.0.0.clusterserviceversion.yaml ./deploy/olm-catalog/bundle/halkyon.${TAG}.clusterserviceversion.yaml
