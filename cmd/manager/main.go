@@ -162,6 +162,13 @@ func main() {
 		log.Info(fmt.Sprintf("Loaded %d plugin(s) for a total of %d capabilities", pluginCount, typeCount))
 	}
 
+	// Purge capability infos that might not be available anymore
+	purgedCount, err := capability2.PurgeCapabilityInfos(log)
+	log.Info(fmt.Sprintf("Purged %d capability infos", purgedCount))
+	if err != nil {
+		log.Error(err, "Purge error")
+	}
+
 	// Create component controller and add it to the manager
 	if err := framework.RegisterNewReconciler(component.NewComponent(), mgr); err != nil {
 		log.Error(err, "")
