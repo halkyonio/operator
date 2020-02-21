@@ -71,7 +71,7 @@ func (res pod) GetCondition(underlying runtime.Object, err error) *beta1.Depende
 					msg = fmt.Sprintf("%s pod is not ready: %s => %s", p.Name, c.Reason, msg)
 				} else {
 					msg = fmt.Sprintf("%s is ready", p.Name)
-					cond.SetAttribute("PodName", p.Name)
+					cond.SetAttribute(v1beta1.PodNameAttributeKey, p.Name)
 				}
 			}
 		}
