@@ -124,9 +124,6 @@ func (in *Component) CreateOrUpdate() (err error) {
 				}
 				// if updated deployment exists, we are not linked yet
 				if updatedDeployment != nil {
-					// mark the component as linking
-					in.Status.Reason = halkyon.ComponentLinking // todo: do we need to track pod name to check if linking is done?
-
 					// send updated deployment
 					if err := framework.Helper.Client.Update(context.Background(), updatedDeployment); err != nil {
 						// As it could be possible that we can't update the Deployment as it has been modified by another
