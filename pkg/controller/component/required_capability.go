@@ -42,10 +42,10 @@ func (res requiredCapability) Build(empty bool) (runtime.Object, error) {
 
 func (res requiredCapability) Update(toUpdate runtime.Object) (bool, runtime.Object, error) {
 	c := toUpdate.(*v1beta12.Capability)
-	return res.updateIfNeeded(c)
+	return res.updateWithParametersIfNeeded(c, false)
 }
 
-func (res requiredCapability) updateIfNeeded(c *v1beta12.Capability) (bool, runtime.Object, error) {
+func (res requiredCapability) updateWithParametersIfNeeded(c *v1beta12.Capability, doUpdate bool) (bool, *v1beta12.Capability, error) {
 	updated := false
 
 	// examine all given parameters that starts by `halkyon` as these denote parameters to pass to the underlying plugin
@@ -74,6 +74,13 @@ func (res requiredCapability) updateIfNeeded(c *v1beta12.Capability) (bool, runt
 			}
 		}
 	}
+	if doUpdate && updated {
+		err := framework.Helper.Client.Update(context.Background(), c)
+		if err != nil {
+			return updated, nil, &contractError{msg: fmt.Sprintf("couldn't update capability '%s': %s", c.Name, err.Error())}
+		}
+	}
+
 	return updated, c, nil
 }
 
@@ -88,11 +95,19 @@ func (res requiredCapability) NameFrom(underlying runtime.Object) string {
 func (res requiredCapability) GetCondition(underlying runtime.Object, err error) *beta1.DependentCondition {
 	return framework.DefaultCustomizedGetConditionFor(res, err, underlying, func(underlying runtime.Object, cond *beta1.DependentCondition) {
 		c := underlying.(*v1beta12.Capability)
-		if c.Status.Reason != v1beta12.CapabilityReady {
+		if c.Status.Reason != beta1.ReasonReady {
 			cond.Type = beta1.DependentPending
 		}
 		cond.Message = c.Status.Message
 	})
+}
+
+type contractError struct {
+	msg string
+}
+
+func (e contractError) Error() string {
+	return e.msg
 }
 
 func (res requiredCapability) Fetch() (runtime.Object, error) {
@@ -108,39 +123,34 @@ func (res requiredCapability) Fetch() (runtime.Object, error) {
 		result = &v1beta12.Capability{}
 		_, err := framework.Helper.Fetch(config.BoundTo, component.Namespace, result)
 		if err != nil {
-			return nil, err
+			return nil, &contractError{msg: err.Error()}
 		}
 
 		// if the referenced capability matches, return it
 		foundSpec := result.Spec
 		if matches(spec, foundSpec) {
-			updated, result, err := res.updateIfNeeded(result)
+			_, result, err = res.updateWithParametersIfNeeded(result, true)
 			if err != nil {
 				return nil, err
 			}
-			if updated {
-				err := framework.Helper.Client.Update(context.Background(), result)
-				if err != nil {
-					return nil, err
-				}
-			}
 			return result, nil
 		}
-		return nil, fmt.Errorf("specified '%s' bound to capability doesn't match %v requirements, was: %v", config.BoundTo, selector, selectorFor(foundSpec))
+		return nil, &contractError{msg: fmt.Sprintf("specified '%s' bound to capability doesn't match %v requirements, was: %v", config.BoundTo, selector, selectorFor(foundSpec))}
 	}
 
 	// retrieve names of matching capabilities along with last (and hopefully, only) matching one
 	names, result, err := capabilitiesNameMatching(spec)
 	if err != nil {
-		return nil, err
+		return nil, &contractError{msg: fmt.Sprintf("couldn't find matching capabilities: %s", err.Error())}
 	}
 
 	// otherwise, check if we can auto-bind to an available capability
 	if config.AutoBindable {
 		if len(names) > 1 {
-			return nil, fmt.Errorf("cannot autobind because several capabilities match %v: '%s', use explicit binding instead", selector, strings.Join(names, ", "))
+			return nil, &contractError{msg: fmt.Sprintf("cannot autobind because several capabilities match %v: '%s', use explicit binding instead", selector, strings.Join(names, ", "))}
 		}
 		if result != nil {
+			// set the boundTo attribute on the required capability
 			requires := component.Spec.Capabilities.Requires
 			for i, require := range requires {
 				if require.Name == config.Name {
@@ -148,30 +158,25 @@ func (res requiredCapability) Fetch() (runtime.Object, error) {
 					break
 				}
 			}
-			updated, result, err := res.updateIfNeeded(result)
+			_, result, err = res.updateWithParametersIfNeeded(result, true)
 			if err != nil {
 				return nil, err
-			}
-			if updated {
-				err := framework.Helper.Client.Update(context.Background(), result)
-				if err != nil {
-					return nil, err
-				}
 			}
 			return result, nil
 		}
 	}
 
+	msg := ""
 	switch len(names) {
 	case 0:
-		err = fmt.Errorf("no capability matching '%v' was found", selector)
+		msg = fmt.Sprintf("no capability matching '%v' was found", selector)
 	case 1:
-		err = fmt.Errorf("no capability bound, found one matching candidate: '%s'", result.Name)
+		msg = fmt.Sprintf("no capability bound, found one matching candidate: '%s'", result.Name)
 	default:
-		err = fmt.Errorf("no capability bound, several matching candidates were found: '%s'", strings.Join(names, ", "))
+		msg = fmt.Sprintf("no capability bound, several matching candidates were found: '%s'", strings.Join(names, ", "))
 	}
 
-	return nil, err
+	return nil, &contractError{msg: msg}
 }
 
 func selectorFor(spec v1beta12.CapabilitySpec) fields.Selector {
