@@ -78,6 +78,10 @@ func (in *Capability) ShouldDelete() bool {
 	return true
 }
 
+func (in *Capability) Handle(err error) (bool, v1beta1.Status) {
+	return framework.DefaultErrorHandler(in.Status.Status, err)
+}
+
 func init() {
 	gob.Register(map[string]interface{}{})
 	gob.Register([]interface{}{})

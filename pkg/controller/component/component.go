@@ -2,6 +2,7 @@ package component
 
 import (
 	"context"
+	goerrors "errors"
 	"fmt"
 	halkyon "halkyon.io/api/component/v1beta1"
 	"halkyon.io/api/v1beta1"
@@ -259,4 +260,31 @@ func (in *Component) GetAssociatedRoleName() string {
 
 func (in *Component) GetServiceAccountName() string {
 	return ServiceAccountName(in.Component)
+}
+
+func (in *Component) Handle(err error) (bool, v1beta1.Status) {
+	// unwrap error to check if we have contract error
+	unwrapped := goerrors.Unwrap(err)
+	if unwrapped != nil {
+		if _, ok := unwrapped.(*contractError); ok {
+			msg := unwrapped.Error()
+			if in.Status.Reason != halkyon.PushReady && in.Status.Message != msg {
+				// if we have a contract error but the pod is ready, set the status to PushReady
+				if dependent, e := in.GetDependent(framework.TypePredicateFor(halkyon.PodGVK)); e == nil {
+					if dependent.GetCondition(dependent.Fetch()).IsReady() {
+						in.Status.Reason = halkyon.PushReady
+						in.Status.Message = msg
+						return true, in.Status.Status
+
+					}
+				}
+			}
+			return false, in.Status.Status
+		}
+	}
+
+	// if we don't have a contract error, proceed with the default handler
+	updated, status := framework.DefaultErrorHandler(in.Status.Status, err)
+	in.Status.Status = status
+	return updated, status
 }
