@@ -128,7 +128,7 @@ func (res requiredCapability) Fetch() (runtime.Object, error) {
 
 		// if the referenced capability matches, return it
 		foundSpec := result.Spec
-		if matches(spec, foundSpec) {
+		if foundSpec.Matches(spec) {
 			_, result, err = res.updateWithParametersIfNeeded(result, true)
 			if err != nil {
 				return nil, err
@@ -196,20 +196,10 @@ func capabilitiesNameMatching(spec v1beta12.CapabilitySpec) (names []string, las
 	capabilityNb := len(matching.Items)
 	names = make([]string, 0, capabilityNb)
 	for _, capability := range matching.Items {
-		if matches(spec, capability.Spec) {
+		if capability.Spec.Matches(spec) {
 			names = append(names, capability.Name)
 			lastMatching = &capability
 		}
 	}
 	return names, lastMatching, nil
-}
-
-func matches(requested, actual v1beta12.CapabilitySpec) bool {
-	// first check that category and type match
-	if requested.Category.Equals(actual.Category) && requested.Type.Equals(actual.Type) {
-		// if we're asking for a specific version then we need to provide a capability with that version
-		// todo: implement range matching on version?
-		return len(requested.Version) == 0 || requested.Version == actual.Version
-	}
-	return false
 }
