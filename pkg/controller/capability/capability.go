@@ -68,10 +68,11 @@ func NewCapability() *Capability {
 }
 
 func (in *Capability) CheckValidity() error {
-	if _, err := capability2.GetPluginFor(in.Spec.Category, in.Spec.Type); err != nil {
+	plugin, err := capability2.GetPluginFor(in.Spec.Category, in.Spec.Type)
+	if err != nil {
 		return err
 	}
-	return nil
+	return plugin.CheckValidity(in.Capability)
 }
 
 func (in *Capability) ShouldDelete() bool {
