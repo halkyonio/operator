@@ -35,7 +35,7 @@ require (
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	google.golang.org/api v0.15.0 // indirect
 	halkyon.io/api v1.0.0-rc.5.0.20200228144735-fce240b08314
-	halkyon.io/operator-framework v1.0.0-beta.6
+	halkyon.io/operator-framework v1.0.0-beta.6.0.20200305164754-b147a7635a87
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible
@@ -49,6 +49,7 @@ require (
 // also needed additional replace for jsonpatch based on result of go mod tidy
 replace (
 	github.com/appscode/jsonpatch => github.com/appscode/jsonpatch v0.0.0-20190108182946-7c0e3b262f30 // indirect
+	// halkyon.io/operator-framework => ../operator-framework
 	k8s.io/api => k8s.io/api v0.0.0-20181213150558-05914d821849
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20181213153335-0fe22c71c476
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20181127025237-2b1284ed4c93

@@ -50,7 +50,7 @@ func (in *Capability) ComputeStatus() (needsUpdate bool) {
 	return in.BaseResource.ComputeStatus(in)
 }
 
-func (in *Capability) Init() bool {
+func (in *Capability) ProvideDefaultValues() bool {
 	return false
 }
 
@@ -59,11 +59,11 @@ func (in *Capability) GetUnderlyingAPIResource() framework.SerializableResource 
 }
 
 func NewCapability() *Capability {
-	dependents := framework.NewHasDependents(&halkyon.Capability{})
 	c := &Capability{
 		Capability:   &halkyon.Capability{},
-		BaseResource: dependents,
+		BaseResource: framework.NewBaseResource(),
 	}
+	c.Capability.SetGroupVersionKind(c.Capability.GetGroupVersionKind()) // make sure that GVK is set on the runtime object
 	return c
 }
 
@@ -73,10 +73,6 @@ func (in *Capability) CheckValidity() error {
 		return err
 	}
 	return plugin.CheckValidity(in.Capability)
-}
-
-func (in *Capability) ShouldDelete() bool {
-	return true
 }
 
 func (in *Capability) Handle(err error) (bool, v1beta1.Status) {

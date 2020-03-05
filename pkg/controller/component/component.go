@@ -208,7 +208,7 @@ func (in *Component) ComputeStatus() (needsUpdate bool) {
 	return in.BaseResource.ComputeStatus(in)
 }
 
-func (in *Component) Init() bool {
+func (in *Component) ProvideDefaultValues() bool {
 	if len(in.Spec.DeploymentMode) == 0 {
 		in.Spec.DeploymentMode = halkyon.DevDeploymentMode
 		return true
@@ -222,11 +222,11 @@ func (in *Component) GetUnderlyingAPIResource() framework.SerializableResource {
 }
 
 func NewComponent() *Component {
-	dependents := framework.NewHasDependents(&halkyon.Component{})
 	c := &Component{
 		Component:    &halkyon.Component{},
-		BaseResource: dependents,
+		BaseResource: framework.NewBaseResource(),
 	}
+	c.Component.SetGroupVersionKind(c.Component.GetGroupVersionKind()) // make sure that GVK is set on the runtime object
 	return c
 }
 
@@ -236,10 +236,6 @@ func (in *Component) CheckValidity() error {
 		return fmt.Errorf("component '%s' must provide a port", in.Name)
 	}
 	return nil
-}
-
-func (in *Component) ShouldDelete() bool {
-	return true
 }
 
 func (in *Component) Owner() framework.SerializableResource {
