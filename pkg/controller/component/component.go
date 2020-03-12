@@ -264,15 +264,15 @@ func (in *Component) Handle(err error) (bool, v1beta1.Status) {
 	if unwrapped != nil {
 		if _, ok := unwrapped.(*contractError); ok {
 			msg := unwrapped.Error()
-			if in.Status.Reason != halkyon.PushReady && in.Status.Message != msg {
-				// if we have a contract error but the pod is ready, set the status to PushReady
-				if dependent, e := in.GetDependent(framework.TypePredicateFor(halkyon.PodGVK)); e == nil {
-					if dependent.GetCondition(dependent.Fetch()).IsReady() {
-						in.Status.Reason = halkyon.PushReady
-						in.Status.Message = msg
-						return true, in.Status.Status
+			// if we have a contract error but the pod is ready, set the status to PushReady
+			if dependent, e := in.GetDependent(framework.TypePredicateFor(halkyon.PodGVK)); e == nil {
+				condition := dependent.GetCondition(dependent.Fetch())
+				in.Status.SetCondition(condition) // set the condition on the status to make sure we record the pod name
+				if condition.IsReady() && in.Status.Reason != halkyon.PushReady {
+					in.Status.Reason = halkyon.PushReady
+					in.Status.Message = msg
+					return true, in.Status.Status
 
-					}
 				}
 			}
 			return false, in.Status.Status
