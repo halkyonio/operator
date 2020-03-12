@@ -192,11 +192,17 @@ func capabilitiesNameMatching(spec v1beta12.CapabilitySpec) (names []string, las
 	}
 	capabilityNb := len(matching.Items)
 	names = make([]string, 0, capabilityNb)
+	var last v1beta12.Capability
+	found := false
 	for _, capability := range matching.Items {
 		if capability.Spec.Matches(spec) {
 			names = append(names, capability.Name)
-			lastMatching = &capability
+			last = capability
+			found = true
 		}
+	}
+	if found {
+		lastMatching = &last
 	}
 	return names, lastMatching, nil
 }
