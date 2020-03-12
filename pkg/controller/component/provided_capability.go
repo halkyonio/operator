@@ -35,10 +35,7 @@ func (res providedCapability) Build(empty bool) (runtime.Object, error) {
 			Labels:    ls,
 		}
 		capability.Spec = res.capabilityConfig.Spec
-		capability.Spec.Parameters = append(capability.Spec.Parameters, beta1.NameValuePair{
-			Name:  "component",
-			Value: c.Name,
-		})
+		v1beta1.AddDefaultCapabilityParameters(capability, c)
 	}
 	return capability, nil
 }

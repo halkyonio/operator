@@ -7,7 +7,6 @@ import (
 	"halkyon.io/api/component/v1beta1"
 	beta1 "halkyon.io/api/v1beta1"
 	framework "halkyon.io/operator-framework"
-	"halkyon.io/operator/pkg"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -43,38 +42,25 @@ func (res requiredCapability) Build(empty bool) (runtime.Object, error) {
 
 func (res requiredCapability) Update(toUpdate runtime.Object) (bool, runtime.Object, error) {
 	c := toUpdate.(*v1beta12.Capability)
-	return res.updateWithParametersIfNeeded(c, false)
+	return updateWithParametersIfNeeded(res.capabilityConfig.CapabilityConfig, res.ownerAsComponent(), c, false)
 }
 
-func (res requiredCapability) updateWithParametersIfNeeded(c *v1beta12.Capability, doUpdate bool) (bool, *v1beta12.Capability, error) {
+func updateWithParametersIfNeeded(config v1beta1.CapabilityConfig, owner *v1beta1.Component, c *v1beta12.Capability, doUpdate bool) (bool, *v1beta12.Capability, error) {
 	updated := false
 
-	// examine all given parameters that starts by `halkyon` as these denote parameters to pass to the underlying plugin
-	// as opposed to parameters used to match a capability
-	wanted := res.capabilityConfig.Spec.Parameters
+	// examine all given parameters that starts by v1beta1.CapabilityParameterNamePrefix as these denote parameters to pass to
+	// the underlying plugin as opposed to parameters used to match a capability
+	wanted := config.Spec.Parameters
 	for _, parameter := range wanted {
 		name := parameter.Name
-		if strings.HasPrefix(name, "halkyon.") {
-			value := parameter.Value
-			// try to see if that parameter was already set for that capability
-			found := false
-			for i, pair := range c.Spec.Parameters {
-				if pair.Name == name {
-					if pair.Value != value {
-						updated = true
-						c.Spec.Parameters[i] = beta1.NameValuePair{Name: name, Value: value}
-					}
-					found = true
-					break
-				}
-			}
-			// if we didn't find the parameter, add it
-			if !found {
-				updated = true
-				c.Spec.Parameters = append(c.Spec.Parameters, beta1.NameValuePair{Name: name, Value: value})
-			}
+		if strings.HasPrefix(name, v1beta1.CapabilityParameterNamePrefix) {
+			updated = v1beta1.AddCapabilityParameterIfNeeded(parameter, c)
 		}
 	}
+
+	// add extra parameters that plugins can use
+	updated = v1beta1.AddDefaultCapabilityParameters(c, owner)
+
 	if doUpdate && updated {
 		err := framework.Helper.Client.Update(context.Background(), c)
 		if err != nil {
@@ -126,7 +112,7 @@ func (res requiredCapability) Fetch() (runtime.Object, error) {
 		// if the referenced capability matches, return it
 		foundSpec := result.Spec
 		if foundSpec.Matches(spec) {
-			_, result, err = res.updateWithParametersIfNeeded(result, true)
+			_, result, err = updateWithParametersIfNeeded(res.capabilityConfig.CapabilityConfig, component, result, true)
 			if err != nil {
 				return nil, err
 			}
@@ -155,7 +141,7 @@ func (res requiredCapability) Fetch() (runtime.Object, error) {
 					break
 				}
 			}
-			_, result, err = res.updateWithParametersIfNeeded(result, true)
+			_, result, err = updateWithParametersIfNeeded(res.capabilityConfig.CapabilityConfig, component, result, true)
 			if err != nil {
 				return nil, err
 			}
