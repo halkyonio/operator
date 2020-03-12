@@ -33,10 +33,6 @@ func (res pod) Build(empty bool) (runtime.Object, error) {
 	return nil, nil
 }
 
-func (res pod) NameFrom(underlying runtime.Object) string {
-	return underlying.(*corev1.Pod).Name
-}
-
 func (res pod) GetCondition(underlying runtime.Object, err error) *beta1.DependentCondition {
 	return framework.DefaultCustomizedGetConditionFor(res, err, underlying, func(underlying runtime.Object, cond *beta1.DependentCondition) {
 		p := underlying.(*corev1.Pod)

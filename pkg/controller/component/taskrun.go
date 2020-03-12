@@ -109,7 +109,3 @@ func (res taskRun) GetCondition(underlying runtime.Object, err error) *beta1.Dep
 		cond.Message = fmt.Sprintf("%s is not ready", tr.Name)
 	})
 }
-
-func (res taskRun) NameFrom(underlying runtime.Object) string {
-	return underlying.(*v1alpha1.TaskRun).Name
-}

@@ -24,10 +24,6 @@ func (res base) Build(empty bool) (runtime.Object, error) {
 	panic("implement me")
 }
 
-func (res base) NameFrom(underlying runtime.Object) string {
-	return framework.DefaultNameFrom(res, underlying)
-}
-
 func (res base) Fetch() (runtime.Object, error) {
 	return framework.DefaultFetcher(res)
 }

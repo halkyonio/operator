@@ -7,6 +7,7 @@ import (
 	"halkyon.io/api/component/v1beta1"
 	beta1 "halkyon.io/api/v1beta1"
 	framework "halkyon.io/operator-framework"
+	"halkyon.io/operator/pkg"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -86,10 +87,6 @@ func (res requiredCapability) updateWithParametersIfNeeded(c *v1beta12.Capabilit
 
 func (res requiredCapability) Name() string {
 	return res.capabilityConfig.Name
-}
-
-func (res requiredCapability) NameFrom(underlying runtime.Object) string {
-	return underlying.(*v1beta12.Capability).Name
 }
 
 func (res requiredCapability) GetCondition(underlying runtime.Object, err error) *beta1.DependentCondition {
