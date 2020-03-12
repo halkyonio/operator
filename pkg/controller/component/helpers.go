@@ -4,7 +4,6 @@ import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
-	"halkyon.io/operator/pkg"
 	"os"
 )
 
@@ -55,7 +54,7 @@ func populateEnvVar(component *component.Component) error {
 
 //getAppLabels returns a string map with the Application labels which will be associated to the kubernetes/ocp resource created and managed by this operator
 func getAppLabels(component *component.Component) map[string]string {
-	name := pkg.DeploymentName(component)
+	name := component.DeploymentName()
 	return map[string]string{
 		"app":          name,
 		"component_cr": name,

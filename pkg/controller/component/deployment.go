@@ -4,7 +4,6 @@ import (
 	component "halkyon.io/api/component/v1beta1"
 	"halkyon.io/api/v1beta1"
 	"halkyon.io/operator-framework"
-	"halkyon.io/operator/pkg"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -34,7 +33,7 @@ func (res deployment) Build(empty bool) (runtime.Object, error) {
 }
 
 func (res deployment) Name() string {
-	return pkg.DeploymentName(res.ownerAsComponent())
+	return res.ownerAsComponent().DeploymentName()
 }
 
 func (res deployment) GetCondition(underlying runtime.Object, err error) *v1beta1.DependentCondition {

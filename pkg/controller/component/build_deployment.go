@@ -3,13 +3,11 @@ package component
 import (
 	component "halkyon.io/api/component/v1beta1"
 	framework "halkyon.io/operator-framework"
-	"halkyon.io/operator/pkg"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	// "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 //createBuildDeployment returns the Deployment config object to be used for deployment using a container image build by Tekton
@@ -29,7 +27,7 @@ func (res deployment) installBuild(empty bool) (runtime.Object, error) {
 		// and we will enrich the deployment resource of the runtime container
 		// create a "dev" version of the component to be able to check if the dev deployment exists
 		devDeployment := &appsv1.Deployment{}
-		_, err = framework.Helper.Fetch(pkg.DeploymentNameFor(c, component.DevDeploymentMode), c.Namespace, devDeployment)
+		_, err = framework.Helper.Fetch(c.DeploymentNameFor(component.DevDeploymentMode), c.Namespace, devDeployment)
 		if err == nil {
 			devContainer := &devDeployment.Spec.Template.Spec.Containers[0]
 			runtimeContainer.Env = devContainer.Env
