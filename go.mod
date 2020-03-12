@@ -49,6 +49,7 @@ require (
 // also needed additional replace for jsonpatch based on result of go mod tidy
 replace (
 	github.com/appscode/jsonpatch => github.com/appscode/jsonpatch v0.0.0-20190108182946-7c0e3b262f30 // indirect
+	// halkyon.io/api => ../api
 	// halkyon.io/operator-framework => ../operator-framework
 	k8s.io/api => k8s.io/api v0.0.0-20181213150558-05914d821849
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20181213153335-0fe22c71c476
