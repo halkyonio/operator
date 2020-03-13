@@ -47,8 +47,6 @@ items:
             parameters:
               - name: context
                 value: /api/fruits
-              - name: port
-                value: "8080"
     buildConfig:
       type: "s2i"
       url: "https://github.com/halkyonio/operator.git"
