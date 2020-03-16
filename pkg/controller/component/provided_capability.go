@@ -1,6 +1,7 @@
 package component
 
 import (
+	"fmt"
 	v1beta12 "halkyon.io/api/capability/v1beta1"
 	"halkyon.io/api/component/v1beta1"
 	beta1 "halkyon.io/api/v1beta1"
@@ -35,7 +36,9 @@ func (res providedCapability) Build(empty bool) (runtime.Object, error) {
 			Labels:    ls,
 		}
 		capability.Spec = res.capabilityConfig.Spec
-		v1beta1.AddDefaultCapabilityParameters(capability, c)
+
+		v1beta1.AddCapabilityParameterIfNeeded(beta1.NameValuePair{Name: v1beta1.TargetComponentDefaultParameterName, Value: c.GetName()}, capability)
+		v1beta1.AddCapabilityParameterIfNeeded(beta1.NameValuePair{Name: v1beta1.TargetPortDefaultParameterName, Value: fmt.Sprintf("%d", c.Spec.Port)}, capability)
 	}
 	return capability, nil
 }

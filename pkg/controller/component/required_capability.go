@@ -59,7 +59,7 @@ func updateWithParametersIfNeeded(config v1beta1.CapabilityConfig, owner *v1beta
 	}
 
 	// add extra parameters that plugins can use
-	updated = v1beta1.AddDefaultCapabilityParameters(c, owner)
+	updated = v1beta1.AddCapabilityParameterIfNeeded(beta1.NameValuePair{Name: v1beta1.TargetDeploymentDefaultParameterName, Value: owner.DeploymentName()}, c)
 
 	if doUpdate && updated {
 		err := framework.Helper.Client.Update(context.Background(), c)
