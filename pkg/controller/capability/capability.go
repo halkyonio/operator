@@ -16,6 +16,14 @@ type Capability struct {
 	*framework.BaseResource
 }
 
+func NewCapability() *Capability {
+	c := &Capability{Capability: &halkyon.Capability{}}
+	// initialize the BaseResource, delegating its status handling to our newly created instance as StatusAware instance
+	c.BaseResource = framework.NewBaseResource(c)
+	c.Capability.SetGroupVersionKind(c.Capability.GetGroupVersionKind()) // make sure that GVK is set on the runtime object
+	return c
+}
+
 func (in *Capability) GetStatus() v1beta1.Status {
 	return in.Status.Status
 }
@@ -46,25 +54,12 @@ func (in *Capability) InitDependentResources() ([]framework.DependentResource, e
 	return in.BaseResource.AddDependentResource(p.ReadyFor(c)...), nil
 }
 
-func (in *Capability) ComputeStatus() (needsUpdate bool) {
-	return in.BaseResource.ComputeStatus(in)
-}
-
 func (in *Capability) ProvideDefaultValues() bool {
 	return false
 }
 
 func (in *Capability) GetUnderlyingAPIResource() framework.SerializableResource {
 	return in.Capability
-}
-
-func NewCapability() *Capability {
-	c := &Capability{
-		Capability:   &halkyon.Capability{},
-		BaseResource: framework.NewBaseResource(),
-	}
-	c.Capability.SetGroupVersionKind(c.Capability.GetGroupVersionKind()) // make sure that GVK is set on the runtime object
-	return c
 }
 
 func (in *Capability) CheckValidity() error {

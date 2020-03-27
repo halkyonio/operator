@@ -13,9 +13,22 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
+// blank assignment to check that Component implements Resource
+var _ framework.Resource = &Component{}
+
+// Component implements the Resource interface to handle behavior tied to the state of Halkyon's Component CR.
 type Component struct {
 	*halkyon.Component
 	*framework.BaseResource
+}
+
+// NewComponent creates a new Component instance, reusing BaseResource as the foundation for its behavior
+func NewComponent() *Component {
+	c := &Component{Component: &halkyon.Component{}}
+	// initialize the BaseResource, delegating its status handling to our newly created instance as StatusAware instance
+	c.BaseResource = framework.NewBaseResource(c)
+	c.Component.SetGroupVersionKind(c.Component.GetGroupVersionKind()) // make sure that GVK is set on the runtime object
+	return c
 }
 
 func (in *Component) NewEmpty() framework.Resource {
@@ -48,9 +61,6 @@ func (in *Component) InitDependentResources() ([]framework.DependentResource, er
 
 	return dependents, nil
 }
-
-// blank assignment to check that Component implements Resource
-var _ framework.Resource = &Component{}
 
 func (in *Component) Delete() error {
 	if framework.IsTargetClusterRunningOpenShift() {
@@ -204,10 +214,6 @@ func predicateFor(config halkyon.CapabilityConfig) framework.Predicate {
 	return ConfigPredicate{config: config}
 }
 
-func (in *Component) ComputeStatus() (needsUpdate bool) {
-	return in.BaseResource.ComputeStatus(in)
-}
-
 func (in *Component) ProvideDefaultValues() bool {
 	if len(in.Spec.DeploymentMode) == 0 {
 		in.Spec.DeploymentMode = halkyon.DevDeploymentMode
@@ -219,15 +225,6 @@ func (in *Component) ProvideDefaultValues() bool {
 
 func (in *Component) GetUnderlyingAPIResource() framework.SerializableResource {
 	return in.Component
-}
-
-func NewComponent() *Component {
-	c := &Component{
-		Component:    &halkyon.Component{},
-		BaseResource: framework.NewBaseResource(),
-	}
-	c.Component.SetGroupVersionKind(c.Component.GetGroupVersionKind()) // make sure that GVK is set on the runtime object
-	return c
 }
 
 func (in *Component) CheckValidity() error {

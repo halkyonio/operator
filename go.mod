@@ -35,7 +35,7 @@ require (
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	google.golang.org/api v0.15.0 // indirect
 	halkyon.io/api v1.0.0-rc.5.0.20200315220008-9878e23b9482
-	halkyon.io/operator-framework v1.0.0-beta.6.0.20200311123519-8276f263c10b
+	halkyon.io/operator-framework v1.0.0-beta.6.0.20200327155608-2ac32a75bc98
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible
