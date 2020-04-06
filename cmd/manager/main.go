@@ -85,7 +85,7 @@ func main() {
 		log.Info("watching namespace " + namespace)
 	}
 
-	// Create a new Cmd to provide shared dependencies and start components
+	// Retrieve the configuration and create a new Manager
 	config := config.GetConfigOrDie()
 	mgr, err := manager.New(config, options)
 	if err != nil {
