@@ -77,6 +77,7 @@ func (res pod) GetCondition(underlying runtime.Object, err error) *beta1.Depende
 					msg = fmt.Sprintf("%s is ready", p.Name)
 					cond.SetAttribute(v1beta1.PodNameAttributeKey, p.Name)
 				}
+				break
 			}
 		}
 		if len(p.Status.Message) > 0 {
