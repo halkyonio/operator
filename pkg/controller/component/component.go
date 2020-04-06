@@ -47,7 +47,7 @@ func (in *Component) InitDependentResources() ([]framework.DependentResource, er
 	c := in.Component
 	dependents := make([]framework.DependentResource, 0, 20)
 	dependents = append(dependents, in.BaseResource.AddDependentResource(newRole(in), framework.NewOwnedRoleBinding(in), newServiceAccount(c), newPvc(c),
-		newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c), newPod(c))...)
+		newDeployment(c), newService(c), newRoute(c), newIngress(c) /*newTask(c), newTaskRun(c),*/, newPod(c))...)
 
 	requiredCapabilities := c.Spec.Capabilities.Requires
 	for _, config := range requiredCapabilities {
@@ -264,12 +264,13 @@ func (in *Component) Handle(err error) (bool, v1beta1.Status) {
 			// if we have a contract error but the pod is ready, set the status to PushReady
 			if dependent, e := in.GetDependent(framework.TypePredicateFor(halkyon.PodGVK)); e == nil {
 				condition := dependent.GetCondition(dependent.Fetch())
-				in.Status.SetCondition(condition) // set the condition on the status to make sure we record the pod name
-				if condition.IsReady() && in.Status.Reason != halkyon.PushReady {
-					in.Status.Reason = halkyon.PushReady
-					in.Status.Message = msg
-					return true, in.Status.Status
-
+				updated := in.Status.SetCondition(condition) // set the condition on the status to make sure we record the pod name
+				if updated {
+					if condition.IsReady() && in.Status.Reason != halkyon.PushReady {
+						in.Status.Reason = halkyon.PushReady
+						in.Status.Message = msg
+					}
+					return updated, in.Status.Status
 				}
 			}
 			return false, in.Status.Status
