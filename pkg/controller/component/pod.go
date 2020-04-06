@@ -55,7 +55,16 @@ func (res pod) GetCondition(underlying runtime.Object, err error) *beta1.Depende
 							for _, status := range p.Status.ContainerStatuses {
 								waiting := status.State.Waiting
 								if status.Name == c && waiting != nil {
-									msgArr = append(msgArr, fmt.Sprintf("%s: %s => %s", c, waiting.Reason, waiting.Message))
+									format := "%s: %s"
+									waitMsg := waiting.Message
+									var m string
+									if len(waitMsg) > 0 {
+										format = format + " => %s"
+										m = fmt.Sprintf(format, c, waiting.Reason, waitMsg)
+									} else {
+										m = fmt.Sprintf(format, c, waiting.Reason)
+									}
+									msgArr = append(msgArr, m)
 								}
 							}
 						}
