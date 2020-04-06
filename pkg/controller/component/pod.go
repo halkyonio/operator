@@ -75,8 +75,10 @@ func (res pod) GetCondition(underlying runtime.Object, err error) *beta1.Depende
 		}
 		cond.Message = msg
 		cond.Type = beta1.DependentPending
+		cond.Reason = beta1.ReasonPending
 		if ready {
 			cond.Type = beta1.DependentReady
+			cond.Reason = beta1.ReasonReady
 		}
 
 	})
