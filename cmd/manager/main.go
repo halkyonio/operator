@@ -164,9 +164,10 @@ func main() {
 
 	// Purge capability infos that might not be available anymore
 	purgedCount, err := capability2.PurgeCapabilityInfos(log)
-	log.Info(fmt.Sprintf("Purged %d capability infos", purgedCount))
 	if err != nil {
 		log.Error(err, "Purge error")
+	} else {
+		log.Info(fmt.Sprintf("Purged %d capability infos", purgedCount))
 	}
 
 	// Create component controller and add it to the manager
