@@ -47,7 +47,7 @@ func (in *Component) InitDependentResources() ([]framework.DependentResource, er
 	c := in.Component
 	dependents := make([]framework.DependentResource, 0, 20)
 	dependents = append(dependents, in.BaseResource.AddDependentResource(newRole(in), framework.NewOwnedRoleBinding(in), newServiceAccount(c), newPvc(c),
-		newDeployment(c), newService(c), newRoute(c), newIngress(c) /*newTask(c), newTaskRun(c),*/, newPod(c))...)
+		newDeployment(c), newService(c), newRoute(c), newIngress(c), newTask(c), newTaskRun(c), newPod(c))...)
 
 	requiredCapabilities := c.Spec.Capabilities.Requires
 	for _, config := range requiredCapabilities {
