@@ -12,6 +12,7 @@ if [ "$delete" != delete ]; then
     kubectl create ns "${namespace}"
   fi
   kubectl apply -f deploy/cluster-wide/crds
+  sleep 5 # to make sure that CRDs are applied
   kubectl apply -f deploy/cluster-wide/
   kubectl apply -n "${namespace}" -f deploy/namespaced
 else
