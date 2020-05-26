@@ -114,11 +114,11 @@ func (in *Component) CreateOrUpdate() (err error) {
 	}()
 	for i, required := range in.Spec.Capabilities.Requires {
 		if dependentCap, err := in.GetDependent(predicateFor(required.CapabilityConfig)); err == nil {
-			// attempt to retrieve the associated capability, this will bound the capability if set to auto-bindable
+			// attempt to retrieve the associated capability, this will bind the capability if set to auto-bindable
 			c, err := dependentCap.Fetch()
 
 			// if required wasn't bound and it is now, we need to update the spec
-			// "re-fetch" current required since it's been updated when the capability auto-bounded when fetched, hackish I know
+			// "re-fetch" current required since it's been updated when the capability auto-bound when fetched, hackish I know
 			refreshedRequired := in.Spec.Capabilities.Requires[i]
 			if required.BoundTo != refreshedRequired.BoundTo {
 				required = refreshedRequired
