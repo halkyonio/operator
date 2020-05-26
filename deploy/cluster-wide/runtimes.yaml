@@ -2,23 +2,23 @@
 apiVersion: halkyon.io/v1beta1
 kind: Runtime
 metadata:
-  name: spring-boot-2.1.12
+  name: spring-boot-2.2.6
 spec:
   name: "spring-boot"
   image: "quay.io/halkyonio/hal-maven-jdk"
   executablePattern: "*"
-  version: "2.1.12.RELEASE"
+  version: "2.2.6.RELEASE"
   generator: "https://generator.snowdrop.me/app?springbootversion={{.RuntimeVersion}}&groupid={{.GroupId}}&artifactid={{.ArtifactId}}&version={{.ProjectVersion}}&template={{.ProjectTemplate}}&packagename={{.PackageName}}&outdir={{.ArchiveName}}"
 ---
 apiVersion: halkyon.io/v1beta1
 kind: Runtime
 metadata:
-  name: spring-boot-2.1.6
+  name: spring-boot-2.1.13
 spec:
   name: "spring-boot"
   image: "quay.io/halkyonio/hal-maven-jdk"
   executablePattern: "*"
-  version: "2.1.6.RELEASE"
+  version: "2.1.13.RELEASE"
   generator: "https://generator.snowdrop.me/app?springbootversion={{.RuntimeVersion}}&groupid={{.GroupId}}&artifactid={{.ArtifactId}}&version={{.ProjectVersion}}&template={{.ProjectTemplate}}&packagename={{.PackageName}}&outdir={{.ArchiveName}}"
 ---
 apiVersion: halkyon.io/v1beta1
