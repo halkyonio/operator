@@ -29,39 +29,45 @@ This projects aims to tackle said complexity and vastly **simplify** the process
 By providing several, easy-to-use Kubernetes [Custom Resources (CRs)](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and
 an [Operator](https://enterprisersproject.com/article/2019/2/kubernetes-operators-plain-english) to handle them, the Halkyon project provides the following features:
 - Install micro-services (`components` in Halkyon's parlance) utilizing `runtimes` such as Spring Boot, Vert.x, Thorntail, Quarkus or Nodejs, serving as base building blocks for your application
-- Manage the relations between the different components using `link` CR allowing one micro-service for example to consume a REST endpoint provided by another
-- Deploy various infrastructure services like a database which are bound to a `component` via the `capability` CR.
+- Deploy various infrastructure services, like databases, that components can then use to implement their functionality, via the `capability` CR
+- Record the dependencies components need to operate using a contract-based approach where a component describes the set of capabilities the component requires and/or provides to other components
 
 The Halkyon Operator requires `Kubernetes >= 1.13` or `OpenShift >= 3.11`.
 
 ## Key concepts
 
-An example of a simple, modern application, defined as a collection of micro-services is depicted hereafter
-
-![Composition](halkyon-operator-demo.png)
+We will explain Halkyon's key concepts using the example of a simple, modern application: a `frontend` application connecting
+to a `backend` application via a REST endpoint. This application, in turns, uses the services of a PostgreSQL database.
 
 Such an application, though simple, will require several Kubernetes resources in order to be deployed on a Kubernetes cluster. 
-Furthermore several development iterations are usually required to make the application production ready.
+Furthermore, several development iterations are usually required to make the application production ready.
 
-The entry point to the application is the `fruit-client-sb` application. It connects to a backend REST endpoint implemented
-by the `fruit-backend-sb` application. This application, in turns, uses the services of a PostgreSQL database.
+In Halkyon parlance, both `frontend` and `backend` micro-services are `components` of our application. The PostgreSQL database
+is a `capability` used by the `backend` `component`. Components define which `capabilities` they require to function and which
+they provide to other `components` via contract-like declarations. Halkyon can then match, automatically or on-demand, `components`
+and `capabilities` based on the cluster state.
 
-In Halkyon parlance, both `fruit-client-sb` and `fruit-backend-sb` are `components` of our application. The PostgreSQL database
-is a `capability` used by the `fruit-backend-sb` `component`. Components and capabilities are "glued" together using `links`.
-Halkyon `links` provides the `components` or `capabilities` they link together with the information the respective applications
-need to materialize the connection within the remote cluster.
+For example, the `backend` component declares requiring a PostgreSQL database capability, expliciting its requirements but also 
+declares providing a REST endpoint capability that can be used by other components, which is exactly what the `frontend` needs.
+Halkyon takes care of exposing the `backend` cluster URL and injecting that information into the `frontend` component when 
+the binding is requested.
 
-For example, we use a `link` between `fruit-client-sb` and `fruit-backend-sb` to provide `fruit-client-sb` with the cluster URL
-of the `fruit-backend-sb` so that the client can access the backend endpoint. Similarly, we create a `link` between the 
-`fruit-backend-sb` `component` and the PostgreSQL database `capability`, thus providing the `component` with the database 
-connection information.
+Similarly, should a PostgreSQL database `capability` matching the `backend` requirements be deployed on the cluster, Halkyon could
+bind it the `backend` `component` thus providing the `component` with the database connection information without the user having
+to figure out how to do so. 
 
-Information about `components`, `links` and `capabilities` are materialized by custom resources in Halkyon. We can create the
+Halkyon is extensible and it is not too hard to implement new capabilities that can be dynamically added to the operator, without
+requiring rebuilding the core operator. More details about Halkyon's 
+[extension mechanism](https://github.com/halkyonio/operator-framework/blob/master/README.adoc#plugin-architecture-overview) 
+can be found in the [Halkyon framework project](https://github.com/halkyonio/operator-framework) 
+[documentation](https://github.com/halkyonio/operator-framework/). 
+
+Information about `components` and `capabilities` are materialized by custom resources in Halkyon. We can create the
 manifests for these custom resources which, once processed by the remote cluster, will be handled by the Halkyon operator to 
 create the appropriate Kubernetes/OpenShift resources for you, so you can focus on your application architecture as opposed to 
 wondering how it might translate to Kubernetes `pods` or `deployments`.
 
-**Remark**: you can view the full description of the CRs and their API under the project `https://github.com/halkyonio/api`.
+**Remark**: you can view the full description of the CRs and their API in the [associated Halkyon API project](https://github.com/halkyonio/api).
 
 ### Component
 
@@ -74,16 +80,23 @@ will create these resources:
 - `PersistentVolumeClaim`,
 - `Ingress` or `Route` on OpenShift if the component is exposed.
 
+#### Runtime
+
 You can already see how Halkyon reduces the cognitive load on developers since there is no need to worry about the low-level 
 details by focusing on the salient aspects of your component: what runtime does it need to run, does it need to be exposed outside
 of the cluster and on what port. Theses aspects are captured along with less important ones in the custom resource fields: 
 `runtime` (and `version`), `exposeService` and `port`. The `runtime` name will condition which container image will be used to 
-run the application. Of note, the java-based runtime will use a specific image which allows us to do builds from source as well
-as run binaries. For more information about this image, please take a look at 
-https://github.com/halkyonio/container-images/blob/master/README.md#hal-maven-jdk8-image. If you want to expose your application,
-you will need to set `exposeService` to `true` and specify which `port` needs to be exposed.
+run the application. 
 
-Of note, Halkyon offers two deployment modes, controlled by the `deploymentMode` field of the custom resource: `dev` 
+Of note, the java-based runtimes currently use a specific image which allows us to do builds from source as well
+as run binaries. For more information about this image, please take a look at 
+https://github.com/halkyonio/container-images/blob/master/README.md#hal-maven-jdk8-image. Runtimes are currently defined using
+custom resources and it's therefore easy to deploy new runtimes that Halkyon can use. We are, however, considering switching to 
+using [devfiles](https://devfile.github.io/website/devfile/).
+
+#### Mode
+
+Halkyon offers two deployment modes, controlled by the `deploymentMode` field of the custom resource: `dev` 
 (for "development") and `build`, `dev` being the default mode if none is specified explicitly.
 
 The `dev` mode sets the environment in such a way that the pod where your application is 
@@ -96,27 +109,87 @@ is controlled by the `buildConfig` field of the `component` custom resource wher
 git repository to be used as basis for the code (`url` field). You can also specify the precise git reference to use (`ref` field)
 or where to find the actual code to build within the repository using the `contextPath` and `moduleDirName` fields.
 
+#### Provided and required capabilities
+
+As described earlier, `components` specify the set of `capabilities` they require to function as well as the set of `capabilities`
+they provide for other `components` to leverage. A `component` CR defines its contract in the `capabilities` section of its `spec`, 
+which contains, as expected, two arrays: `requires` and `provides`.
+
+For example, here is how the `backend` component described above would declare its contract:
+
+```yaml
+capabilities:
+    provides:
+    - name: backend-endpoint
+      spec:
+        category: api
+        parameters:
+        - name: context
+          value: /api/fruits
+        type: rest-component
+        version: "1"
+    requires:
+    - autoBindable: true
+      name: db
+      spec:
+        category: database
+        type: Postgres
+        version: "10.6"
+```  
+
+The above defines one required and one provided `capabilities`. Halkyon will match capabilities based on their category, type 
+and, optionally, version. This declaration means that the `backend` component requires a `10.6` PostgreSQL database capability,
+which is marked as `autoBindable`, meaning that Halkyon will bind to the first capability matching the requirements found on the
+cluster. This is useful in a development environment to go faster but is probably not a good idea on a production cluster! :)
+If a user knows which `capability` to bind against, they can explicitly request it using the `boundTo` field of the required 
+capability definition. Halkyon will then attempt to bind to the specified capability if available. Of note, this field will be
+automatically set by Halkyon when an automatic binding occurs so that the matching process is subsequently bypassed.
+
+The provided capability defines that the `backend` component provides an API REST endpoint on the `/api/fruits` context as 
+specified by the `context` parameter.
+
+#### Reference
+
 For more details on the fields of the Component custom resource, please refer to 
 [its API](https://github.com/halkyonio/api/blob/master/component/v1beta1/types.go).
 
 **Examples**:
 
 `DeploymentMode: dev`
-
 ```yaml
 apiVersion: halkyon.io/v1beta1
 kind: Component
 metadata:
-  name: spring-boot-demo
+  name: backend
 spec:
+  buildConfig:
+    ref: ""
+    url: ""
+  capabilities:
+    provides:
+    - name: backend-endpoint
+      spec:
+        category: api
+        parameters:
+        - name: context
+          value: /api/fruits
+        type: rest-component
+        version: "1"
+    requires:
+    - autoBindable: true
+      name: db
+      spec:
+        category: database
+        type: Postgres
+        version: "10.6"
   deploymentMode: dev
-  runtime: spring-boot
-  version: 2.1.16
-  exposeService: true
-  port: 8080
   envs:
   - name: SPRING_PROFILES_ACTIVE
-    value: openshift-catalog
+    value: kubernetes
+  exposeService: true
+  port: 8080
+  runtime: spring-boot
+  version: 2.1.13.RELEASE
 ```
 
 `DeploymentMode: build`
@@ -141,58 +214,21 @@ spec:
   port: 8080
 ```
 
-### Link
-
-As explained in the [introduction](#introduction), links explicit how components are tied together to create a composite 
-application. This is done by injecting information in the target component (as identified by the `componentName` field of the 
-`link` custom resource). Under the hood, the Halkyon operator modifies the `Deployment` associated with the target component
-to either add environment variables or secret reference, depending on the type of link. This is controlled, as you might have
-guessed :smirk:, using the `type` field of the link CR. This fields currently accepts two possible values: `Secret` or `Env`.
-A `Secret` link will use the `ref` field value to look up a Kubernetes secret while an `Env` link will use the `envs` field. 
-This information will then be used to enrich the container associated with the `Deployment` according to its type (`EnvFrom` for
-secret injection, `Env` for environment variable injection).
-
-For more details on the fields of the Link custom resource, please refer to 
-[its API](https://github.com/halkyonio/api/blob/master/link/v1beta1/types.go).
-
-**Examples**:
-
-`Secret`
-```yaml
-apiVersion: "halkyon.io/v1beta1"
-kind: "Link"
-metadata:
-  name: "link-to-database"
-spec:
-  componentName: "fruit-backend-sb"
-  type: "Secret"
-  ref: "postgres-db-config" 
-```
-
-`Envs`
-```yaml
-apiVersion: "halkyon.io/v1beta1"
-kind: "Link"
-metadata:
-  name: "link-to-fruit-backend"
-spec:
-  componentName: "fruit-client-sb"
-  type: "Env"
-  ref: ""
-  envs:
-  - name: "ENDPOINT_BACKEND"
-    value: "http://fruit-backend-sb:8080/api/fruits"
-```
-
 ### Capability 
 
 A capability corresponds to a service that the micro-service will consume on the platform. The Halkyon operator then uses this 
-information to configure the service. Capabilities are identified by the combination of its `category` which represents the 
+information to configure the service. Capabilities are identified by the combination of their `category` which represents the 
 general class of configurable services, further identified by a more specific `type` (which could be construed as a sub-category)
 and a version for the `category/type` combination. The service is then configured using a list of name/value `parameters`.
 
-We currently only support the `database/PostgreSQL` category/type combination but are planning to expand to other categories and
-types. Halkyon uses the `[KubeDB](https://kubedb.com)` operator to handle the database category.
+Capabilities are implemented as plugins and are therefore independent of Halkyon's core, meaning that any user can extend 
+Halkyon by developing new capabilities but also that Halkyon's core is not burdened by the dependencies a given capability might
+bring, thus making things easier to manage. See the documentation on Halkyon's 
+[extension mechanism](https://github.com/halkyonio/operator-framework/blob/master/README.adoc#plugin-architecture-overview) for 
+more details. 
+
+For example, Halkyon uses the `[KubeDB](https://kubedb.com)` operator to handle the database category. The plugin implementation
+can be found in the [`kubedb-capability`](https://github.com/halkyonio/kubedb-capability) project.
 
 For more details on the fields of the Capability custom resource, please refer to 
 [its API](https://github.com/halkyonio/api/blob/master/capability/v1beta1/types.go).
@@ -220,8 +256,9 @@ apiVersion: "halkyon.io/v1beta1"
 
 ## Pre-requisites
 
-In order to use the Halkyon Operator and the CRs, the [Tekton Pipelines](https://tekton.dev/) and [KubeDB](http://kubedb.com) Operators need to be installed on the cluster.
-We assume that you have installed a cluster with Kubernetes version equals to 1.13 or newer.
+In order to use the Halkyon Operator and the CRs, the [Tekton Pipelines](https://tekton.dev/) operator needs to be installed on the cluster.
+Capabilities might have additional requirements. For example, the [KubeDB](http://kubedb.com) operator is required for the 
+`kubedb-capability` plugin. We assume that you have installed a cluster with Kubernetes version equals to 1.13 or newer.
 
 ### Local cluster using `minikube`
 
