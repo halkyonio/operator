@@ -95,18 +95,3 @@ func getBaseContainerFor(component *component.Component) (corev1.Container, erro
 	}
 	return container, nil
 }
-
-func populatePodEnvVar(component *component.Component) []corev1.EnvVar {
-	tmpEnvVar, err := getEnvAsMap(component)
-	if err != nil {
-		panic(err)
-	}
-
-	// Convert Map to Slice
-	newEnvVars := make([]corev1.EnvVar, 0, len(tmpEnvVar))
-	for k, v := range tmpEnvVar {
-		newEnvVars = append(newEnvVars, corev1.EnvVar{Name: k, Value: v})
-	}
-
-	return newEnvVars
-}
