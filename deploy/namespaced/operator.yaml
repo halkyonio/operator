@@ -15,7 +15,7 @@ spec:
       serviceAccountName: halkyon-operator
       containers:
         - name: halkyon-operator
-          image: quay.io/halkyonio/operator:latest
+          image: harishyayi/operator:latest
           ports:
             - containerPort: 60000
               name: metrics

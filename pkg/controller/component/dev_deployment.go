@@ -84,8 +84,13 @@ func getBaseContainerFor(component *component.Component) (corev1.Container, erro
 		return corev1.Container{}, err
 	}
 
+	env, err := populatePodEnvVar(component)
+	if err != nil {
+		return corev1.Container{}, err
+	}
+
 	container := corev1.Container{
-		Env:             populatePodEnvVar(component),
+		Env:             env,
 		Image:           runtimeImage.RegistryRef,
 		ImagePullPolicy: corev1.PullAlways,
 		Name:            component.Name,

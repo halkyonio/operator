@@ -2,7 +2,7 @@ package component
 
 import (
 	component "halkyon.io/api/component/v1beta1"
-	framework "halkyon.io/operator-framework"
+	"halkyon.io/operator-framework"
 	"k8s.io/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -71,8 +71,12 @@ func (res deployment) installBuild(empty bool) (runtime.Object, error) {
 }
 
 func getRuntimeContainerFor(component *component.Component) (corev1.Container, error) {
+	env, err := populatePodEnvVar(component);
+	if err != nil {
+		return corev1.Container{}, err
+	}
 	container := corev1.Container{
-		Env:             populatePodEnvVar(component),
+		Env:             env,
 		Image:           dockerImageURL(component),
 		ImagePullPolicy: corev1.PullAlways,
 		Name:            component.Name,

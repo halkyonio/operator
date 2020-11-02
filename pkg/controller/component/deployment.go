@@ -76,10 +76,10 @@ func (res deployment) Update(toUpdate runtime.Object) (bool, runtime.Object, err
 	return false, deployment, nil
 }
 
-func populatePodEnvVar(component *component.Component) []corev1.EnvVar {
+func populatePodEnvVar(component *component.Component) ([]corev1.EnvVar, error) {
 	tmpEnvVar, err := getEnvAsMap(component)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// Convert Map to Slice
@@ -88,5 +88,5 @@ func populatePodEnvVar(component *component.Component) []corev1.EnvVar {
 		newEnvVars = append(newEnvVars, corev1.EnvVar{Name: k, Value: v})
 	}
 
-	return newEnvVars
+	return newEnvVars, nil
 }
