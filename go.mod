@@ -13,7 +13,7 @@ require (
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
 	github.com/gophercloud/gophercloud v0.7.0 // indirect
-	github.com/hashicorp/go-getter v1.4.1
+	github.com/hashicorp/go-getter v1.6.1
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
