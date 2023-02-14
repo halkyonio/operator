@@ -8,7 +8,7 @@ require (
 	github.com/Azure/go-autorest/autorest v0.9.3 // indirect
 	github.com/Azure/go-autorest/autorest/adal v0.8.1 // indirect
 	github.com/appscode/jsonpatch v0.0.0-00010101000000-000000000000 // indirect
-	github.com/aws/aws-sdk-go v1.26.2 // indirect
+	github.com/aws/aws-sdk-go v1.34.0 // indirect
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
@@ -23,7 +23,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.2.2 // indirect
 	github.com/operator-framework/operator-sdk v0.8.2
 	github.com/pborman/uuid v1.2.0 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.2.1 // indirect
 	github.com/prometheus/client_model v0.0.0-20191202183732-d1d2010b5bee // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
@@ -32,7 +32,7 @@ require (
 	github.com/tektoncd/pipeline v0.9.1
 	go.opencensus.io v0.22.2 // indirect
 	go.uber.org/zap v1.13.0 // indirect
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	google.golang.org/api v0.15.0 // indirect
 	halkyon.io/api v1.0.0-rc.6
 	halkyon.io/operator-framework v1.0.0-beta.7
