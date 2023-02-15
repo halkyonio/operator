@@ -23,16 +23,15 @@ require (
 	github.com/openzipkin/zipkin-go v0.2.2 // indirect
 	github.com/operator-framework/operator-sdk v0.8.2
 	github.com/pborman/uuid v1.2.0 // indirect
-	github.com/pkg/errors v0.8.1
-	github.com/prometheus/client_golang v1.2.1 // indirect
-	github.com/prometheus/client_model v0.0.0-20191202183732-d1d2010b5bee // indirect
+	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.11.1 // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/pflag v1.0.5
 	github.com/tektoncd/pipeline v0.9.1
 	go.opencensus.io v0.22.2 // indirect
 	go.uber.org/zap v1.13.0 // indirect
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+	golang.org/x/net v0.0.0-20200625001655-4c5254603344
 	google.golang.org/api v0.15.0 // indirect
 	halkyon.io/api v1.0.0-rc.6
 	halkyon.io/operator-framework v1.0.0-beta.7
