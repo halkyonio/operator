@@ -3,17 +3,18 @@ module halkyon.io/operator
 go 1.12
 
 require (
+	cloud.google.com/go/container v1.13.1 // indirect
+	cloud.google.com/go/monitoring v1.12.0 // indirect
+	cloud.google.com/go/trace v1.8.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.8 // indirect
 	github.com/Azure/go-autorest/autorest v0.9.3 // indirect
 	github.com/Azure/go-autorest/autorest/adal v0.8.1 // indirect
 	github.com/appscode/jsonpatch v0.0.0-00010101000000-000000000000 // indirect
-	github.com/aws/aws-sdk-go v1.26.2 // indirect
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
-	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
 	github.com/gophercloud/gophercloud v0.7.0 // indirect
-	github.com/hashicorp/go-getter v1.4.1
+	github.com/hashicorp/go-getter v1.7.0
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
@@ -23,17 +24,14 @@ require (
 	github.com/openzipkin/zipkin-go v0.2.2 // indirect
 	github.com/operator-framework/operator-sdk v0.8.2
 	github.com/pborman/uuid v1.2.0 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.2.1 // indirect
-	github.com/prometheus/client_model v0.0.0-20191202183732-d1d2010b5bee // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	github.com/tektoncd/pipeline v0.9.1
-	go.opencensus.io v0.22.2 // indirect
 	go.uber.org/zap v1.13.0 // indirect
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
-	google.golang.org/api v0.15.0 // indirect
+	golang.org/x/net v0.6.0
 	halkyon.io/api v1.0.0-rc.6
 	halkyon.io/operator-framework v1.0.0-beta.7
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
