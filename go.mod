@@ -32,7 +32,7 @@ require (
 	github.com/tektoncd/pipeline v0.9.1
 	go.opencensus.io v0.22.2 // indirect
 	go.uber.org/zap v1.13.0 // indirect
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+	golang.org/x/net v0.7.0
 	google.golang.org/api v0.15.0 // indirect
 	halkyon.io/api v1.0.0-rc.6
 	halkyon.io/operator-framework v1.0.0-beta.7
